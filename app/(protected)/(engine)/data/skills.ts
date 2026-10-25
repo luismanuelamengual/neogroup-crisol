@@ -4,8 +4,9 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 
 /**
- * Catalog of skills (names in i18n, skills.<id>). The heroes have their
- * weapon attack and a few specials for now: the skill trees arrive in phase 5.
+ * Catalog of skills (names in i18n, skills.<id>). Each hero starts with its
+ * weapon attack and one special; the rest are bought in its skill tree
+ * (data/talents.ts).
  */
 
 const ELEMENTS = [
@@ -45,6 +46,33 @@ const HERO_SKILLS: Skill[] = [
     stat: 'attack',
     damageType: DamageType.SLASH,
     statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }]
+  },
+  {
+    id: 'kael-whirlwind',
+    cost: 30,
+    target: TargetType.ALL_ENEMIES,
+    power: 1.3,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    statuses: [{ type: StatusType.BLEED, chance: 0.3, turns: 2 }]
+  },
+  {
+    id: 'kael-rally',
+    cost: 20,
+    target: TargetType.ALL_ALLIES,
+    power: 0,
+    stat: 'attack',
+    damageType: DamageType.LIGHT,
+    statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }]
+  },
+  {
+    id: 'kael-inferno',
+    cost: 34,
+    target: TargetType.ALL_ENEMIES,
+    power: 1.2,
+    stat: 'attack',
+    damageType: DamageType.FIRE,
+    statuses: [{ type: StatusType.BURN, chance: 0.45, turns: 2 }]
   },
   // Sera: bow.
   { id: 'sera-shot', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.PIERCE },

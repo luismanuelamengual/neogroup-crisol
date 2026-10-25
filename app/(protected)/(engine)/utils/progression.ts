@@ -1,9 +1,10 @@
-import { getMaxHealth } from '@/app/(protected)/(engine)/data/characters'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
+import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
- * Experience and levels (no level cap). For now the attributes grow on their
- * own with the level; the points to spend arrive in phase 5.
+ * Experience and levels (no level cap). Each level grows the attributes a
+ * bit on its own and gives an attribute point, a skill point and an Echo for
+ * the common pool (see utils/heroes.ts).
  */
 
 /** Experience needed to go from a level to the next one: it always grows, but never stops. */
@@ -21,7 +22,7 @@ export function gainExperience(character: CharacterState, xp: number): Character
     level++
   }
 
-  const gainedHealth = getMaxHealth({ id: character.id, level }) - getMaxHealth(character)
+  const gainedHealth = getMaxHealth({ ...character, level }) - getMaxHealth(character)
 
   return { ...character, level, xp: pending, health: character.health + gainedHealth }
 }

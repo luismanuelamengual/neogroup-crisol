@@ -9,13 +9,17 @@ import {
   getCombatant,
   getFighters,
   getTurnQueue,
+  getUsableItems,
+  getUsableSkills,
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
-import { createCharacter } from '@/app/(protected)/(engine)/utils/gameState'
+import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 import { simulateBattle, winRate } from '@/tests/support/battleSimulator'
+import { buildCharacter } from '@/tests/support/builds'
 
-const kael = createCharacter(CharacterId.KAEL, 5)
+/** Kael at level 5 with Sweep and Flame Edge bought. */
+const kael = { ...createCharacter(CharacterId.KAEL, 5), talents: ['kael-sharpness', 'kael-sweep', 'kael-flame-edge'] }
 
 function battle(phases: EnemySpawn[][], heroes = [kael], canRetreat = true): BattleState {
   return createBattle({ heroes, phases, seed: 42, biome: Biome.MEADOWS, canRetreat }).state
@@ -115,7 +119,7 @@ describe('damage', () => {
 
     expect(flame.events).toContainEqual(expect.objectContaining({ type: 'damage', targetId: 'e1-1', weak: true }))
 
-    const brann = createCharacter(CharacterId.BRANN, 5)
+    const brann = { ...createCharacter(CharacterId.BRANN, 5), talents: ['brann-earthsplitter'] }
     const quake = performAction(turnOf(battle([[{ speciesId: 'sand-worm', level: 5 }]], [brann]), 'h-brann'), {
       type: 'skill',
       skillId: 'brann-earthsplitter',
@@ -296,7 +300,7 @@ describe('enemy AI', () => {
 
 describe('balance of the Meadows', () => {
   const setup = (level: number, phases: EnemySpawn[][]) => ({
-    heroes: [createCharacter(CharacterId.KAEL, level)],
+    heroes: [buildCharacter(CharacterId.KAEL, level)],
     phases,
     biome: Biome.MEADOWS,
     canRetreat: true
@@ -321,5 +325,150 @@ describe('balance of the Meadows', () => {
 
     expect(winRate(setup(10, matriarch), 60)).toBeLessThan(0.5)
     expect(winRate(setup(13, matriarch), 60)).toBeGreaterThan(0.8)
+  })
+})
+
+describe('items, bonuses and loot', () => {
+  const field = (heroes = [kael], items: Record<string, number> = {}) =>
+    createBattle({
+      heroes,
+      phases: [[{ speciesId: 'thorn-boar', level: 5 }]],
+      seed: 7,
+      biome: Biome.MEADOWS,
+      canRetreat: true,
+      items
+    }).state
+  const hurtHero = (state: BattleState, health: number): BattleState => ({
+    ...state,
+    combatants: state.combatants.map((combatant) => (combatant.side === 'hero' ? { ...combatant, health } : combatant))
+  })
+
+  it('carries only the consumables, and spends one per use', () => {
+    const state = turnOf(hurtHero(field([kael], { 'health-potion': 2, 'rough-stone': 4 }), 10), 'h-kael')
+
+    expect(state.items).toEqual({ 'health-potion': 2 })
+    expect(getUsableItems(state).map((item) => item.id)).toEqual(['health-potion'])
+
+    const { state: after, events } = performAction(state, {
+      type: 'item',
+      itemId: 'health-potion',
+      targetIds: ['h-kael']
+    })
+    const hero = getCombatant(after, 'h-kael')
+
+    expect(after.items['health-potion']).toBe(1)
+    expect(hero.health).toBe(10 + Math.round(hero.stats.maxHealth * 0.35))
+    expect(events[0]).toEqual({ type: 'item', actorId: 'h-kael', itemId: 'health-potion', targetIds: ['h-kael'] })
+  })
+
+  it('brings a fallen ally back with a revival potion', () => {
+    const sera = createCharacter(CharacterId.SERA, 5)
+    const base = field([kael, sera], { 'revive-potion': 1 })
+    const state = turnOf(
+      {
+        ...base,
+        combatants: base.combatants.map((combatant) =>
+          combatant.id === 'h-sera' ? { ...combatant, health: 0 } : combatant
+        )
+      },
+      'h-kael'
+    )
+    const { state: after, events } = performAction(state, {
+      type: 'item',
+      itemId: 'revive-potion',
+      targetIds: ['h-sera']
+    })
+
+    expect(getCombatant(after, 'h-sera').health).toBeGreaterThan(0)
+    expect(events).toContainEqual(expect.objectContaining({ type: 'revive', targetId: 'h-sera' }))
+    expect(getFighters(after, 'hero')).toHaveLength(2)
+  })
+
+  it('cures the harmful statuses with an antidote and burns every enemy with a bomb', () => {
+    const base = field([kael], { antidote: 1, 'fire-bomb': 1 })
+    const poisoned = turnOf(
+      {
+        ...base,
+        combatants: base.combatants.map((combatant) =>
+          combatant.side === 'hero'
+            ? {
+                ...combatant,
+                statuses: [
+                  { type: StatusType.POISON, turns: 3 },
+                  { type: StatusType.ATTACK_UP, turns: 3 }
+                ]
+              }
+            : combatant
+        )
+      },
+      'h-kael'
+    )
+    const cured = performAction(poisoned, { type: 'item', itemId: 'antidote', targetIds: ['h-kael'] }).state
+
+    expect(getCombatant(cured, 'h-kael').statuses.map((status) => status.type)).toEqual([StatusType.ATTACK_UP])
+
+    const bombed = performAction(turnOf(cured, 'h-kael'), { type: 'item', itemId: 'fire-bomb', targetIds: [] })
+
+    expect(bombed.events).toContainEqual(expect.objectContaining({ type: 'damage', targetId: 'e1-1', weak: true }))
+  })
+
+  it('heals with lifesteal and avoids damage with guard', () => {
+    const leech = { ...kael, runes: [1] }
+    const state = turnOf(hurtHero(field([leech]), 20), 'h-kael')
+    const { events } = performAction(state, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+    expect(getCombatant(state, 'h-kael').bonuses?.lifesteal).toBeGreaterThan(0)
+    expect(events).toContainEqual(expect.objectContaining({ type: 'heal', targetId: 'h-kael' }))
+
+    const guarded = (guard: number) => {
+      const base = field()
+      const enemyTurn = {
+        ...base,
+        actorId: 'e1-1',
+        combatants: base.combatants.map((combatant) =>
+          combatant.side === 'hero' ? { ...combatant, bonuses: { ...combatant.bonuses!, guard } } : combatant
+        )
+      }
+
+      return performAction(enemyTurn, { type: 'skill', skillId: 'gore', targetIds: ['h-kael'] }).events.find(
+        (event) => event.type === 'damage'
+      )
+    }
+
+    expect((guarded(0.5) as { amount: number }).amount).toBeLessThan((guarded(0) as { amount: number }).amount)
+  })
+
+  it('makes the upgrades of the tree change the specials', () => {
+    const upgraded = { ...kael, talents: [...kael.talents, 'kael-precision', 'kael-deep-cut'] }
+    const cut = (hero: typeof kael) =>
+      getUsableSkills(turnOf(field([hero]), 'h-kael'), 'h-kael').find((skill) => skill.id === 'kael-firm-cut')!
+
+    expect(cut(upgraded).cost).toBe(cut(kael).cost - 2)
+    expect(cut(upgraded).power).toBeCloseTo(cut(kael).power * 1.3)
+  })
+
+  it('drops stones from a boss', () => {
+    const state = turnOf(
+      {
+        ...createBattle({
+          heroes: [kael],
+          phases: [[{ speciesId: 'bandit-chief', level: 1 }]],
+          seed: 3,
+          biome: Biome.MEADOWS,
+          canRetreat: false
+        }).state
+      },
+      'h-kael'
+    )
+    const nearlyDead = {
+      ...state,
+      combatants: state.combatants.map((combatant) =>
+        combatant.side === 'enemy' ? { ...combatant, health: 1, bars: 1 } : combatant
+      )
+    }
+    const { state: after } = performAction(nearlyDead, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+    expect(after.outcome).toBe('victory')
+    expect(after.loot['rough-stone']).toBe(4)
   })
 })

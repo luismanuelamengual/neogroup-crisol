@@ -1,5 +1,5 @@
-import { getCharacterDefinition, getCharacterStats } from '@/app/(protected)/(engine)/data/characters'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
+import { BIOME_POTIONS, BIOME_STONE, BOSS_STONES, DROP_CHANCE, getItem } from '@/app/(protected)/(engine)/data/items'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
@@ -11,9 +11,11 @@ import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Item, ItemTarget } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
+import { getCharacterSkills, getCharacterStats, getHeroBonuses } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
  * The combat engine: pure functions over a BattleState. Turns come from a
@@ -53,6 +55,20 @@ const AFFINITY_MULTIPLIER: Record<Affinity, number> = {
 }
 const PHYSICAL = new Set([DamageType.SLASH, DamageType.PIERCE, DamageType.BLUNT])
 const CONTROL = new Set([StatusType.FREEZE, StatusType.STUN])
+/** Statuses an antidote (or an elixir) removes. */
+const HARMFUL = new Set([
+  StatusType.POISON,
+  StatusType.BURN,
+  StatusType.BLEED,
+  StatusType.FREEZE,
+  StatusType.STUN,
+  StatusType.BLIND,
+  StatusType.ATTACK_DOWN,
+  StatusType.DEFENSE_DOWN,
+  StatusType.SPEED_DOWN
+])
+/** Most of the damage a hero's guard can avoid. */
+const MAX_GUARD = 0.6
 
 export interface BattleSetup {
   heroes: CharacterState[]
@@ -61,6 +77,8 @@ export interface BattleSetup {
   biome: Biome
   cycle?: number
   canRetreat: boolean
+  /** Consumables the party carries. */
+  items?: Record<string, number>
 }
 
 export interface BattleStep {
@@ -140,10 +158,16 @@ export function createBattle(setup: BattleSetup): BattleStep {
     outcome: null,
     kills: {},
     xp: 0,
-    gold: 0
+    gold: 0,
+    items: Object.fromEntries(
+      Object.entries(setup.items ?? {}).filter(([itemId, count]) => count > 0 && getItem(itemId).kind === 'consumable')
+    ),
+    loot: {},
+    echoes: 0
   }
   const heroes: Combatant[] = setup.heroes.map((character, index) => {
-    const stats = getCharacterStats(character)
+    const bonuses = getHeroBonuses(character)
+    const stats = getCharacterStats(character, bonuses)
 
     return {
       id: `h-${character.id}`,
@@ -153,13 +177,15 @@ export function createBattle(setup: BattleSetup): BattleStep {
       stats,
       health: Math.min(character.health, stats.maxHealth),
       focus: Math.round(stats.maxFocus / 2),
-      initiative: roll(state) * 30,
+      initiative: Math.min(INITIATIVE_FULL - 1, roll(state) * 30 + bonuses.initiative),
       statuses: [],
-      skills: getCharacterDefinition(character.id).skills,
+      skills: getCharacterSkills(character),
       affinities: {},
       bars: 1,
       reserve: index >= ACTIVE_HEROES,
-      fought: index < ACTIVE_HEROES
+      fought: index < ACTIVE_HEROES,
+      bonuses,
+      runes: character.runes
     }
   })
 
@@ -283,8 +309,15 @@ export function nextTurn(battle: BattleState): BattleStep {
     }
 
     actor.initiative = 0
-    actor.focus = Math.min(actor.stats.maxFocus, actor.focus + Math.ceil(actor.stats.maxFocus * FOCUS_REGEN))
+    actor.focus = Math.min(
+      actor.stats.maxFocus,
+      actor.focus + Math.ceil(actor.stats.maxFocus * (FOCUS_REGEN + (actor.bonuses?.focusRegen ?? 0)))
+    )
     events.push({ type: 'turn', actorId: actor.id })
+
+    if (actor.bonuses?.regen && actor.health < actor.stats.maxHealth) {
+      heal(actor, Math.ceil(actor.stats.maxHealth * actor.bonuses.regen), events)
+    }
 
     for (const status of actor.statuses) {
       const share = DOT_SHARE[status.type]
@@ -320,11 +353,65 @@ export function nextTurn(battle: BattleState): BattleStep {
   return { state, events }
 }
 
+/** A skill as a fighter uses it: with the upgrades of its skill tree. */
+function skillOf(combatant: Combatant, skillId: string): Skill {
+  const skill = getSkill(skillId)
+  const upgrade = combatant.bonuses?.upgrades[skillId]
+
+  if (!upgrade) {
+    return skill
+  }
+
+  return {
+    ...skill,
+    power: skill.power * (1 + (upgrade.power ?? 0)),
+    cost: Math.max(0, skill.cost - (upgrade.cost ?? 0)),
+    statuses: skill.statuses?.map((status) => ({
+      ...status,
+      chance: Math.min(1, status.chance + (upgrade.statusChance ?? 0))
+    }))
+  }
+}
+
+/** The skills of a fighter as it uses them (upgrades included), usable or not. */
+export function getCombatantSkills(state: BattleState, combatantId: string): Skill[] {
+  const combatant = getCombatant(state, combatantId)
+
+  return combatant.skills.map((id) => skillOf(combatant, id))
+}
+
 /** Skills a fighter can use now (enough focus). */
 export function getUsableSkills(state: BattleState, combatantId: string): Skill[] {
   const combatant = getCombatant(state, combatantId)
 
-  return combatant.skills.map(getSkill).filter((skill) => skill.cost <= combatant.focus)
+  return getCombatantSkills(state, combatantId).filter((skill) => skill.cost <= combatant.focus)
+}
+
+/** Fallen heroes on the field (not in reserve): a revival potion can bring them back. */
+function getFallenHeroes(state: BattleState): Combatant[] {
+  return state.combatants.filter((combatant) => combatant.side === 'hero' && !combatant.reserve && !isAlive(combatant))
+}
+
+/** Who an item can be used on. */
+export function getItemTargets(state: BattleState, item: Item): string[] {
+  const target: ItemTarget = item.target ?? 'ally'
+
+  switch (target) {
+    case 'allEnemies':
+      return getFighters(state, 'enemy').map((enemy) => enemy.id)
+    case 'fallenAlly':
+      return getFallenHeroes(state).map((hero) => hero.id)
+    default:
+      return getFighters(state, 'hero').map((hero) => hero.id)
+  }
+}
+
+/** Items the party can use now: carried, and with someone to use them on. */
+export function getUsableItems(state: BattleState): Item[] {
+  return Object.entries(state.items)
+    .filter(([, count]) => count > 0)
+    .map(([itemId]) => getItem(itemId))
+    .filter((item) => getItemTargets(state, item).length > 0)
 }
 
 /** Who a skill can be aimed at: the ids of the possible targets (for "all" skills, all of them at once). */
@@ -355,6 +442,18 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   const events: BattleEvent[] = []
   const actor = getCombatant(state, state.actorId ?? '')
 
+  if (action.type === 'item') {
+    applyItem(state, actor, action.itemId, action.targetIds, events)
+
+    if (!state.outcome && isAlive(actor)) {
+      tickStatuses(actor, events)
+    }
+
+    state.actorId = null
+
+    return { state, events }
+  }
+
   if (action.type === 'retreat') {
     if (actor.side !== 'hero' || !state.canRetreat) {
       throw new Error('Retreating is not allowed')
@@ -367,9 +466,13 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
     return { state, events }
   }
 
-  const skill = getSkill(action.skillId)
+  if (!actor.skills.includes(action.skillId)) {
+    throw new Error(`${actor.id} cannot use ${action.skillId}`)
+  }
 
-  if (!actor.skills.includes(skill.id) || skill.cost > actor.focus) {
+  const skill = skillOf(actor, action.skillId)
+
+  if (skill.cost > actor.focus) {
     throw new Error(`${actor.id} cannot use ${skill.id}`)
   }
 
@@ -401,22 +504,7 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
       }
     }
 
-    for (const effect of skill.statuses ?? []) {
-      const bearer = effect.onSelf || skill.target === TargetType.SELF ? actor : target
-      const chance = effect.chance * (CONTROL.has(effect.type) && isBoss(bearer) ? BOSS_CONTROL_FACTOR : 1)
-
-      if (isAlive(bearer) && roll(state) < chance) {
-        const existing = bearer.statuses.find((status) => status.type === effect.type)
-
-        if (existing) {
-          existing.turns = Math.max(existing.turns, effect.turns)
-        } else {
-          bearer.statuses.push({ type: effect.type, turns: effect.turns })
-        }
-
-        events.push({ type: 'status', targetId: bearer.id, status: effect.type, turns: effect.turns })
-      }
-    }
+    applyStatuses(state, actor, target, skill, events)
 
     if (state.outcome) {
       break
@@ -430,6 +518,118 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   state.actorId = null
 
   return { state, events }
+}
+
+/** The statuses a skill can leave, on its target or on its user. */
+function applyStatuses(
+  state: BattleState,
+  actor: Combatant,
+  target: Combatant,
+  skill: Skill,
+  events: BattleEvent[]
+): void {
+  for (const effect of skill.statuses ?? []) {
+    const bearer = effect.onSelf || skill.target === TargetType.SELF ? actor : target
+    const harmful = bearer.side !== actor.side
+    const chance =
+      (effect.chance + (harmful ? (actor.bonuses?.statusChance ?? 0) : 0)) *
+      (CONTROL.has(effect.type) && isBoss(bearer) ? BOSS_CONTROL_FACTOR : 1)
+
+    if (isAlive(bearer) && roll(state) < chance) {
+      addStatus(bearer, effect.type, effect.turns, events)
+    }
+  }
+}
+
+function addStatus(bearer: Combatant, type: StatusType, turns: number, events: BattleEvent[]): void {
+  const existing = bearer.statuses.find((status) => status.type === type)
+
+  if (existing) {
+    existing.turns = Math.max(existing.turns, turns)
+  } else {
+    bearer.statuses.push({ type, turns })
+  }
+
+  events.push({ type: 'status', targetId: bearer.id, status: type, turns })
+}
+
+/** A hero uses a consumable of the party on its targets. */
+function applyItem(
+  state: BattleState,
+  actor: Combatant,
+  itemId: string,
+  targetIds: string[],
+  events: BattleEvent[]
+): void {
+  const item = getItem(itemId)
+
+  if (actor.side !== 'hero' || item.kind !== 'consumable' || (state.items[itemId] ?? 0) <= 0) {
+    throw new Error(`${actor.id} cannot use ${itemId}`)
+  }
+
+  const valid = getItemTargets(state, item)
+  const single = item.target === 'ally' || item.target === 'fallenAlly'
+  const targets = single ? targetIds.filter((id) => valid.includes(id)).slice(0, 1) : valid
+
+  if (targets.length === 0) {
+    throw new Error(`No valid target for ${itemId}`)
+  }
+
+  state.items[itemId]--
+  events.push({ type: 'item', actorId: actor.id, itemId, targetIds: targets })
+
+  for (const targetId of targets) {
+    const target = getCombatant(state, targetId)
+
+    if (item.target === 'fallenAlly') {
+      target.health = Math.max(1, Math.round(target.stats.maxHealth * (item.heal ?? 0)))
+      target.statuses = []
+      target.initiative = 0
+      events.push({ type: 'revive', targetId, amount: target.health })
+      continue
+    }
+
+    if (item.power) {
+      const bomb: Skill = {
+        id: itemId,
+        cost: 0,
+        target: TargetType.ALL_ENEMIES,
+        power: item.power,
+        stat: 'attack',
+        damageType: item.damageType ?? DamageType.FIRE,
+        statuses: item.status ? [item.status] : undefined
+      }
+
+      if (isAlive(target) && strike(state, actor, target, bomb, events)) {
+        applyStatuses(state, actor, target, bomb, events)
+      }
+
+      if (state.outcome) {
+        return
+      }
+
+      continue
+    }
+
+    if (item.heal) {
+      heal(target, Math.round(target.stats.maxHealth * item.heal), events)
+    }
+
+    if (item.focus) {
+      const restored = Math.min(target.stats.maxFocus - target.focus, Math.round(target.stats.maxFocus * item.focus))
+
+      target.focus += restored
+      events.push({ type: 'focus', targetId, amount: restored })
+    }
+
+    if (item.cure) {
+      for (const status of target.statuses.filter((candidate) => HARMFUL.has(candidate.type))) {
+        events.push({ type: 'statusEnd', targetId, status: status.type })
+      }
+
+      target.statuses = target.statuses.filter((status) => !HARMFUL.has(status.type))
+    }
+  }
 }
 
 /** A damaging hit: false when it missed or did nothing. */
@@ -451,6 +651,7 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
   }
 
   const critical = roll(state) < actor.stats.critChance + (skill.critBonus ?? 0)
+  const weak = affinity === Affinity.WEAK
   const amount = Math.max(
     1,
     Math.round(
@@ -459,6 +660,9 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
         (100 / (100 + effective(target, 'defense'))) *
         Math.abs(AFFINITY_MULTIPLIER[affinity]) *
         (critical ? actor.stats.critDamage : 1) *
+        (1 + (actor.bonuses?.damage[skill.damageType] ?? 0)) *
+        (weak ? 1 + (actor.bonuses?.weakness ?? 0) : 1) *
+        (1 - Math.min(MAX_GUARD, target.bonuses?.guard ?? 0)) *
         (0.95 + roll(state) * 0.1)
     )
   )
@@ -475,10 +679,25 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
     amount,
     damageType: skill.damageType,
     critical,
-    weak: affinity === Affinity.WEAK,
+    weak,
     resisted: affinity === Affinity.RESIST
   })
   hurt(state, target, amount, events)
+
+  if (actor.bonuses?.lifesteal && isAlive(actor) && !state.outcome) {
+    heal(actor, Math.max(1, Math.round(amount * actor.bonuses.lifesteal)), events)
+  }
+
+  // The weapon attack can leave the statuses of the weapon, the runes and the tree.
+  if (skill.id === actor.skills[0] && isAlive(target) && !state.outcome) {
+    for (const effect of actor.bonuses?.onHit ?? []) {
+      const chance = effect.chance * (CONTROL.has(effect.type) && isBoss(target) ? BOSS_CONTROL_FACTOR : 1)
+
+      if (roll(state) < chance) {
+        addStatus(target, effect.type, effect.turns, events)
+      }
+    }
+  }
 
   return true
 }
@@ -522,6 +741,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
     state.kills[target.speciesId!] = (state.kills[target.speciesId!] ?? 0) + 1
     state.xp += rewards.xp
     state.gold += rewards.gold
+    dropLoot(state, target)
 
     if (getFighters(state, 'enemy').length === 0) {
       if (state.phase < state.phases.length - 1) {
@@ -554,6 +774,31 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
       state.actorId = null
       events.push({ type: 'end', outcome: 'defeat' })
     }
+  }
+}
+
+/** What a defeated enemy leaves: smithing stones of the biome, a potion now and then, and very rarely an Echo. */
+function dropLoot(state: BattleState, enemy: Combatant): void {
+  const species = getSpecies(enemy.speciesId!)
+
+  const add = (itemId: string, count = 1) => {
+    state.loot[itemId] = (state.loot[itemId] ?? 0) + count
+  }
+
+  const potions = BIOME_POTIONS[state.biome]
+
+  if (species.strength > 1) {
+    add(BIOME_STONE[state.biome], BOSS_STONES * species.bars)
+  } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteStone : DROP_CHANCE.stone)) {
+    add(BIOME_STONE[state.biome])
+  }
+
+  if (roll(state) < (enemy.elite || species.strength > 1 ? DROP_CHANCE.elitePotion : DROP_CHANCE.potion)) {
+    add(potions[Math.floor(roll(state) * potions.length)])
+  }
+
+  if (roll(state) < DROP_CHANCE.echo) {
+    state.echoes++
   }
 }
 

@@ -7,12 +7,12 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
 import { combatantName } from '@/app/(protected)/(battle)/utils/names'
-import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { Item } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
@@ -21,13 +21,17 @@ import {
   chooseEnemyAction,
   createBattle,
   getCombatant,
+  getCombatantSkills,
+  getItemTargets,
   getTargets,
   getTurnQueue,
+  getUsableItems,
   isAlive,
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
+import { itemName } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -40,7 +44,7 @@ interface BattleScreenProps {
   onFinish: (battle: BattleState) => void
 }
 
-type Mode = 'playing' | 'choosing' | 'targeting' | 'ended'
+type Mode = 'playing' | 'choosing' | 'items' | 'targeting' | 'ended'
 
 const SPEED_KEY = 'crisol.battleSpeed'
 /** Pause before an enemy acts, so the player can follow it. */
@@ -74,11 +78,13 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         seed: hashText(`${node.id}:${Date.now()}`),
         biome: node.biome as Biome,
         cycle: game.cycle,
-        canRetreat: encounter.canRetreat
+        canRetreat: encounter.canRetreat,
+        items: game.inventory
       }).state
   )
   const [mode, setMode] = useState<Mode>('playing')
   const [skill, setSkill] = useState<Skill | null>(null)
+  const [item, setItem] = useState<Item | null>(null)
   const [speed, setSpeed] = useState(1)
   const battleRef = useRef(battle)
 
@@ -95,27 +101,32 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
 
     pendingChoice.current = null
     setSkill(null)
+    setItem(null)
     resolve?.(action)
   }, [])
   const handleTap = useCallback(
     (combatantId: string) => {
       const current = battleRef.current
 
-      if (!pendingChoice.current || !current.actorId || !skillRef.current) {
+      if (!pendingChoice.current || !current.actorId) {
         return
       }
 
-      if (getTargets(current, current.actorId, skillRef.current).includes(combatantId)) {
+      if (itemRef.current && getItemTargets(current, itemRef.current).includes(combatantId)) {
+        choose({ type: 'item', itemId: itemRef.current.id, targetIds: [combatantId] })
+      } else if (skillRef.current && getTargets(current, current.actorId, skillRef.current).includes(combatantId)) {
         choose({ type: 'skill', skillId: skillRef.current.id, targetIds: [combatantId] })
       }
     },
     [choose]
   )
   const skillRef = useRef<Skill | null>(null)
+  const itemRef = useRef<Item | null>(null)
 
   useEffect(() => {
     skillRef.current = skill
-  }, [skill])
+    itemRef.current = item
+  }, [skill, item])
 
   // The battle loop: the timeline gives the turns, the enemies act on their own and the heroes wait for the player.
   useEffect(() => {
@@ -131,6 +142,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       const { BattleRenderer } = await import('@/app/(protected)/(battle)/utils/battleRenderer')
       const labels = {
         skill: (id: string) => t(`skills.${id}` as MessageKey),
+        item: (id: string) => itemName(t, id),
         status: (status: StatusType) => t(`statuses.${status}`),
         weak: t('battle.weak'),
         resist: t('battle.resist'),
@@ -243,7 +255,28 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
     }
   }
 
-  const targets = actor && skill ? getTargets(battle, actor.id, skill).map((id) => getCombatant(battle, id)) : []
+  const pickItem = (picked: Item) => {
+    if (!actor) {
+      return
+    }
+
+    if (picked.target === 'ally' || picked.target === 'fallenAlly') {
+      setItem(picked)
+      setMode('targeting')
+    } else {
+      choose({ type: 'item', itemId: picked.id, targetIds: getItemTargets(battle, picked) })
+    }
+  }
+
+  const targetIds = actor
+    ? item
+      ? getItemTargets(battle, item)
+      : skill
+        ? getTargets(battle, actor.id, skill)
+        : []
+    : []
+  const targets = targetIds.map((id) => getCombatant(battle, id))
+  const usableItems = mode === 'choosing' || mode === 'items' ? getUsableItems(battle) : []
 
   return (
     <div className="battle-screen">
@@ -286,8 +319,8 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         </ul>
         {mode === 'choosing' && actor?.side === 'hero' && (
           <div className="actions">
-            {actor.skills.map((id) => {
-              const option = getSkill(id)
+            {getCombatantSkills(battle, actor.id).map((option) => {
+              const id = option.id
 
               return (
                 <GameButton
@@ -302,6 +335,9 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                 </GameButton>
               )
             })}
+            <GameButton size="small" color="gold" disabled={usableItems.length === 0} onClick={() => setMode('items')}>
+              {t('battle.items')}
+            </GameButton>
             {battle.canRetreat && (
               <GameButton size="small" color="ghost" onClick={() => choose({ type: 'retreat' })}>
                 {t('battle.retreat')}
@@ -309,15 +345,34 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
             )}
           </div>
         )}
-        {mode === 'targeting' && skill && (
+        {mode === 'items' && actor?.side === 'hero' && (
           <div className="actions">
-            <span className="prompt">{t('battle.chooseTarget')}</span>
+            {usableItems.map((option) => (
+              <GameButton key={option.id} size="small" color="lime" onClick={() => pickItem(option)}>
+                {itemName(t, option.id)}
+                <span className="cost">× {battle.items[option.id]}</span>
+              </GameButton>
+            ))}
+            <GameButton size="small" color="ghost" onClick={() => setMode('choosing')}>
+              {t('battle.back')}
+            </GameButton>
+          </div>
+        )}
+        {mode === 'targeting' && (skill || item) && (
+          <div className="actions">
+            <span className="prompt">{t(item ? 'battle.chooseAlly' : 'battle.chooseTarget')}</span>
             {targets.map((target) => (
               <GameButton
                 key={target.id}
                 size="small"
                 color={target.side === 'enemy' ? 'magenta' : 'lime'}
-                onClick={() => choose({ type: 'skill', skillId: skill.id, targetIds: [target.id] })}
+                onClick={() =>
+                  choose(
+                    item
+                      ? { type: 'item', itemId: item.id, targetIds: [target.id] }
+                      : { type: 'skill', skillId: skill!.id, targetIds: [target.id] }
+                  )
+                }
               >
                 {combatantName(t, target)} · {target.health}
               </GameButton>
@@ -327,6 +382,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
               color="ghost"
               onClick={() => {
                 setSkill(null)
+                setItem(null)
                 setMode('choosing')
               }}
             >
@@ -352,6 +408,14 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
               <>
                 <p>{t('battle.xpGained', { xp: battle.xp })}</p>
                 <p>{t('battle.goldGained', { gold: battle.gold })}</p>
+                {Object.keys(battle.loot).length > 0 && (
+                  <p>
+                    {t('battle.lootTitle')}:{' '}
+                    {Object.entries(battle.loot)
+                      .map(([id, count]) => `${itemName(t, id)} × ${count}`)
+                      .join(', ')}
+                  </p>
+                )}
               </>
             ) : (
               <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>

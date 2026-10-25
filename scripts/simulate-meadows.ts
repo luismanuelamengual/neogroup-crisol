@@ -2,7 +2,8 @@
 /**
  * Balance check of the Meadows (the vertical slice): plays every encounter of
  * the biome many times with Kael alone at the level of the enemies, and at two
- * and four levels more, and prints the share of victories.
+ * and four levels more (built as a player would: points, talents and weapon),
+ * and prints the share of victories.
  *
  * Usage: yarn battles:meadows
  */
@@ -11,10 +12,11 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
-import { createCharacter, createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
+import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
 import { getEncounter, indexWorld } from '@/app/(protected)/(engine)/utils/worldMap'
 import storedWorld from '@/public/world/world.json'
 import { winRate } from '@/tests/support/battleSimulator'
+import { buildCharacter } from '@/tests/support/builds'
 
 const RUNS = 40
 const index = indexWorld(storedWorld as unknown as World)
@@ -33,7 +35,7 @@ for (const node of index.world.nodes.filter((candidate) => candidate.biome === B
   const rates = [0, 2, 4].map((extra) =>
     winRate(
       {
-        heroes: [createCharacter(CharacterId.KAEL, encounter.level + extra)],
+        heroes: [buildCharacter(CharacterId.KAEL, encounter.level + extra)],
         phases,
         biome: Biome.MEADOWS,
         canRetreat: encounter.kind === EncounterKind.COMBAT

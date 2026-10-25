@@ -5,6 +5,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk'
 import ExploreIcon from '@mui/icons-material/Explore'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
+import StorefrontIcon from '@mui/icons-material/Storefront'
 import IconButton from '@mui/material/IconButton'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -23,6 +24,7 @@ interface PointPanelProps {
   onGo: () => void
   onRest: () => void
   onTeleport: () => void
+  onShop: () => void
   onClose: () => void
 }
 
@@ -39,6 +41,7 @@ export default function PointPanel({
   onGo,
   onRest,
   onTeleport,
+  onShop,
   onClose
 }: PointPanelProps) {
   const t = useT()
@@ -55,11 +58,15 @@ export default function PointPanel({
         </IconButton>
       </div>
       {reach === 'none' && <p className="note">{t('world.panel.noRoute')}</p>}
-      {reach === 'here' && merchant && <p className="note">{t('world.panel.shopSoon')}</p>}
       <div className="actions">
         {reach === 'route' && (
           <GameButton size="small" onClick={onGo} disabled={busy} startIcon={<DirectionsWalkIcon />}>
             {t('world.panel.go')} · {steps}
+          </GameButton>
+        )}
+        {reach === 'here' && merchant && (
+          <GameButton size="small" onClick={onShop} disabled={busy} startIcon={<StorefrontIcon />}>
+            {t('world.panel.shop')}
           </GameButton>
         )}
         {reach === 'here' && openCamp && (

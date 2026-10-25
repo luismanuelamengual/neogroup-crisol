@@ -26,9 +26,21 @@ export interface GameState {
   respawnedNodeIds: string[]
   /** Charges left in the Amber Flask (its maximum and potency come from the bosses defeated). */
   flaskCharges: number
-  /** Unlocked characters (Kael is always the first one). */
+  /** Unlocked characters, in the order of the formation: the first three fight, the rest wait in reserve. */
   characters: CharacterState[]
   gold: number
+  /** Consumables and smithing stones, by item id. */
+  inventory: Record<string, number>
+  /** Runes obtained (by index); they are kept between cycles. */
+  runes: number[]
+  /** Battles won with each rune equipped by an active hero (by index): 4 master it. */
+  runeWins: Record<string, number>
+  /** Tears of Oblivion not used yet. */
+  tears: number
+  /** Echoes not assigned to any character yet. */
+  echoes: number
+  /** Echoes the Scholar sold in this cycle (each one costs more). */
+  scholarSold: number
   /** Enemies defeated by species, ever (the bestiary unlocks with them; they are kept between cycles). */
   kills: Record<string, number>
 }

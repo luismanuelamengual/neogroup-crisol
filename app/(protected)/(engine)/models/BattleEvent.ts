@@ -15,7 +15,10 @@ export type BattleEvent =
       weak: boolean
       resisted: boolean
     }
+  | { type: 'item'; actorId: string; itemId: string; targetIds: string[] }
   | { type: 'heal'; targetId: string; amount: number }
+  | { type: 'revive'; targetId: string; amount: number }
+  | { type: 'focus'; targetId: string; amount: number }
   | { type: 'miss'; targetId: string }
   | { type: 'immune'; targetId: string }
   | { type: 'statusTick'; targetId: string; status: StatusType; amount: number }

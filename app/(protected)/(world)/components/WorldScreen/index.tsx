@@ -3,6 +3,7 @@
 import './index.scss'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
+import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
@@ -10,6 +11,7 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
+import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
   arriveAt,
   countDefeatedSeals,
@@ -24,6 +26,9 @@ import {
   teleport,
   WorldIndex
 } from '@/app/(protected)/(engine)/utils/worldMap'
+import PartyScreen from '@/app/(protected)/(party)/components/PartyScreen'
+import ShopDialog from '@/app/(protected)/(party)/components/ShopDialog'
+import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
 import MapHud from '@/app/(protected)/(world)/components/MapHud'
 import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
 import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
@@ -62,6 +67,8 @@ export default function WorldScreen() {
   const [walking, setWalking] = useState(false)
   const [pending, setPending] = useState<PendingEncounter | null>(null)
   const [teleporting, setTeleporting] = useState(false)
+  const [partyOpen, setPartyOpen] = useState(false)
+  const [shopOpen, setShopOpen] = useState(false)
   const map = useRef<WorldMapHandle>(null)
   const state = save?.state ?? null
 
@@ -141,8 +148,17 @@ export default function WorldScreen() {
             break
           case 'rune':
             showSuccessMessage(
-              t('world.rewards.rune', { index: reward.runeIndex, tier: t(`world.runeTiers.${reward.tier}`) })
+              t('world.rewards.rune', {
+                name: runeName(t, getRune(reward.runeIndex)),
+                tier: t(`world.runeTiers.${reward.tier}`)
+              })
             )
+            break
+          case 'item':
+            showSuccessMessage(t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }))
+            break
+          case 'echoes':
+            showSuccessMessage(t('world.rewards.echoes', { count: reward.count }))
             break
           case 'tear':
             showSuccessMessage(t('world.rewards.tear'))
@@ -218,6 +234,7 @@ export default function WorldScreen() {
   const selected = selectedNodeId ? index.nodes.get(selectedNodeId)! : null
   const nameOf = (nodeId: string) => pointName(t, index.nodes.get(nodeId)!, cleared.has(nodeId), openCamps.has(nodeId))
   const busy = walking || !!pending
+  const merchantHere = getMerchantHere(index, state)
 
   const detailOf = (nodeId: string): string | null => {
     const node = index.nodes.get(nodeId)!
@@ -313,10 +330,18 @@ export default function WorldScreen() {
             onGo={() => void go()}
             onRest={handleRest}
             onTeleport={() => setTeleporting(true)}
+            onShop={() => setShopOpen(true)}
             onClose={() => setSelectedNodeId(null)}
           />
         )}
-        <PartyPanel characters={state.characters} flask={flask} disabled={busy} onDrink={handleDrink} />
+        <PartyPanel
+          characters={state.characters}
+          flask={flask}
+          disabled={busy}
+          echoes={state.echoes}
+          onDrink={handleDrink}
+          onOpenParty={() => setPartyOpen(true)}
+        />
       </div>
       {pending && (
         <BattleScreen
@@ -325,6 +350,25 @@ export default function WorldScreen() {
           node={index.nodes.get(pending.encounter.nodeId)!}
           encounter={pending.encounter}
           onFinish={handleBattleEnd}
+        />
+      )}
+      {partyOpen && (
+        <PartyScreen
+          open
+          state={state}
+          atCamp={isAtOpenCamp(state)}
+          onChange={update}
+          onClose={() => setPartyOpen(false)}
+        />
+      )}
+      {merchantHere && (
+        <ShopDialog
+          open={shopOpen}
+          index={index}
+          state={state}
+          merchant={merchantHere}
+          onChange={update}
+          onClose={() => setShopOpen(false)}
         />
       )}
       <TeleportDialog

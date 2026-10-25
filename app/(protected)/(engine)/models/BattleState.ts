@@ -28,4 +28,9 @@ export interface BattleState {
   /** Experience and gold gathered from the defeated enemies. */
   xp: number
   gold: number
+  /** Consumables the party carries (they are spent even if the battle is lost). */
+  items: Record<string, number>
+  /** Items dropped by the defeated enemies (kept only on a victory), and Echoes. */
+  loot: Record<string, number>
+  echoes: number
 }

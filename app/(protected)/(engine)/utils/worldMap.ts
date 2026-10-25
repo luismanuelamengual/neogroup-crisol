@@ -1,5 +1,4 @@
 import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
-import { getMaxHealth } from '@/app/(protected)/(engine)/data/characters'
 import {
   EMBER_MINIBOSS_IDS,
   FLASK_BASE_CHARGES,
@@ -8,6 +7,7 @@ import {
   FLASK_MAX_CHARGES,
   FLASK_MAX_POTENCY
 } from '@/app/(protected)/(engine)/data/flask'
+import { BIOME_POTIONS, BIOME_STONE, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -19,8 +19,8 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
-import { createCharacter } from '@/app/(protected)/(engine)/utils/gameState'
 import { Adjacency, buildAdjacency } from '@/app/(protected)/(engine)/utils/graph'
+import { addItems, createCharacter, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
  * Rules of the world map: fog, routes, what happens at each point, resting,
@@ -48,6 +48,7 @@ const RESCUED_LEVEL_GAP = 3
 /** Gold of a chest: grows with the biome. */
 const CHEST_BASE_GOLD = 30
 const CHEST_GOLD_PER_BIOME = 30
+const CHEST_STONES = 2
 
 export function indexWorld(world: World): WorldIndex {
   return {
@@ -205,17 +206,27 @@ export function arriveAt(
   }
 
   const rewards: Reward[] = []
-  let gold = moved.gold
+  let next: GameState = { ...moved, clearedNodeIds: [...moved.clearedNodeIds, nodeId] }
 
   if (node.type === NodeType.CHEST) {
+    // Gold, two stones and a potion of its biome.
     const amount =
       CHEST_BASE_GOLD + CHEST_GOLD_PER_BIOME * BIOMES.findIndex((definition) => definition.biome === node.biome)
+    const added = addItems(
+      { ...next, gold: next.gold + amount },
+      { [BIOME_STONE[node.biome]]: CHEST_STONES, [BIOME_POTIONS[node.biome][0]]: 1 },
+      MAX_CONSUMABLES
+    )
 
-    gold += amount
+    next = added.state
     rewards.push({ type: 'gold', amount })
+
+    for (const [itemId, count] of Object.entries(added.kept)) {
+      rewards.push({ type: 'item', itemId, count })
+    }
   }
 
-  return { state: { ...moved, gold, clearedNodeIds: [...moved.clearedNodeIds, nodeId] }, encounter: null, rewards }
+  return { state: next, encounter: null, rewards }
 }
 
 /**
@@ -239,6 +250,7 @@ export function winEncounter(
     health: Math.min(getMaxHealth(character), Math.max(1, Math.round(health[character.id] ?? character.health)))
   }))
   let openCampIds = state.openCampIds
+  let { runes, tears } = state
 
   if (!wasCleared && node.type === NodeType.CAMP_BOSS) {
     openCampIds = [...openCampIds, nodeId]
@@ -255,10 +267,15 @@ export function winEncounter(
 
   if (!wasCleared && node.type === NodeType.SANCTUARY && node.runeIndex && node.runeTier) {
     rewards.push({ type: 'rune', runeIndex: node.runeIndex, tier: node.runeTier })
+
+    if (!runes.includes(node.runeIndex)) {
+      runes = [...runes, node.runeIndex]
+    }
   }
 
   if (!wasCleared && node.type === NodeType.TEAR) {
     rewards.push({ type: 'tear' })
+    tears++
   }
 
   if (!wasCleared && node.type === NodeType.FINAL_BOSS) {
@@ -269,6 +286,8 @@ export function winEncounter(
     ...state,
     characters,
     openCampIds,
+    runes,
+    tears,
     clearedNodeIds: wasCleared ? state.clearedNodeIds : [...state.clearedNodeIds, nodeId],
     respawnedNodeIds: state.respawnedNodeIds.filter((id) => id !== nodeId)
   }

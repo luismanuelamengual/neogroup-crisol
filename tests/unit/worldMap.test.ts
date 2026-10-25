@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getMaxHealth } from '@/app/(protected)/(engine)/data/characters'
 import { EMBER_MINIBOSS_IDS } from '@/app/(protected)/(engine)/data/flask'
+import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
@@ -9,6 +9,8 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
+import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
+import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 import {
   arriveAt,
   drinkFlask,
@@ -134,14 +136,21 @@ describe('fights', () => {
     expect(win(rested, combat).respawnedNodeIds).toEqual([])
   })
 
-  it('opens a chest without a fight', () => {
+  it('opens a chest without a fight: gold, stones and a potion of its biome', () => {
     const chest = findNode((node) => node.type === NodeType.CHEST)
     const { state, encounter, rewards } = arriveAt(index, nextTo(chest.id), chest.id)
+    const stone = BIOME_STONE[chest.biome]
+    const potion = BIOME_POTIONS[chest.biome][0]
 
     expect(encounter).toBeNull()
     expect(state.clearedNodeIds).toContain(chest.id)
-    expect(rewards).toEqual([{ type: 'gold', amount: state.gold }])
+    expect(rewards).toEqual([
+      { type: 'gold', amount: state.gold },
+      { type: 'item', itemId: stone, count: 2 },
+      { type: 'item', itemId: potion, count: 1 }
+    ])
     expect(state.gold).toBeGreaterThan(0)
+    expect(state.inventory).toEqual({ [stone]: 2, [potion]: 1 })
   })
 })
 
@@ -151,7 +160,7 @@ describe('camp bosses and the Amber Flask', () => {
 
   it('opens a camp and rescues the captive when a captor falls', () => {
     const state = nextTo(captor.id, {
-      characters: [{ id: CharacterId.KAEL, level: 10, xp: 0, health: 1 }]
+      characters: [{ ...createCharacter(CharacterId.KAEL, 10), xp: 0, health: 1 }]
     })
     const arrived = arriveAt(index, state, captor.id)
 

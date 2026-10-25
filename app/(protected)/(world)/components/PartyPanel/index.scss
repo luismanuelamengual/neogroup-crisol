@@ -65,6 +65,40 @@
     }
   }
 
+  .open-party {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    min-height: 64px;
+    border: 3px solid var(--color-cyan-dark);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #0f3c4a 0%, #071d26 100%);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+    color: var(--color-cyan);
+    font-size: 0.7rem;
+    font-weight: 900;
+
+    .badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      min-width: 22px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--color-magenta);
+      color: #fff;
+      font-size: 0.75rem;
+    }
+
+    &.Mui-disabled {
+      opacity: 0.6;
+    }
+  }
+
   .flask {
     display: flex;
     flex-direction: column;

@@ -451,7 +451,7 @@ export function getEnemyStats(speciesId: string, level: number, elite = false, c
   const { archetype, strength } = getSpecies(speciesId)
   const base = ARCHETYPE_STATS[archetype]
   const levelFactor = 1 + GROWTH_PER_LEVEL * (level - 1)
-  const power = (1 + (strength - 1) * 0.3) * (elite ? ELITE_POWER : 1) * (1 + CYCLE_POWER * cycle)
+  const power = (1 + (strength - 1) * 0.4) * (elite ? ELITE_POWER : 1) * (1 + CYCLE_POWER * cycle)
   const health = strength * (elite ? ELITE_HEALTH : 1) * (1 + CYCLE_POWER * cycle)
 
   return {

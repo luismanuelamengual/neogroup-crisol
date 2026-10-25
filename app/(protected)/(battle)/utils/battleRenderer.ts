@@ -13,6 +13,7 @@ import { BIOME_GROUND } from '@/app/(protected)/(world)/utils/mapStyle'
 /** Texts the scene shows over the fighters (already translated). */
 export interface BattleLabels {
   skill: (skillId: string) => string
+  item: (itemId: string) => string
   status: (status: StatusType) => string
   weak: string
   resist: string
@@ -409,6 +410,48 @@ export class BattleRenderer {
         }
 
         await this.hit(figure, ms(220))
+        break
+      }
+
+      case 'item': {
+        const actor = this.figures.get(event.actorId)
+
+        if (actor) {
+          this.float(actor, this.labels.item(event.itemId), 0xffc233, 15, -40)
+          await this.tween(ms(260), (t) => actor.body.scale.set(actor.size * (1 + Math.sin(t * Math.PI) * 0.12)))
+        }
+
+        break
+      }
+
+      case 'revive': {
+        const figure = this.figures.get(event.targetId)
+
+        if (!figure) {
+          break
+        }
+
+        const rotation = figure.body.rotation
+
+        figure.health = event.amount
+        figure.healthBar.visible = true
+        this.drawHealth(figure)
+        await this.tween(ms(380), (t) => {
+          figure.body.rotation = rotation * (1 - t)
+          figure.root.alpha = 0.35 + 0.65 * t
+        })
+        this.float(figure, `+${event.amount}`, 0x84f06b, 22)
+        break
+      }
+
+      case 'focus': {
+        const figure = this.figures.get(event.targetId)
+
+        if (figure) {
+          this.float(figure, `+${event.amount}`, 0x22d3ee, 18)
+        }
+
+        await wait(ms(220))
         break
       }
 

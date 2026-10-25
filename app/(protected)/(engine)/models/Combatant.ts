@@ -1,4 +1,5 @@
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
+import { Bonuses } from '@/app/(protected)/(engine)/models/Bonuses'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
@@ -34,4 +35,8 @@ export interface Combatant {
   reserve: boolean
   /** Took part in the battle (earns experience). */
   fought: boolean
+  /** Heroes: their passives, weapon, runes and echoes. */
+  bonuses?: Bonuses
+  /** Heroes: the runes they wear (they count a win towards mastering them). */
+  runes?: number[]
 }

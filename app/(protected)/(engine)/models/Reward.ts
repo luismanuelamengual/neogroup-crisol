@@ -10,5 +10,7 @@ export type Reward =
   | { type: 'rune'; runeIndex: number; tier: RuneTier }
   | { type: 'tear' }
   | { type: 'gold'; amount: number }
+  | { type: 'item'; itemId: string; count: number }
+  | { type: 'echoes'; count: number }
   | { type: 'abyssOpen' }
   | { type: 'crisolDefeated' }

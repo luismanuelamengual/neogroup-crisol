@@ -1,17 +1,13 @@
-import { getMaxHealth } from '@/app/(protected)/(engine)/data/characters'
+import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { FLASK_BASE_CHARGES } from '@/app/(protected)/(engine)/data/flask'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 3
-
-/** A new character at a level, with full health. */
-export function createCharacter(id: CharacterId, level = 1): CharacterState {
-  return { id, level, xp: 0, health: getMaxHealth({ id, level }) }
-}
+export const SAVE_VERSION = 4
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -26,7 +22,13 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
     flaskCharges: FLASK_BASE_CHARGES,
     characters: [createCharacter(CharacterId.KAEL)],
     gold: 0,
-    kills: {}
+    kills: {},
+    inventory: {},
+    runes: [],
+    runeWins: {},
+    tears: 0,
+    echoes: 0,
+    scholarSold: 0
   }
 }
 
@@ -46,7 +48,7 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
       flaskCharges: FLASK_BASE_CHARGES,
       characters: ((state.characters ?? []) as Omit<CharacterState, 'health'>[]).map((character) => ({
         ...character,
-        health: getMaxHealth(character)
+        health: Math.round(getBaseStats(character.id, character.level).maxHealth)
       }))
     }
   }
@@ -54,6 +56,32 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
   if (fromVersion < 3) {
     // v3: enemies defeated, for the bestiary.
     state = { ...state, kills: {} }
+  }
+
+  if (fromVersion < 4) {
+    // v4: builds (points, trees, weapons, runes, echoes), inventory, runes and Echoes. The points and the
+    // Echoes of the levels already gained are there to spend.
+    const characters = (state.characters ?? []) as Pick<CharacterState, 'id' | 'level' | 'xp' | 'health'>[]
+
+    state = {
+      ...state,
+      characters: characters.map((character) => ({
+        ...character,
+        attributes: {},
+        talents: [],
+        traded: 0,
+        weapon: 0,
+        runes: [],
+        echoCapacity: 0,
+        echoes: []
+      })),
+      inventory: {},
+      runes: [],
+      runeWins: {},
+      tears: 0,
+      echoes: characters.reduce((sum, character) => sum + character.level - 1, 0),
+      scholarSold: 0
+    }
   }
 
   return state
@@ -68,6 +96,9 @@ export function isGameState(value: unknown): value is GameState {
   const state = value as Record<string, unknown>
   const isStringArray = (item: unknown) => Array.isArray(item) && item.every((entry) => typeof entry === 'string')
   const isCount = (item: unknown) => Number.isInteger(item) && (item as number) >= 0
+  const isCountMap = (item: unknown) =>
+    !!item && typeof item === 'object' && !Array.isArray(item) && Object.values(item).every(isCount)
+  const isRuneIndex = (item: unknown) => Number.isInteger(item) && (item as number) >= 1 && (item as number) <= 60
   const characterIds = Object.values(CharacterId) as string[]
 
   return (
@@ -80,20 +111,37 @@ export function isGameState(value: unknown): value is GameState {
     isStringArray(state.respawnedNodeIds) &&
     isCount(state.flaskCharges) &&
     isCount(state.gold) &&
-    !!state.kills &&
-    typeof state.kills === 'object' &&
-    Object.values(state.kills as Record<string, unknown>).every(isCount) &&
+    isCount(state.tears) &&
+    isCount(state.echoes) &&
+    isCount(state.scholarSold) &&
+    isCountMap(state.inventory) &&
+    isCountMap(state.runeWins) &&
+    Array.isArray(state.runes) &&
+    state.runes.every(isRuneIndex) &&
+    isCountMap(state.kills) &&
     Array.isArray(state.characters) &&
     state.characters.length > 0 &&
     state.characters.every((character) => {
-      const { id, level, xp, health } = (character ?? {}) as Record<string, unknown>
+      const { id, level, xp, health, attributes, talents, traded, weapon, runes, echoCapacity, echoes } = (character ??
+        {}) as Record<string, unknown>
 
       return (
         characterIds.includes(id as string) &&
         Number.isInteger(level) &&
         (level as number) >= 1 &&
         isCount(xp) &&
-        isCount(health)
+        isCount(health) &&
+        isCountMap(attributes) &&
+        isStringArray(talents) &&
+        isCount(traded) &&
+        isCount(weapon) &&
+        (weapon as number) <= 20 &&
+        Array.isArray(runes) &&
+        runes.length <= 3 &&
+        runes.every(isRuneIndex) &&
+        isCount(echoCapacity) &&
+        Array.isArray(echoes) &&
+        echoes.every(isRuneIndex)
       )
     })
   )

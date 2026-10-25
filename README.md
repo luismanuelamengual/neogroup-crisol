@@ -2,7 +2,7 @@
 
 RPG de fantasía por turnos para un jugador: un mundo laberíntico de más de 1.000 puntos al estilo de los mapas de _Super Mario World_, combate por turnos según la velocidad al estilo de _Clair Obscur_, campamentos y castigo por muerte al estilo de _Dark Souls_ y batallas laterales al estilo de _Hero Wars_. Se publica como PWA en Vercel y en Google Play como TWA.
 
-El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 4**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo, el mapa jugable (PixiJS) con guardado local y el combate por turnos con arte provisorio. Las Praderas se juegan completas con Kael; la progresión y la economía (equipo, runas, ecos, Buhonero) llegan en la fase 5.
+El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 5**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo, el mapa jugable (PixiJS) con guardado local, el combate por turnos con arte provisorio, y la progresión y la economía (atributos, árboles de habilidades, armas, runas, Ecos, objetos, mercaderes, bestiario y formación). El contenido completo (225 habilidades, 80 enemigos, 42 jefes) llega en la fase 6.
 
 ## Tech stack
 
@@ -83,6 +83,7 @@ app/(protected)/
   (home)/                 Menú principal (/menu): Continuar / Nuevo
   (world)/                El mapa jugable (/world): render PixiJS, interfaz, sesión de juego y sincronización
   (battle)/               La escena de batalla: render PixiJS lateral e interfaz de turnos
+  (party)/                Pantalla del grupo (formación, atributos, árbol, arma, runas, ecos, inventario, bestiario) y la tienda
   (engine)/               Lógica pura del juego (sin React ni base de datos): estado de la partida, el mundo, reglas, catálogos
   (saves)/                Partida guardada: tabla `saves`, servicios y API
   (account)/              Perfil del jugador (nombre, idioma, borrado de cuenta)
@@ -153,7 +154,7 @@ En desarrollo, **`/dev/world`** muestra el mundo completo en un visor SVG (zoom 
 
 Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(saves)/utils/localSaves.ts`), así cerrar la app nunca deshace una derrota y se puede jugar sin conexión. Los cambios se suben con `/api/saveGame` al descansar, al perder, al ganar un campamento, cada 2 minutos, al pasar la app a segundo plano y al volver la red (`(world)/hooks/useGameSession.ts`). Al entrar, `chooseSave` elige entre la copia local y la del servidor: una copia de otra partida (un "Nuevo" en otro dispositivo) siempre pierde, y si las dos avanzaron gana la de más tiempo de juego, con aviso. El mundo (`world.json`) queda precacheado por el service worker.
 
-`SAVE_VERSION` va por la 3 (la 3 agrega `kills`, el bestiario): las partidas viejas se migran al cargarlas (`migrateGameState`, con test).
+`SAVE_VERSION` va por la 4 (la 3 agrega `kills`, el bestiario; la 4 agrega la build de cada personaje, el inventario, las runas, su dominio, las Lágrimas y los Ecos): las partidas viejas se migran al cargarlas (`migrateGameState`, con test).
 
 ## El combate — `(engine)/utils/battle.ts` y `app/(protected)/(battle)`
 
@@ -165,7 +166,20 @@ Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(save
 - **Resultado** (`battleResult.ts`): la victoria da XP y oro a los que pelearon y suma al bestiario; los caídos vuelven con 1 de vida. La derrota cuesta la mitad de la XP del nivel actual y despierta en el último descanso; la retirada cuesta el 10 %.
 - **Catálogos** (`data/`): `skills.ts` (habilidades de héroes y enemigos), `characters.ts` (estadísticas y crecimiento por nivel) y `enemies.ts` (especies por bioma, jefes y variantes campeón y guardián).
 - **Escena** (`(battle)/utils/battleRenderer.ts`): vista lateral con figuras provisorias, números flotantes, temblor de cámara y velocidad ×1 / ×2 (se recuerda en el dispositivo). La interfaz (`components/BattleScreen`) muestra la cola, las tarjetas de los héroes, las acciones y la elección de objetivo.
-- **Balance**: `yarn battles:meadows` simula cientos de peleas de las Praderas y muestra el porcentaje de victorias de Kael según su nivel.
+- **Balance**: `yarn battles:meadows` simula cientos de peleas de las Praderas y muestra el porcentaje de victorias de Kael según su nivel, armado como lo haría un jugador (puntos, talentos y arma; `tests/support/builds.ts`).
+- **Objetos en batalla**: pociones de vida y concentración, antídoto, revivir, bombas y elixir (`data/items.ts`); se gastan aunque se pierda.
+
+## Progresión y economía — `(engine)/utils/heroes.ts`, `shop.ts` y `app/(protected)/(party)`
+
+- **Niveles**: cada nivel suma un poco de atributos solo, y da 1 punto de atributo (lo elegís vos), 1 punto de habilidad y 1 Eco para el fondo común.
+- **Árboles** (`data/talents.ts`): 3 ramas por personaje con especiales nuevos, pasivas y mejoras de especiales (más poder, menos costo, más probabilidad de estados). Cada personaje arranca con su ataque y un especial. El de Kael tiene 15 nodos; los demás, 9 (el contenido completo llega en la fase 6). Con el árbol completo, cada punto nuevo se canjea por 2 Ecos de ese personaje. Una Lágrima del Olvido devuelve todos los puntos.
+- **Armas** (`data/weapons.ts`): de +0 a +20 en un campamento, con piedras Tosca, Templada, Arcana y Abisal (1 a 5 por mejora) y oro. Cada nivel da +2 % de poder; +5, +10, +15 y +20 suman un efecto propio de cada personaje.
+- **Runas** (`data/runes.ts`): las 60 salen de 12 familias (sanguijuela, brasa, escarcha, resguardo...) en 5 rangos. Cada una da un efecto y mueve uno o dos atributos. 3 por personaje, nunca la misma en dos. Se dominan con 4 batallas ganadas puestas en un héroe activo; su eco (el efecto, sin los atributos) cuesta de 1 a 50 Ecos según su nivel, dentro de la capacidad de Ecos asignada al personaje para siempre.
+- **Botín**: cada enemigo puede dejar piedras de su bioma, pociones y, muy raro, un Eco; los jefes siempre dejan piedras. Los cofres dan oro, 2 piedras y una poción. Se llevan hasta 5 de cada consumible.
+- **Mercaderes** (`shop.ts`): Buhonero, Alquimista, Herrera y Umbral venden en su punto; el Erudito vende 3 Ecos por ciclo, cada uno más caro.
+- **Bestiario** (`data/bestiary.ts`): cada especie vista aparece; con más bajas muestra su debilidad principal, después todas sus afinidades y al final sus atributos, habilidades y botín.
+- **Formación**: el orden del grupo; los tres primeros pelean y el resto entra junto cuando caen.
+- La pantalla del grupo se abre desde el botón Grupo del mapa; el arma, las runas y los ecos se cambian solo en un campamento.
 
 ## PWA
 
@@ -185,7 +199,7 @@ La app Android es una TWA (generada con PWABuilder o Bubblewrap) que abre este s
 yarn test
 ```
 
-- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos), los utilitarios de grafos, las reglas del mapa, la elección entre la copia local y la del servidor, el motor de combate (turnos, daño, afinidades, estados, fases, barras de jefes, reservas, retirada, IA) y el armado de las peleas.
+- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos), los utilitarios de grafos, las reglas del mapa, la elección entre la copia local y la del servidor, el motor de combate (turnos, daño, afinidades, estados, fases, barras de jefes, reservas, retirada, IA, objetos, bonos y botín), el armado de las peleas, la build de los personajes (puntos, árbol, Lágrimas, canje, armas, runas, ecos, formación) y la economía (resultado de las batallas, bestiario y mercaderes).
 - `tests/flows` — contra SQLite en memoria con las migraciones reales: partida guardada (nueva, cargar, guardar, bloqueo optimista, validación del estado, migración, reemplazo) y borrado de cuenta.
 
 ## Idiomas (i18n)
