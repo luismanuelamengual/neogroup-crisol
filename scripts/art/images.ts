@@ -35,18 +35,23 @@ function chromaDistance(r: number, g: number, b: number): number {
   return Math.sqrt(r * r + (255 - g) * (255 - g) + b * b)
 }
 
+/** Pixels at most this far from the background are edges (blended with the green). */
+const EDGE_WIDTH = 2
+
 /**
  * Makes the green background transparent: the green connected to the borders
- * of the image (so the greens of the art itself stay), and anywhere the pure
- * chroma green (holes between an arm and the body). The edges get a soft alpha
- * and lose their green glow (despill). Changes `data` in place.
+ * of the image or to a spot of pure chroma green (holes between an arm and the
+ * body, between the rails of a fence), so the greens of the art itself stay.
+ * The edges, blended with the green, get a soft alpha and lose their green
+ * glow (despill). Changes `data` in place.
  */
 export function removeChroma({ data, width, height }: RawImage): void {
-  const background = new Uint8Array(width * height)
+  const size = width * height
+  const background = new Uint8Array(size)
   const stack: number[] = []
+  const distanceAt = (pixel: number) => chromaDistance(data[pixel * 4], data[pixel * 4 + 1], data[pixel * 4 + 2])
   const isBackdrop = (pixel: number) =>
-    chromaDistance(data[pixel * 4], data[pixel * 4 + 1], data[pixel * 4 + 2]) < 90 &&
-    data[pixel * 4 + 1] - Math.max(data[pixel * 4], data[pixel * 4 + 2]) > 120
+    distanceAt(pixel) < 110 && data[pixel * 4 + 1] - Math.max(data[pixel * 4], data[pixel * 4 + 2]) > 100
 
   for (let x = 0; x < width; x++) {
     stack.push(x, (height - 1) * width + x)
@@ -54,6 +59,12 @@ export function removeChroma({ data, width, height }: RawImage): void {
 
   for (let y = 0; y < height; y++) {
     stack.push(y * width, y * width + width - 1)
+  }
+
+  for (let pixel = 0; pixel < size; pixel++) {
+    if (distanceAt(pixel) < 60 || (data[pixel * 4 + 1] > 180 && isBackdrop(pixel))) {
+      stack.push(pixel)
+    }
   }
 
   while (stack.length > 0) {
@@ -79,34 +90,61 @@ export function removeChroma({ data, width, height }: RawImage): void {
       stack.push(pixel - width)
     }
 
-    if (pixel < (height - 1) * width) {
+    if (pixel < size - width) {
       stack.push(pixel + width)
     }
   }
 
-  for (let pixel = 0; pixel < width * height; pixel++) {
-    const index = pixel * 4
-    const r = data[index]
-    const g = data[index + 1]
-    const b = data[index + 2]
+  // How far each pixel of the art is from the background, up to EDGE_WIDTH (0 = background).
+  const steps = new Uint8Array(size).fill(EDGE_WIDTH + 1)
+  let ring: number[] = []
 
-    if (background[pixel] || chromaDistance(r, g, b) < 60) {
+  for (let pixel = 0; pixel < size; pixel++) {
+    if (background[pixel]) {
+      steps[pixel] = 0
+      ring.push(pixel)
+    }
+  }
+
+  for (let step = 1; step <= EDGE_WIDTH; step++) {
+    const next: number[] = []
+
+    for (const pixel of ring) {
+      const x = pixel % width
+      const neighbors = [x > 0 ? pixel - 1 : -1, x < width - 1 ? pixel + 1 : -1, pixel - width, pixel + width]
+
+      for (const neighbor of neighbors) {
+        if (neighbor >= 0 && neighbor < size && steps[neighbor] > step) {
+          steps[neighbor] = step
+          next.push(neighbor)
+        }
+      }
+    }
+
+    ring = next
+  }
+
+  for (let pixel = 0; pixel < size; pixel++) {
+    const index = pixel * 4
+
+    if (background[pixel]) {
       data[index + 3] = 0
       continue
     }
 
-    // Edges: a pixel next to the background keeps part of its alpha by how green it is.
-    const x = pixel % width
-    const touches =
-      (x > 0 && background[pixel - 1]) ||
-      (x < width - 1 && background[pixel + 1]) ||
-      (pixel >= width && background[pixel - width]) ||
-      (pixel < (height - 1) * width && background[pixel + width])
-    const greenness = g - Math.max(r, b)
+    if (steps[pixel] > EDGE_WIDTH) {
+      continue
+    }
 
-    if (touches && greenness > 20) {
-      data[index + 3] = Math.round(data[index + 3] * Math.max(0.25, 1 - (greenness - 20) / 120))
-      data[index + 1] = Math.max(r, b)
+    const r = data[index]
+    const g = data[index + 1]
+    const b = data[index + 2]
+    const distance = chromaDistance(r, g, b)
+
+    // An edge pixel as close to the chroma green as this is mostly background.
+    if (g > Math.max(r, b) && distance < 200) {
+      data[index + 3] = Math.round(data[index + 3] * Math.min(1, Math.max(0, (distance - 60) / 140)))
+      data[index + 1] = Math.min(g, Math.max(r, b) + 10)
     }
   }
 }

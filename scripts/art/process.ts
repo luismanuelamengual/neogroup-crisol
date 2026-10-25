@@ -89,24 +89,14 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
 
   if (piece.kind === 'mapSheet') {
     const biome = piece.id.replace(/^map\//, '').replace(/-sheet$/, '')
-    const cell = { width: Math.floor(image.width / 4), height: Math.floor(image.height / 4) }
     const ids: string[] = []
 
-    for (let index = 0; index < 16; index++) {
-      const area = {
-        x: (index % 4) * cell.width,
-        y: Math.floor(index / 4) * cell.height,
-        width: cell.width,
-        height: cell.height
-      }
-      const box = opaqueBox(image, area)
+    // Any layout works: each separate drawing is a decoration (crumbs are left out).
+    for (const [index, box] of findParts(image, 0.004).entries()) {
+      const id = `map/${biome}/${index + 1}`
 
-      if (box) {
-        const id = `map/${biome}/${index + 1}`
-
-        manifest.images[id] = await writeWebp(image, box, id, DECORATION_SIDE)
-        ids.push(id)
-      }
+      manifest.images[id] = await writeWebp(image, box, id, DECORATION_SIDE)
+      ids.push(id)
     }
 
     manifest.decorations[biome] = ids

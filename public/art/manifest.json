@@ -1,6 +1,122 @@
 {
- "images": {},
- "decorations": {},
+ "images": {
+  "heroes/kael": {
+   "width": 448,
+   "height": 689
+  },
+  "enemies/thorn-boar": {
+   "width": 512,
+   "height": 388
+  },
+  "backgrounds/meadows-1": {
+   "width": 1920,
+   "height": 1080
+  },
+  "map/meadows/1": {
+   "width": 183,
+   "height": 198
+  },
+  "map/meadows/2": {
+   "width": 152,
+   "height": 202
+  },
+  "map/meadows/3": {
+   "width": 180,
+   "height": 197
+  },
+  "map/meadows/4": {
+   "width": 248,
+   "height": 200
+  },
+  "map/meadows/5": {
+   "width": 186,
+   "height": 191
+  },
+  "map/meadows/6": {
+   "width": 122,
+   "height": 155
+  },
+  "map/meadows/7": {
+   "width": 120,
+   "height": 123
+  },
+  "map/meadows/8": {
+   "width": 138,
+   "height": 118
+  },
+  "map/meadows/9": {
+   "width": 135,
+   "height": 111
+  },
+  "map/meadows/10": {
+   "width": 132,
+   "height": 111
+  },
+  "map/meadows/11": {
+   "width": 144,
+   "height": 126
+  },
+  "map/meadows/12": {
+   "width": 115,
+   "height": 77
+  },
+  "map/meadows/13": {
+   "width": 239,
+   "height": 146
+  },
+  "map/meadows/14": {
+   "width": 251,
+   "height": 154
+  },
+  "map/meadows/15": {
+   "width": 249,
+   "height": 150
+  },
+  "map/meadows/16": {
+   "width": 134,
+   "height": 203
+  },
+  "map/meadows/17": {
+   "width": 117,
+   "height": 148
+  },
+  "map/meadows/18": {
+   "width": 93,
+   "height": 161
+  },
+  "map/meadows/19": {
+   "width": 200,
+   "height": 127
+  },
+  "map/meadows/20": {
+   "width": 182,
+   "height": 155
+  }
+ },
+ "decorations": {
+  "meadows": [
+   "map/meadows/1",
+   "map/meadows/2",
+   "map/meadows/3",
+   "map/meadows/4",
+   "map/meadows/5",
+   "map/meadows/6",
+   "map/meadows/7",
+   "map/meadows/8",
+   "map/meadows/9",
+   "map/meadows/10",
+   "map/meadows/11",
+   "map/meadows/12",
+   "map/meadows/13",
+   "map/meadows/14",
+   "map/meadows/15",
+   "map/meadows/16",
+   "map/meadows/17",
+   "map/meadows/18",
+   "map/meadows/19",
+   "map/meadows/20"
+  ]
+ },
  "parts": {},
  "music": [],
  "sfx": []
