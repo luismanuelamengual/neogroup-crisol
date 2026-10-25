@@ -4,6 +4,58 @@
    "width": 448,
    "height": 689
   },
+  "heroes/kael-parts/1": {
+   "width": 56,
+   "height": 80
+  },
+  "heroes/kael-parts/2": {
+   "width": 59,
+   "height": 91
+  },
+  "heroes/kael-parts/3": {
+   "width": 54,
+   "height": 74
+  },
+  "heroes/kael-parts/4": {
+   "width": 85,
+   "height": 30
+  },
+  "heroes/kael-parts/5": {
+   "width": 95,
+   "height": 162
+  },
+  "heroes/kael-parts/6": {
+   "width": 92,
+   "height": 130
+  },
+  "heroes/kael-parts/7": {
+   "width": 128,
+   "height": 111
+  },
+  "heroes/kael-parts/8": {
+   "width": 58,
+   "height": 89
+  },
+  "heroes/kael-parts/9": {
+   "width": 45,
+   "height": 75
+  },
+  "heroes/kael-parts/10": {
+   "width": 108,
+   "height": 65
+  },
+  "heroes/kael-parts/11": {
+   "width": 87,
+   "height": 124
+  },
+  "heroes/kael-parts/12": {
+   "width": 81,
+   "height": 90
+  },
+  "heroes/kael-parts/13": {
+   "width": 214,
+   "height": 45
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 388
@@ -117,7 +169,101 @@
    "map/meadows/20"
   ]
  },
- "parts": {},
+ "parts": {
+  "heroes/kael-parts": [
+   {
+    "id": "heroes/kael-parts/1",
+    "x": 136,
+    "y": 212,
+    "width": 111,
+    "height": 160
+   },
+   {
+    "id": "heroes/kael-parts/2",
+    "x": 164,
+    "y": 438,
+    "width": 117,
+    "height": 181
+   },
+   {
+    "id": "heroes/kael-parts/3",
+    "x": 178,
+    "y": 36,
+    "width": 107,
+    "height": 147
+   },
+   {
+    "id": "heroes/kael-parts/4",
+    "x": 186,
+    "y": 344,
+    "width": 170,
+    "height": 60
+   },
+   {
+    "id": "heroes/kael-parts/5",
+    "x": 442,
+    "y": 35,
+    "width": 189,
+    "height": 323
+   },
+   {
+    "id": "heroes/kael-parts/6",
+    "x": 452,
+    "y": 381,
+    "width": 183,
+    "height": 260
+   },
+   {
+    "id": "heroes/kael-parts/7",
+    "x": 708,
+    "y": 37,
+    "width": 256,
+    "height": 222
+   },
+   {
+    "id": "heroes/kael-parts/8",
+    "x": 769,
+    "y": 442,
+    "width": 116,
+    "height": 178
+   },
+   {
+    "id": "heroes/kael-parts/9",
+    "x": 788,
+    "y": 246,
+    "width": 90,
+    "height": 149
+   },
+   {
+    "id": "heroes/kael-parts/10",
+    "x": 1041,
+    "y": 255,
+    "width": 216,
+    "height": 130
+   },
+   {
+    "id": "heroes/kael-parts/11",
+    "x": 1064,
+    "y": 405,
+    "width": 174,
+    "height": 247
+   },
+   {
+    "id": "heroes/kael-parts/12",
+    "x": 1068,
+    "y": 42,
+    "width": 162,
+    "height": 180
+   },
+   {
+    "id": "heroes/kael-parts/13",
+    "x": 475,
+    "y": 663,
+    "width": 427,
+    "height": 90
+   }
+  ]
+ },
  "music": [],
  "sfx": []
 }

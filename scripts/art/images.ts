@@ -170,15 +170,21 @@ export function opaqueBox({ data, width, height }: RawImage, area: Box = { x: 0,
   return right < 0 ? null : { x: left, y: top, width: right - left + 1, height: bottom - top + 1 }
 }
 
+/** A piece of a sheet: its box and which pixels of the box are its own (a neighbor can reach into the box). */
+export interface Part extends Box {
+  mask: Uint8Array
+}
+
 /**
  * The separate pieces of a sheet: groups of touching pixels that are not
  * empty, larger than `minShare` of the sheet, sorted top to bottom and left
  * to right.
  */
-export function findParts({ data, width, height }: RawImage, minShare = 0.001): Box[] {
-  const seen = new Uint8Array(width * height)
+export function findParts({ data, width, height }: RawImage, minShare = 0.001): Part[] {
+  const seen = new Int32Array(width * height)
   const stack = new Int32Array(width * height)
-  const boxes: Box[] = []
+  const boxes: Part[] = []
+  let label = 0
 
   for (let start = 0; start < width * height; start++) {
     if (seen[start] || data[start * 4 + 3] <= EMPTY_ALPHA) {
@@ -188,8 +194,9 @@ export function findParts({ data, width, height }: RawImage, minShare = 0.001): 
     const found = { left: width, right: 0, top: height, bottom: 0, size: 0 }
     let pending = 0
 
+    label++
     stack[pending++] = start
-    seen[start] = 1
+    seen[start] = label
 
     while (pending > 0) {
       const pixel = stack[--pending]
@@ -206,24 +213,33 @@ export function findParts({ data, width, height }: RawImage, minShare = 0.001): 
 
       for (const next of neighbors) {
         if (next >= 0 && next < width * height && !seen[next] && data[next * 4 + 3] > EMPTY_ALPHA) {
-          seen[next] = 1
+          seen[next] = label
           stack[pending++] = next
         }
       }
     }
 
     if (found.size >= minShare * width * height) {
-      boxes.push({
+      const box = {
         x: found.left,
         y: found.top,
         width: found.right - found.left + 1,
         height: found.bottom - found.top + 1
-      })
+      }
+      const mask = new Uint8Array(box.width * box.height)
+
+      for (let y = 0; y < box.height; y++) {
+        for (let x = 0; x < box.width; x++) {
+          mask[y * box.width + x] = seen[(box.y + y) * width + box.x + x] === label ? 1 : 0
+        }
+      }
+
+      boxes.push({ ...box, mask })
     }
   }
 
   // Rows: a part joins the row when it starts above the row's lowest bottom.
-  const rows: { bottom: number; boxes: Box[] }[] = []
+  const rows: { bottom: number; boxes: Part[] }[] = []
 
   for (const box of boxes.sort((a, b) => a.y - b.y)) {
     const row = rows.at(-1)

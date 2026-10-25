@@ -1,5 +1,8 @@
 import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
-import { figureArtId, loadTextures } from '@/app/(protected)/(art)/utils/art'
+import { RIGS } from '@/app/(protected)/(art)/data/rigs'
+import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
+import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
+import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
@@ -34,6 +37,8 @@ interface Figure {
   barsText: Text | null
   statusText: Text
   side: Combatant['side']
+  /** The puppet, when the figure is put together from a parts sheet. */
+  rig: RigFigure | null
   size: number
   health: number
   maxHealth: number
@@ -86,7 +91,8 @@ export class BattleRenderer {
     private readonly onTap: (combatantId: string) => void,
     /** The final art that exists for this battle (figures by art id, and the background). */
     private readonly art: Map<string, Texture>,
-    private readonly backgroundId: string
+    private readonly backgroundId: string,
+    private readonly parts: ArtManifest['parts']
   ) {
     this.stage.addChild(this.background, this.backdrop, this.marker, this.fighters, this.effects)
     app.stage.addChild(this.stage)
@@ -98,17 +104,24 @@ export class BattleRenderer {
     battle: BattleState,
     labels: BattleLabels,
     onTap: (combatantId: string) => void,
-    backgroundId: string
+    wantedBackground: string
   ): Promise<BattleRenderer> {
     const app = new Application()
-    const art = await loadTextures([
-      backgroundId,
+    const { images, parts } = await loadArtManifest()
+    // While only one of a biome's two backgrounds exists, every battle there uses it.
+    const backgroundId = images[wantedBackground] ? wantedBackground : wantedBackground.replace(/-\d$/, '-1')
+    const figureIds = [
       ...battle.combatants
         .filter((combatant) => combatant.side === 'hero')
         .map((hero) => figureArtId('hero', hero.characterId!, false)),
       ...battle.phases
         .flat()
         .map((spawn) => figureArtId('enemy', spawn.speciesId, getSpecies(spawn.speciesId).rarity === 'boss'))
+    ]
+    const art = await loadTextures([
+      backgroundId,
+      ...figureIds,
+      ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : []))
     ])
 
     await app.init({
@@ -120,7 +133,7 @@ export class BattleRenderer {
     })
     element.appendChild(app.canvas)
 
-    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, backgroundId)
+    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, backgroundId, parts)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
@@ -269,16 +282,19 @@ export class BattleRenderer {
 
     const size = combatant.side === 'enemy' ? getSpecies(combatant.speciesId!).size * (combatant.elite ? 1.15 : 1) : 1
     const root = new Container()
-    const texture = this.art.get(
+    const artId =
       combatant.side === 'hero'
         ? figureArtId('hero', combatant.characterId!, false)
         : figureArtId('enemy', combatant.speciesId!, getSpecies(combatant.speciesId!).rarity === 'boss')
-    )
-    const body = texture
-      ? drawArt(texture, combatant.side)
-      : combatant.side === 'hero'
-        ? drawHero(combatant.characterId!)
-        : drawEnemy(combatant)
+    const texture = this.art.get(artId)
+    const rig = RIGS[artId] ? RigFigure.create(RIGS[artId], this.parts, this.art, artHeight(combatant.side)) : null
+    const body = rig
+      ? drawRig(rig)
+      : texture
+        ? drawArt(texture, combatant.side)
+        : combatant.side === 'hero'
+          ? drawHero(combatant.characterId!)
+          : drawEnemy(combatant)
     const healthBar = new Graphics()
     const statusText = new Text({
       text: '',
@@ -316,6 +332,7 @@ export class BattleRenderer {
       barsText,
       statusText,
       side: combatant.side,
+      rig,
       size,
       health: combatant.health,
       maxHealth: combatant.stats.maxHealth,
@@ -409,12 +426,22 @@ export class BattleRenderer {
           const dx = (target.home.x - actor.home.x) * 0.55
           const dy = (target.home.y - actor.home.y) * 0.55
 
-          await this.tween(ms(170), (t) =>
+          // A puppet winds up while it closes in and strikes on arrival.
+          actor.rig?.play('attack', ms(560))
+          await this.tween(ms(actor.rig ? 250 : 170), (t) =>
             actor.root.position.set(actor.home.x + dx * ease(t), actor.home.y + dy * ease(t))
           )
+
+          if (actor.rig) {
+            await wait(ms(110))
+          }
+
           void this.tween(ms(220), (t) =>
             actor.root.position.set(actor.home.x + dx * (1 - ease(t)), actor.home.y + dy * (1 - ease(t)))
           )
+        } else if (actor.rig) {
+          actor.rig.play('cast', ms(420))
+          await wait(ms(320))
         } else {
           await this.tween(ms(260), (t) => actor.body.scale.set(actor.size * (1 + Math.sin(t * Math.PI) * 0.12)))
         }
@@ -467,6 +494,7 @@ export class BattleRenderer {
 
         if (actor) {
           this.float(actor, this.labels.item(event.itemId), 0xffc233, 15, -40)
+          actor.rig?.play('cast', ms(420))
           await this.tween(ms(260), (t) => actor.body.scale.set(actor.size * (1 + Math.sin(t * Math.PI) * 0.12)))
         }
 
@@ -635,6 +663,8 @@ export class BattleRenderer {
   private hit(figure: Figure, duration: number): Promise<void> {
     const direction = figure.side === 'hero' ? -1 : 1
 
+    figure.rig?.play('hit', duration * 2)
+
     return this.tween(duration, (t) => {
       figure.body.alpha = t < 0.35 ? 0.55 : 1
       figure.body.position.x = Math.sin(t * Math.PI * 4) * 6 * direction * (1 - t)
@@ -709,7 +739,9 @@ export class BattleRenderer {
     }
 
     for (const [, figure] of this.figures) {
-      if (figure.root.alpha === 1) {
+      if (figure.rig) {
+        figure.rig.update(deltaMS)
+      } else if (figure.root.alpha === 1) {
         figure.body.scale.y = figure.size * (1 + Math.sin(this.elapsed * 2.4 + figure.home.x) * 0.015)
       }
     }
@@ -726,17 +758,32 @@ function mix(a: number, b: number, share: number): number {
   return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }
 
+/** How tall the final art stands: heroes a bit taller than a common enemy of size 1. */
+function artHeight(side: Combatant['side']): number {
+  return FIGURE_HEIGHT * (side === 'hero' ? 1.15 : 1)
+}
+
+function drawShadow(): Graphics {
+  return new Graphics().ellipse(0, 0, 40, 10).fill({ color: 0x000000, alpha: 0.35 })
+}
+
 /** A fighter with its final art: the figure standing on its spot, with a shadow at its feet. */
 function drawArt(texture: Texture, side: Combatant['side']): Container {
   const container = new Container()
-  const shadow = new Graphics().ellipse(0, 0, 40, 10).fill({ color: 0x000000, alpha: 0.35 })
   const sprite = new Sprite(texture)
-  // Heroes stand a bit taller than a common enemy of size 1.
-  const height = FIGURE_HEIGHT * (side === 'hero' ? 1.15 : 1)
 
   sprite.anchor.set(0.5, 0.97)
-  sprite.scale.set(height / texture.height)
-  container.addChild(shadow, sprite)
+  sprite.scale.set(artHeight(side) / texture.height)
+  container.addChild(drawShadow(), sprite)
+
+  return container
+}
+
+/** A fighter put together from its parts sheet (it animates itself). */
+function drawRig(rig: RigFigure): Container {
+  const container = new Container()
+
+  container.addChild(drawShadow(), rig.view)
 
   return container
 }

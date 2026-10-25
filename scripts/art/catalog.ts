@@ -186,7 +186,7 @@ export function buildCatalog(): Piece[] {
         height: 2048,
         batch,
         prompt: prompt(
-          `Character parts sheet for 2D skeletal animation of the same character as the reference image: ${look}. Side view facing right. Each part drawn separately with space between them, not overlapping, at the same scale: head, torso, upper left arm, lower left arm with hand, upper right arm, lower right arm with hand, upper left leg, lower left leg with foot, upper right leg, lower right leg with foot, the weapon, and the cloak or scarf. ${FLAME}`,
+          `Using the attached full image of this character as the exact reference (same clothes, colors, style and scale), a cutout puppet parts sheet for 2D animation: ${look}. Do not draw the full character anywhere, do not repeat any part, do not add armor or items that are not in the reference. Exactly these pieces in a clean grid, each isolated with wide empty space around it, nothing touching: head with hair and neck (no scarf), torso without arms or head, the scarf or cloak alone, the shield or off-hand item alone, upper right arm, lower right arm with hand, upper left arm, lower left arm with hand, upper right leg, lower right leg with foot, upper left leg, lower left leg with foot; the weapon alone, horizontal, below the grid. Every limb piece straight, side view facing right, with rounded ends at the joints so pieces can overlap when assembled.`,
           'Plain flat #00FF00 background.'
         )
       },
@@ -225,7 +225,7 @@ export function buildCatalog(): Piece[] {
         height: 2048,
         batch: enemy.biome,
         prompt: prompt(
-          `Monster parts sheet for 2D skeletal animation of the same creature as the reference image: ${look}. Side view facing left. Each part drawn separately with space between them, not overlapping, at the same scale: head, jaw, torso, each limb in two pieces, tail or wings if it has them.`,
+          `Using the attached full image of this creature as the exact reference (same colors, style and scale), a cutout puppet parts sheet for 2D animation: ${look}. Do not draw the full creature anywhere, do not repeat any part, do not add anything that is not in the reference. Each piece isolated in a clean grid with wide empty space around it, nothing touching: head with jaw, torso, each limb in two straight pieces, tail or wings if it has them. Side view facing left, rounded ends at the joints so pieces can overlap when assembled.`,
           'Plain flat #00FF00 background.'
         )
       })

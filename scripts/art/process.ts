@@ -14,7 +14,7 @@ import sharp from 'sharp'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { BATCHES, buildCatalog, Piece, PieceKind } from '@/scripts/art/catalog'
-import { Box, findParts, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
+import { Box, findParts, hasChromaBackground, opaqueBox, Part, RawImage, removeChroma } from '@/scripts/art/images'
 
 const SOURCE = 'art/source'
 const OUTPUT = 'public/art'
@@ -48,7 +48,7 @@ async function readRaw(path: string): Promise<RawImage> {
 
 async function writeWebp(
   image: RawImage,
-  box: Box,
+  box: Box | Part,
   id: string,
   maxSide: number,
   quality = 88
@@ -57,10 +57,27 @@ async function writeWebp(
   const scale = maxSide > 0 ? Math.min(1, maxSide / Math.max(box.width, box.height)) : 1
   const width = Math.max(1, Math.round(box.width * scale))
   const height = Math.max(1, Math.round(box.height * scale))
+  // Only the piece's own pixels: a neighbor reaching into its box is left out.
+  const pixels = Buffer.alloc(box.width * box.height * 4)
+
+  for (let y = 0; y < box.height; y++) {
+    for (let x = 0; x < box.width; x++) {
+      const target = (y * box.width + x) * 4
+
+      if (!('mask' in box) || box.mask[y * box.width + x]) {
+        pixels.set(
+          image.data.subarray(
+            ((box.y + y) * image.width + box.x + x) * 4,
+            ((box.y + y) * image.width + box.x + x) * 4 + 4
+          ),
+          target
+        )
+      }
+    }
+  }
 
   mkdirSync(dirname(path), { recursive: true })
-  await sharp(image.data, { raw: { width: image.width, height: image.height, channels: 4 } })
-    .extract({ left: box.x, top: box.y, width: box.width, height: box.height })
+  await sharp(pixels, { raw: { width: box.width, height: box.height, channels: 4 } })
     .resize(width, height)
     .webp({ quality, alphaQuality: 90 })
     .toFile(path)
@@ -111,7 +128,7 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
       const id = `${piece.id}/${index + 1}`
 
       manifest.images[id] = await writeWebp(image, box, id, Math.max(box.width, box.height) * PARTS_SCALE)
-      parts.push({ id, ...box })
+      parts.push({ id, x: box.x, y: box.y, width: box.width, height: box.height })
     }
 
     manifest.parts[piece.id] = parts

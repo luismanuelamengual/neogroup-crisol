@@ -83,7 +83,7 @@ describe('art pipeline', () => {
     removeChroma(sheet)
 
     // The single stray pixel is too small to be a part.
-    expect(findParts(sheet, 0.01)).toEqual([
+    expect(findParts(sheet, 0.01).map(({ x, y, width, height }) => ({ x, y, width, height }))).toEqual([
       { x: 2, y: 2, width: 8, height: 8 },
       { x: 30, y: 4, width: 10, height: 10 },
       { x: 4, y: 30, width: 12, height: 12 }
