@@ -22,16 +22,23 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0.65, 0.08],
       [1, 0]
     ],
+    // Up over the head, then down onto the target.
     frontArm: [
       [0, 0],
-      [0.45, 2.0],
-      [0.65, -0.8],
+      [0.45, -3.0],
+      [0.65, -0.7],
       [1, 0]
     ],
     frontForearm: [
       [0, 0],
-      [0.45, 1.4],
-      [0.65, 0.3],
+      [0.45, 0.8],
+      [0.65, 0.9],
+      [1, 0]
+    ],
+    weapon: [
+      [0, 0],
+      [0.45, 0.4],
+      [0.65, 1.2],
       [1, 0]
     ],
     backArm: [
@@ -55,14 +62,14 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
     ],
     frontArm: [
       [0, 0],
-      [0.4, -1.4],
-      [0.75, -1.4],
+      [0.4, -1.1],
+      [0.75, -1.1],
       [1, 0]
     ],
     frontForearm: [
       [0, 0],
-      [0.4, 0.6],
-      [0.75, 0.6],
+      [0.4, 0.3],
+      [0.75, 0.3],
       [1, 0]
     ],
     head: [
@@ -189,8 +196,14 @@ export class RigFigure {
 
     figure.layout()
 
-    // Feet on the ground at (0, 0), hips centered, `height` tall.
+    // Feet on the ground at (0, 0), hips centered, `height` tall (the body: what it holds can reach higher).
+    const held = (['weapon', 'shield'] as BoneRole[]).map((role) => figure.sprites.get(role)).filter(Boolean)
+
+    held.forEach((sprite) => (sprite!.visible = false))
+
     const bounds = figure.inner.getLocalBounds()
+
+    held.forEach((sprite) => (sprite!.visible = true))
 
     figure.inner.position.set(0, -bounds.maxY)
     figure.view.scale.set(height / (bounds.maxY - bounds.minY))
