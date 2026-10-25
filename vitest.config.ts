@@ -4,9 +4,9 @@ import { defineConfig } from 'vitest/config'
 /**
  * Vitest configuration.
  *
- *   - tests/unit  → pure logic (geometry, scoring, location picking, the Mapillary client with a fake fetch)
- *   - tests/flows → game services end to end against an in-memory SQLite database
- *                   (see tests/setup/vitest.setup.ts) with a fake imagery provider
+ *   - tests/unit  → pure logic (dictionaries, formats, the world generator and its validation)
+ *   - tests/flows → services end to end against an in-memory SQLite database
+ *                   (see tests/setup/vitest.setup.ts)
  *
  * Decorators are handled by Vitest's transformer using the project tsconfig.json
  * (experimentalDecorators / useDefineForClassFields).

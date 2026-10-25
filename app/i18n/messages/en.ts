@@ -221,7 +221,7 @@ export const en: Messages = {
     comingSoon: 'The world map arrives in the next phase.',
     backToMenu: 'Back to menu',
     camps: {
-      'camp-start': 'Glade of Awakening'
+      start: 'Glade of Awakening'
     }
   },
   characters: {

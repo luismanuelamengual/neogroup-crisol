@@ -1,10 +1,6 @@
+import { WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import {
-  createInitialGameState,
-  isGameState,
-  SAVE_VERSION,
-  WORLD_VERSION
-} from '@/app/(protected)/(engine)/utils/gameState'
+import { createInitialGameState, isGameState, SAVE_VERSION } from '@/app/(protected)/(engine)/utils/gameState'
 import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { SaveGameInput } from '@/app/(protected)/(saves)/models/SaveGameInput'

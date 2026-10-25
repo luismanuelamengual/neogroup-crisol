@@ -1,23 +1,18 @@
+import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
 export const SAVE_VERSION = 1
 
-/** Version of the world the game is played on (see `saves.worldVersion`). */
-export const WORLD_VERSION = 1
-
-/** Starting camp (the Glade of Awakening): the only one that is open from the start. */
-export const START_CAMP_ID = 'camp-start'
-
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(): GameState {
   return {
     cycle: 0,
-    positionNodeId: START_CAMP_ID,
-    lastRestCampId: START_CAMP_ID,
-    openCampIds: [START_CAMP_ID],
-    clearedNodeIds: [START_CAMP_ID],
+    positionNodeId: START_NODE_ID,
+    lastRestCampId: START_NODE_ID,
+    openCampIds: [START_NODE_ID],
+    clearedNodeIds: [START_NODE_ID],
     characters: [{ id: CharacterId.KAEL, level: 1, xp: 0 }],
     gold: 0
   }

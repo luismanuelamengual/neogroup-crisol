@@ -2,7 +2,7 @@
 
 RPG de fantasía por turnos para un jugador: un mundo laberíntico de más de 1.000 puntos al estilo de los mapas de _Super Mario World_, combate por turnos según la velocidad al estilo de _Clair Obscur_, campamentos y castigo por muerte al estilo de _Dark Souls_ y batallas laterales al estilo de _Hero Wars_. Se publica como PWA en Vercel y en Google Play como TWA.
 
-El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 1**: la base (auth, PWA, i18n) y el menú Continuar / Nuevo con el guardado de la partida.
+El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 2**: además de la base (auth, PWA, i18n) y el menú Continuar / Nuevo con el guardado de la partida, ya está el generador del mundo.
 
 ## Tech stack
 
@@ -80,7 +80,7 @@ app/(protected)/
   stores/users.ts         Store con el usuario logueado
   (home)/                 Menú principal (/menu): Continuar / Nuevo
   (world)/                El mundo (/world). Por ahora muestra la partida cargada; el mapa llega en la fase 3
-  (engine)/               Lógica pura del juego (sin React ni base de datos): estado de la partida, reglas, catálogos
+  (engine)/               Lógica pura del juego (sin React ni base de datos): estado de la partida, el mundo, reglas, catálogos
   (saves)/                Partida guardada: tabla `saves`, servicios y API
   (account)/              Perfil del jugador (nombre, idioma, borrado de cuenta)
 ```
@@ -109,19 +109,34 @@ Siempre `POST` con body JSON, nombre `verbNoun` (`/api/loadGame`, `/api/saveGame
 
 Una sola partida por cuenta, en la tabla `saves`:
 
-| Columna           | Descripción                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------- |
-| `userId`          | Único: "Nuevo" reemplaza la partida anterior (el menú lo confirma antes)              |
-| `cycle`           | Ciclo de Nuevo Juego+ (0 = primera partida)                                            |
-| `worldVersion`    | Versión del mundo (`world.json`) sobre la que se jugó                                  |
-| `saveVersion`     | Forma de `data`; una partida de una forma anterior se migra al cargarla                |
+| Columna           | Descripción                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `userId`          | Único: "Nuevo" reemplaza la partida anterior (el menú lo confirma antes)                 |
+| `cycle`           | Ciclo de Nuevo Juego+ (0 = primera partida)                                              |
+| `worldVersion`    | Versión del mundo (`world.json`) sobre la que se jugó                                    |
+| `saveVersion`     | Forma de `data`; una partida de una forma anterior se migra al cargarla                  |
 | `version`         | Se incrementa en cada escritura (bloqueo optimista: la misma cuenta en dos dispositivos) |
-| `playTimeSeconds` | Tiempo de juego                                                                        |
-| `data`            | El `GameState` completo (`(engine)/models/GameState.ts`)                               |
+| `playTimeSeconds` | Tiempo de juego                                                                          |
+| `data`            | El `GameState` completo (`(engine)/models/GameState.ts`)                                 |
 
 El juego corre en el navegador y manda el estado entero: el servidor solo valida su forma (`isGameState`) y su versión, nunca simula el juego (es de un jugador y no hay ranking). Endpoints: `getSaveSummary` (lo que muestra el menú), `loadGame`, `newGame` y `saveGame` (`{ version, playTimeSeconds, state }`; rechaza con 409 una versión vieja).
 
 El mundo y los catálogos (personajes, habilidades, runas, enemigos...) no se guardan en la base: viven en el código, y la partida los referencia por id.
+
+## El mundo — `app/(protected)/(engine)`
+
+Aurenya es el mismo para todos los jugadores: un grafo fijo guardado en `public/world/world.json` que sale de un generador determinístico (misma semilla ⇒ mismo mundo).
+
+```bash
+yarn world:generate   # regenera public/world/world.json con WORLD_SEED e imprime estadísticas
+```
+
+- **Datos**: `data/biomes.ts` (los 9 biomas: niveles, cantidad de puntos, jefes, santuarios, mercader, lágrima, cofres y qué biomas se tocan) y `data/world.ts` (`WORLD_SEED`, `WORLD_VERSION`, `START_NODE_ID`).
+- **Generador** (`utils/worldGenerator.ts`): regiones de bioma con un Voronoi deformado por ruido, puntos repartidos con distancia mínima, triangulación de Delaunay como senderos candidatos, un árbol de Kruskal por bioma (grado ≤ 4, laberinto con callejones) más un 12% de senderos extra que cierran ciclos, y un único sendero de frontera por par de biomas vecinos. Después ubica el inicio, los 29 campamentos con jefe (4 captores, 3 Sellos, 22 minijefes), los 60 santuarios en callejones sin salida, los 5 mercaderes, las 5 Lágrimas, los cofres, la puerta del Abismo y a Crisol, y asigna los niveles de cada pelea.
+- **Validación** (`utils/worldValidation.ts`): todo lo que el diseño exige (conexo, grados, fronteras, conteos por bioma, el Abismo cerrado sin la puerta, campamentos a ≤ 40 pasos, runas 1..60 por tier...). El generador prueba semillas hasta que una pasa, y los tests validan el `world.json` guardado.
+- Si se regenera el mundo con cambios, subir `WORLD_VERSION`: las partidas guardan sobre qué versión se jugaron.
+
+En desarrollo, **`/dev/world`** muestra el mundo completo en un visor SVG (zoom con la rueda, arrastrar para moverse, niveles, leyenda con conteos e info del punto bajo el mouse). En producción esa página no existe.
 
 ## PWA
 
@@ -141,7 +156,7 @@ La app Android es una TWA (generada con PWABuilder o Bubblewrap) que abre este s
 yarn test
 ```
 
-- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos.
+- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos) y los utilitarios de grafos.
 - `tests/flows` — contra SQLite en memoria con las migraciones reales: partida guardada (nueva, cargar, guardar, bloqueo optimista, validación del estado, reemplazo) y borrado de cuenta.
 
 ## Idiomas (i18n)

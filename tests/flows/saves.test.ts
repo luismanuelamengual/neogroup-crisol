@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { START_CAMP_ID } from '@/app/(protected)/(engine)/utils/gameState'
 import { getSaveSummary, loadGame, saveGame, startNewGame } from '@/app/(protected)/(saves)/services/saves'
 import { createUser, resetDatabase } from '@/tests/setup/database'
 
@@ -22,8 +22,8 @@ describe('saved games', () => {
     const save = await startNewGame(userId)
 
     expect(save.state.cycle).toBe(0)
-    expect(save.state.positionNodeId).toBe(START_CAMP_ID)
-    expect(save.state.openCampIds).toEqual([START_CAMP_ID])
+    expect(save.state.positionNodeId).toBe(START_NODE_ID)
+    expect(save.state.openCampIds).toEqual([START_NODE_ID])
     expect(save.state.characters).toEqual([{ id: CharacterId.KAEL, level: 1, xp: 0 }])
     expect(await getSaveSummary(userId)).toMatchObject({ cycle: 0, topLevel: 1, characters: 1, playTimeSeconds: 0 })
   })

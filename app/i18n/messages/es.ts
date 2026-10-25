@@ -225,7 +225,7 @@ export const es = {
     comingSoon: 'El mapa del mundo llega en la próxima fase.',
     backToMenu: 'Volver al menú',
     camps: {
-      'camp-start': 'Claro del Despertar'
+      start: 'Claro del Despertar'
     }
   },
   characters: {

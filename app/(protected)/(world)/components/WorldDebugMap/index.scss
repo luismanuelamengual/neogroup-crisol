@@ -1,0 +1,82 @@
+.world-debug-map {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: calc(100dvh - var(--appbar-height));
+
+  .map {
+    flex: 1;
+    width: 100%;
+    height: calc(100dvh - var(--appbar-height));
+    background: #050508;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .level {
+    fill: #ffffff;
+    font-size: 110px;
+    font-weight: 800;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: #000000;
+    stroke-width: 18px;
+  }
+
+  .panel {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    max-width: 260px;
+    padding: 12px 14px;
+    border: 3px solid var(--color-panel-border);
+    border-radius: 12px;
+    background: rgba(10, 10, 20, 0.85);
+    font-size: 0.8rem;
+
+    h1 {
+      margin: 0 0 4px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    p {
+      margin: 0 0 8px;
+      color: var(--color-text-secondary);
+    }
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .legend {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+
+  .swatch {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #000000;
+    border-radius: 50%;
+  }
+
+  .hovered {
+    padding-top: 8px;
+    border-top: 1px solid var(--color-panel-border);
+  }
+}
