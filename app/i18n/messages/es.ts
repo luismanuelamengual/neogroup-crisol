@@ -222,10 +222,118 @@ export const es = {
   world: {
     title: 'Aurenya',
     level: 'Nivel {level}',
-    comingSoon: 'El mapa del mundo llega en la próxima fase.',
+    levelShort: 'Nv. {level}',
     backToMenu: 'Volver al menú',
+    menu: 'Menú',
+    gold: 'Oro',
+    missing: 'No tenés una partida guardada.',
+    offlineNoCopy: 'Sin conexión, y este dispositivo no tiene una copia de tu partida.',
     camps: {
-      start: 'Claro del Despertar'
+      start: 'Claro del Despertar',
+      lair: 'Guarida de {name}',
+      miniboss: 'Campamento {number} de {biome}'
+    },
+    biomes: {
+      meadows: 'Praderas',
+      forest: 'Bosques',
+      tropical: 'Tropical',
+      desert: 'Desiertos',
+      mountains: 'Montañoso',
+      snow: 'Nevado',
+      volcanic: 'Volcánica',
+      wastelands: 'Yermos',
+      abyss: 'Abismo'
+    },
+    bosses: {
+      morgrath: { name: 'Morgrath', title: 'Morgrath, la Bruja del Musgo' },
+      sahrak: { name: 'Sahrak', title: 'Sahrak, el Rey Escorpión' },
+      vorneth: { name: 'Vorneth', title: 'Vorneth, el Wyrm de Escarcha' },
+      ignaroth: { name: 'Ignaroth', title: 'Ignaroth, Señor de la Ceniza' },
+      xalqui: { name: 'Xalqui', title: 'Xalqui, la Serpiente de Jade' },
+      colossus: { name: 'el Coloso', title: 'El Coloso de Basalto' },
+      vael: { name: 'Vael', title: 'Vael, el Caballero Hueco' }
+    },
+    merchants: {
+      peddler: 'Buhonero',
+      alchemist: 'Alquimista',
+      smith: 'Herrera',
+      scholar: 'Erudito',
+      threshold: 'Mercader del Umbral'
+    },
+    points: {
+      combat: 'Combate',
+      cleared: 'Camino despejado',
+      respawned: 'Los enemigos volvieron',
+      miniboss: 'Minijefe de {biome}',
+      sanctuary: 'Santuario de runa',
+      sanctuaryTaken: 'Santuario (runa obtenida)',
+      tear: 'Lágrima del Olvido',
+      tearTaken: 'Lágrima del Olvido (obtenida)',
+      chest: 'Cofre',
+      chestOpened: 'Cofre abierto',
+      gate: 'Puerta del Abismo',
+      gateSealed: { one: 'Sellada: falta {count} Sello', other: 'Sellada: faltan {count} Sellos' },
+      crisol: 'Crisol'
+    },
+    encounters: {
+      combat: 'Combate',
+      elite: 'Combate de élite',
+      guardian: 'Guardián del santuario',
+      miniboss: 'Minijefe',
+      captor: 'Captor',
+      seal: 'Sello del Abismo',
+      crisol: 'Jefe final'
+    },
+    panel: {
+      go: 'Ir',
+      here: 'Estás acá',
+      noRoute: 'Todavía no hay un camino despejado hasta acá.',
+      rest: 'Descansar',
+      rested: 'Descansaste: el grupo y el Frasco se recuperaron, y los enemigos comunes volvieron.',
+      teleport: 'Viajar',
+      teleportTitle: 'Viajar a otro campamento',
+      shopSoon: 'La tienda abre en una próxima fase.'
+    },
+    flask: {
+      name: 'Frasco de Ámbar',
+      drink: 'Beber',
+      heals: 'Cura el {potency}% de la vida a todo el grupo',
+      empty: 'El Frasco está vacío: descansá en un campamento para llenarlo.',
+      full: 'El grupo ya tiene la vida llena.'
+    },
+    battle: {
+      title: '{kind} · Nivel {level}',
+      placeholder: 'El combate llega en la fase 4. Por ahora elegís cómo termina.',
+      win: 'Ganar',
+      lose: 'Perder',
+      retreat: 'Retirarse',
+      noRetreat: 'No se puede huir de un jefe.'
+    },
+    rewards: {
+      camp: '¡Campamento ganado: {name}!',
+      character: '¡{name} se une al grupo en el nivel {level}!',
+      flaskCharge: 'El Frasco de Ámbar ahora tiene {max} cargas',
+      flaskPotency: 'El Frasco de Ámbar ahora cura el {potency}%',
+      rune: 'Obtuviste la runa {index} ({tier})',
+      tear: 'Encontraste una Lágrima del Olvido',
+      gold: '+{amount} de oro',
+      abyssOpen: 'Los tres Sellos cayeron: la Puerta del Abismo se abrió',
+      crisol: '¡Crisol cayó! El Nuevo Juego+ llega en una próxima fase.',
+      defeat: 'Tu grupo cayó. Despertás en {camp}.'
+    },
+    runeTiers: {
+      lesser: 'menor',
+      greater: 'mayor',
+      ancestral: 'ancestral',
+      abyssal: 'abisal'
+    },
+    sync: {
+      synced: 'Partida guardada',
+      pending: 'Guardada en este dispositivo',
+      syncing: 'Sincronizando...',
+      offline: 'Sin conexión: guardada en este dispositivo',
+      localDiscarded: 'Tu partida avanzó en otro dispositivo: se cargó esa versión.',
+      serverDiscarded: 'Esta copia tenía más tiempo de juego que la de otro dispositivo: se mantuvo esta.'
     }
   },
   characters: {

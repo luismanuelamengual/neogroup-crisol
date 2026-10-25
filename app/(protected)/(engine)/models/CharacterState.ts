@@ -7,4 +7,6 @@ export interface CharacterState {
   level: number
   /** Experience gathered towards the next level. */
   xp: number
+  /** Current health (0 when fallen; the maximum depends on the level). */
+  health: number
 }

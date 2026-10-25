@@ -218,10 +218,118 @@ export const en: Messages = {
   world: {
     title: 'Aurenya',
     level: 'Level {level}',
-    comingSoon: 'The world map arrives in the next phase.',
+    levelShort: 'Lv. {level}',
     backToMenu: 'Back to menu',
+    menu: 'Menu',
+    gold: 'Gold',
+    missing: "You don't have a saved game.",
+    offlineNoCopy: 'No connection, and this device has no copy of your game.',
     camps: {
-      start: 'Glade of Awakening'
+      start: 'Glade of Awakening',
+      lair: "{name}'s Lair",
+      miniboss: '{biome} camp {number}'
+    },
+    biomes: {
+      meadows: 'Meadows',
+      forest: 'Forests',
+      tropical: 'Tropics',
+      desert: 'Deserts',
+      mountains: 'Mountains',
+      snow: 'Snowlands',
+      volcanic: 'Volcanic lands',
+      wastelands: 'Wastelands',
+      abyss: 'Abyss'
+    },
+    bosses: {
+      morgrath: { name: 'Morgrath', title: 'Morgrath, the Moss Witch' },
+      sahrak: { name: 'Sahrak', title: 'Sahrak, the Scorpion King' },
+      vorneth: { name: 'Vorneth', title: 'Vorneth, the Frost Wyrm' },
+      ignaroth: { name: 'Ignaroth', title: 'Ignaroth, Lord of Ash' },
+      xalqui: { name: 'Xalqui', title: 'Xalqui, the Jade Serpent' },
+      colossus: { name: 'the Colossus', title: 'The Basalt Colossus' },
+      vael: { name: 'Vael', title: 'Vael, the Hollow Knight' }
+    },
+    merchants: {
+      peddler: 'Peddler',
+      alchemist: 'Alchemist',
+      smith: 'Smith',
+      scholar: 'Scholar',
+      threshold: 'Threshold Merchant'
+    },
+    points: {
+      combat: 'Fight',
+      cleared: 'Cleared trail',
+      respawned: 'The enemies came back',
+      miniboss: '{biome} mini boss',
+      sanctuary: 'Rune sanctuary',
+      sanctuaryTaken: 'Sanctuary (rune taken)',
+      tear: 'Tear of Oblivion',
+      tearTaken: 'Tear of Oblivion (taken)',
+      chest: 'Chest',
+      chestOpened: 'Opened chest',
+      gate: 'Door of the Abyss',
+      gateSealed: { one: 'Sealed: {count} Seal left', other: 'Sealed: {count} Seals left' },
+      crisol: 'Crisol'
+    },
+    encounters: {
+      combat: 'Fight',
+      elite: 'Elite fight',
+      guardian: 'Sanctuary guardian',
+      miniboss: 'Mini boss',
+      captor: 'Captor',
+      seal: 'Seal of the Abyss',
+      crisol: 'Final boss'
+    },
+    panel: {
+      go: 'Go',
+      here: 'You are here',
+      noRoute: 'There is no cleared trail to this point yet.',
+      rest: 'Rest',
+      rested: 'You rested: the party and the Flask recovered, and the common enemies came back.',
+      teleport: 'Travel',
+      teleportTitle: 'Travel to another camp',
+      shopSoon: 'The shop opens in an upcoming phase.'
+    },
+    flask: {
+      name: 'Amber Flask',
+      drink: 'Drink',
+      heals: 'Heals {potency}% of the health of the whole party',
+      empty: 'The Flask is empty: rest at a camp to refill it.',
+      full: 'The party already has full health.'
+    },
+    battle: {
+      title: '{kind} · Level {level}',
+      placeholder: 'Combat arrives in phase 4. For now you choose how it ends.',
+      win: 'Win',
+      lose: 'Lose',
+      retreat: 'Retreat',
+      noRetreat: "You can't flee from a boss."
+    },
+    rewards: {
+      camp: 'Camp won: {name}!',
+      character: '{name} joins the party at level {level}!',
+      flaskCharge: 'The Amber Flask now has {max} charges',
+      flaskPotency: 'The Amber Flask now heals {potency}%',
+      rune: 'You got rune {index} ({tier})',
+      tear: 'You found a Tear of Oblivion',
+      gold: '+{amount} gold',
+      abyssOpen: 'The three Seals fell: the Door of the Abyss opened',
+      crisol: 'Crisol fell! New Game+ arrives in an upcoming phase.',
+      defeat: 'Your party fell. You wake up at {camp}.'
+    },
+    runeTiers: {
+      lesser: 'lesser',
+      greater: 'greater',
+      ancestral: 'ancestral',
+      abyssal: 'abyssal'
+    },
+    sync: {
+      synced: 'Game saved',
+      pending: 'Saved on this device',
+      syncing: 'Syncing...',
+      offline: 'Offline: saved on this device',
+      localDiscarded: 'Your game moved on in another device: that version was loaded.',
+      serverDiscarded: 'This copy had more play time than the one of another device: this one was kept.'
     }
   },
   characters: {

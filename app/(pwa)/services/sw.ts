@@ -1,7 +1,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 import { defaultCache } from '@serwist/turbopack/worker'
-import { NetworkOnly, type PrecacheEntry, Serwist, type SerwistGlobalConfig } from 'serwist'
+import { type PrecacheEntry, Serwist, type SerwistGlobalConfig } from 'serwist'
 
 // Declares the injection point for the precache manifest to TypeScript.
 declare global {
@@ -12,14 +12,12 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope
 
-// Ads (AdSense) must never be cached: always straight from the network.
-const AD_HOSTS = /(^|\.)(googlesyndication\.com|doubleclick\.net|googleadservices\.com|adtrafficquality\.google)$/
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [{ matcher: ({ url }) => AD_HOSTS.test(url.hostname), handler: new NetworkOnly() }, ...defaultCache],
+  runtimeCaching: defaultCache,
   fallbacks: {
     entries: [
       {

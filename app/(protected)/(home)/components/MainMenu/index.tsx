@@ -6,6 +6,9 @@ import { useState } from 'react'
 import NewGameDialog from '@/app/(protected)/(home)/components/NewGameDialog'
 import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
 import { SaveSummary } from '@/app/(protected)/(saves)/models/SaveSummary'
+import { fromServer } from '@/app/(protected)/(saves)/utils/chooseSave'
+import { writeLocalSave } from '@/app/(protected)/(saves)/utils/localSaves'
+import { useUserStore } from '@/app/(protected)/stores/users'
 import InstallAppBanner from '@/app/(pwa)/components/InstallAppBanner'
 import GameButton from '@/app/components/GameButton'
 import Logo from '@/app/components/Logo'
@@ -20,6 +23,7 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
   const { t, locale } = useI18n()
   const router = useRouter()
   const { newGame } = useSaves()
+  const user = useUserStore((state) => state.user)
   const [confirming, setConfirming] = useState(false)
   const [starting, setStarting] = useState(false)
 
@@ -27,7 +31,13 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
     setStarting(true)
 
     try {
-      await newGame()
+      const fresh = await newGame()
+
+      // The new game replaces the copy of the previous one in this browser.
+      if (user) {
+        await writeLocalSave(fromServer(user.id, fresh))
+      }
+
       router.push('/world')
     } catch {
       // The error toast is shown by useRequests.

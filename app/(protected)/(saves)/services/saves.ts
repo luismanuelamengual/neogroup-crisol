@@ -1,6 +1,11 @@
 import { WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { createInitialGameState, isGameState, SAVE_VERSION } from '@/app/(protected)/(engine)/utils/gameState'
+import {
+  createInitialGameState,
+  isGameState,
+  migrateGameState,
+  SAVE_VERSION
+} from '@/app/(protected)/(engine)/utils/gameState'
 import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { SaveGameInput } from '@/app/(protected)/(saves)/models/SaveGameInput'
@@ -17,8 +22,13 @@ function findSave(userId: number): Promise<Save | null> {
   return Save.where('userId', userId).first()
 }
 
+/** The state of a save, migrated to the current SAVE_VERSION when it was stored with an older one. */
+function stateOf(save: Save): GameState {
+  return (save.saveVersion < SAVE_VERSION ? migrateGameState(save.data, save.saveVersion) : save.data) as GameState
+}
+
 function toLoadedSave(save: Save): LoadedSave {
-  return { version: save.version, playTimeSeconds: save.playTimeSeconds, state: save.data as GameState }
+  return { version: save.version, playTimeSeconds: save.playTimeSeconds, state: stateOf(save) }
 }
 
 /** Summary of the player's saved game for the main menu, or null when it has none. */
@@ -29,7 +39,7 @@ export async function getSaveSummary(userId: number): Promise<SaveSummary | null
     return null
   }
 
-  const state = save.data as GameState
+  const state = stateOf(save)
 
   return {
     cycle: save.cycle,

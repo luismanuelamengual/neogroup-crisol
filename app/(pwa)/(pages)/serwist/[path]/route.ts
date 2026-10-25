@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { createSerwistRoute } from '@serwist/turbopack'
+import { WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 
 /**
  * Serwist route handler (Turbopack integration).
@@ -15,7 +16,11 @@ import { createSerwistRoute } from '@serwist/turbopack'
 const revision = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8' }).stdout?.trim() || crypto.randomUUID()
 
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute({
-  additionalPrecacheEntries: [{ url: '/~offline', revision }],
+  // The world map is precached so the game can be played offline.
+  additionalPrecacheEntries: [
+    { url: '/~offline', revision },
+    { url: '/world/world.json', revision: `world-${WORLD_VERSION}` }
+  ],
   swSrc: 'app/(pwa)/services/sw.ts',
   useNativeEsbuild: true
 })

@@ -1,3 +1,6 @@
+/** Seals that must fall to open the door of the Abyss. */
+export const SEALS_TO_OPEN_ABYSS = 3
+
 /** Seed of the world of the game (see scripts/generate-world.ts). */
 export const WORLD_SEED = 1025
 

@@ -2,7 +2,7 @@
 
 RPG de fantasía por turnos para un jugador: un mundo laberíntico de más de 1.000 puntos al estilo de los mapas de _Super Mario World_, combate por turnos según la velocidad al estilo de _Clair Obscur_, campamentos y castigo por muerte al estilo de _Dark Souls_ y batallas laterales al estilo de _Hero Wars_. Se publica como PWA en Vercel y en Google Play como TWA.
 
-El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 2**: además de la base (auth, PWA, i18n) y el menú Continuar / Nuevo con el guardado de la partida, ya está el generador del mundo.
+El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 3**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo y el mapa jugable (PixiJS) con guardado local. El combate real llega en la fase 4: por ahora cada pelea se resuelve con un diálogo provisorio donde elegís ganar, perder o retirarte.
 
 ## Tech stack
 
@@ -15,7 +15,9 @@ El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fase
 - Tipografías self-hosted (`@fontsource`)
 - UI en inglés (por defecto) y español
 
-Próximas fases: **PixiJS** para el mapa y las batallas, Spine/DragonBones para las animaciones y Howler.js para el audio.
+- **PixiJS 8** + **pixi-viewport** para el mapa
+
+Próximas fases: PixiJS para las batallas, Spine/DragonBones para las animaciones y Howler.js para el audio.
 
 ## Getting started
 
@@ -79,7 +81,7 @@ app/(protected)/
   components/AppShell/    Barra superior de las páginas autenticadas (logo y menú del jugador)
   stores/users.ts         Store con el usuario logueado
   (home)/                 Menú principal (/menu): Continuar / Nuevo
-  (world)/                El mundo (/world). Por ahora muestra la partida cargada; el mapa llega en la fase 3
+  (world)/                El mapa jugable (/world): render PixiJS, interfaz, sesión de juego y sincronización
   (engine)/               Lógica pura del juego (sin React ni base de datos): estado de la partida, el mundo, reglas, catálogos
   (saves)/                Partida guardada: tabla `saves`, servicios y API
   (account)/              Perfil del jugador (nombre, idioma, borrado de cuenta)
@@ -138,6 +140,20 @@ yarn world:generate   # regenera public/world/world.json con WORLD_SEED e imprim
 
 En desarrollo, **`/dev/world`** muestra el mundo completo en un visor SVG (zoom con la rueda, arrastrar para moverse, niveles, leyenda con conteos e info del punto bajo el mouse). En producción esa página no existe.
 
+## El mapa jugable — `app/(protected)/(world)`
+
+- **Reglas** (`(engine)/utils/worldMap.ts`, funciones puras con tests): niebla (se ven los puntos despejados y sus vecinos como siluetas), ruta más corta por puntos despejados (una pelea sin ganar corta el paso), llegada a un punto, victoria (campamento, rescate del cautivo, runa, Lágrima, mejoras del Frasco, apertura del Abismo), derrota (se despierta en el último descanso), retirada (no contra jefes), descanso, teletransporte entre campamentos abiertos y el Frasco de Ámbar.
+- **Frasco de Ámbar**: arranca con 1 carga al 10 %; cada Sello suma una carga (máximo 4) y cada Ascua (los 4 captores y 6 minijefes, `data/flask.ts`) suma +5 % (máximo 60 %). Se recarga al descansar.
+- **Enemigos que vuelven**: al descansar reaparecen los combates comunes ya ganados (punto rojo en el marcador). No cortan el paso: se pelean solo si te detenés ahí. Jefes, guardianes y élites no vuelven en el mismo ciclo.
+- **Render** (`utils/worldRenderer.ts`): fondo por bioma pintado una vez en un canvas, senderos punteados, marcadores por tipo, niebla en una máscara de baja resolución, héroe que camina por los senderos y cámara con arrastre, pinch y rueda.
+- **Interfaz** (`components/`): `MapHud` (lugar, oro, estado del guardado, centrar), `PartyPanel` (vida del grupo y Frasco), `PointPanel` (el punto tocado: Ir, Descansar, Viajar), `BattleDialog` (combate provisorio) y `TeleportDialog`. Tocar un punto lo selecciona; tocarlo de nuevo (o "Ir") camina hasta él.
+
+### Guardado local y sincronización
+
+Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(saves)/utils/localSaves.ts`), así cerrar la app nunca deshace una derrota y se puede jugar sin conexión. Los cambios se suben con `/api/saveGame` al descansar, al perder, al ganar un campamento, cada 2 minutos, al pasar la app a segundo plano y al volver la red (`(world)/hooks/useGameSession.ts`). Al entrar, `chooseSave` elige entre la copia local y la del servidor: una copia de otra partida (un "Nuevo" en otro dispositivo) siempre pierde, y si las dos avanzaron gana la de más tiempo de juego, con aviso. El mundo (`world.json`) queda precacheado por el service worker.
+
+`SAVE_VERSION` va por la 2: las partidas de la versión 1 se migran al cargarlas (`migrateGameState`, con test).
+
 ## PWA
 
 Manifest en `/manifest.webmanifest`, service worker de Serwist en `/serwist/sw.js`, página offline `/~offline` e íconos en `public/` (todavía los de GeoQuests: se reemplazan con el arte de Crisol).
@@ -156,8 +172,8 @@ La app Android es una TWA (generada con PWABuilder o Bubblewrap) que abre este s
 yarn test
 ```
 
-- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos) y los utilitarios de grafos.
-- `tests/flows` — contra SQLite en memoria con las migraciones reales: partida guardada (nueva, cargar, guardar, bloqueo optimista, validación del estado, reemplazo) y borrado de cuenta.
+- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos), los utilitarios de grafos, las reglas del mapa y la elección entre la copia local y la del servidor.
+- `tests/flows` — contra SQLite en memoria con las migraciones reales: partida guardada (nueva, cargar, guardar, bloqueo optimista, validación del estado, migración, reemplazo) y borrado de cuenta.
 
 ## Idiomas (i18n)
 

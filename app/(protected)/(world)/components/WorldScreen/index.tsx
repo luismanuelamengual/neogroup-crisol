@@ -1,50 +1,341 @@
 'use client'
 
 import './index.scss'
-import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
+import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
+import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
+import { Reward } from '@/app/(protected)/(engine)/models/Reward'
+import { World } from '@/app/(protected)/(engine)/models/World'
+import {
+  arriveAt,
+  countDefeatedSeals,
+  drinkFlask,
+  getEncounter,
+  getFlask,
+  getRevealedNodeIds,
+  indexWorld,
+  isAtOpenCamp,
+  loseEncounter,
+  planRoute,
+  rest,
+  retreat,
+  teleport,
+  winEncounter,
+  WorldIndex
+} from '@/app/(protected)/(engine)/utils/worldMap'
+import BattleDialog from '@/app/(protected)/(world)/components/BattleDialog'
+import MapHud from '@/app/(protected)/(world)/components/MapHud'
+import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
+import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
+import TeleportDialog from '@/app/(protected)/(world)/components/TeleportDialog'
+import WorldMap, { WorldMapHandle } from '@/app/(protected)/(world)/components/WorldMap'
+import { useGameSession } from '@/app/(protected)/(world)/hooks/useGameSession'
+import { useGameStore } from '@/app/(protected)/(world)/stores/game'
+import { placeholderVictoryHealth } from '@/app/(protected)/(world)/utils/placeholderBattle'
+import { campName, pointName } from '@/app/(protected)/(world)/utils/pointNames'
+import type { MapView } from '@/app/(protected)/(world)/utils/worldRenderer'
 import GameButton from '@/app/components/GameButton'
 import GamePanel from '@/app/components/GamePanel'
 import Loading from '@/app/components/Loading'
-import { useLoadingData } from '@/app/hooks/useLoadingData'
+import { useNotifications } from '@/app/hooks/useNotifications'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
+/** A fight in progress and the point the party came from (where a retreat goes back to). */
+interface PendingEncounter {
+  encounter: Encounter
+  fromNodeId: string
+}
+
 /**
- * The world (/world): loads the saved game. For now it only shows where the
- * party is and who is in it; the map arrives in the next phase.
+ * The world (/world): the map of Aurenya with the party on it. Tap a point to
+ * see it and tap "Go" (or tap it again) to walk there through the cleared
+ * trails; fights are resolved with a stand-in dialog until phase 4.
  */
 export default function WorldScreen() {
   const t = useT()
-  const { loadGame } = useSaves()
-  const { data: save, loading } = useLoadingData(loadGame, [])
+  const { showSuccessMessage, showWarningMessage } = useNotifications()
+  const { status, update, upload } = useGameSession()
+  const save = useGameStore((store) => store.save)
+  const sync = useGameStore((store) => store.sync)
+  const [index, setIndex] = useState<WorldIndex | null>(null)
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [walking, setWalking] = useState(false)
+  const [pending, setPending] = useState<PendingEncounter | null>(null)
+  const [teleporting, setTeleporting] = useState(false)
+  const map = useRef<WorldMapHandle>(null)
+  const state = save?.state ?? null
 
-  if (loading) {
+  useEffect(() => {
+    fetch('/world/world.json')
+      .then((response) => response.json())
+      .then((world: World) => setIndex(indexWorld(world)))
+  }, [])
+
+  // A game closed in the middle of a fight goes back to it.
+  useEffect(() => {
+    if (!index || !state || pending) {
+      return
+    }
+
+    const encounter = getEncounter(index, state, state.positionNodeId)
+
+    if (encounter) {
+      const fromNodeId =
+        index.adjacency.get(state.positionNodeId)!.find((id) => state.clearedNodeIds.includes(id)) ??
+        state.lastRestCampId
+
+      setPending({ encounter, fromNodeId })
+    }
+    // Only when the game is loaded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, status])
+
+  const cleared = useMemo(() => new Set(state?.clearedNodeIds), [state?.clearedNodeIds])
+  const respawned = useMemo(() => new Set(state?.respawnedNodeIds), [state?.respawnedNodeIds])
+  const openCamps = useMemo(() => new Set(state?.openCampIds), [state?.openCampIds])
+  const revealed = useMemo(
+    () => (index && state ? getRevealedNodeIds(index, state) : new Set<string>()),
+    // The revealed points only change with the cleared ones.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [index, state?.clearedNodeIds]
+  )
+  const route = useMemo(
+    () => (index && state && selectedNodeId && !walking ? planRoute(index, state, selectedNodeId) : null),
+    [index, state, selectedNodeId, walking]
+  )
+  const view = useMemo<MapView | null>(
+    () =>
+      state
+        ? {
+            cleared,
+            revealed,
+            respawned,
+            openCamps,
+            positionNodeId: state.positionNodeId,
+            selectedNodeId,
+            route
+          }
+        : null,
+    [cleared, openCamps, respawned, revealed, route, selectedNodeId, state]
+  )
+  const showRewards = useCallback(
+    (rewards: Reward[]) => {
+      for (const reward of rewards) {
+        switch (reward.type) {
+          case 'camp':
+            showSuccessMessage(t('world.rewards.camp', { name: campName(t, index!.nodes.get(reward.nodeId)!) }))
+            break
+          case 'character':
+            showSuccessMessage(
+              t('world.rewards.character', {
+                name: t(`characters.${reward.characterId}.name` as MessageKey),
+                level: reward.level
+              })
+            )
+            break
+          case 'flaskCharge':
+            showSuccessMessage(t('world.rewards.flaskCharge', { max: reward.maxCharges }))
+            break
+          case 'flaskPotency':
+            showSuccessMessage(t('world.rewards.flaskPotency', { potency: reward.potency }))
+            break
+          case 'rune':
+            showSuccessMessage(
+              t('world.rewards.rune', { index: reward.runeIndex, tier: t(`world.runeTiers.${reward.tier}`) })
+            )
+            break
+          case 'tear':
+            showSuccessMessage(t('world.rewards.tear'))
+            break
+          case 'gold':
+            showSuccessMessage(t('world.rewards.gold', { amount: reward.amount }))
+            break
+          case 'abyssOpen':
+            showSuccessMessage(t('world.rewards.abyssOpen'), 8000)
+            break
+          case 'crisolDefeated':
+            showSuccessMessage(t('world.rewards.crisol'), 10000)
+            break
+        }
+      }
+    },
+    [index, showSuccessMessage, t]
+  )
+  const go = useCallback(async () => {
+    if (!index || !state || !route || walking) {
+      return
+    }
+
+    setWalking(true)
+    setSelectedNodeId(null)
+    await map.current?.walk(route)
+    setWalking(false)
+
+    const target = route[route.length - 1]
+    const arrival = arriveAt(index, useGameStore.getState().save!.state, target)
+
+    update(arrival.state)
+    showRewards(arrival.rewards)
+
+    if (arrival.encounter) {
+      setPending({ encounter: arrival.encounter, fromNodeId: route[route.length - 2] })
+    }
+  }, [index, route, showRewards, state, update, walking])
+  const handleTap = useCallback(
+    (nodeId: string | null) => {
+      if (walking || pending) {
+        return
+      }
+
+      if (nodeId && nodeId === selectedNodeId && route) {
+        void go()
+      } else {
+        setSelectedNodeId(nodeId)
+      }
+    },
+    [go, pending, route, selectedNodeId, walking]
+  )
+
+  if (status === 'loading' || (status === 'ready' && (!index || !state || !view))) {
     return <Loading />
   }
 
+  if (status !== 'ready' || !index || !state || !view) {
+    return (
+      <div className="world-screen-message">
+        <GamePanel title={t('world.title')}>
+          <p>{t(status === 'offline' ? 'world.offlineNoCopy' : 'world.missing')}</p>
+          <GameButton color="ghost" fullWidth href="/menu">
+            {t('world.backToMenu')}
+          </GameButton>
+        </GamePanel>
+      </div>
+    )
+  }
+
+  const position = index.nodes.get(state.positionNodeId)!
+  const flask = getFlask(index, state)
+  const selected = selectedNodeId ? index.nodes.get(selectedNodeId)! : null
+  const nameOf = (nodeId: string) => pointName(t, index.nodes.get(nodeId)!, cleared.has(nodeId), openCamps.has(nodeId))
+  const busy = walking || !!pending
+
+  const detailOf = (nodeId: string): string | null => {
+    const node = index.nodes.get(nodeId)!
+    const encounter = getEncounter(index, state, nodeId)
+
+    if (node.type === NodeType.ABYSS_GATE && !cleared.has(nodeId)) {
+      const left = SEALS_TO_OPEN_ABYSS - countDefeatedSeals(index, state)
+
+      if (left > 0) {
+        return t('world.points.gateSealed', { count: left })
+      }
+    }
+
+    if (!encounter) {
+      return t(`world.biomes.${node.biome}` as MessageKey)
+    }
+
+    const kind = t(`world.encounters.${encounter.kind}`)
+    const level = t('world.levelShort', { level: encounter.level })
+
+    return respawned.has(nodeId) ? `${t('world.points.respawned')} · ${level}` : `${kind} · ${level}`
+  }
+
+  const finishFight = (next: typeof state, rewards: Reward[] = []) => {
+    setPending(null)
+    update(next)
+    showRewards(rewards)
+  }
+
+  const handleWin = () => {
+    const { state: next, rewards } = winEncounter(index, state, placeholderVictoryHealth(state, pending!.encounter))
+
+    finishFight(next, rewards)
+
+    if (rewards.some((reward) => reward.type === 'camp')) {
+      void upload()
+    }
+  }
+
+  const handleLose = () => {
+    const next = loseEncounter(index, state)
+
+    finishFight(next)
+    showWarningMessage(t('world.rewards.defeat', { camp: campName(t, index.nodes.get(next.positionNodeId)!) }), 6000)
+    map.current?.centerOn(next.positionNodeId)
+    void upload()
+  }
+
+  const handleRetreat = () => {
+    finishFight(retreat(index, state, pending!.fromNodeId))
+  }
+
+  const handleRest = () => {
+    update(rest(index, state))
+    showSuccessMessage(t('world.panel.rested'))
+    void upload()
+  }
+
+  const handleTeleport = (campId: string) => {
+    setTeleporting(false)
+    setSelectedNodeId(null)
+    update(teleport(state, campId))
+    map.current?.centerOn(campId)
+  }
+
+  const handleDrink = () => update(drinkFlask(index, state))
+  const otherCamps = state.openCampIds
+    .filter((id) => id !== state.positionNodeId)
+    .map((id) => {
+      const node = index.nodes.get(id)!
+
+      return { nodeId: id, name: campName(t, node), biome: t(`world.biomes.${node.biome}` as MessageKey) }
+    })
+
   return (
     <div className="world-screen">
-      <GamePanel title={t('world.title')}>
-        {save ? (
-          <div className="world-content">
-            <p className="location">{t(`world.camps.${save.state.positionNodeId}` as MessageKey)}</p>
-            <ul className="party">
-              {save.state.characters.map((character) => (
-                <li key={character.id}>
-                  <span className="name">{t(`characters.${character.id}.name` as MessageKey)}</span>
-                  <span className="level">{t('world.level', { level: character.level })}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="coming-soon">{t('world.comingSoon')}</p>
-          </div>
-        ) : (
-          <p className="coming-soon">{t('errors.saveNotFound')}</p>
+      <WorldMap ref={map} world={index.world} view={view} onTap={handleTap} />
+      <MapHud
+        location={nameOf(position.id)}
+        biome={t(`world.biomes.${position.biome}` as MessageKey)}
+        gold={state.gold}
+        sync={sync}
+        onRecenter={() => map.current?.centerOn(state.positionNodeId)}
+      />
+      <div className="bottom">
+        {selected && (
+          <PointPanel
+            name={nameOf(selected.id)}
+            detail={detailOf(selected.id)}
+            reach={selected.id === state.positionNodeId ? 'here' : route ? 'route' : 'none'}
+            steps={route ? route.length - 1 : 0}
+            openCamp={selected.id === state.positionNodeId && isAtOpenCamp(state)}
+            merchant={selected.type === NodeType.MERCHANT}
+            canTeleport={otherCamps.length > 0}
+            busy={busy}
+            onGo={() => void go()}
+            onRest={handleRest}
+            onTeleport={() => setTeleporting(true)}
+            onClose={() => setSelectedNodeId(null)}
+          />
         )}
-        <GameButton color="ghost" fullWidth href="/menu">
-          {t('world.backToMenu')}
-        </GameButton>
-      </GamePanel>
+        <PartyPanel characters={state.characters} flask={flask} disabled={busy} onDrink={handleDrink} />
+      </div>
+      <BattleDialog
+        encounter={pending?.encounter ?? null}
+        name={pending ? nameOf(pending.encounter.nodeId) : ''}
+        onWin={handleWin}
+        onLose={handleLose}
+        onRetreat={handleRetreat}
+      />
+      <TeleportDialog
+        open={teleporting}
+        camps={otherCamps}
+        onSelect={handleTeleport}
+        onClose={() => setTeleporting(false)}
+      />
     </div>
   )
 }
