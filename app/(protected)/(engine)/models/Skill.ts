@@ -28,4 +28,12 @@ export interface Skill {
   statuses?: SkillStatus[]
   /** Extra chance of a critical hit, 0..1. */
   critBonus?: number
+  /** Removes the harmful statuses of its targets. */
+  cure?: boolean
+  /** Brings back a fallen ally (its heal is the health it comes back with). */
+  revive?: boolean
+  /** Switches the stance of its user (Kael). */
+  stance?: boolean
+  /** Spends the fury (Brann) or the elemental charges (Ysolde) of its user for more power. */
+  consumes?: 'fury' | 'charges'
 }

@@ -4,6 +4,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
+import { Trait } from '@/app/(protected)/(engine)/models/Trait'
 
 export interface ActiveStatus {
   type: StatusType
@@ -39,4 +40,13 @@ export interface Combatant {
   bonuses?: Bonuses
   /** Heroes: the runes they wear (they count a win towards mastering them). */
   runes?: number[]
+  /** Heroes: their own mechanic and its state. */
+  trait?: Trait
+  stance?: 'offense' | 'defense'
+  /** Sera: marks on each enemy, by id. */
+  marks?: Record<string, number>
+  /** Brann: 0..100. */
+  fury?: number
+  /** Ysolde: the elements charged. */
+  charges?: DamageType[]
 }

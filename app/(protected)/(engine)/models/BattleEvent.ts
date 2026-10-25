@@ -24,6 +24,7 @@ export type BattleEvent =
   | { type: 'statusTick'; targetId: string; status: StatusType; amount: number }
   | { type: 'status'; targetId: string; status: StatusType; turns: number }
   | { type: 'statusEnd'; targetId: string; status: StatusType }
+  | { type: 'stance'; targetId: string; stance: 'offense' | 'defense' }
   | { type: 'fall'; targetId: string }
   | { type: 'nextBar'; targetId: string; bars: number }
   | { type: 'phase'; phase: number; enemyIds: string[] }

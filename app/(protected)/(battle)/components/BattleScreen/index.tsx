@@ -10,6 +10,7 @@ import { combatantName } from '@/app/(protected)/(battle)/utils/names'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
@@ -22,6 +23,7 @@ import {
   createBattle,
   getCombatant,
   getCombatantSkills,
+  getFighters,
   getItemTargets,
   getTargets,
   getTurnQueue,
@@ -144,6 +146,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         skill: (id: string) => t(`skills.${id}` as MessageKey),
         item: (id: string) => itemName(t, id),
         status: (status: StatusType) => t(`statuses.${status}`),
+        stance: (stance: 'offense' | 'defense') => t(`battle.traits.${stance}`),
         weak: t('battle.weak'),
         resist: t('battle.resist'),
         immune: t('battle.immune'),
@@ -276,6 +279,31 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         : []
     : []
   const targets = targetIds.map((id) => getCombatant(battle, id))
+
+  const traitLabel = (hero: Combatant): string | null => {
+    if (hero.stance) {
+      return t(`battle.traits.${hero.stance}`)
+    }
+
+    if (hero.fury !== undefined) {
+      return t('battle.traits.fury', { value: hero.fury })
+    }
+
+    if (hero.charges) {
+      return hero.charges.length > 0
+        ? t('battle.traits.charges', { types: hero.charges.map((type) => t(`damageTypes.${type}`)).join(' · ') })
+        : null
+    }
+
+    if (hero.marks) {
+      const marks = getFighters(battle, 'enemy').reduce((sum, enemy) => sum + (hero.marks?.[enemy.id] ?? 0), 0)
+
+      return marks > 0 ? t('battle.traits.marks', { count: marks }) : null
+    }
+
+    return null
+  }
+
   const usableItems = mode === 'choosing' || mode === 'items' ? getUsableItems(battle) : []
 
   return (
@@ -314,6 +342,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
               <span className="numbers">
                 {hero.health}/{hero.stats.maxHealth} · {t('battle.focus')} {hero.focus}
               </span>
+              {traitLabel(hero) && <span className="trait">{traitLabel(hero)}</span>}
             </li>
           ))}
         </ul>
@@ -327,7 +356,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                   key={id}
                   size="small"
                   color={option.cost === 0 ? 'gold' : option.heal ? 'lime' : 'cyan'}
-                  disabled={option.cost > actor.focus}
+                  disabled={option.cost > actor.focus || getTargets(battle, actor.id, option).length === 0}
                   onClick={() => pickSkill(option)}
                 >
                   {t(`skills.${id}` as MessageKey)}

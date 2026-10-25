@@ -64,27 +64,27 @@ describe('attribute and skill points', () => {
     const kael = kaelOf(game(10))
 
     expect(canBuyTalent(kael, 'kael-sweep')).toBe(false)
-    expect(getCharacterSkills(kael)).toEqual(['kael-strike', 'kael-firm-cut'])
+    expect(getCharacterSkills(kael)).toEqual(['kael-strike', 'kael-firm-cut', 'kael-stance'])
 
     const state = buyTalent(buyTalent(game(10), KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')
 
     expect(getCharacterSkills(kaelOf(state))).toContain('kael-sweep')
-    expect(getSkillPoints(kaelOf(state))).toBe(9 - 1 - 2)
+    expect(getSkillPoints(kaelOf(state))).toBe(9 - 1 - 1)
     expect(() => buyTalent(state, KAEL, 'kael-sweep')).toThrow()
   })
 
   it('trades skill points for Echoes of the character only with the tree complete', () => {
-    expect(() => tradeSkillPoint(game(60), KAEL)).toThrow()
+    expect(() => tradeSkillPoint(game(150), KAEL)).toThrow()
 
     const complete = {
-      ...game(60),
-      characters: [{ ...createCharacter(KAEL, 60), talents: getTree(KAEL).map((talent) => talent.id) }]
+      ...game(150),
+      characters: [{ ...createCharacter(KAEL, 150), talents: getTree(KAEL).map((talent) => talent.id) }]
     }
     const traded = tradeSkillPoint(complete, KAEL)
 
-    expect(getSkillPoints(kaelOf(complete))).toBe(59 - getTreeCost(KAEL))
+    expect(getSkillPoints(kaelOf(complete))).toBe(149 - getTreeCost(KAEL))
     expect(kaelOf(traded).echoCapacity).toBe(2)
-    expect(getSkillPoints(kaelOf(traded))).toBe(59 - getTreeCost(KAEL) - 1)
+    expect(getSkillPoints(kaelOf(traded))).toBe(149 - getTreeCost(KAEL) - 1)
   })
 
   it('gives every skill point back with a Tear of Oblivion', () => {

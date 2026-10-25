@@ -472,3 +472,76 @@ describe('items, bonuses and loot', () => {
     expect(after.loot['rough-stone']).toBe(4)
   })
 })
+
+describe('the mechanics of each hero', () => {
+  const boar = [[{ speciesId: 'thorn-boar', level: 5 }]]
+
+  it('lets Kael switch between the offense and the defense stance', () => {
+    const state = turnOf(battle(boar), 'h-kael')
+
+    expect(getCombatant(state, 'h-kael').stance).toBe('offense')
+
+    const { state: after, events } = performAction(state, {
+      type: 'skill',
+      skillId: 'kael-stance',
+      targetIds: ['h-kael']
+    })
+
+    expect(getCombatant(after, 'h-kael').stance).toBe('defense')
+    expect(events).toContainEqual({ type: 'stance', targetId: 'h-kael', stance: 'defense' })
+  })
+
+  it('charges Ysolde with the elements she casts, and spends them all at once', () => {
+    const ysolde = { ...createCharacter(CharacterId.YSOLDE, 20), talents: ['ysolde-combustion'] }
+    const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 30 }]], [ysolde]), 'h-ysolde')
+    const { state: charged } = performAction(state, { type: 'skill', skillId: 'ysolde-fireball', targetIds: ['e1-1'] })
+
+    expect(getCombatant(charged, 'h-ysolde').charges).toEqual(['fire'])
+
+    const { state: spent } = performAction(turnOf(charged, 'h-ysolde'), {
+      type: 'skill',
+      skillId: 'ysolde-combustion',
+      targetIds: ['e1-1']
+    })
+
+    expect(getCombatant(spent, 'h-ysolde').charges).toEqual([])
+  })
+
+  it('lets Oren bring a fallen hero back', () => {
+    const oren = { ...createCharacter(CharacterId.OREN, 30), talents: ['oren-rebirth'] }
+    const start = battle(boar, [kael, oren])
+    const fallen: BattleState = {
+      ...start,
+      combatants: start.combatants.map((combatant) =>
+        combatant.id === 'h-kael' ? { ...combatant, health: 0 } : combatant
+      )
+    }
+    const { state, events } = performAction(turnOf(fallen, 'h-oren'), {
+      type: 'skill',
+      skillId: 'oren-rebirth',
+      targetIds: ['h-kael']
+    })
+
+    expect(getCombatant(state, 'h-kael').health).toBeGreaterThan(0)
+    expect(events.some((event) => event.type === 'revive')).toBe(true)
+  })
+
+  it('teaches a boss new skills when one of its bars empties', () => {
+    const start = battle([[{ speciesId: 'crisol', level: 50 }]])
+    const boss = getFighters(start, 'enemy')[0]
+    const nearly: BattleState = {
+      ...start,
+      combatants: start.combatants.map((combatant) =>
+        combatant.id === boss.id ? { ...combatant, health: 1 } : combatant
+      )
+    }
+    const { state } = performAction(turnOf(nearly, 'h-kael'), {
+      type: 'skill',
+      skillId: 'kael-strike',
+      targetIds: [boss.id]
+    })
+
+    expect(getCombatant(state, boss.id).bars).toBe(2)
+    expect(getCombatant(state, boss.id).skills).toEqual(expect.arrayContaining(['soul-drain', 'war-cry']))
+  })
+})

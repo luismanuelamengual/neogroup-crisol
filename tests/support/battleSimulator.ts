@@ -23,7 +23,7 @@ export function chooseHeroAction(state: BattleState): BattleAction {
   const allies = getFighters(state, 'hero')
   const enemies = getFighters(state, 'enemy')
   const hurt = [...allies].sort((a, b) => a.health / a.stats.maxHealth - b.health / b.stats.maxHealth)[0]
-  const healing = usable.find((skill) => skill.heal)
+  const healing = usable.find((skill) => skill.heal && !skill.revive)
 
   if (healing && hurt.health / hurt.stats.maxHealth < 0.5) {
     return { type: 'skill', skillId: healing.id, targetIds: [hurt.id] }

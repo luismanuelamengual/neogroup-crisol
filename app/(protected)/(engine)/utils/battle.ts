@@ -1,3 +1,4 @@
+import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { BIOME_POTIONS, BIOME_STONE, BOSS_STONES, DROP_CHANCE, getItem } from '@/app/(protected)/(engine)/data/items'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
@@ -15,6 +16,7 @@ import { Item, ItemTarget } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
+import { Trait } from '@/app/(protected)/(engine)/models/Trait'
 import { getCharacterSkills, getCharacterStats, getHeroBonuses } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
@@ -69,6 +71,20 @@ const HARMFUL = new Set([
 ])
 /** Most of the damage a hero's guard can avoid. */
 const MAX_GUARD = 0.6
+/** Kael's stances: multipliers of attack and defense. */
+const STANCES = { offense: { attack: 1.15, defense: 0.9 }, defense: { attack: 0.9, defense: 1.3 } }
+/** Sera: critical chance per mark on the target, and most marks. */
+const MARK_CRIT = 0.06
+const MAX_MARKS = 5
+/** Brann: attack per point of fury (100 = +40%), and the power that spending it adds (100 = +100%). */
+const FURY_ATTACK = 0.004
+const MAX_FURY = 100
+/** Oren: extra healing per share of missing health of the ally. */
+const SAP_HEALING = 0.6
+/** Ysolde: special power per charge, the power that spending them adds per charge, and the elements that charge. */
+const CHARGE_POWER = 0.08
+const CHARGE_SPEND = 0.5
+const CHARGING = [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]
 
 export interface BattleSetup {
   heroes: CharacterState[]
@@ -84,6 +100,22 @@ export interface BattleSetup {
 export interface BattleStep {
   state: BattleState
   events: BattleEvent[]
+}
+
+/** The starting state of the mechanic of a hero. */
+function traitState(trait: Trait): Partial<Combatant> {
+  switch (trait) {
+    case Trait.STANCE:
+      return { trait, stance: 'offense' }
+    case Trait.MARKS:
+      return { trait, marks: {} }
+    case Trait.FURY:
+      return { trait, fury: 0 }
+    case Trait.CHARGES:
+      return { trait, charges: [] }
+    default:
+      return { trait }
+  }
 }
 
 /** Next number of the seeded random sequence of the battle (mulberry32), advancing it. */
@@ -185,7 +217,8 @@ export function createBattle(setup: BattleSetup): BattleStep {
       reserve: index >= ACTIVE_HEROES,
       fought: index < ACTIVE_HEROES,
       bonuses,
-      runes: character.runes
+      runes: character.runes,
+      ...traitState(getCharacterDefinition(character.id).trait)
     }
   })
 
@@ -212,8 +245,12 @@ function effective(combatant: Combatant, stat: keyof CombatStats): number {
         : stat === 'speed'
           ? [StatusType.SPEED_UP, StatusType.SPEED_DOWN]
           : [null, null]
+  const statuses = (up && hasStatus(combatant, up) ? BUFF : 1) * (down && hasStatus(combatant, down) ? DEBUFF : 1)
+  const stance = combatant.stance && (stat === 'attack' || stat === 'defense') ? STANCES[combatant.stance][stat] : 1
+  const fury = stat === 'attack' && combatant.fury ? 1 + combatant.fury * FURY_ATTACK : 1
+  const charges = stat === 'special' && combatant.charges ? 1 + combatant.charges.length * CHARGE_POWER : 1
 
-  return value * (up && hasStatus(combatant, up) ? BUFF : 1) * (down && hasStatus(combatant, down) ? DEBUFF : 1)
+  return value * statuses * stance * fury * charges
 }
 
 function isBoss(combatant: Combatant): boolean {
@@ -420,6 +457,10 @@ export function getTargets(state: BattleState, actorId: string, skill: Skill): s
   const foes = getFighters(state, actor.side === 'hero' ? 'enemy' : 'hero')
   const allies = getFighters(state, actor.side)
 
+  if (skill.revive) {
+    return actor.side === 'hero' ? getFallenHeroes(state).map((hero) => hero.id) : []
+  }
+
   switch (skill.target) {
     case TargetType.ENEMY:
     case TargetType.ALL_ENEMIES:
@@ -470,12 +511,20 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
     throw new Error(`${actor.id} cannot use ${action.skillId}`)
   }
 
-  const skill = skillOf(actor, action.skillId)
+  const base = skillOf(actor, action.skillId)
 
-  if (skill.cost > actor.focus) {
-    throw new Error(`${actor.id} cannot use ${skill.id}`)
+  if (base.cost > actor.focus) {
+    throw new Error(`${actor.id} cannot use ${base.id}`)
   }
 
+  // Spending fury or charges adds power to this use of the skill.
+  const spent =
+    base.consumes === 'fury'
+      ? 1 + (actor.fury ?? 0) / 100
+      : base.consumes === 'charges'
+        ? 1 + (actor.charges?.length ?? 0) * CHARGE_SPEND
+        : 1
+  const skill = spent > 1 ? { ...base, power: base.power * spent } : base
   const valid = getTargets(state, actor.id, skill)
   const single = skill.target === TargetType.ENEMY || skill.target === TargetType.ALLY
   const targetIds = single ? action.targetIds.filter((id) => valid.includes(id)).slice(0, 1) : valid
@@ -487,16 +536,48 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   actor.focus -= skill.cost
   events.push({ type: 'action', actorId: actor.id, skillId: skill.id, targetIds })
 
+  if (skill.stance && actor.stance) {
+    actor.stance = actor.stance === 'offense' ? 'defense' : 'offense'
+    events.push({ type: 'stance', targetId: actor.id, stance: actor.stance })
+  }
+
+  if (skill.consumes === 'fury') {
+    actor.fury = 0
+  }
+
+  if (skill.consumes === 'charges') {
+    actor.charges = []
+  }
+
   for (const targetId of targetIds) {
     const target = getCombatant(state, targetId)
+
+    if (skill.revive) {
+      if (!isAlive(target)) {
+        target.health = Math.max(
+          1,
+          Math.min(target.stats.maxHealth, Math.round(skill.power * effective(actor, 'special')))
+        )
+        target.statuses = []
+        target.initiative = 0
+        events.push({ type: 'revive', targetId, amount: target.health })
+      }
+
+      continue
+    }
 
     if (!isAlive(target)) {
       continue
     }
 
+    if (skill.cure) {
+      cure(target, events)
+    }
+
     if (skill.power > 0) {
       if (skill.heal) {
-        const amount = Math.round(skill.power * effective(actor, 'special') * (0.95 + roll(state) * 0.1))
+        const sap = actor.trait === Trait.SAP ? 1 + SAP_HEALING * (1 - target.health / target.stats.maxHealth) : 1
+        const amount = Math.round(skill.power * effective(actor, 'special') * sap * (0.95 + roll(state) * 0.1))
 
         heal(target, amount, events)
       } else if (!strike(state, actor, target, skill, events)) {
@@ -509,6 +590,10 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
     if (state.outcome) {
       break
     }
+  }
+
+  if (actor.charges && skill.cost > 0 && CHARGING.includes(skill.damageType) && !skill.consumes) {
+    actor.charges = [...new Set([...actor.charges, skill.damageType])]
   }
 
   if (!state.outcome && isAlive(actor)) {
@@ -623,13 +708,18 @@ function applyItem(
     }
 
     if (item.cure) {
-      for (const status of target.statuses.filter((candidate) => HARMFUL.has(candidate.type))) {
-        events.push({ type: 'statusEnd', targetId, status: status.type })
-      }
-
-      target.statuses = target.statuses.filter((status) => !HARMFUL.has(status.type))
+      cure(target, events)
     }
   }
+}
+
+/** Removes the harmful statuses of a fighter. */
+function cure(target: Combatant, events: BattleEvent[]): void {
+  for (const status of target.statuses.filter((candidate) => HARMFUL.has(candidate.type))) {
+    events.push({ type: 'statusEnd', targetId: target.id, status: status.type })
+  }
+
+  target.statuses = target.statuses.filter((status) => !HARMFUL.has(status.type))
 }
 
 /** A damaging hit: false when it missed or did nothing. */
@@ -650,7 +740,13 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
     return false
   }
 
-  const critical = roll(state) < actor.stats.critChance + (skill.critBonus ?? 0)
+  const marks = actor.marks?.[target.id] ?? 0
+  const critical = roll(state) < actor.stats.critChance + (skill.critBonus ?? 0) + marks * MARK_CRIT
+
+  if (actor.marks) {
+    actor.marks[target.id] = critical ? 0 : Math.min(MAX_MARKS, marks + 1)
+  }
+
   const weak = affinity === Affinity.WEAK
   const amount = Math.max(
     1,
@@ -713,6 +809,10 @@ function heal(target: Combatant, amount: number, events: BattleEvent[]): void {
 function hurt(state: BattleState, target: Combatant, amount: number, events: BattleEvent[]): void {
   target.health = Math.max(0, target.health - amount)
 
+  if (target.fury !== undefined) {
+    target.fury = Math.min(MAX_FURY, target.fury + Math.round((amount / target.stats.maxHealth) * 100))
+  }
+
   if (target.health > 0) {
     return
   }
@@ -726,6 +826,12 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
       attack: Math.round(target.stats.attack * NEXT_BAR_POWER),
       special: Math.round(target.stats.special * NEXT_BAR_POWER)
     }
+    // Some bosses learn new skills when a bar empties.
+    const species = getSpecies(target.speciesId!)
+    const learned = species.phaseSkills?.[species.bars - target.bars - 1] ?? []
+
+    target.skills = [...target.skills, ...learned.filter((skill) => !target.skills.includes(skill))]
+
     events.push({ type: 'nextBar', targetId: target.id, bars: target.bars })
 
     return
@@ -823,7 +929,18 @@ export function chooseEnemyAction(battle: BattleState): BattleAction {
   const hurtAlly = [...allies].sort((a, b) => a.health / a.stats.maxHealth - b.health / b.stats.maxHealth)[0]
 
   if (healing && hurtAlly && hurtAlly.health / hurtAlly.stats.maxHealth < 0.5) {
-    return act(healing, hurtAlly.id)
+    return healing.target === TargetType.ALL_ALLIES ? act(healing) : act(healing, hurtAlly.id)
+  }
+
+  const alliesBuff = specials.find(
+    (skill) =>
+      skill.target === TargetType.ALL_ALLIES &&
+      !skill.heal &&
+      allies.some((ally) => !skill.statuses?.every((status) => hasStatus(ally, status.type)))
+  )
+
+  if (alliesBuff && roll(state) < 0.25) {
+    return act(alliesBuff)
   }
 
   const area = specials.find((skill) => skill.target === TargetType.ALL_ENEMIES)

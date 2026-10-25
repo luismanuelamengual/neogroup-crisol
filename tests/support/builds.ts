@@ -4,8 +4,9 @@ import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { canBuyTalent, createCharacter, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 
-/** How a sensible player spends the attribute points: mostly attack, then health and defense. */
+/** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
 const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
+const CASTERS = [CharacterId.OREN, CharacterId.YSOLDE]
 
 /**
  * A character at a level built the way a player would: its attribute points
@@ -16,7 +17,8 @@ export function buildCharacter(id: CharacterId, level: number, weapon = Math.min
   let character: CharacterState = { ...createCharacter(id, level), weapon }
 
   for (let point = 0; point < level - 1; point++) {
-    const stat = ATTRIBUTE_PLAN[point % ATTRIBUTE_PLAN.length]
+    const planned = ATTRIBUTE_PLAN[point % ATTRIBUTE_PLAN.length]
+    const stat = planned === 'attack' && CASTERS.includes(id) ? 'special' : planned
 
     character = { ...character, attributes: { ...character.attributes, [stat]: (character.attributes[stat] ?? 0) + 1 } }
   }

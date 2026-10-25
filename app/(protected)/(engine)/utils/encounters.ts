@@ -1,4 +1,10 @@
-import { BOSS_SPECIES, FINAL_BOSS_SPECIES, getBiomeSpecies } from '@/app/(protected)/(engine)/data/enemies'
+import {
+  BOSS_SPECIES,
+  FINAL_BOSS_SPECIES,
+  getBiomeSpecies,
+  getSpecies,
+  GUARDIAN_SPECIES
+} from '@/app/(protected)/(engine)/data/enemies'
 import { WORLD_SEED } from '@/app/(protected)/(engine)/data/world'
 import { EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
@@ -9,8 +15,14 @@ import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
 /**
  * The enemies of each point: a fixed encounter (the same every time, also
  * after resting) chosen from the node id, with 1 to 3 phases of 1 to 3
- * enemies of its biome. The first points of a biome are gentler.
+ * enemies of its biome (the rare species show up less). The first points of
+ * a biome are gentler. Camps, sanctuaries and Seals have their own bosses.
  */
+
+/** How often each rarity shows up in the fights of its biome. */
+const RARITY_WEIGHTS = { common: 6, uncommon: 3, rare: 1, boss: 0 }
+/** From this level on, the mini bosses of one bar come with an escort. */
+const ESCORT_LEVEL = 12
 
 /** A number from a text (FNV-1a), to seed the encounter of a node. */
 export function hashText(text: string): number {
@@ -40,26 +52,27 @@ function weighted<T>(random: Random, options: [T, number][]): T {
 }
 
 function commonPhase(random: Random, node: WorldNode, level: number, count: number, elite = false): EnemySpawn[] {
-  const species = getBiomeSpecies(node.biome)
+  const options = getBiomeSpecies(node.biome).map((species): [string, number] => [
+    species.id,
+    RARITY_WEIGHTS[species.rarity]
+  ])
 
   return Array.from({ length: count }, (_, index) => ({
-    speciesId: species[Math.floor(random() * species.length)].id,
+    speciesId: weighted(random, options),
     level: Math.max(1, level - (index > 0 && random() < 0.4 ? 1 : 0)),
     ...(elite && index === 0 ? { elite: true } : {})
   }))
 }
 
-/** The species of the boss of a camp: its own one, or a champion of its biome. */
-function bossSpecies(random: Random, node: WorldNode): string {
-  const own = node.bossId ? BOSS_SPECIES[node.bossId] : undefined
+/** The species of a boss of the world (by its id in the world, or of its sanctuary). */
+function ownSpecies(id: string | undefined, table: Record<string, string>): string {
+  const species = id === undefined ? undefined : table[id]
 
-  if (own) {
-    return own
+  if (!species) {
+    throw new Error(`No boss for ${id}`)
   }
 
-  const species = getBiomeSpecies(node.biome)
-
-  return `${species[Math.floor(random() * species.length)].id}-champion`
+  return species
 }
 
 /** The phases of enemies of an encounter. */
@@ -104,23 +117,20 @@ export function getEncounterPhases(node: WorldNode, encounter: Encounter): Enemy
         commonPhase(random, node, level, 1, true)
       ]
 
-    case EncounterKind.GUARDIAN: {
-      const species = getBiomeSpecies(node.biome)
-
-      return [[{ speciesId: `${species[Math.floor(random() * species.length)].id}-guardian`, level }]]
-    }
+    case EncounterKind.GUARDIAN:
+      return [[{ speciesId: ownSpecies(String(node.runeIndex), GUARDIAN_SPECIES), level }]]
 
     case EncounterKind.MINIBOSS: {
-      const boss = bossSpecies(random, node)
+      const boss = ownSpecies(node.bossId, BOSS_SPECIES)
 
-      return BOSS_SPECIES[node.bossId ?? '']
-        ? [[{ speciesId: boss, level }]]
-        : [[{ speciesId: boss, level }, ...commonPhase(random, node, level - 2, 1)]]
+      return getSpecies(boss).bars === 1 && level >= ESCORT_LEVEL
+        ? [[{ speciesId: boss, level }, ...commonPhase(random, node, level - 2, 1)]]
+        : [[{ speciesId: boss, level }]]
     }
 
     case EncounterKind.CAPTOR:
     case EncounterKind.SEAL:
-      return [[{ speciesId: bossSpecies(random, node), level }]]
+      return [[{ speciesId: ownSpecies(node.bossId, BOSS_SPECIES), level }]]
     case EncounterKind.CRISOL:
       return [[{ speciesId: FINAL_BOSS_SPECIES, level }]]
   }

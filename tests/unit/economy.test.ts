@@ -91,11 +91,12 @@ describe('battle results', () => {
 })
 
 describe('bestiary', () => {
-  it('unlocks more with more kills: commons ask for many, bosses for a few victories', () => {
+  it('unlocks more with more kills: commons ask for many, rare species fewer, bosses for a few victories', () => {
     expect(getBestiaryLevel('thorn-boar', { 'thorn-boar': 9 })).toBe(0)
     expect(getBestiaryLevel('thorn-boar', { 'thorn-boar': 10 })).toBe(1)
     expect(getBestiaryLevel('thorn-boar', { 'thorn-boar': 150 })).toBe(3)
-    expect(getBestiaryLevel('thorn-boar-champion', { 'thorn-boar-champion': 3 })).toBe(1)
+    expect(getBestiaryLevel('scarecrow', { scarecrow: 5 })).toBe(1)
+    expect(getBestiaryLevel('giant-toad', { 'giant-toad': 15 })).toBe(2)
     expect(getBestiaryLevel('bandit-chief', { 'bandit-chief': 2 })).toBe(2)
   })
 })

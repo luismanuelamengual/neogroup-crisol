@@ -1,13 +1,10 @@
-import { getVariantBase } from '@/app/(protected)/(engine)/data/enemies'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import type { MessageKey } from '@/app/i18n/messages'
 import type { Translator } from '@/app/i18n/translate'
 
-/** Name of an enemy species (with the provisional champion and guardian variants). */
+/** Name of an enemy species (and of its elite variant). */
 export function enemyName(t: Translator, speciesId: string, elite = false): string {
-  const variant = getVariantBase(speciesId)
-  const base = t(`enemies.${variant?.baseId ?? speciesId}` as MessageKey)
-  const name = variant ? t(`battle.${variant.variant}`, { name: base }) : base
+  const name = t(`enemies.${speciesId}` as MessageKey)
 
   return elite ? t('battle.elite', { name }) : name
 }

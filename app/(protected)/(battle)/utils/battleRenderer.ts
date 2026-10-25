@@ -15,6 +15,7 @@ export interface BattleLabels {
   skill: (skillId: string) => string
   item: (itemId: string) => string
   status: (status: StatusType) => string
+  stance: (stance: 'offense' | 'defense') => string
   weak: string
   resist: string
   immune: string
@@ -441,6 +442,17 @@ export class BattleRenderer {
           figure.root.alpha = 0.35 + 0.65 * t
         })
         this.float(figure, `+${event.amount}`, 0x84f06b, 22)
+        break
+      }
+
+      case 'stance': {
+        const figure = this.figures.get(event.targetId)
+
+        if (figure) {
+          this.float(figure, this.labels.stance(event.stance), 0xffc233, 14, -28)
+        }
+
+        await wait(ms(220))
         break
       }
 

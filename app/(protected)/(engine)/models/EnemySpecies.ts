@@ -16,6 +16,10 @@ export interface EnemySpecies {
   strength: number
   /** Health bars (bosses): when one empties, the next one fills and the boss grows stronger. */
   bars: number
+  /** How often it shows up in the fights of its biome (and how many kills the bestiary asks for). */
+  rarity: 'common' | 'uncommon' | 'rare' | 'boss'
+  /** Bosses: the skills it adds each time one of its health bars empties (its script). */
+  phaseSkills?: string[][]
   /** Look of its provisional art. */
   color: number
   size: number

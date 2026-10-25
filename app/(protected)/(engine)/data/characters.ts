@@ -1,5 +1,6 @@
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
+import { Trait } from '@/app/(protected)/(engine)/models/Trait'
 
 /** Attributes that grow with each level. */
 type GrowingStat = 'maxHealth' | 'maxFocus' | 'defense' | 'speed' | 'attack' | 'special'
@@ -15,6 +16,8 @@ export interface CharacterDefinition {
   base: CombatStats
   growth: Record<GrowingStat, number>
   skills: string[]
+  /** Its own mechanic in battle. */
+  trait: Trait
   /** Look of its provisional art. */
   color: number
 }
@@ -33,7 +36,8 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.5
     },
     growth: { maxHealth: 12, maxFocus: 2, defense: 1.6, speed: 0.6, attack: 2, special: 1.4 },
-    skills: ['kael-strike', 'kael-firm-cut'],
+    skills: ['kael-strike', 'kael-firm-cut', 'kael-stance'],
+    trait: Trait.STANCE,
     color: 0x3b82f6
   },
   {
@@ -50,6 +54,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     },
     growth: { maxHealth: 9, maxFocus: 2.2, defense: 1.2, speed: 0.8, attack: 1.9, special: 1.4 },
     skills: ['sera-shot', 'sera-piercing-arrow'],
+    trait: Trait.MARKS,
     color: 0x22c55e
   },
   {
@@ -66,6 +71,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     },
     growth: { maxHealth: 16, maxFocus: 1.5, defense: 2.2, speed: 0.4, attack: 2.6, special: 0.8 },
     skills: ['brann-chop', 'brann-cleave'],
+    trait: Trait.FURY,
     color: 0xb45309
   },
   {
@@ -82,6 +88,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     },
     growth: { maxHealth: 11, maxFocus: 3, defense: 1.6, speed: 0.6, attack: 1.1, special: 1.8 },
     skills: ['oren-staff', 'oren-mend'],
+    trait: Trait.SAP,
     color: 0x84cc16
   },
   {
@@ -98,6 +105,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     },
     growth: { maxHealth: 7, maxFocus: 3, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
     skills: ['ysolde-rod', 'ysolde-fireball'],
+    trait: Trait.CHARGES,
     color: 0xa855f7
   }
 ]
