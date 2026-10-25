@@ -1,0 +1,48 @@
+/* Shared by every form of the auth module (login, register, forgot/reset password, messages). */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .title {
+    text-align: center;
+    color: var(--color-gold);
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .subtitle {
+    margin-top: -8px;
+    text-align: center;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .game-button.MuiButtonBase-root.google-button {
+    --btn-bg: #ffffff;
+    --btn-edge: #9aa3c7;
+    --btn-text: #1f1f1f;
+
+    text-shadow: none;
+
+    .google-logo {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .divider {
+    color: var(--color-text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+  }
+
+  .forgot-password,
+  .footer {
+    text-align: center;
+  }
+}

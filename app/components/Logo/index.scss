@@ -1,0 +1,31 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  line-height: 1;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+
+  .flame {
+    width: 0.8em;
+    height: 1.05em;
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.4));
+  }
+
+  .accent {
+    color: var(--color-gold);
+  }
+
+  &.size-small {
+    font-size: 1.3rem;
+  }
+
+  &.size-medium {
+    font-size: 2rem;
+  }
+
+  &.size-large {
+    font-size: clamp(2.4rem, 9vw, 4.5rem);
+  }
+}

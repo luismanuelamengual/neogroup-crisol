@@ -1,0 +1,57 @@
+.account-page {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 44px 16px 40px;
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      font-size: 1.8rem;
+    }
+
+    .name {
+      color: var(--color-gold);
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+    }
+
+    .email {
+      color: var(--color-text-secondary);
+      word-break: break-all;
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .danger-text {
+    margin: 0 0 20px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  .privacy-link {
+    align-self: center;
+    margin-top: -16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .account-page {
+    padding-top: 36px;
+  }
+}

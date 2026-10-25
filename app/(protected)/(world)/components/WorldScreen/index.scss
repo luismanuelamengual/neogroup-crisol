@@ -1,0 +1,46 @@
+.world-screen {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px 16px 40px;
+
+  .world-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .location {
+    margin: 0;
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .party {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+    }
+
+    .level {
+      color: var(--color-cyan);
+    }
+  }
+
+  .coming-soon {
+    margin: 0;
+    color: var(--color-text-secondary);
+    text-align: center;
+  }
+}
