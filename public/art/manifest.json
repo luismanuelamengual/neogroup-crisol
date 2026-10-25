@@ -56,6 +56,18 @@
    "width": 214,
    "height": 45
   },
+  "heroes/kael-hands/1": {
+   "width": 78,
+   "height": 265
+  },
+  "heroes/kael-hands/2": {
+   "width": 237,
+   "height": 244
+  },
+  "heroes/kael-hands/3": {
+   "width": 78,
+   "height": 296
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 388
@@ -261,6 +273,29 @@
     "y": 663,
     "width": 427,
     "height": 90
+   }
+  ],
+  "heroes/kael-hands": [
+   {
+    "id": "heroes/kael-hands/1",
+    "x": 130,
+    "y": 119,
+    "width": 156,
+    "height": 530
+   },
+   {
+    "id": "heroes/kael-hands/2",
+    "x": 460,
+    "y": 140,
+    "width": 473,
+    "height": 488
+   },
+   {
+    "id": "heroes/kael-hands/3",
+    "x": 1087,
+    "y": 119,
+    "width": 156,
+    "height": 591
    }
   ]
  },

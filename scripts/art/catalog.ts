@@ -191,6 +191,17 @@ export function buildCatalog(): Piece[] {
         )
       },
       {
+        id: `heroes/${id}-hands`,
+        kind: 'heroParts',
+        width: 2048,
+        height: 1152,
+        batch,
+        prompt: prompt(
+          `Using the attached parts sheet of this character as the exact reference (same style, colors and scale), only these new pieces, each isolated with wide empty space around it, nothing touching, no full character: the lower right arm with the hand closed in a fist gripping (a hollow grip, as if holding the weapon's handle, without the weapon), straight; the lower left arm with the hand closed gripping a strap, straight; and the inner face of the shield or off-hand item (straps and handle) if it has one. ${look}.`,
+          'Plain flat #00FF00 background.'
+        )
+      },
+      {
         id: `portraits/${id}`,
         kind: 'portrait',
         width: 512,

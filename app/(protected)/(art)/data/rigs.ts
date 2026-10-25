@@ -15,7 +15,7 @@ export type BoneRole =
   | 'frontForearm'
   | 'weapon'
   | 'backArm'
-  | 'backShoulder'
+  | 'backForearm'
   | 'shield'
   | 'frontLeg'
   | 'backLeg'
@@ -23,13 +23,15 @@ export type BoneRole =
 export interface RigBone {
   role: BoneRole
   part: number
+  /** Another sheet of the same figure (fixes, extra pieces); the rig's sheet when left out. */
+  sheet?: string
   /** The root (torso) has none: its pivot is the hip. */
   parent?: BoneRole
   pivot: [number, number]
   at: [number, number]
   /** Rest angle in radians (positive turns clockwise). */
   rotation?: number
-  /** The generator draws some parts out of scale (a big head): this evens them out. */
+  /** The generator draws some parts out of scale (a big head): this evens them out. Not passed on to children. */
   scale?: number
 }
 
@@ -50,12 +52,39 @@ export const RIGS: Record<string, Rig> = {
       { role: 'head', part: 3, parent: 'torso', pivot: [58, 138], at: [104, 22], scale: 0.78 },
       // Right arm (sword) from the right shoulder, on the far side of the chest.
       { role: 'frontArm', part: 1, parent: 'torso', pivot: [62, 34], at: [44, 66], rotation: -0.3 },
-      { role: 'weapon', part: 13, parent: 'frontForearm', pivot: [52, 45], at: [140, 30], rotation: -1.1, scale: 1.25 },
-      { role: 'frontForearm', part: 4, parent: 'frontArm', pivot: [16, 30], at: [26, 132], rotation: 0.5, scale: 0.8 },
-      // Left arm in front of the body, holding the shield.
-      { role: 'shield', part: 12, parent: 'backArm', pivot: [80, 90], at: [170, 92], scale: 0.75 },
-      { role: 'backArm', part: 10, parent: 'torso', pivot: [40, 22], at: [150, 62], rotation: -0.3 },
-      { role: 'backShoulder', part: 9, parent: 'backArm', pivot: [46, 28], at: [42, 22], scale: 0.8 }
+      // Left arm in front of the body, gripping the handle inside the shield.
+      {
+        role: 'shield',
+        sheet: 'heroes/kael-hands',
+        part: 2,
+        parent: 'backForearm',
+        pivot: [236, 250],
+        at: [88, 470],
+        scale: 0.32
+      },
+      { role: 'backArm', part: 9, parent: 'torso', pivot: [46, 28], at: [146, 62], rotation: -0.45, scale: 0.85 },
+      {
+        role: 'backForearm',
+        sheet: 'heroes/kael-hands',
+        part: 3,
+        parent: 'backArm',
+        pivot: [78, 24],
+        at: [50, 136],
+        rotation: -0.55,
+        scale: 0.32
+      },
+      // The sword and its fist in front of everything.
+      { role: 'weapon', part: 13, parent: 'frontForearm', pivot: [52, 45], at: [104, 476], rotation: 0.47 },
+      {
+        role: 'frontForearm',
+        sheet: 'heroes/kael-hands',
+        part: 1,
+        parent: 'frontArm',
+        pivot: [76, 24],
+        at: [26, 132],
+        rotation: -1.07,
+        scale: 0.3
+      }
     ]
   }
 }

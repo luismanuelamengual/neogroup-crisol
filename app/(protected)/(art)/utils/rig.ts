@@ -126,9 +126,15 @@ function sample(keys: Keys, progress: number): number {
 
 /** The parts the puppet needs (ids of images), so they can be loaded first. */
 export function rigPartIds(rig: Rig, parts: ArtManifest['parts']): string[] {
-  const sheet = parts[rig.sheet] ?? []
+  return rig.bones.map((bone) => partOf(rig, bone, parts)?.id).filter((id): id is string => Boolean(id))
+}
 
-  return rig.bones.map((bone) => sheet[bone.part - 1]?.id).filter((id): id is string => Boolean(id))
+function partOf(
+  rig: Rig,
+  bone: RigBone,
+  parts: ArtManifest['parts']
+): ArtManifest['parts'][string][number] | undefined {
+  return parts[bone.sheet ?? rig.sheet]?.[bone.part - 1]
 }
 
 /**
@@ -176,16 +182,14 @@ export class RigFigure {
     textures: Map<string, Texture>,
     height: number
   ): RigFigure | null {
-    const sheet = parts[rig.sheet]
-
-    if (!sheet || rig.bones.some((bone) => !sheet[bone.part - 1] || !textures.get(sheet[bone.part - 1].id))) {
+    if (rig.bones.some((bone) => !textures.get(partOf(rig, bone, parts)?.id ?? ''))) {
       return null
     }
 
     const figure = new RigFigure(rig)
 
     for (const bone of rig.bones) {
-      const part = sheet[bone.part - 1]
+      const part = partOf(rig, bone, parts)!
       const texture = textures.get(part.id)!
       const sprite = new Sprite(texture)
 
@@ -249,9 +253,11 @@ export class RigFigure {
 
     for (const bone of this.order) {
       const parent = bone.parent ? worlds.get(bone.parent)! : new Matrix()
+      // A bone's scale sizes its own part only: the parent's is taken back out.
+      const scale = (bone.scale ?? 1) / (bone.parent ? (this.bones.get(bone.parent)!.scale ?? 1) : 1)
       const world = new Matrix()
         .translate(-bone.pivot[0], -bone.pivot[1])
-        .scale(bone.scale ?? 1, bone.scale ?? 1)
+        .scale(scale, scale)
         .rotate((bone.rotation ?? 0) + this.angle(bone.role))
         .translate(bone.at[0], bone.at[1])
         .prepend(parent)

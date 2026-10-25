@@ -94,7 +94,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(219)
+    expect(catalog).toHaveLength(224)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
