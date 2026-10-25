@@ -18,7 +18,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "world:generate": "tsx scripts/generate-world.ts",
-    "battles": "tsx scripts/simulate-world.ts"
+    "battles": "tsx scripts/simulate-world.ts",
+    "art": "tsx scripts/art/process.ts",
+    "art:catalog": "tsx scripts/art/write-catalog.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -32,6 +34,7 @@
     "bcryptjs": "^3.0.2",
     "classnames": "^2.5.1",
     "delaunator": "5.0.1",
+    "howler": "2.2.4",
     "next": "^16.2.6",
     "next-auth": "5.0.0-beta.31",
     "pg": "^8.21.0",
@@ -47,6 +50,7 @@
   "devDependencies": {
     "@serwist/turbopack": "^9.5.11",
     "@types/delaunator": "5.0.3",
+    "@types/howler": "2.2.12",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
     "@types/react": "^19.0.0",
@@ -63,6 +67,7 @@
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "prettier": "^3.0.0",
     "serwist": "^9.5.11",
+    "sharp": "0.35.5",
     "tsx": "^4.19.0",
     "typescript": "^5.9.2",
     "vitest": "^4.1.9"

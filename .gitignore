@@ -31,3 +31,6 @@ yarn-error.log*
 # local database
 /database/*.db
 /database/backups/*
+
+# generated art and audio (processed into public/art and public/audio by yarn art)
+/art/source/

@@ -189,6 +189,15 @@ Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(save
 - **Recompensas alternativas**: un captor sin nadie a quien liberar da 12 Ecos por ciclo y 6 piedras de su bioma; un santuario cuya runa ya tenés da la mitad del costo de su eco en Ecos.
 - **Balance**: `CYCLE=1 yarn battles` simula un ciclo con el grupo completo como veterano (arma +20, tres runas fuertes y ecos; `buildVeteran` en `tests/support/builds.ts`).
 
+## Arte y sonido — `scripts/art` y `app/(protected)/(art)`
+
+- **Guía**: el estilo, la paleta por bioma, los prompts y el orden de los lotes están en la guía de arte y sonido (Claude Docs). Todo se genera sobre fondo verde croma `#00FF00`.
+- **Catálogo**: `yarn art:catalog` escribe `art/catalog.csv` con las 219 piezas (id, tipo, tamaño, lote y prompt completo). Los prompts salen de `scripts/art/catalog.ts` y del aspecto de cada especie en `scripts/art/descriptions.ts`.
+- **Carga**: los archivos generados van en `art/source/<id>.png` (no se suben al repo) y la música y los efectos en `art/source/music|sfx/<nombre>.mp3`. `yarn art` quita el verde, recorta, achica a WebP en `public/art/`, corta las hojas del mapa (decoraciones 4×4) y las de partes, copia el audio a `public/audio/` y escribe `public/art/manifest.json`. Al final lista lo que falta por lote.
+- **En el juego**: lo que está en el manifiesto reemplaza el arte provisional (figuras, fondos de combate, decoraciones del mapa); lo que falta sigue dibujado como hasta ahora o queda en silencio. La animación por partes se arma cuando estén las primeras hojas de partes.
+- **Sonido**: Howler (`(art)/utils/sound.ts`). Un tema por vez con fundido (menú, mapa por bioma, combate, jefe, Sello, Crisol, victoria y derrota) y efectos por evento de combate (`(battle)/utils/battleSounds.ts`) y del mapa. El botón de parlante (menú y mapa) regula música, efectos y silencio; se guarda en el dispositivo.
+- **Offline**: el arte y el audio no se precachean; el service worker los guarda a medida que se usan.
+
 ## PWA
 
 Manifest en `/manifest.webmanifest`, service worker de Serwist en `/serwist/sw.js`, página offline `/~offline` e íconos en `public/` (todavía los de GeoQuests: se reemplazan con el arte de Crisol).

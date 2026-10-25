@@ -5,6 +5,8 @@ import FastForwardIcon from '@mui/icons-material/FastForward'
 import ButtonBase from '@mui/material/ButtonBase'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { MusicId } from '@/app/(protected)/(art)/data/audio'
+import { playMusic } from '@/app/(protected)/(art)/utils/sound'
 import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
 import { combatantName } from '@/app/(protected)/(battle)/utils/names'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
@@ -12,6 +14,7 @@ import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
+import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
@@ -49,6 +52,30 @@ interface BattleScreenProps {
 type Mode = 'playing' | 'choosing' | 'items' | 'targeting' | 'ended'
 
 const SPEED_KEY = 'crisol.battleSpeed'
+
+/** The battle background of a point: its biome's (one of two, fixed per point), the castle or the forge of Crisol. */
+function backgroundOf(node: WorldNode, encounter: Encounter): string {
+  if (encounter.kind === EncounterKind.CRISOL) {
+    return 'backgrounds/crisol'
+  }
+
+  if (node.biome === Biome.ABYSS && encounter.kind !== EncounterKind.COMBAT) {
+    return 'backgrounds/castle'
+  }
+
+  return `backgrounds/${node.biome}-${(hashText(node.id) % 2) + 1}`
+}
+
+/** The theme of a battle: the common one, the bosses', the Seals' and Crisol's. */
+const BATTLE_MUSIC: Record<EncounterKind, MusicId> = {
+  [EncounterKind.COMBAT]: 'battle',
+  [EncounterKind.ELITE]: 'battle',
+  [EncounterKind.GUARDIAN]: 'boss',
+  [EncounterKind.MINIBOSS]: 'boss',
+  [EncounterKind.CAPTOR]: 'boss',
+  [EncounterKind.SEAL]: 'seal',
+  [EncounterKind.CRISOL]: 'crisol'
+}
 /** Pause before an enemy acts, so the player can follow it. */
 const ENEMY_PAUSE_MS = 350
 
@@ -91,6 +118,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   const battleRef = useRef(battle)
 
   useEffect(() => setSpeed(readSpeed()), [])
+
+  useEffect(() => {
+    void playMusic(
+      battle.outcome === 'victory' ? 'victory' : battle.outcome === 'defeat' ? 'defeat' : BATTLE_MUSIC[encounter.kind]
+    )
+  }, [battle.outcome, encounter.kind])
 
   useEffect(() => {
     if (renderer.current) {
@@ -153,8 +186,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         miss: t('battle.miss'),
         transform: t('battle.transform')
       }
-      const instance = await BattleRenderer.create(stage.current!, battleRef.current, labels, (id) =>
-        handleTapRef.current(id)
+      const instance = await BattleRenderer.create(
+        stage.current!,
+        battleRef.current,
+        labels,
+        (id) => handleTapRef.current(id),
+        backgroundOf(node, encounter)
       )
 
       if (cancelled) {

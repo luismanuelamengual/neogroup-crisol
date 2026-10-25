@@ -7,6 +7,12 @@ export const en: Messages = {
     close: 'Close',
     loading: 'Loading...'
   },
+  sound: {
+    title: 'Sound',
+    music: 'Music',
+    effects: 'Effects',
+    mute: 'Mute everything'
+  },
   nav: {
     myProfile: 'My profile',
     logout: 'Sign out'

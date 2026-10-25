@@ -1,4 +1,7 @@
-import { Application, Container, Graphics, Text } from 'pixi.js'
+import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
+import { figureArtId, loadTextures } from '@/app/(protected)/(art)/utils/art'
+import { playSfx } from '@/app/(protected)/(art)/utils/sound'
+import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
@@ -64,6 +67,7 @@ function wait(ms: number): Promise<void> {
 export class BattleRenderer {
   private readonly stage = new Container()
   private readonly background = new Graphics()
+  private readonly backdrop = new Sprite()
   private readonly fighters = new Container()
   private readonly effects = new Container()
   private readonly figures = new Map<string, Figure>()
@@ -79,9 +83,12 @@ export class BattleRenderer {
     private readonly app: Application,
     private readonly biome: BattleState['biome'],
     private readonly labels: BattleLabels,
-    private readonly onTap: (combatantId: string) => void
+    private readonly onTap: (combatantId: string) => void,
+    /** The final art that exists for this battle (figures by art id, and the background). */
+    private readonly art: Map<string, Texture>,
+    private readonly backgroundId: string
   ) {
-    this.stage.addChild(this.background, this.marker, this.fighters, this.effects)
+    this.stage.addChild(this.background, this.backdrop, this.marker, this.fighters, this.effects)
     app.stage.addChild(this.stage)
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
   }
@@ -90,9 +97,19 @@ export class BattleRenderer {
     element: HTMLElement,
     battle: BattleState,
     labels: BattleLabels,
-    onTap: (combatantId: string) => void
+    onTap: (combatantId: string) => void,
+    backgroundId: string
   ): Promise<BattleRenderer> {
     const app = new Application()
+    const art = await loadTextures([
+      backgroundId,
+      ...battle.combatants
+        .filter((combatant) => combatant.side === 'hero')
+        .map((hero) => figureArtId('hero', hero.characterId!, false)),
+      ...battle.phases
+        .flat()
+        .map((spawn) => figureArtId('enemy', spawn.speciesId, getSpecies(spawn.speciesId).rarity === 'boss'))
+    ])
 
     await app.init({
       resizeTo: element,
@@ -103,7 +120,7 @@ export class BattleRenderer {
     })
     element.appendChild(app.canvas)
 
-    const renderer = new BattleRenderer(app, battle.biome, labels, onTap)
+    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, backgroundId)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
@@ -149,6 +166,23 @@ export class BattleRenderer {
   }
 
   private drawBackground(): void {
+    const texture = this.art.get(this.backgroundId)
+
+    this.backdrop.visible = !!texture
+
+    if (texture) {
+      // The final background covers the stage, with the bottom 35% of the picture (its open ground) under the fighters.
+      const scale = Math.max(this.width / texture.width, (this.groundY + 60 * this.scale) / (texture.height * 0.72))
+
+      this.backdrop.texture = texture
+      this.backdrop.scale.set(scale)
+      this.backdrop.position.set((this.width - texture.width * scale) / 2, this.groundY - texture.height * 0.72 * scale)
+      this.background.clear()
+      this.background.rect(0, 0, this.width, this.height).fill({ color: 0x07040d })
+
+      return
+    }
+
     const ground = parseInt(BIOME_GROUND[this.biome].slice(1), 16)
     const g = this.background
     const horizon = this.groundY - 40 * this.scale
@@ -235,7 +269,16 @@ export class BattleRenderer {
 
     const size = combatant.side === 'enemy' ? getSpecies(combatant.speciesId!).size * (combatant.elite ? 1.15 : 1) : 1
     const root = new Container()
-    const body = combatant.side === 'hero' ? drawHero(combatant.characterId!) : drawEnemy(combatant)
+    const texture = this.art.get(
+      combatant.side === 'hero'
+        ? figureArtId('hero', combatant.characterId!, false)
+        : figureArtId('enemy', combatant.speciesId!, getSpecies(combatant.speciesId!).rarity === 'boss')
+    )
+    const body = texture
+      ? drawArt(texture, combatant.side)
+      : combatant.side === 'hero'
+        ? drawHero(combatant.characterId!)
+        : drawEnemy(combatant)
     const healthBar = new Graphics()
     const statusText = new Text({
       text: '',
@@ -335,6 +378,11 @@ export class BattleRenderer {
 
   private async playEvent(event: BattleEvent, after: BattleState): Promise<void> {
     const ms = (value: number) => value / this.speed
+    const sound = soundOf(event, 'targetId' in event ? (this.figures.get(event.targetId)?.side ?? null) : null)
+
+    if (sound) {
+      playSfx(sound)
+    }
 
     switch (event.type) {
       case 'turn': {
@@ -676,6 +724,21 @@ function mix(a: number, b: number, share: number): number {
   const channel = (shift: number) => Math.round(((a >> shift) & 0xff) * (1 - share) + ((b >> shift) & 0xff) * share)
 
   return (channel(16) << 16) | (channel(8) << 8) | channel(0)
+}
+
+/** A fighter with its final art: the figure standing on its spot, with a shadow at its feet. */
+function drawArt(texture: Texture, side: Combatant['side']): Container {
+  const container = new Container()
+  const shadow = new Graphics().ellipse(0, 0, 40, 10).fill({ color: 0x000000, alpha: 0.35 })
+  const sprite = new Sprite(texture)
+  // Heroes stand a bit taller than a common enemy of size 1.
+  const height = FIGURE_HEIGHT * (side === 'hero' ? 1.15 : 1)
+
+  sprite.anchor.set(0.5, 0.97)
+  sprite.scale.set(height / texture.height)
+  container.addChild(shadow, sprite)
+
+  return container
 }
 
 /** Provisional hero: a figure facing right with its weapon. */

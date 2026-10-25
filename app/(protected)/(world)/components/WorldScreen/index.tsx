@@ -2,6 +2,7 @@
 
 import './index.scss'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { playMusic, playSfx } from '@/app/(protected)/(art)/utils/sound'
 import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
@@ -101,6 +102,15 @@ export default function WorldScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, status])
 
+  // The theme of the biome where the party stands, while there is no battle.
+  const biomeHere = index && state ? index.nodes.get(state.positionNodeId)?.biome : undefined
+
+  useEffect(() => {
+    if (biomeHere && !pending) {
+      void playMusic(`map-${biomeHere}`)
+    }
+  }, [biomeHere, pending])
+
   const cleared = useMemo(() => new Set(state?.clearedNodeIds), [state?.clearedNodeIds])
   const respawned = useMemo(() => new Set(state?.respawnedNodeIds), [state?.respawnedNodeIds])
   const openCamps = useMemo(() => new Set(state?.openCampIds), [state?.openCampIds])
@@ -151,6 +161,7 @@ export default function WorldScreen() {
             showSuccessMessage(t('world.rewards.flaskPotency', { potency: reward.potency }))
             break
           case 'rune':
+            playSfx('rune')
             showSuccessMessage(
               t('world.rewards.rune', {
                 name: runeName(t, getRune(reward.runeIndex)),
@@ -168,6 +179,7 @@ export default function WorldScreen() {
             showSuccessMessage(t('world.rewards.tear'))
             break
           case 'gold':
+            playSfx('chest')
             showSuccessMessage(t('world.rewards.gold', { amount: reward.amount }))
             break
           case 'abyssOpen':
@@ -188,6 +200,7 @@ export default function WorldScreen() {
 
     setWalking(true)
     setSelectedNodeId(null)
+    playSfx('step')
     await map.current?.walk(route)
     setWalking(false)
 
@@ -269,6 +282,10 @@ export default function WorldScreen() {
     update(result.state)
     showRewards(result.rewards)
 
+    if (result.levelUps.length > 0) {
+      playSfx('level-up')
+    }
+
     for (const levelUp of result.levelUps) {
       showSuccessMessage(
         t('battle.levelUp', { name: t(`characters.${levelUp.characterId}.name` as MessageKey), level: levelUp.level })
@@ -290,6 +307,7 @@ export default function WorldScreen() {
 
   const handleRest = () => {
     update(rest(index, state))
+    playSfx('rest')
     showSuccessMessage(t('world.panel.rested'))
     void upload()
   }
@@ -312,7 +330,11 @@ export default function WorldScreen() {
     void upload()
   }
 
-  const handleDrink = () => update(drinkFlask(index, state))
+  const handleDrink = () => {
+    update(drinkFlask(index, state))
+    playSfx('flask')
+  }
+
   const otherCamps = state.openCampIds
     .filter((id) => id !== state.positionNodeId)
     .map((id) => {

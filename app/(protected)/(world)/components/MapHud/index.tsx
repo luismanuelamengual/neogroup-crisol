@@ -9,6 +9,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
+import SoundButton from '@/app/(protected)/(art)/components/SoundButton'
 import { SyncStatus } from '@/app/(protected)/(world)/stores/game'
 import { useT } from '@/app/i18n/I18nProvider'
 
@@ -51,6 +52,7 @@ export default function MapHud({ location, biome, gold, cycle, sync, onRecenter 
           <SyncIcon fontSize="small" />
         </span>
       </Tooltip>
+      <SoundButton className="sound" />
       <IconButton className="recenter" onClick={onRecenter} size="small" aria-label={t('world.panel.here')}>
         <MyLocationIcon fontSize="small" />
       </IconButton>

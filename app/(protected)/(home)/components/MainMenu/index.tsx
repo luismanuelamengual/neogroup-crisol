@@ -2,7 +2,9 @@
 
 import './index.scss'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import SoundButton from '@/app/(protected)/(art)/components/SoundButton'
+import { playMusic } from '@/app/(protected)/(art)/utils/sound'
 import NewGameDialog from '@/app/(protected)/(home)/components/NewGameDialog'
 import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
 import { SaveSummary } from '@/app/(protected)/(saves)/models/SaveSummary'
@@ -26,6 +28,10 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
   const user = useUserStore((state) => state.user)
   const [confirming, setConfirming] = useState(false)
   const [starting, setStarting] = useState(false)
+
+  useEffect(() => {
+    void playMusic('menu')
+  }, [])
 
   const startNewGame = async () => {
     setStarting(true)
@@ -71,6 +77,7 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
           {t('home.newGame')}
         </GameButton>
       </nav>
+      <SoundButton className="sound" />
       <NewGameDialog
         open={confirming}
         starting={starting}

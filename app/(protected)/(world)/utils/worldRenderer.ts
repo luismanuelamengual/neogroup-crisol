@@ -1,5 +1,6 @@
-import { Application, Container, Graphics, Sprite, Texture } from 'pixi.js'
+import { Application, Assets, Container, Graphics, Sprite, Texture } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+import { artUrl, loadArtManifest } from '@/app/(protected)/(art)/utils/art'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
@@ -40,6 +41,11 @@ const TRAIL_EDGE = 0x1a120c
 const TRAIL_DOT = 0xf3e2b3
 const ROUTE_DOT = 0xffc233
 const OUTLINE = 0x0a0710
+/** Map decorations: how many around each point, how far from it, their size and the room kept free for points and trails. */
+const DECORATIONS_PER_NODE = 2
+const DECORATION_RING = [70, 150]
+const DECORATION_SIZE = [70, 120]
+const DECORATION_CLEARANCE = 46
 const FOG = 'rgba(7, 4, 13, 0.95)'
 
 /**
@@ -49,6 +55,7 @@ const FOG = 'rgba(7, 4, 13, 0.95)'
  */
 export class WorldRenderer {
   private readonly nodes: Map<string, WorldNode>
+  private readonly decorations = new Container()
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
@@ -83,7 +90,7 @@ export class WorldRenderer {
 
     fog.scale.set(FOG_SCALE)
     this.drawHero()
-    viewport.addChild(ground, this.trails, this.route, this.markers, fog, this.selection, this.hero)
+    viewport.addChild(ground, this.decorations, this.trails, this.route, this.markers, fog, this.selection, this.hero)
 
     viewport.on('clicked', ({ world: point }) => onTap(this.nodeAt(point.x, point.y)))
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
@@ -124,6 +131,7 @@ export class WorldRenderer {
 
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
+    void renderer.addDecorations()
     app.renderer.on('resize', (width: number, height: number) => {
       viewport.resize(width, height)
       renderer.fitZoom()
@@ -131,6 +139,65 @@ export class WorldRenderer {
     })
 
     return renderer
+  }
+
+  /**
+   * Scatters the decorations of each biome (trees, rocks, ruins) around its
+   * points, the same every time, never on a point or a trail. Only for the
+   * biomes whose decoration sheet exists (see `yarn art`).
+   */
+  private async addDecorations(): Promise<void> {
+    const { decorations } = await loadArtManifest()
+    const textures = new Map<string, Texture[]>()
+
+    for (const [biome, ids] of Object.entries(decorations)) {
+      const loaded = await Promise.all(ids.map((id) => Assets.load<Texture>(artUrl(id)).catch(() => null)))
+
+      textures.set(
+        biome,
+        loaded.filter((texture): texture is Texture => !!texture)
+      )
+    }
+
+    if (textures.size === 0 || this.decorations.destroyed) {
+      return
+    }
+
+    const random = createRandom(this.world.seed ^ 0x5eed)
+    const segments = this.world.edges.map(([a, b]) => [this.nodes.get(a)!, this.nodes.get(b)!])
+    const isFree = (x: number, y: number) =>
+      this.world.nodes.every((node) => Math.hypot(node.x - x, node.y - y) > DECORATION_CLEARANCE * 1.4) &&
+      segments.every(([a, b]) => distanceToSegment(x, y, a, b) > DECORATION_CLEARANCE)
+    const sprites: Sprite[] = []
+
+    for (const node of this.world.nodes) {
+      const choices = textures.get(node.biome)
+
+      for (let index = 0; index < DECORATIONS_PER_NODE; index++) {
+        const angle = random() * Math.PI * 2
+        const radius = DECORATION_RING[0] + random() * (DECORATION_RING[1] - DECORATION_RING[0])
+        const x = node.x + Math.cos(angle) * radius
+        const y = node.y + Math.sin(angle) * radius
+        const texture = choices?.[Math.floor(random() * choices.length)]
+        const size = DECORATION_SIZE[0] + random() * (DECORATION_SIZE[1] - DECORATION_SIZE[0])
+
+        if (!texture || !isFree(x, y)) {
+          continue
+        }
+
+        const sprite = new Sprite(texture)
+
+        sprite.anchor.set(0.5, 0.9)
+        sprite.position.set(x, y)
+        sprite.scale.set(size / Math.max(texture.width, texture.height))
+        sprite.scale.x *= random() < 0.5 ? -1 : 1
+        sprites.push(sprite)
+      }
+    }
+
+    // The lower ones in front.
+    sprites.sort((a, b) => a.y - b.y)
+    this.decorations.addChild(...sprites)
   }
 
   /** Zoom limits: from the whole world on screen to the detail of a trail. */
@@ -143,6 +210,8 @@ export class WorldRenderer {
 
   destroy(): void {
     this.resizeObserver?.disconnect()
+    // The decorations first, keeping their textures: they are shared through the asset cache.
+    this.decorations.destroy({ children: true })
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true, texture: true })
   }
@@ -495,4 +564,14 @@ export class WorldRenderer {
       this.selection.circle(selected.x, selected.y, radius).stroke({ width: 7, color: 0xffffff, alpha: 0.85 })
     }
   }
+}
+
+/** Distance from a point to the segment between two points of the map. */
+function distanceToSegment(x: number, y: number, a: WorldNode, b: WorldNode): number {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const length = dx * dx + dy * dy
+  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length))
+
+  return Math.hypot(a.x + t * dx - x, a.y + t * dy - y)
 }

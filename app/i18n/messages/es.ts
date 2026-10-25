@@ -10,6 +10,12 @@ export const es = {
     close: 'Cerrar',
     loading: 'Cargando...'
   },
+  sound: {
+    title: 'Sonido',
+    music: 'Música',
+    effects: 'Efectos',
+    mute: 'Silenciar todo'
+  },
   nav: {
     myProfile: 'Mi perfil',
     logout: 'Cerrar sesión'

@@ -21,6 +21,8 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
     { url: '/~offline', revision },
     { url: '/world/world.json', revision: `world-${WORLD_VERSION}` }
   ],
+  // The art and the music are cached as they are used (see sw.ts).
+  globIgnores: ['**/node_modules/**/*', 'public/art/**/*', 'public/audio/**/*'],
   swSrc: 'app/(pwa)/services/sw.ts',
   useNativeEsbuild: true
 })

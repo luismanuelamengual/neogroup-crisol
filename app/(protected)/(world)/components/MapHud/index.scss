@@ -17,7 +17,8 @@
   .gold,
   .cycle,
   .sync,
-  .recenter {
+  .recenter,
+  .sound {
     border: 3px solid var(--color-panel-border);
     background: rgba(11, 16, 38, 0.88);
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
@@ -92,7 +93,8 @@
     }
   }
 
-  .recenter {
+  .recenter,
+  .sound {
     width: 40px;
     height: 40px;
     color: var(--color-text);
