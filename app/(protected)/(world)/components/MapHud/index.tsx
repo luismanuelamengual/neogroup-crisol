@@ -16,6 +16,8 @@ interface MapHudProps {
   location: string
   biome: string
   gold: number
+  /** New Game+ cycle (0 = first playthrough). */
+  cycle: number
   sync: SyncStatus
   onRecenter: () => void
 }
@@ -28,7 +30,7 @@ const SYNC_ICONS: Record<SyncStatus, typeof CloudDoneIcon> = {
 }
 
 /** Top of the map: where the party is, its gold and whether the game is saved. */
-export default function MapHud({ location, biome, gold, sync, onRecenter }: MapHudProps) {
+export default function MapHud({ location, biome, gold, cycle, sync, onRecenter }: MapHudProps) {
   const t = useT()
   const SyncIcon = SYNC_ICONS[sync]
 
@@ -39,6 +41,7 @@ export default function MapHud({ location, biome, gold, sync, onRecenter }: MapH
         <span className="name">{location}</span>
       </div>
       <div className="spacer" />
+      {cycle > 0 && <span className="cycle">{t('home.cycle', { cycle })}</span>}
       <div className="gold" aria-label={t('world.gold')}>
         <MonetizationOnIcon fontSize="small" />
         {gold}

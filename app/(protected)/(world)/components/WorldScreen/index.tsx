@@ -14,6 +14,7 @@ import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult
 import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
   arriveAt,
+  canStartNextCycle,
   countDefeatedSeals,
   drinkFlask,
   getEncounter,
@@ -23,6 +24,7 @@ import {
   isAtOpenCamp,
   planRoute,
   rest,
+  startNextCycle,
   teleport,
   WorldIndex
 } from '@/app/(protected)/(engine)/utils/worldMap'
@@ -30,6 +32,7 @@ import PartyScreen from '@/app/(protected)/(party)/components/PartyScreen'
 import ShopDialog from '@/app/(protected)/(party)/components/ShopDialog'
 import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
 import MapHud from '@/app/(protected)/(world)/components/MapHud'
+import NextCycleDialog from '@/app/(protected)/(world)/components/NextCycleDialog'
 import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
 import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
 import TeleportDialog from '@/app/(protected)/(world)/components/TeleportDialog'
@@ -69,6 +72,7 @@ export default function WorldScreen() {
   const [teleporting, setTeleporting] = useState(false)
   const [partyOpen, setPartyOpen] = useState(false)
   const [shopOpen, setShopOpen] = useState(false)
+  const [confirmingCycle, setConfirmingCycle] = useState(false)
   const map = useRef<WorldMapHandle>(null)
   const state = save?.state ?? null
 
@@ -297,6 +301,17 @@ export default function WorldScreen() {
     map.current?.centerOn(campId)
   }
 
+  const handleNextCycle = () => {
+    const next = startNextCycle(index, state)
+
+    setConfirmingCycle(false)
+    setSelectedNodeId(null)
+    update(next)
+    map.current?.centerOn(next.positionNodeId)
+    showSuccessMessage(t('world.nextCycle.started', { cycle: next.cycle }), 8000)
+    void upload()
+  }
+
   const handleDrink = () => update(drinkFlask(index, state))
   const otherCamps = state.openCampIds
     .filter((id) => id !== state.positionNodeId)
@@ -313,6 +328,7 @@ export default function WorldScreen() {
         location={nameOf(position.id)}
         biome={t(`world.biomes.${position.biome}` as MessageKey)}
         gold={state.gold}
+        cycle={state.cycle}
         sync={sync}
         onRecenter={() => map.current?.centerOn(state.positionNodeId)}
       />
@@ -326,6 +342,8 @@ export default function WorldScreen() {
             openCamp={selected.id === state.positionNodeId && isAtOpenCamp(state)}
             merchant={selected.type === NodeType.MERCHANT}
             canTeleport={otherCamps.length > 0}
+            nextCycle={selected.id === state.positionNodeId && canStartNextCycle(index, state) ? state.cycle + 1 : null}
+            onNextCycle={() => setConfirmingCycle(true)}
             busy={busy}
             onGo={() => void go()}
             onRest={handleRest}
@@ -371,6 +389,12 @@ export default function WorldScreen() {
           onClose={() => setShopOpen(false)}
         />
       )}
+      <NextCycleDialog
+        open={confirmingCycle}
+        cycle={state.cycle + 1}
+        onCancel={() => setConfirmingCycle(false)}
+        onConfirm={handleNextCycle}
+      />
       <TeleportDialog
         open={teleporting}
         camps={otherCamps}

@@ -5,7 +5,10 @@
  * at the level of the enemies, and at two and four levels more (built as a
  * player would: points, talents and weapon), and prints the share of victories.
  *
- * Usage: yarn battles [biome]
+ * In New Game+ (CYCLE=1, 2...) the whole party fights, as veterans: weapon
+ * at its best, three strong runes each and echoes (tests/support/builds.ts).
+ *
+ * Usage: [CYCLE=n] [DETAIL=1] yarn battles [biome]
  */
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -16,7 +19,7 @@ import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameSta
 import { getEncounter, indexWorld } from '@/app/(protected)/(engine)/utils/worldMap'
 import storedWorld from '@/public/world/world.json'
 import { winRate } from '@/tests/support/battleSimulator'
-import { buildCharacter } from '@/tests/support/builds'
+import { buildCharacter, buildVeteran } from '@/tests/support/builds'
 
 const RUNS = 30
 /** Encounters of each kind tried per biome. */
@@ -36,7 +39,8 @@ const PARTIES: Record<Biome, CharacterId[]> = {
 }
 const only = process.argv[2] as Biome | undefined
 const index = indexWorld(storedWorld as unknown as World)
-const fresh = { ...createInitialGameState('simulation'), clearedNodeIds: [] }
+const cycle = Number(process.env.CYCLE ?? 0)
+const fresh = { ...createInitialGameState('simulation'), clearedNodeIds: [], cycle }
 
 console.log('biome       encounter                     count    +0    +2    +4')
 
@@ -68,11 +72,13 @@ for (const biome of Object.values(Biome).filter((candidate) => !only || candidat
 
       return winRate(
         {
-          heroes: (process.env.SOLO ? [KAEL] : PARTIES[biome]).map((id) =>
-            buildCharacter(id, level, Math.min(20, Math.floor(level / 3)))
-          ),
+          heroes:
+            cycle > 0
+              ? PARTIES[Biome.ABYSS].map((id, slot) => buildVeteran(id, level, cycle, slot))
+              : PARTIES[biome].map((id) => buildCharacter(id, level, Math.min(20, Math.floor(level / 3)))),
           phases,
           biome,
+          cycle,
           canRetreat: encounter.kind === EncounterKind.COMBAT
         },
         RUNS

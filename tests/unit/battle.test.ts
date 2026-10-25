@@ -545,3 +545,18 @@ describe('the mechanics of each hero', () => {
     expect(getCombatant(state, boss.id).skills).toEqual(expect.arrayContaining(['soul-drain', 'war-cry']))
   })
 })
+
+describe('New Game+ battles', () => {
+  it('makes the enemies stronger and teaches the bosses one skill more', () => {
+    const spawn = [[{ speciesId: 'boar-matriarch', level: 10 }]]
+    const first = getFighters(battle(spawn), 'enemy')[0]
+    const second = getFighters(
+      createBattle({ heroes: [kael], phases: spawn, seed: 42, biome: Biome.MEADOWS, canRetreat: false, cycle: 1 })
+        .state,
+      'enemy'
+    )[0]
+
+    expect(second.stats.maxHealth).toBeGreaterThan(first.stats.maxHealth)
+    expect(second.skills).toEqual([...first.skills, 'war-cry'])
+  })
+})

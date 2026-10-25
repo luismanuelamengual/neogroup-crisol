@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CAPTOR_ECHOES, CAPTOR_STONES, CYCLE_LEVELS } from '@/app/(protected)/(engine)/data/cycles'
 import { EMBER_MINIBOSS_IDS } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
@@ -13,6 +14,7 @@ import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 import {
   arriveAt,
+  canStartNextCycle,
   drinkFlask,
   getEncounter,
   getFlask,
@@ -23,6 +25,7 @@ import {
   planRoute,
   rest,
   retreat,
+  startNextCycle,
   teleport,
   winEncounter
 } from '@/app/(protected)/(engine)/utils/worldMap'
@@ -222,5 +225,83 @@ describe('camp bosses and the Amber Flask', () => {
     for (const bossId of EMBER_MINIBOSS_IDS) {
       expect(findNode((node) => node.bossId === bossId)?.bossKind).toBe(BossKind.MINIBOSS)
     }
+  })
+})
+
+describe('New Game+', () => {
+  const crisol = world.finalBossNodeId
+  const captor = findNode((node) => node.bossKind === BossKind.CAPTOR)
+  const sanctuary = findNode((node) => node.type === NodeType.SANCTUARY && !!node.runeIndex)
+  const beaten: GameState = {
+    ...createInitialGameState('test'),
+    characters: [
+      { ...createCharacter(CharacterId.KAEL, 60), weapon: 12, talents: ['kael-sharpness'], xp: 0, health: 1 },
+      { ...createCharacter(captor.captive!, 55), xp: 0, health: 1 }
+    ],
+    clearedNodeIds: [world.startNodeId, crisol, captor.id],
+    openCampIds: [world.startNodeId, captor.id],
+    positionNodeId: captor.id,
+    gold: 5000,
+    inventory: { 'health-potion': 3 },
+    runes: [sanctuary.runeIndex!],
+    runeWins: { [sanctuary.runeIndex!]: 4 },
+    echoes: 7,
+    tears: 2,
+    scholarSold: 2,
+    kills: { 'thorn-boar': 30 }
+  }
+
+  it('starts from a camp once Crisol fell', () => {
+    expect(canStartNextCycle(index, beaten)).toBe(true)
+    expect(canStartNextCycle(index, { ...beaten, clearedNodeIds: [world.startNodeId, captor.id] })).toBe(false)
+    expect(canStartNextCycle(index, { ...beaten, positionNodeId: crisol })).toBe(false)
+    expect(() => startNextCycle(index, { ...beaten, positionNodeId: crisol })).toThrow()
+  })
+
+  it('starts the world over and keeps the characters, rested', () => {
+    const next = startNextCycle(index, beaten)
+
+    expect(next).toMatchObject({
+      cycle: 1,
+      positionNodeId: world.startNodeId,
+      openCampIds: [world.startNodeId],
+      clearedNodeIds: [world.startNodeId],
+      gold: 0,
+      inventory: {},
+      scholarSold: 0,
+      runes: beaten.runes,
+      runeWins: beaten.runeWins,
+      echoes: 7,
+      tears: 2,
+      kills: beaten.kills
+    })
+    expect(next.characters.map((character) => [character.id, character.level, character.weapon])).toEqual([
+      [CharacterId.KAEL, 60, 12],
+      [captor.captive, 55, 0]
+    ])
+    expect(next.characters.every((character) => character.health === getMaxHealth(character))).toBe(true)
+  })
+
+  it('raises the level of every fight in each cycle', () => {
+    const next = startNextCycle(index, beaten)
+    const fight = neighborsOf(world.startNodeId).find((id) => index.nodes.get(id)!.type === NodeType.COMBAT)!
+
+    expect(getEncounter(index, next, fight)!.level).toBe(index.nodes.get(fight)!.level! + CYCLE_LEVELS)
+  })
+
+  it('gives Echoes and stones instead of a captive or a rune the party already has', () => {
+    const next = { ...startNextCycle(index, beaten), cycle: 2 }
+    const freed = win(nextTo(captor.id, { ...next, clearedNodeIds: next.clearedNodeIds }), captor.id)
+
+    expect(freed.characters).toHaveLength(2)
+    expect(freed.echoes).toBe(7 + CAPTOR_ECHOES * 2)
+    expect(freed.inventory).toMatchObject({ [BIOME_STONE[captor.biome]]: CAPTOR_STONES })
+
+    const { state: arrived } = arriveAt(index, nextTo(sanctuary.id, next), sanctuary.id)
+    const { state: won, rewards } = winEncounter(index, arrived, {})
+
+    expect(won.runes).toEqual(beaten.runes)
+    expect(rewards[0]).toMatchObject({ type: 'echoes' })
+    expect(won.echoes).toBeGreaterThan(7)
   })
 })

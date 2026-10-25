@@ -220,6 +220,13 @@ export const es = {
     }
   },
   world: {
+    nextCycle: {
+      title: '¿Empezar el Nuevo Juego+ {cycle}?',
+      kept: 'Tus personajes conservan todo: niveles, habilidades, armas, runas, ecos y Ecos, Lágrimas del Olvido y el bestiario.',
+      lost: 'El mundo vuelve a empezar en el Claro del Despertar: vuelven la niebla, los campamentos, los jefes, los santuarios y los cofres, y se pierden el oro, las pociones y las piedras. Los enemigos son mucho más fuertes, y dan más experiencia y oro.',
+      confirm: 'Empezar NG+{cycle}',
+      started: 'Empieza el Nuevo Juego+ {cycle}. Aurenya vuelve a apagarse.'
+    },
     title: 'Aurenya',
     level: 'Nivel {level}',
     levelShort: 'Nv. {level}',
@@ -285,6 +292,7 @@ export const es = {
       crisol: 'Jefe final'
     },
     panel: {
+      nextCycle: 'Nuevo Juego+ {cycle}',
       go: 'Ir',
       here: 'Estás acá',
       noRoute: 'Todavía no hay un camino despejado hasta acá.',
@@ -312,7 +320,7 @@ export const es = {
       tear: 'Encontraste una Lágrima del Olvido',
       gold: '+{amount} de oro',
       abyssOpen: 'Los tres Sellos cayeron: la Puerta del Abismo se abrió',
-      crisol: '¡Crisol cayó! El Nuevo Juego+ llega en una próxima fase.',
+      crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.',
       defeat: 'Tu grupo cayó. Despertás en {camp}.'
     },
     runeTiers: {

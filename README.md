@@ -182,6 +182,13 @@ Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(save
 - **Formación**: el orden del grupo; los tres primeros pelean y el resto entra junto cuando caen.
 - La pantalla del grupo se abre desde el botón Grupo del mapa; el arma, las runas y los ecos se cambian solo en un campamento.
 
+## Nuevo Juego+ — `(engine)/data/cycles.ts` y `utils/worldMap.ts`
+
+- **Empezar el ciclo siguiente**: después de vencer a Crisol, cualquier campamento ofrece Nuevo Juego+ (con confirmación). `startNextCycle` reinicia el mundo en el Claro del Despertar: niebla, campamentos, jefes, Sellos, santuarios, cofres y Lágrimas; también el oro, el inventario y el stock del Erudito. Los personajes conservan todo (niveles, árboles, armas, runas, ecos y capacidad de Ecos), igual que las runas, sus victorias, los Ecos sin asignar, las Lágrimas sin usar y el bestiario. Se puede repetir sin límite y el mapa muestra el ciclo (NG+1, NG+2…).
+- **Dificultad**: cada ciclo suma `CYCLE_LEVELS` (45) niveles a los enemigos de cada punto y un 25 % a sus atributos (`CYCLE_POWER`); como el grupo completo pelea desde el principio, los primeros biomas se acercan a la escala del último (`CYCLE_CATCH_UP`). La XP y el oro crecen un 75 % por ciclo. Los jefes suman una habilidad nueva según su arquetipo (`CYCLE_BOSS_SKILLS`).
+- **Recompensas alternativas**: un captor sin nadie a quien liberar da 12 Ecos por ciclo y 6 piedras de su bioma; un santuario cuya runa ya tenés da la mitad del costo de su eco en Ecos.
+- **Balance**: `CYCLE=1 yarn battles` simula un ciclo con el grupo completo como veterano (arma +20, tres runas fuertes y ecos; `buildVeteran` en `tests/support/builds.ts`).
+
 ## PWA
 
 Manifest en `/manifest.webmanifest`, service worker de Serwist en `/serwist/sw.js`, página offline `/~offline` e íconos en `public/` (todavía los de GeoQuests: se reemplazan con el arte de Crisol).

@@ -1,4 +1,5 @@
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
+import { CYCLE_BOSS_SKILLS } from '@/app/(protected)/(engine)/data/cycles'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { BIOME_POTIONS, BIOME_STONE, BOSS_STONES, DROP_CHANCE, getItem } from '@/app/(protected)/(engine)/data/items'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
@@ -12,6 +13,7 @@ import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 import { Item, ItemTarget } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
@@ -151,6 +153,13 @@ export function getFighters(state: BattleState, side?: Combatant['side']): Comba
   )
 }
 
+/** The skills of an enemy: from the first New Game+ on, the bosses know one more. */
+function cycleSkills(species: EnemySpecies, cycle: number): string[] {
+  const extra = CYCLE_BOSS_SKILLS[species.archetype].find((skill) => !species.skills.includes(skill))
+
+  return cycle > 0 && species.rarity === 'boss' && extra ? [...species.skills, extra] : species.skills
+}
+
 function spawnEnemies(state: BattleState, phase: number): Combatant[] {
   return state.phases[phase].map((spawn, index) => {
     const species = getSpecies(spawn.speciesId)
@@ -167,7 +176,7 @@ function spawnEnemies(state: BattleState, phase: number): Combatant[] {
       focus: Math.round(stats.maxFocus / 2),
       initiative: roll(state) * 30,
       statuses: [],
-      skills: species.skills,
+      skills: cycleSkills(species, state.cycle),
       affinities: species.affinities,
       bars: species.bars,
       reserve: false,

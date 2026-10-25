@@ -216,6 +216,13 @@ export const en: Messages = {
     }
   },
   world: {
+    nextCycle: {
+      title: 'Start New Game+ {cycle}?',
+      kept: 'Your characters keep everything: levels, skills, weapons, runes, echoes and Echoes, Tears of Oblivion and the bestiary.',
+      lost: 'The world starts over at the Glade of Awakening: fog, camps, bosses, sanctuaries and chests come back, and gold, potions and stones are lost. The enemies are much stronger, and give more experience and gold.',
+      confirm: 'Start NG+{cycle}',
+      started: 'New Game+ {cycle} begins. Aurenya fades again.'
+    },
     title: 'Aurenya',
     level: 'Level {level}',
     levelShort: 'Lv. {level}',
@@ -281,6 +288,7 @@ export const en: Messages = {
       crisol: 'Final boss'
     },
     panel: {
+      nextCycle: 'New Game+ {cycle}',
       go: 'Go',
       here: 'You are here',
       noRoute: 'There is no cleared trail to this point yet.',
@@ -308,7 +316,7 @@ export const en: Messages = {
       tear: 'You found a Tear of Oblivion',
       gold: '+{amount} gold',
       abyssOpen: 'The three Seals fell: the Door of the Abyss opened',
-      crisol: 'Crisol fell! New Game+ arrives in an upcoming phase.',
+      crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.',
       defeat: 'Your party fell. You wake up at {camp}.'
     },
     runeTiers: {

@@ -1,3 +1,4 @@
+import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getTree } from '@/app/(protected)/(engine)/data/talents'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
@@ -34,6 +35,32 @@ export function buildCharacter(id: CharacterId, level: number, weapon = Math.min
 
     character = { ...character, talents: [...character.talents, next.id] }
   }
+
+  return { ...character, health: getMaxHealth(character) }
+}
+
+/**
+ * A character in New Game+: built as above at its level, with its weapon at
+ * its best, three strong runes of its own (`slot` keeps them apart between the
+ * heroes) and echoes worth about 40 Echoes per cycle.
+ */
+export function buildVeteran(id: CharacterId, level: number, cycle: number, slot: number) {
+  const built = buildCharacter(id, level, 20)
+  const runes = [60, 59, 58].map((index) => index - 3 * slot)
+  const echoCapacity = 40 * cycle
+  const echoes: number[] = []
+  let load = 0
+
+  for (let index = 52; index >= 1 && echoes.length < 12; index -= 5) {
+    const cost = getRune(index).echoCost
+
+    if (!runes.includes(index) && load + cost <= echoCapacity) {
+      echoes.push(index)
+      load += cost
+    }
+  }
+
+  const character = { ...built, runes, echoCapacity, echoes }
 
   return { ...character, health: getMaxHealth(character) }
 }

@@ -70,8 +70,10 @@ const GROWTH_PER_LEVEL = 0.11
 const ELITE_HEALTH = 1.5
 const ELITE_POWER = 1.25
 /** Multiplier of the attributes per New Game+ cycle (speed grows less). */
-const CYCLE_POWER = 0.5
+const CYCLE_POWER = 0.25
 const CYCLE_SPEED = 0.1
+/** How much of the gap to the scale of the last biome the first ones close in New Game+ (0..1). */
+const CYCLE_CATCH_UP = 0.7
 /**
  * Health and power of the enemies of each biome on top of their level: the
  * party grows from Kael alone to five heroes, and the fights grow with it.
@@ -1235,8 +1237,11 @@ export function getEnemyStats(speciesId: string, level: number, elite = false, c
   const levelFactor = 1 + GROWTH_PER_LEVEL * (level - 1)
   const cycleFactor = 1 + CYCLE_POWER * cycle
   const biomeScale = strength > 1 ? BOSS_BIOME_SCALE : 1
-  const power = (1 + (strength - 1) * 0.4) * (elite ? ELITE_POWER : 1) * BIOME_POWER[biome] ** biomeScale * cycleFactor
-  const health = strength * (elite ? ELITE_HEALTH : 1) * BIOME_HEALTH[biome] ** biomeScale * cycleFactor
+  // In New Game+ the whole party fights from the start: the first biomes get closer to the last one.
+  const catchUp = (table: Record<Biome, number>) =>
+    (table[biome] * (cycle > 0 ? (table[Biome.ABYSS] / table[biome]) ** CYCLE_CATCH_UP : 1)) ** biomeScale
+  const power = (1 + (strength - 1) * 0.4) * (elite ? ELITE_POWER : 1) * catchUp(BIOME_POWER) * cycleFactor
+  const health = strength * (elite ? ELITE_HEALTH : 1) * catchUp(BIOME_HEALTH) * cycleFactor
 
   return {
     maxHealth: Math.round(base.maxHealth * levelFactor * health),

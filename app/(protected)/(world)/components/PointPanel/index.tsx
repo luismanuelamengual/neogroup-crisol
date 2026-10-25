@@ -1,6 +1,7 @@
 'use client'
 
 import './index.scss'
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive'
 import CloseIcon from '@mui/icons-material/Close'
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk'
 import ExploreIcon from '@mui/icons-material/Explore'
@@ -20,10 +21,13 @@ interface PointPanelProps {
   openCamp: boolean
   merchant: boolean
   canTeleport: boolean
+  /** Crisol fell: New Game+ can start from this camp (the cycle that would start). */
+  nextCycle: number | null
   busy: boolean
   onGo: () => void
   onRest: () => void
   onTeleport: () => void
+  onNextCycle: () => void
   onShop: () => void
   onClose: () => void
 }
@@ -37,10 +41,12 @@ export default function PointPanel({
   openCamp,
   merchant,
   canTeleport,
+  nextCycle,
   busy,
   onGo,
   onRest,
   onTeleport,
+  onNextCycle,
   onShop,
   onClose
 }: PointPanelProps) {
@@ -83,6 +89,17 @@ export default function PointPanel({
             >
               {t('world.panel.teleport')}
             </GameButton>
+            {nextCycle !== null && (
+              <GameButton
+                size="small"
+                color="magenta"
+                onClick={onNextCycle}
+                disabled={busy}
+                startIcon={<AllInclusiveIcon />}
+              >
+                {t('world.panel.nextCycle', { cycle: nextCycle })}
+              </GameButton>
+            )}
           </>
         )}
       </div>

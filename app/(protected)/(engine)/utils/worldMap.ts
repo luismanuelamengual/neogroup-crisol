@@ -1,5 +1,11 @@
 import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import {
+  CAPTOR_ECHOES,
+  CAPTOR_STONES,
+  CYCLE_LEVELS,
+  SANCTUARY_ECHO_SHARE
+} from '@/app/(protected)/(engine)/data/cycles'
+import {
   EMBER_MINIBOSS_IDS,
   FLASK_BASE_CHARGES,
   FLASK_BASE_POTENCY,
@@ -8,7 +14,8 @@ import {
   FLASK_MAX_POTENCY
 } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
-import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
+import { getRune } from '@/app/(protected)/(engine)/data/runes'
+import { SEALS_TO_OPEN_ABYSS, START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
@@ -161,7 +168,7 @@ export function getEncounter(index: WorldIndex, state: GameState, nodeId: string
   return {
     nodeId,
     kind,
-    level: node.level ?? 1,
+    level: (node.level ?? 1) + CYCLE_LEVELS * state.cycle,
     bossId: node.bossId,
     canRetreat: kind === EncounterKind.COMBAT || kind === EncounterKind.ELITE
   }
@@ -250,7 +257,7 @@ export function winEncounter(
     health: Math.min(getMaxHealth(character), Math.max(1, Math.round(health[character.id] ?? character.health)))
   }))
   let openCampIds = state.openCampIds
-  let { runes, tears } = state
+  let { runes, tears, echoes, inventory } = state
 
   if (!wasCleared && node.type === NodeType.CAMP_BOSS) {
     openCampIds = [...openCampIds, nodeId]
@@ -262,14 +269,31 @@ export function winEncounter(
 
       characters = [...characters, createCharacter(node.captive, level)]
       rewards.push({ type: 'character', characterId: node.captive, level })
+    } else if (node.captive) {
+      // New Game+: nobody left to free, so Echoes and stones instead.
+      const count = CAPTOR_ECHOES * state.cycle
+      const added = addItems(state, { [BIOME_STONE[node.biome]]: CAPTOR_STONES }, MAX_CONSUMABLES)
+
+      echoes += count
+      inventory = added.state.inventory
+      rewards.push({ type: 'echoes', count })
+
+      for (const [itemId, kept] of Object.entries(added.kept)) {
+        rewards.push({ type: 'item', itemId, count: kept })
+      }
     }
   }
 
   if (!wasCleared && node.type === NodeType.SANCTUARY && node.runeIndex && node.runeTier) {
-    rewards.push({ type: 'rune', runeIndex: node.runeIndex, tier: node.runeTier })
-
     if (!runes.includes(node.runeIndex)) {
       runes = [...runes, node.runeIndex]
+      rewards.push({ type: 'rune', runeIndex: node.runeIndex, tier: node.runeTier })
+    } else {
+      // New Game+: the rune is already the party's, so part of its echo cost in Echoes.
+      const count = Math.max(1, Math.round(getRune(node.runeIndex).echoCost * SANCTUARY_ECHO_SHARE))
+
+      echoes += count
+      rewards.push({ type: 'echoes', count })
     }
   }
 
@@ -288,6 +312,8 @@ export function winEncounter(
     openCampIds,
     runes,
     tears,
+    echoes,
+    inventory,
     clearedNodeIds: wasCleared ? state.clearedNodeIds : [...state.clearedNodeIds, nodeId],
     respawnedNodeIds: state.respawnedNodeIds.filter((id) => id !== nodeId)
   }
@@ -400,4 +426,40 @@ export function drinkFlask(index: WorldIndex, state: GameState): GameState {
       }
     })
   }
+}
+
+/** Whether Crisol fell in this cycle: from then on the next cycle can start from any camp. */
+export function isCrisolDefeated(index: WorldIndex, state: GameState): boolean {
+  return isCleared(state, index.world.finalBossNodeId)
+}
+
+export function canStartNextCycle(index: WorldIndex, state: GameState): boolean {
+  return isCrisolDefeated(index, state) && isAtOpenCamp(state)
+}
+
+/**
+ * New Game+: the world starts over at the first camp (fog, camps, bosses,
+ * Seals, sanctuaries, chests and Tears; gold, items and the Scholar's stock)
+ * and the characters keep everything they are, rested. The bestiary, the
+ * runes, their wins and the Echoes not assigned yet are kept too.
+ */
+export function startNextCycle(index: WorldIndex, state: GameState): GameState {
+  if (!canStartNextCycle(index, state)) {
+    throw new Error('The next cycle cannot start yet')
+  }
+
+  const next: GameState = {
+    ...state,
+    cycle: state.cycle + 1,
+    positionNodeId: START_NODE_ID,
+    lastRestCampId: START_NODE_ID,
+    openCampIds: [START_NODE_ID],
+    clearedNodeIds: [START_NODE_ID],
+    respawnedNodeIds: [],
+    gold: 0,
+    inventory: {},
+    scholarSold: 0
+  }
+
+  return rest(index, next)
 }
