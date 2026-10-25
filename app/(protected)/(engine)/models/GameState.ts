@@ -29,4 +29,6 @@ export interface GameState {
   /** Unlocked characters (Kael is always the first one). */
   characters: CharacterState[]
   gold: number
+  /** Enemies defeated by species, ever (the bestiary unlocks with them; they are kept between cycles). */
+  kills: Record<string, number>
 }

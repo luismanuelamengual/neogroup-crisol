@@ -5,7 +5,7 @@
   overflow: hidden;
   background: #07040d;
 
-  .bottom {
+  > .bottom {
     position: absolute;
     right: calc(12px + var(--safe-right));
     bottom: calc(12px + var(--safe-bottom));

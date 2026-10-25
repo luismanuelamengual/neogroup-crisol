@@ -1,0 +1,103 @@
+import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { Reward } from '@/app/(protected)/(engine)/models/Reward'
+import { gainExperience, loseExperience } from '@/app/(protected)/(engine)/utils/progression'
+import { loseEncounter, retreat, winEncounter, WorldIndex } from '@/app/(protected)/(engine)/utils/worldMap'
+
+/** Share of the experience of the current level lost by the whole party on a defeat, and by the active heroes on a retreat. */
+export const DEFEAT_XP_LOSS = 0.5
+export const RETREAT_XP_LOSS = 0.1
+
+export interface LevelUp {
+  characterId: CharacterId
+  level: number
+}
+
+export interface BattleResult {
+  state: GameState
+  rewards: Reward[]
+  levelUps: LevelUp[]
+}
+
+function heroesOf(battle: BattleState) {
+  return new Map(
+    battle.combatants.filter((combatant) => combatant.side === 'hero').map((hero) => [hero.characterId!, hero])
+  )
+}
+
+function addKills(state: GameState, battle: BattleState): Record<string, number> {
+  const kills = { ...state.kills }
+
+  for (const [species, count] of Object.entries(battle.kills)) {
+    kills[species] = (kills[species] ?? 0) + count
+  }
+
+  return kills
+}
+
+/**
+ * Applies a finished battle to the game, at the point where the party stands:
+ *
+ *   - victory: experience for those who fought (all of it for each one), gold,
+ *     the point cleared with its rewards; the fallen come back with 1 health.
+ *   - defeat: everybody loses half the experience of its current level and
+ *     wakes up at the last camp where it rested.
+ *   - retreat: the heroes that fought lose 10% of the experience of their
+ *     level and go back to `fromNodeId`; the fallen come back with 1 health.
+ *
+ * The enemies defeated count for the bestiary whatever the outcome.
+ */
+export function applyBattleResult(
+  index: WorldIndex,
+  game: GameState,
+  battle: BattleState,
+  fromNodeId: string
+): BattleResult {
+  const heroes = heroesOf(battle)
+  const kills = addKills(game, battle)
+
+  if (battle.outcome === 'victory') {
+    const levelUps: LevelUp[] = []
+    const characters = game.characters.map((character) => {
+      const hero = heroes.get(character.id)
+      const afterBattle = { ...character, health: Math.max(1, hero?.health ?? character.health) }
+
+      if (!hero?.fought) {
+        return afterBattle
+      }
+
+      const grown = gainExperience(afterBattle, battle.xp)
+
+      if (grown.level > character.level) {
+        levelUps.push({ characterId: character.id, level: grown.level })
+      }
+
+      return grown
+    })
+    const health = Object.fromEntries(characters.map((character) => [character.id, character.health]))
+    const won = winEncounter(index, { ...game, characters, kills, gold: game.gold + battle.gold }, health)
+    const gold: Reward[] = battle.gold > 0 ? [{ type: 'gold', amount: battle.gold }] : []
+
+    return { state: won.state, rewards: [...gold, ...won.rewards], levelUps }
+  }
+
+  if (battle.outcome === 'defeat') {
+    const characters = game.characters.map((character) => loseExperience(character, DEFEAT_XP_LOSS))
+
+    return { state: loseEncounter(index, { ...game, characters, kills }), rewards: [], levelUps: [] }
+  }
+
+  if (battle.outcome === 'retreat') {
+    const characters = game.characters.map((character) => {
+      const hero = heroes.get(character.id)
+      const afterBattle = { ...character, health: Math.max(1, hero?.health ?? character.health) }
+
+      return hero?.fought ? loseExperience(afterBattle, RETREAT_XP_LOSS) : afterBattle
+    })
+
+    return { state: retreat(index, { ...game, characters, kills }, fromNodeId), rewards: [], levelUps: [] }
+  }
+
+  throw new Error('The battle has not ended')
+}

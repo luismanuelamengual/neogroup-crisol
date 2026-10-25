@@ -2,7 +2,7 @@
 
 RPG de fantasía por turnos para un jugador: un mundo laberíntico de más de 1.000 puntos al estilo de los mapas de _Super Mario World_, combate por turnos según la velocidad al estilo de _Clair Obscur_, campamentos y castigo por muerte al estilo de _Dark Souls_ y batallas laterales al estilo de _Hero Wars_. Se publica como PWA en Vercel y en Google Play como TWA.
 
-El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 3**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo y el mapa jugable (PixiJS) con guardado local. El combate real llega en la fase 4: por ahora cada pelea se resuelve con un diálogo provisorio donde elegís ganar, perder o retirarte.
+El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 4**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo, el mapa jugable (PixiJS) con guardado local y el combate por turnos con arte provisorio. Las Praderas se juegan completas con Kael; la progresión y la economía (equipo, runas, ecos, Buhonero) llegan en la fase 5.
 
 ## Tech stack
 
@@ -15,9 +15,9 @@ El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fase
 - Tipografías self-hosted (`@fontsource`)
 - UI en inglés (por defecto) y español
 
-- **PixiJS 8** + **pixi-viewport** para el mapa
+- **PixiJS 8** + **pixi-viewport** para el mapa y la escena de batalla
 
-Próximas fases: PixiJS para las batallas, Spine/DragonBones para las animaciones y Howler.js para el audio.
+Próximas fases: Spine/DragonBones para las animaciones y Howler.js para el audio.
 
 ## Getting started
 
@@ -82,6 +82,7 @@ app/(protected)/
   stores/users.ts         Store con el usuario logueado
   (home)/                 Menú principal (/menu): Continuar / Nuevo
   (world)/                El mapa jugable (/world): render PixiJS, interfaz, sesión de juego y sincronización
+  (battle)/               La escena de batalla: render PixiJS lateral e interfaz de turnos
   (engine)/               Lógica pura del juego (sin React ni base de datos): estado de la partida, el mundo, reglas, catálogos
   (saves)/                Partida guardada: tabla `saves`, servicios y API
   (account)/              Perfil del jugador (nombre, idioma, borrado de cuenta)
@@ -146,13 +147,25 @@ En desarrollo, **`/dev/world`** muestra el mundo completo en un visor SVG (zoom 
 - **Frasco de Ámbar**: arranca con 1 carga al 10 %; cada Sello suma una carga (máximo 4) y cada Ascua (los 4 captores y 6 minijefes, `data/flask.ts`) suma +5 % (máximo 60 %). Se recarga al descansar.
 - **Enemigos que vuelven**: al descansar reaparecen los combates comunes ya ganados (punto rojo en el marcador). No cortan el paso: se pelean solo si te detenés ahí. Jefes, guardianes y élites no vuelven en el mismo ciclo.
 - **Render** (`utils/worldRenderer.ts`): fondo por bioma pintado una vez en un canvas, senderos punteados, marcadores por tipo, niebla en una máscara de baja resolución, héroe que camina por los senderos y cámara con arrastre, pinch y rueda.
-- **Interfaz** (`components/`): `MapHud` (lugar, oro, estado del guardado, centrar), `PartyPanel` (vida del grupo y Frasco), `PointPanel` (el punto tocado: Ir, Descansar, Viajar), `BattleDialog` (combate provisorio) y `TeleportDialog`. Tocar un punto lo selecciona; tocarlo de nuevo (o "Ir") camina hasta él.
+- **Interfaz** (`components/`): `MapHud` (lugar, oro, estado del guardado, centrar), `PartyPanel` (vida del grupo y Frasco), `PointPanel` (el punto tocado: Ir, Descansar, Viajar) y `TeleportDialog`; una pelea abre la escena de batalla encima del mapa. Tocar un punto lo selecciona; tocarlo de nuevo (o "Ir") camina hasta él.
 
 ### Guardado local y sincronización
 
 Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(saves)/utils/localSaves.ts`), así cerrar la app nunca deshace una derrota y se puede jugar sin conexión. Los cambios se suben con `/api/saveGame` al descansar, al perder, al ganar un campamento, cada 2 minutos, al pasar la app a segundo plano y al volver la red (`(world)/hooks/useGameSession.ts`). Al entrar, `chooseSave` elige entre la copia local y la del servidor: una copia de otra partida (un "Nuevo" en otro dispositivo) siempre pierde, y si las dos avanzaron gana la de más tiempo de juego, con aviso. El mundo (`world.json`) queda precacheado por el service worker.
 
-`SAVE_VERSION` va por la 2: las partidas de la versión 1 se migran al cargarlas (`migrateGameState`, con test).
+`SAVE_VERSION` va por la 3 (la 3 agrega `kills`, el bestiario): las partidas viejas se migran al cargarlas (`migrateGameState`, con test).
+
+## El combate — `(engine)/utils/battle.ts` y `app/(protected)/(battle)`
+
+- **Motor puro y determinístico** (`battle.ts`, con tests): `createBattle`, `nextTurn`, `performAction`, `chooseEnemyAction`, `getTurnQueue`. El azar sale de una semilla guardada en el `BattleState`, así una pelea se puede repetir igual.
+- **Turnos por velocidad**: cada luchador llena su iniciativa hasta 100 y actúa; la cola muestra los próximos 8 turnos. Al empezar su turno recupera un 12 % de foco.
+- **Acciones**: Atacar (gratis), habilidades especiales (cuestan foco; a un enemigo, a todos, a un aliado, a todos los aliados o a sí mismo) y Retirarse (no contra jefes).
+- **Daño**: `poder × multiplicador × 100/(100+defensa) × elemento × crítico × ±5 %`, con debilidad 1,5, resistencia 0,5, inmunidad y absorción. Estados: veneno, quemadura, congelación, aturdimiento, sangrado, ceguera y subidas o bajadas de ataque, defensa y velocidad.
+- **Peleas** (`encounters.ts`): de 1 a 3 fases de 1 a 3 enemigos según el nivel; élites con un enemigo de élite al final; guardianes, minijefes, captores, sellos y el Crisol con sus jefes (2 barras, el Crisol 3; al vaciar una barra se transforman y pegan más fuerte). Hasta 3 héroes activos; los de reserva entran juntos cuando caen todos.
+- **Resultado** (`battleResult.ts`): la victoria da XP y oro a los que pelearon y suma al bestiario; los caídos vuelven con 1 de vida. La derrota cuesta la mitad de la XP del nivel actual y despierta en el último descanso; la retirada cuesta el 10 %.
+- **Catálogos** (`data/`): `skills.ts` (habilidades de héroes y enemigos), `characters.ts` (estadísticas y crecimiento por nivel) y `enemies.ts` (especies por bioma, jefes y variantes campeón y guardián).
+- **Escena** (`(battle)/utils/battleRenderer.ts`): vista lateral con figuras provisorias, números flotantes, temblor de cámara y velocidad ×1 / ×2 (se recuerda en el dispositivo). La interfaz (`components/BattleScreen`) muestra la cola, las tarjetas de los héroes, las acciones y la elección de objetivo.
+- **Balance**: `yarn battles:meadows` simula cientos de peleas de las Praderas y muestra el porcentaje de victorias de Kael según su nivel.
 
 ## PWA
 
@@ -172,7 +185,7 @@ La app Android es una TWA (generada con PWABuilder o Bubblewrap) que abre este s
 yarn test
 ```
 
-- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos), los utilitarios de grafos, las reglas del mapa y la elección entre la copia local y la del servidor.
+- `tests/unit` — diccionarios (mismas claves y placeholders en todos los idiomas), traductor, idiomas y formatos; el mundo (el `world.json` guardado es válido y es el que genera la semilla, el generador es determinístico y la validación detecta mundos rotos), los utilitarios de grafos, las reglas del mapa, la elección entre la copia local y la del servidor, el motor de combate (turnos, daño, afinidades, estados, fases, barras de jefes, reservas, retirada, IA) y el armado de las peleas.
 - `tests/flows` — contra SQLite en memoria con las migraciones reales: partida guardada (nueva, cargar, guardar, bloqueo optimista, validación del estado, migración, reemplazo) y borrado de cuenta.
 
 ## Idiomas (i18n)

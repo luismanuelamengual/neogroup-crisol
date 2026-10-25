@@ -6,7 +6,7 @@ import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 2
+export const SAVE_VERSION = 3
 
 /** A new character at a level, with full health. */
 export function createCharacter(id: CharacterId, level = 1): CharacterState {
@@ -25,7 +25,8 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
     respawnedNodeIds: [],
     flaskCharges: FLASK_BASE_CHARGES,
     characters: [createCharacter(CharacterId.KAEL)],
-    gold: 0
+    gold: 0,
+    kills: {}
   }
 }
 
@@ -48,6 +49,11 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
         health: getMaxHealth(character)
       }))
     }
+  }
+
+  if (fromVersion < 3) {
+    // v3: enemies defeated, for the bestiary.
+    state = { ...state, kills: {} }
   }
 
   return state
@@ -74,6 +80,9 @@ export function isGameState(value: unknown): value is GameState {
     isStringArray(state.respawnedNodeIds) &&
     isCount(state.flaskCharges) &&
     isCount(state.gold) &&
+    !!state.kills &&
+    typeof state.kills === 'object' &&
+    Object.values(state.kills as Record<string, unknown>).every(isCount) &&
     Array.isArray(state.characters) &&
     state.characters.length > 0 &&
     state.characters.every((character) => {

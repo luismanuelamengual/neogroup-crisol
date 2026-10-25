@@ -1,0 +1,367 @@
+'use client'
+
+import './index.scss'
+import FastForwardIcon from '@mui/icons-material/FastForward'
+import ButtonBase from '@mui/material/ButtonBase'
+import classNames from 'classnames'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
+import { combatantName } from '@/app/(protected)/(battle)/utils/names'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
+import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
+import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
+import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
+import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { Skill } from '@/app/(protected)/(engine)/models/Skill'
+import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
+import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
+import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
+import {
+  chooseEnemyAction,
+  createBattle,
+  getCombatant,
+  getTargets,
+  getTurnQueue,
+  isAlive,
+  nextTurn,
+  performAction
+} from '@/app/(protected)/(engine)/utils/battle'
+import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
+import GameButton from '@/app/components/GameButton'
+import { useT } from '@/app/i18n/I18nProvider'
+import type { MessageKey } from '@/app/i18n/messages'
+
+interface BattleScreenProps {
+  game: GameState
+  node: WorldNode
+  encounter: Encounter
+  /** A finished battle (its `outcome` says how), once the player closes the result. */
+  onFinish: (battle: BattleState) => void
+}
+
+type Mode = 'playing' | 'choosing' | 'targeting' | 'ended'
+
+const SPEED_KEY = 'crisol.battleSpeed'
+/** Pause before an enemy acts, so the player can follow it. */
+const ENEMY_PAUSE_MS = 350
+
+function readSpeed(): number {
+  try {
+    return window.localStorage.getItem(SPEED_KEY) === '2' ? 2 : 1
+  } catch {
+    return 1
+  }
+}
+
+/**
+ * The battle (full screen over the map): the PixiJS scene in the middle, the
+ * turn queue on top and the party with its actions below. The engine
+ * (utils/battle.ts) decides everything; this screen shows it and asks the
+ * player for the heroes' actions.
+ */
+export default function BattleScreen({ game, node, encounter, onFinish }: BattleScreenProps) {
+  const t = useT()
+  const stage = useRef<HTMLDivElement>(null)
+  const renderer = useRef<BattleRenderer | null>(null)
+  const pendingChoice = useRef<((action: BattleAction) => void) | null>(null)
+  const [battle, setBattle] = useState<BattleState>(
+    () =>
+      createBattle({
+        heroes: game.characters,
+        phases: getEncounterPhases(node, encounter),
+        // A new seed for each attempt; the enemies are the same.
+        seed: hashText(`${node.id}:${Date.now()}`),
+        biome: node.biome as Biome,
+        cycle: game.cycle,
+        canRetreat: encounter.canRetreat
+      }).state
+  )
+  const [mode, setMode] = useState<Mode>('playing')
+  const [skill, setSkill] = useState<Skill | null>(null)
+  const [speed, setSpeed] = useState(1)
+  const battleRef = useRef(battle)
+
+  useEffect(() => setSpeed(readSpeed()), [])
+
+  useEffect(() => {
+    if (renderer.current) {
+      renderer.current.speed = speed
+    }
+  }, [speed])
+
+  const choose = useCallback((action: BattleAction) => {
+    const resolve = pendingChoice.current
+
+    pendingChoice.current = null
+    setSkill(null)
+    resolve?.(action)
+  }, [])
+  const handleTap = useCallback(
+    (combatantId: string) => {
+      const current = battleRef.current
+
+      if (!pendingChoice.current || !current.actorId || !skillRef.current) {
+        return
+      }
+
+      if (getTargets(current, current.actorId, skillRef.current).includes(combatantId)) {
+        choose({ type: 'skill', skillId: skillRef.current.id, targetIds: [combatantId] })
+      }
+    },
+    [choose]
+  )
+  const skillRef = useRef<Skill | null>(null)
+
+  useEffect(() => {
+    skillRef.current = skill
+  }, [skill])
+
+  // The battle loop: the timeline gives the turns, the enemies act on their own and the heroes wait for the player.
+  useEffect(() => {
+    let cancelled = false
+
+    const show = (state: BattleState, markedId: string | null) => {
+      battleRef.current = state
+      setBattle(state)
+      renderer.current?.sync(state, markedId)
+    }
+
+    ;(async () => {
+      const { BattleRenderer } = await import('@/app/(protected)/(battle)/utils/battleRenderer')
+      const labels = {
+        skill: (id: string) => t(`skills.${id}` as MessageKey),
+        status: (status: StatusType) => t(`statuses.${status}`),
+        weak: t('battle.weak'),
+        resist: t('battle.resist'),
+        immune: t('battle.immune'),
+        miss: t('battle.miss'),
+        transform: t('battle.transform')
+      }
+      const instance = await BattleRenderer.create(stage.current!, battleRef.current, labels, (id) =>
+        handleTapRef.current(id)
+      )
+
+      if (cancelled) {
+        instance.destroy()
+
+        return
+      }
+
+      renderer.current = instance
+      instance.speed = readSpeed()
+
+      let state = battleRef.current
+
+      show(state, null)
+
+      while (!state.outcome && !cancelled) {
+        const turn = nextTurn(state)
+
+        await instance.play(turn.events, turn.state)
+        state = turn.state
+        show(state, state.actorId)
+
+        if (state.outcome || cancelled) {
+          break
+        }
+
+        const actor = getCombatant(state, state.actorId!)
+        let action: BattleAction
+
+        if (actor.side === 'hero') {
+          setMode('choosing')
+          action = await new Promise<BattleAction>((resolve) => {
+            pendingChoice.current = resolve
+          })
+          setMode('playing')
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, ENEMY_PAUSE_MS / instance.speed))
+          action = chooseEnemyAction(state)
+        }
+
+        if (cancelled) {
+          break
+        }
+
+        const step = performAction(state, action)
+
+        await instance.play(step.events, step.state)
+        state = step.state
+        show(state, null)
+      }
+
+      if (!cancelled) {
+        setMode('ended')
+      }
+    })()
+
+    return () => {
+      cancelled = true
+      renderer.current?.destroy()
+      renderer.current = null
+    }
+    // The battle runs once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleTapRef = useRef(handleTap)
+
+  useEffect(() => {
+    handleTapRef.current = handleTap
+  }, [handleTap])
+
+  const toggleSpeed = () => {
+    const next = speed === 1 ? 2 : 1
+
+    setSpeed(next)
+
+    try {
+      window.localStorage.setItem(SPEED_KEY, String(next))
+    } catch {
+      // Only a preference.
+    }
+  }
+
+  const actor = battle.actorId ? getCombatant(battle, battle.actorId) : null
+  const heroes = battle.combatants.filter(
+    (combatant) => combatant.side === 'hero' && (!combatant.reserve || combatant.fought)
+  )
+  const queue = getTurnQueue(battle, 8).map((id) => getCombatant(battle, id))
+
+  const pickSkill = (picked: Skill) => {
+    if (!actor) {
+      return
+    }
+
+    if (picked.target === TargetType.ENEMY || picked.target === TargetType.ALLY) {
+      setSkill(picked)
+      setMode('targeting')
+      renderer.current?.sync(battle, actor.id)
+    } else {
+      choose({ type: 'skill', skillId: picked.id, targetIds: getTargets(battle, actor.id, picked) })
+    }
+  }
+
+  const targets = actor && skill ? getTargets(battle, actor.id, skill).map((id) => getCombatant(battle, id)) : []
+
+  return (
+    <div className="battle-screen">
+      <div className="top">
+        <ol className="queue">
+          {queue.map((combatant, index) => (
+            <li
+              key={`${combatant.id}-${index}`}
+              className={classNames(combatant.side, { current: index === 0 && !!battle.actorId })}
+              title={combatantName(t, combatant)}
+            >
+              {combatantName(t, combatant).charAt(0)}
+            </li>
+          ))}
+        </ol>
+        {battle.phases.length > 1 && (
+          <span className="phase">{t('battle.phase', { phase: battle.phase + 1, total: battle.phases.length })}</span>
+        )}
+        <ButtonBase className="speed" onClick={toggleSpeed} aria-label={t('battle.speed', { speed })}>
+          <FastForwardIcon fontSize="small" />×{speed}
+        </ButtonBase>
+      </div>
+      <div ref={stage} className="stage" />
+      <div className="bottom">
+        <ul className="heroes">
+          {heroes.map((hero) => (
+            <li key={hero.id} className={classNames({ active: hero.id === battle.actorId, fallen: !isAlive(hero) })}>
+              <span className="name">{combatantName(t, hero)}</span>
+              <div className="bar health">
+                <div style={{ width: `${(hero.health / hero.stats.maxHealth) * 100}%` }} />
+              </div>
+              <div className="bar focus">
+                <div style={{ width: `${(hero.focus / hero.stats.maxFocus) * 100}%` }} />
+              </div>
+              <span className="numbers">
+                {hero.health}/{hero.stats.maxHealth} · {t('battle.focus')} {hero.focus}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {mode === 'choosing' && actor?.side === 'hero' && (
+          <div className="actions">
+            {actor.skills.map((id) => {
+              const option = getSkill(id)
+
+              return (
+                <GameButton
+                  key={id}
+                  size="small"
+                  color={option.cost === 0 ? 'gold' : option.heal ? 'lime' : 'cyan'}
+                  disabled={option.cost > actor.focus}
+                  onClick={() => pickSkill(option)}
+                >
+                  {t(`skills.${id}` as MessageKey)}
+                  {option.cost > 0 && <span className="cost">{t('battle.focusCost', { cost: option.cost })}</span>}
+                </GameButton>
+              )
+            })}
+            {battle.canRetreat && (
+              <GameButton size="small" color="ghost" onClick={() => choose({ type: 'retreat' })}>
+                {t('battle.retreat')}
+              </GameButton>
+            )}
+          </div>
+        )}
+        {mode === 'targeting' && skill && (
+          <div className="actions">
+            <span className="prompt">{t('battle.chooseTarget')}</span>
+            {targets.map((target) => (
+              <GameButton
+                key={target.id}
+                size="small"
+                color={target.side === 'enemy' ? 'magenta' : 'lime'}
+                onClick={() => choose({ type: 'skill', skillId: skill.id, targetIds: [target.id] })}
+              >
+                {combatantName(t, target)} · {target.health}
+              </GameButton>
+            ))}
+            <GameButton
+              size="small"
+              color="ghost"
+              onClick={() => {
+                setSkill(null)
+                setMode('choosing')
+              }}
+            >
+              {t('battle.back')}
+            </GameButton>
+          </div>
+        )}
+        {mode === 'playing' && actor?.side === 'enemy' && <p className="waiting">{t('battle.enemyTurn')}</p>}
+      </div>
+      {mode === 'ended' && battle.outcome && (
+        <div className="result">
+          <div className={classNames('panel', battle.outcome)}>
+            <h2>
+              {t(
+                battle.outcome === 'victory'
+                  ? 'battle.victory'
+                  : battle.outcome === 'defeat'
+                    ? 'battle.defeat'
+                    : 'battle.retreated'
+              )}
+            </h2>
+            {battle.outcome === 'victory' ? (
+              <>
+                <p>{t('battle.xpGained', { xp: battle.xp })}</p>
+                <p>{t('battle.goldGained', { gold: battle.gold })}</p>
+              </>
+            ) : (
+              <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>
+            )}
+            <GameButton fullWidth onClick={() => onFinish(battle)}>
+              {t('battle.continue')}
+            </GameButton>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

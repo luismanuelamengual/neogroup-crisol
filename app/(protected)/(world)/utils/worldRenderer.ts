@@ -59,6 +59,8 @@ export class WorldRenderer {
   private view: MapView | null = null
   private walking = false
   private elapsed = 0
+  /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
+  private resizeObserver: ResizeObserver | null = null
 
   private constructor(
     private readonly app: Application,
@@ -117,6 +119,9 @@ export class WorldRenderer {
 
     const renderer = new WorldRenderer(app, viewport, world, onTap)
 
+    renderer.resizeObserver = new ResizeObserver(() => app.resize())
+    renderer.resizeObserver.observe(element)
+
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
     app.renderer.on('resize', (width: number, height: number) => {
@@ -137,7 +142,9 @@ export class WorldRenderer {
   }
 
   destroy(): void {
-    this.app.destroy(true, { children: true, texture: true })
+    this.resizeObserver?.disconnect()
+    // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
+    this.app.destroy({ removeView: true }, { children: true, texture: true })
   }
 
   /** Draws the map for a new state of the game. */

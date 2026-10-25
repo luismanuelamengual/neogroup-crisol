@@ -2,11 +2,14 @@
 
 import './index.scss'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
+import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
+import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
 import {
   arriveAt,
   countDefeatedSeals,
@@ -16,15 +19,11 @@ import {
   getRevealedNodeIds,
   indexWorld,
   isAtOpenCamp,
-  loseEncounter,
   planRoute,
   rest,
-  retreat,
   teleport,
-  winEncounter,
   WorldIndex
 } from '@/app/(protected)/(engine)/utils/worldMap'
-import BattleDialog from '@/app/(protected)/(world)/components/BattleDialog'
 import MapHud from '@/app/(protected)/(world)/components/MapHud'
 import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
 import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
@@ -32,7 +31,6 @@ import TeleportDialog from '@/app/(protected)/(world)/components/TeleportDialog'
 import WorldMap, { WorldMapHandle } from '@/app/(protected)/(world)/components/WorldMap'
 import { useGameSession } from '@/app/(protected)/(world)/hooks/useGameSession'
 import { useGameStore } from '@/app/(protected)/(world)/stores/game'
-import { placeholderVictoryHealth } from '@/app/(protected)/(world)/utils/placeholderBattle'
 import { campName, pointName } from '@/app/(protected)/(world)/utils/pointNames'
 import type { MapView } from '@/app/(protected)/(world)/utils/worldRenderer'
 import GameButton from '@/app/components/GameButton'
@@ -51,7 +49,7 @@ interface PendingEncounter {
 /**
  * The world (/world): the map of Aurenya with the party on it. Tap a point to
  * see it and tap "Go" (or tap it again) to walk there through the cleared
- * trails; fights are resolved with a stand-in dialog until phase 4.
+ * trails; a fight opens the battle screen over the map.
  */
 export default function WorldScreen() {
   const t = useT()
@@ -243,33 +241,30 @@ export default function WorldScreen() {
     return respawned.has(nodeId) ? `${t('world.points.respawned')} · ${level}` : `${kind} · ${level}`
   }
 
-  const finishFight = (next: typeof state, rewards: Reward[] = []) => {
+  const handleBattleEnd = (battle: BattleState) => {
+    const result = applyBattleResult(index, state, battle, pending!.fromNodeId)
+
     setPending(null)
-    update(next)
-    showRewards(rewards)
-  }
+    update(result.state)
+    showRewards(result.rewards)
 
-  const handleWin = () => {
-    const { state: next, rewards } = winEncounter(index, state, placeholderVictoryHealth(state, pending!.encounter))
+    for (const levelUp of result.levelUps) {
+      showSuccessMessage(
+        t('battle.levelUp', { name: t(`characters.${levelUp.characterId}.name` as MessageKey), level: levelUp.level })
+      )
+    }
 
-    finishFight(next, rewards)
+    if (battle.outcome === 'defeat') {
+      showWarningMessage(
+        t('world.rewards.defeat', { camp: campName(t, index.nodes.get(result.state.positionNodeId)!) }),
+        6000
+      )
+      map.current?.centerOn(result.state.positionNodeId)
+    }
 
-    if (rewards.some((reward) => reward.type === 'camp')) {
+    if (battle.outcome === 'defeat' || result.rewards.some((reward) => reward.type === 'camp')) {
       void upload()
     }
-  }
-
-  const handleLose = () => {
-    const next = loseEncounter(index, state)
-
-    finishFight(next)
-    showWarningMessage(t('world.rewards.defeat', { camp: campName(t, index.nodes.get(next.positionNodeId)!) }), 6000)
-    map.current?.centerOn(next.positionNodeId)
-    void upload()
-  }
-
-  const handleRetreat = () => {
-    finishFight(retreat(index, state, pending!.fromNodeId))
   }
 
   const handleRest = () => {
@@ -323,13 +318,15 @@ export default function WorldScreen() {
         )}
         <PartyPanel characters={state.characters} flask={flask} disabled={busy} onDrink={handleDrink} />
       </div>
-      <BattleDialog
-        encounter={pending?.encounter ?? null}
-        name={pending ? nameOf(pending.encounter.nodeId) : ''}
-        onWin={handleWin}
-        onLose={handleLose}
-        onRetreat={handleRetreat}
-      />
+      {pending && (
+        <BattleScreen
+          key={`${pending.encounter.nodeId}-${state.positionNodeId}`}
+          game={state}
+          node={index.nodes.get(pending.encounter.nodeId)!}
+          encounter={pending.encounter}
+          onFinish={handleBattleEnd}
+        />
+      )}
       <TeleportDialog
         open={teleporting}
         camps={otherCamps}
