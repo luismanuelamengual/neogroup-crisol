@@ -18,7 +18,8 @@ export const es = {
   },
   nav: {
     myProfile: 'Mi perfil',
-    logout: 'Cerrar sesión'
+    logout: 'Cerrar sesión',
+    mainMenu: 'Menú principal'
   },
   metadata: {
     mainMenu: 'Menú principal',

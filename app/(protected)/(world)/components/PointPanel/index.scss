@@ -1,12 +1,13 @@
 .point-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  border: 3px solid var(--color-gold-dark);
-  border-radius: 16px;
-  background: rgba(11, 16, 38, 0.94);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.45);
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border: var(--frame-border);
+  border-radius: 4px;
+  background: var(--frame-background);
+  box-shadow: var(--frame-shadow);
 
   .header {
     display: flex;
@@ -24,25 +25,28 @@
   .name {
     color: var(--color-gold);
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
   }
 
   .detail {
     color: var(--color-text-secondary);
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-style: italic;
   }
 
   .note {
     margin: 0;
     color: var(--color-text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
+    padding: 2px 3px;
 
     &:empty {
       display: none;

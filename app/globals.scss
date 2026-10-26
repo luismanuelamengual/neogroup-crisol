@@ -8,33 +8,43 @@
  *   - desktop: min-width 901px
  */
 :root {
-  --font-display: 'Bungee', 'Arial Black', sans-serif;
-  --font-body: 'Nunito Variable', 'Segoe UI', Roboto, Arial, sans-serif;
-  --color-gold: #ffc233;
-  --color-gold-dark: #c98a00;
-  --color-cyan: #22d3ee;
-  --color-cyan-dark: #0e8aa0;
-  --color-magenta: #ff4d8d;
-  --color-magenta-dark: #b3245a;
-  --color-lime: #84f06b;
-  --color-lime-dark: #3f9e2c;
-  --color-night: #0b1026;
-  --color-night-light: #151c3d;
-  --color-panel: #1b2350;
-  --color-panel-border: #3a4690;
-  --color-text: #f8fafc;
-  --color-text-secondary: #aab4e8;
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-title: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  --font-body: 'Alegreya Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+  // Dark fantasy palette: the names are the roles of each color across the
+  // app (gold: main action, cyan: focus and magic, magenta: danger and enemies,
+  // lime: healing).
+  --color-gold: #e8b85a;
+  --color-gold-light: #ffe2a0;
+  --color-gold-dark: #8a5a1c;
+  --color-cyan: #74b4ff;
+  --color-cyan-dark: #1f4f9a;
+  --color-magenta: #e5533d;
+  --color-magenta-dark: #7a1c10;
+  --color-lime: #8fd46a;
+  --color-lime-dark: #3c6e22;
+  --color-ember: #ff8a2a;
+  --color-night: #0d0806;
+  --color-night-light: #1a110c;
+  --color-panel: #241711;
+  --color-panel-border: #7a5524;
+  --color-text: #f4e7cc;
+  --color-text-secondary: #b8a07a;
+  // Ornate frame shared by every panel, window and HUD piece: a bronze line, a
+  // dark gap and an outer bronze line, over dark leather.
+  --frame-border: 2px solid #a8793a;
+  --frame-background: linear-gradient(180deg, rgba(42, 28, 20, 0.96) 0%, rgba(20, 13, 9, 0.96) 100%);
+  --frame-shadow:
+    0 0 0 3px #0a0604, 0 0 0 4px #5a3c16, inset 0 0 18px rgba(0, 0, 0, 0.65), 0 10px 24px rgba(0, 0, 0, 0.5);
+  --frame-glow: 0 0 0 3px #0a0604, 0 0 0 4px var(--color-gold), 0 0 18px rgba(255, 138, 42, 0.55);
+  // Bars: health is blood red, focus is arcane blue.
+  --bar-track: #0a0604;
+  --bar-health: linear-gradient(180deg, #ff7a5c 0%, #d63a26 45%, #7a1408 100%);
+  --bar-focus: linear-gradient(180deg, #a6d0ff 0%, #3f7fd8 45%, #173a7a 100%);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
-  --appbar-height: 64px;
-}
-
-@media (max-width: 600px) {
-  :root {
-    --appbar-height: 56px;
-  }
 }
 
 * {
@@ -55,9 +65,8 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.18) 0%, transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(255, 77, 141, 0.16) 0%, transparent 60%),
-    radial-gradient(1000px 700px at 50% 120%, rgba(255, 194, 51, 0.12) 0%, transparent 60%), var(--color-night);
+    radial-gradient(900px 600px at 50% 18%, rgba(122, 42, 12, 0.45) 0%, transparent 65%),
+    radial-gradient(1200px 500px at 50% 120%, rgba(255, 138, 42, 0.12) 0%, transparent 60%), var(--color-night);
   background-attachment: fixed;
 }
 
@@ -67,7 +76,7 @@ a {
 }
 
 .text-link {
-  color: var(--color-cyan);
+  color: var(--color-gold);
   font-weight: 700;
 
   &:hover {
@@ -82,9 +91,59 @@ a {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-panel-border);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+// Ornate corners: two gold diamonds on the top corners of a framed element
+// (it must be positioned and leave its ::before and ::after free).
+.frame-corners {
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 50%, var(--color-gold-dark) 100%);
+    box-shadow: 0 0 0 2px #0a0604;
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
+
+  &::after {
+    right: -7px;
+    left: auto;
+  }
+}
+
+// Title between two gold rules: ◆──── Title ────◆
+.frame-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-gold);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-gold-dark) 30%, var(--color-gold));
+  }
+
+  &::after {
+    background: linear-gradient(270deg, transparent, var(--color-gold-dark) 30%, var(--color-gold));
+  }
 }

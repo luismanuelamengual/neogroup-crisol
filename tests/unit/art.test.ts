@@ -3,7 +3,7 @@ import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { HERO_LOADOUTS, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { BATCHES, buildCatalog } from '@/scripts/art/catalog'
-import { ENEMY_LOOKS, HERO_OFFHANDS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
+import { ENEMY_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
 import { findParts, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
 
 type Color = [number, number, number]
@@ -95,7 +95,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(230)
+    expect(catalog).toHaveLength(249)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
@@ -105,18 +105,20 @@ describe('art pipeline', () => {
     }
   })
 
-  it('gives every hero a puppet whose sheets are in the catalog', () => {
+  it('gives every hero a puppet whose images are in the catalog', () => {
     const ids = new Set(buildCatalog().map((piece) => piece.id))
 
     for (const [hero, loadout] of Object.entries(HERO_LOADOUTS)) {
-      expect(Object.keys(HERO_OUTFITS[hero])[0], hero).toBe(loadout.outfit)
-      expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
-      expect(Object.keys(HERO_OFFHANDS[hero] ?? {})[0], hero).toBe(loadout.offhand)
+      const outfit = Object.keys(HERO_OUTFITS[hero])[0]
 
-      for (const sheet of Object.values(RIGS[`heroes/${hero}/full`].sheets)) {
-        if (sheet) {
-          expect(ids, sheet).toContain(sheet)
-        }
+      expect(
+        Object.values(loadout.parts).every((skin) => skin === outfit),
+        hero
+      ).toBe(true)
+      expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
+
+      for (const image of Object.values(RIGS[`heroes/${hero}/full`].images)) {
+        expect(ids, image).toContain(image)
       }
     }
   })

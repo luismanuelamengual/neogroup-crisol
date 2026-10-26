@@ -53,7 +53,7 @@ export default function PointPanel({
   const t = useT()
 
   return (
-    <div className="point-panel">
+    <div className="point-panel frame-corners">
       <div className="header">
         <div className="titles">
           <span className="name">{name}</span>

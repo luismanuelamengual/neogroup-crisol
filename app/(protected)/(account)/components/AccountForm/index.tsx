@@ -1,6 +1,7 @@
 'use client'
 
 import './index.scss'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Link from 'next/link'
@@ -78,6 +79,9 @@ export default function AccountForm({ account }: AccountFormProps) {
 
   return (
     <div className="account-page">
+      <GameButton href="/menu" size="small" color="ghost" className="back" startIcon={<ArrowBackIcon />}>
+        {t('nav.mainMenu')}
+      </GameButton>
       <GamePanel className="profile" title={t('account.profile')}>
         <div className="badge">
           <PlayerAvatar name={profile.displayName || '?'} className="avatar" />

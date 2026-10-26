@@ -1,20 +1,23 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--font-display);
-  color: var(--color-text);
+  gap: 0.2em;
+  font-family: var(--font-title);
+  font-weight: 700;
   line-height: 1;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.04em;
 
-  .flame {
-    width: 0.8em;
-    height: 1.05em;
-    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.4));
+  .word {
+    background: linear-gradient(180deg, #fff3cf 0%, var(--color-gold) 55%, #a8701e 100%);
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 #3a1a06) drop-shadow(0 0 14px rgba(255, 122, 26, 0.55));
   }
 
-  .accent {
-    color: var(--color-gold);
+  .flame {
+    width: 0.7em;
+    height: 0.95em;
+    filter: drop-shadow(0 0 8px rgba(255, 138, 42, 0.8));
   }
 
   &.size-small {
@@ -26,6 +29,6 @@
   }
 
   &.size-large {
-    font-size: clamp(2.4rem, 9vw, 4.5rem);
+    font-size: clamp(2.6rem, 12vw, 4.8rem);
   }
 }

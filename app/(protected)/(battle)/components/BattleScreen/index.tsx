@@ -384,7 +384,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
           ))}
         </ul>
         {mode === 'choosing' && actor?.side === 'hero' && (
-          <div className="actions">
+          <div className="actions frame-corners">
             {getCombatantSkills(battle, actor.id).map((option) => {
               const id = option.id
 
@@ -412,7 +412,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
           </div>
         )}
         {mode === 'items' && actor?.side === 'hero' && (
-          <div className="actions">
+          <div className="actions frame-corners">
             {usableItems.map((option) => (
               <GameButton key={option.id} size="small" color="lime" onClick={() => pickItem(option)}>
                 {itemName(t, option.id)}
@@ -425,7 +425,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
           </div>
         )}
         {mode === 'targeting' && (skill || item) && (
-          <div className="actions">
+          <div className="actions frame-corners">
             <span className="prompt">{t(item ? 'battle.chooseAlly' : 'battle.chooseTarget')}</span>
             {targets.map((target) => (
               <GameButton
@@ -460,8 +460,8 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       </div>
       {mode === 'ended' && battle.outcome && (
         <div className="result">
-          <div className={classNames('panel', battle.outcome)}>
-            <h2>
+          <div className={classNames('panel', 'frame-corners', battle.outcome)}>
+            <h2 className="frame-title">
               {t(
                 battle.outcome === 'victory'
                   ? 'battle.victory'

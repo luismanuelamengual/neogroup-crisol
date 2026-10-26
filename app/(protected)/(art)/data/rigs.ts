@@ -1,33 +1,38 @@
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 
 /**
- * Puppets: figures put together from pieces of their sheets. A hero has one
- * skeleton and swappable sheets: the head (three faces), an outfit (the
- * clothed body in 10 pieces), a weapon and maybe an off-hand item. Changing
- * outfit or weapon only changes which sheet a slot reads.
+ * Puppets: figures put together from separate images. A hero has one skeleton
+ * and a "skin" per body part: every part of every outfit is its own image
+ * (heroes/<id>/outfits/<outfit>/<part>), so a hero can wear the torso of one
+ * outfit and the legs of another; weapons are images of their own too
+ * (heroes/<id>/weapons/<weapon>). Arms and legs come in two segments (upper
+ * and lower), so elbows and knees bend.
  *
- * Coordinates are shares of a piece's box (0..1, from its top-left corner):
- * `pivot` is the joint on the piece itself and `at` is where that joint sits
- * on the parent's piece, so any outfit drawn in the same layout fits. Pieces
- * are numbered as `yarn art` cut the sheet (rows top to bottom, left to right).
- * Bones are drawn in the order listed (back to front). Limbs are drawn hanging
+ * Every image is generated on its own, at its own scale: each slot is sized
+ * by one of its segments (`SIZES`, in torso heights), and joints are shares of
+ * a segment's box (0..1, from its top-left corner): `pivot` is the joint on
+ * the segment itself and `at` is where it sits on the parent's segment. Bones
+ * are drawn in the order listed (back to front). Limbs are drawn hanging
  * straight down: rotation 0 hangs, positive turns clockwise.
  */
 
-/** Where a bone takes its piece from. */
-export type Slot = 'head' | 'outfit' | 'weapon' | 'offhand'
+/** The body parts, each one an image per outfit. */
+export const BODY_PARTS = ['head', 'torso', 'right-arm', 'left-arm', 'right-leg', 'left-leg'] as const
+
+export type BodyPart = (typeof BODY_PARTS)[number]
+
+/** Where a bone takes its image from: a body part or the weapon. */
+export type Slot = BodyPart | 'weapon'
 
 /** What each bone does when the puppet moves. */
 export type BoneRole =
   | 'torso'
   | 'head'
-  | 'cape'
   | 'rightArm'
   | 'rightForearm'
   | 'weapon'
   | 'leftArm'
   | 'leftForearm'
-  | 'offhand'
   | 'rightThigh'
   | 'rightShin'
   | 'leftThigh'
@@ -36,71 +41,77 @@ export type BoneRole =
 export interface RigBone {
   role: BoneRole
   slot: Slot
-  /** 1 = the first piece of the slot's sheet. */
-  part: number
+  /** 1 = the upper segment of a limb (or the only one), 2 = the lower. */
+  segment: number
   /** The root (torso) has none: its pivot is the hip. */
   parent?: BoneRole
   pivot: [number, number]
   at: [number, number]
   /** Rest angle in radians. */
   rotation?: number
-  /** Evens out pieces drawn out of scale (a big head). Not passed on to children. */
-  scale?: number
   /** On the far side of the body: drawn a little darker. */
   far?: boolean
 }
 
-export interface Rig {
-  /** The sheet (catalog id) each slot reads; a bone whose slot has none is left out. */
-  sheets: Partial<Record<Slot, string>>
-  bones: RigBone[]
-  /** Head pieces for the moves (the calm face is the bone's own part). */
-  faces?: { effort: number; pain: number }
+/** How big each slot is drawn: one of its segments, along one side, in torso heights. */
+export interface SlotSize {
+  segment: number
+  side: 'height' | 'width'
+  length: number
 }
 
-/** What a hero wears and holds. */
+export interface Rig {
+  /** The image (catalog id) each slot reads. */
+  images: Record<Slot, string>
+  sizes: Record<Slot, SlotSize>
+  bones: RigBone[]
+}
+
+/** What a hero wears, part by part, and holds. */
 export interface Loadout {
-  outfit: string
+  parts: Record<BodyPart, string>
   weapon: string
-  /** What they hold in the left hand, if anything (Kael's shield). */
-  offhand?: string
+}
+
+/** Every part from the same outfit. */
+function outfit(name: string): Record<BodyPart, string> {
+  return Object.fromEntries(BODY_PARTS.map((part) => [part, name])) as Record<BodyPart, string>
 }
 
 /** What each hero starts with (the first outfit and weapon of scripts/art/descriptions.ts). */
 export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
-  [CharacterId.KAEL]: { outfit: 'traveller', weapon: 'sword', offhand: 'shield' },
-  [CharacterId.SERA]: { outfit: 'ranger', weapon: 'bow' },
-  [CharacterId.BRANN]: { outfit: 'berserker', weapon: 'axe' },
-  [CharacterId.OREN]: { outfit: 'grove', weapon: 'staff' },
-  [CharacterId.YSOLDE]: { outfit: 'court', weapon: 'staff' }
+  [CharacterId.KAEL]: { parts: outfit('traveller'), weapon: 'sword' },
+  [CharacterId.SERA]: { parts: outfit('ranger'), weapon: 'bow' },
+  [CharacterId.BRANN]: { parts: outfit('berserker'), weapon: 'axe' },
+  [CharacterId.OREN]: { parts: outfit('grove'), weapon: 'staff' },
+  [CharacterId.YSOLDE]: { parts: outfit('court'), weapon: 'staff' }
 }
 
-/** Where the hand holds each weapon: share of its length from the left (the handle end). */
-const GRIPS: Record<string, number> = { sword: 0.12, bow: 0.5, axe: 0.25, staff: 0.4 }
+/** Each weapon: where the hand holds it (share of its length from the handle end) and how long it is. */
+const WEAPONS: Record<string, { grip: number; length: number }> = {
+  sword: { grip: 0.12, length: 1.3 },
+  bow: { grip: 0.5, length: 1.6 },
+  axe: { grip: 0.3, length: 1.5 },
+  staff: { grip: 0.4, length: 2 }
+}
+/** Limbs are sized by their upper segment: the lower one may carry a shield. */
+const SIZES: Record<BodyPart, SlotSize> = {
+  head: { segment: 1, side: 'height', length: 0.5 },
+  torso: { segment: 1, side: 'height', length: 1 },
+  'right-arm': { segment: 1, side: 'height', length: 0.5 },
+  'left-arm': { segment: 1, side: 'height', length: 0.5 },
+  'right-leg': { segment: 1, side: 'height', length: 0.55 },
+  'left-leg': { segment: 1, side: 'height', length: 0.55 }
+}
 
-/**
- * The hero skeleton, in strict profile facing right. Outfit pieces: 1 torso,
- * 2 upper right arm, 3 right forearm with fist, 4 upper left arm, 5 left
- * forearm with fist, 6 right thigh, 7 right shin, 8 left thigh, 9 left shin,
- * 10 cape. Head pieces: 1 calm, 2 effort, 3 pain.
- */
+/** The hero skeleton, in strict profile facing right. */
 function heroBones(grip: number): RigBone[] {
   return [
-    { role: 'cape', slot: 'outfit', part: 10, parent: 'torso', pivot: [0.85, 0.08], at: [0.45, 0.06], far: true },
-    // Left (far) side: behind the body, holding the off-hand item.
-    {
-      role: 'offhand',
-      slot: 'offhand',
-      part: 1,
-      parent: 'leftForearm',
-      pivot: [0.5, 0.5],
-      at: [0.5, 0.88],
-      rotation: 1.6
-    },
+    // Left (far) side: behind the body.
     {
       role: 'leftThigh',
-      slot: 'outfit',
-      part: 8,
+      slot: 'left-leg',
+      segment: 1,
       parent: 'torso',
       pivot: [0.5, 0.08],
       at: [0.55, 0.9],
@@ -109,8 +120,8 @@ function heroBones(grip: number): RigBone[] {
     },
     {
       role: 'leftShin',
-      slot: 'outfit',
-      part: 9,
+      slot: 'left-leg',
+      segment: 2,
       parent: 'leftThigh',
       pivot: [0.5, 0.06],
       at: [0.5, 0.92],
@@ -119,8 +130,8 @@ function heroBones(grip: number): RigBone[] {
     },
     {
       role: 'leftArm',
-      slot: 'outfit',
-      part: 4,
+      slot: 'left-arm',
+      segment: 1,
       parent: 'torso',
       pivot: [0.5, 0.1],
       at: [0.6, 0.14],
@@ -129,20 +140,20 @@ function heroBones(grip: number): RigBone[] {
     },
     {
       role: 'leftForearm',
-      slot: 'outfit',
-      part: 5,
+      slot: 'left-arm',
+      segment: 2,
       parent: 'leftArm',
       pivot: [0.5, 0.06],
       at: [0.5, 0.92],
       rotation: -1.0,
       far: true
     },
-    { role: 'torso', slot: 'outfit', part: 1, pivot: [0.5, 0.92], at: [0, 0] },
+    { role: 'torso', slot: 'torso', segment: 1, pivot: [0.5, 0.95], at: [0, 0] },
     // Right (near) side: in front.
     {
       role: 'rightThigh',
-      slot: 'outfit',
-      part: 6,
+      slot: 'right-leg',
+      segment: 1,
       parent: 'torso',
       pivot: [0.5, 0.08],
       at: [0.5, 0.9],
@@ -150,19 +161,27 @@ function heroBones(grip: number): RigBone[] {
     },
     {
       role: 'rightShin',
-      slot: 'outfit',
-      part: 7,
+      slot: 'right-leg',
+      segment: 2,
       parent: 'rightThigh',
       pivot: [0.5, 0.06],
       at: [0.5, 0.92],
       rotation: 0.35
     },
-    { role: 'head', slot: 'head', part: 1, parent: 'torso', pivot: [0.45, 0.95], at: [0.55, 0.04] },
-    { role: 'rightArm', slot: 'outfit', part: 2, parent: 'torso', pivot: [0.5, 0.1], at: [0.45, 0.14], rotation: -0.3 },
+    { role: 'head', slot: 'head', segment: 1, parent: 'torso', pivot: [0.45, 0.95], at: [0.55, 0.04] },
+    {
+      role: 'rightArm',
+      slot: 'right-arm',
+      segment: 1,
+      parent: 'torso',
+      pivot: [0.5, 0.1],
+      at: [0.45, 0.14],
+      rotation: -0.3
+    },
     {
       role: 'weapon',
       slot: 'weapon',
-      part: 1,
+      segment: 1,
       parent: 'rightForearm',
       pivot: [grip, 0.5],
       at: [0.5, 0.88],
@@ -170,8 +189,8 @@ function heroBones(grip: number): RigBone[] {
     },
     {
       role: 'rightForearm',
-      slot: 'outfit',
-      part: 3,
+      slot: 'right-arm',
+      segment: 2,
       parent: 'rightArm',
       pivot: [0.5, 0.06],
       at: [0.5, 0.92],
@@ -180,26 +199,23 @@ function heroBones(grip: number): RigBone[] {
   ]
 }
 
-function heroRig(id: CharacterId): Rig {
-  const loadout = HERO_LOADOUTS[id]
+/** A hero's puppet as they are dressed and armed. */
+export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): Rig {
+  const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 1.4 }
 
   return {
-    sheets: {
-      head: `heroes/${id}/head`,
-      outfit: `heroes/${id}/outfits/${loadout.outfit}`,
-      weapon: `heroes/${id}/weapons/${loadout.weapon}`,
-      offhand: loadout.offhand ? `heroes/${id}/offhands/${loadout.offhand}` : undefined
+    images: {
+      ...(Object.fromEntries(
+        BODY_PARTS.map((part) => [part, `heroes/${id}/outfits/${loadout.parts[part]}/${part}`])
+      ) as Record<BodyPart, string>),
+      weapon: `heroes/${id}/weapons/${loadout.weapon}`
     },
-    bones: heroBones(GRIPS[loadout.weapon] ?? 0.2),
-    faces: { effort: 2, pain: 3 }
+    sizes: { ...SIZES, weapon: { segment: 1, side: 'width', length: weapon.length } },
+    bones: heroBones(weapon.grip)
   }
 }
 
-/**
- * The puppets, by the id of their whole image (figureArtId). A hero's art lives
- * under heroes/<id>/: full, portrait, head, outfits/<outfit>, weapons/<weapon>
- * and offhands/<item>.
- */
+/** The puppets, by the id of their whole image (figureArtId). */
 export const RIGS: Record<string, Rig> = Object.fromEntries(
   Object.values(CharacterId).map((id) => [`heroes/${id}/full`, heroRig(id)])
 )

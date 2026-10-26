@@ -61,7 +61,7 @@ app/
   layout.tsx              Root layout (tema, fuentes, service worker, toasts, GTM)
   page.tsx                Entry point: landing pública o redirección al menú principal
   globals.scss            Tokens de diseño (colores, safe areas, breakpoints) y estilos globales
-  components/             Componentes compartidos (ThemeRegistry, GameButton, GamePanel, Logo, Loading, PlayerAvatar)
+  components/             Componentes compartidos (ThemeRegistry, GameButton, GamePanel, CommandMenu, Logo, Loading, PlayerAvatar)
   models/                 Modelos compartidos (User, UserDto, ApiResponse, ApiException)
   hooks/                  Hooks compartidos (useRequests, useNotifications, useLoadingData, useInstallPrompt...)
   utils/                  Utilidades compartidas (api-server, email, urls, users, time, environment)
@@ -78,9 +78,9 @@ tests/                    Tests (Vitest)
 
 ```
 app/(protected)/
-  components/AppShell/    Barra superior de las páginas autenticadas (logo y menú del jugador)
+  components/AppShell/    Contenedor de las páginas autenticadas (sin barra: cada pantalla ocupa todo)
   stores/users.ts         Store con el usuario logueado
-  (home)/                 Menú principal (/menu): Continuar / Nuevo
+  (home)/                 Menú principal (/menu): Continuar / Nuevo / Mi perfil / Cerrar sesión
   (world)/                El mapa jugable (/world): render PixiJS, interfaz, sesión de juego y sincronización
   (battle)/               La escena de batalla: render PixiJS lateral e interfaz de turnos
   (party)/                Pantalla del grupo (formación, atributos, árbol, arma, runas, ecos, inventario, bestiario) y la tienda
@@ -189,12 +189,19 @@ Cada acción cambia el `GameState` y se escribe al instante en IndexedDB (`(save
 - **Recompensas alternativas**: un captor sin nadie a quien liberar da 12 Ecos por ciclo y 6 piedras de su bioma; un santuario cuya runa ya tenés da la mitad del costo de su eco en Ecos.
 - **Balance**: `CYCLE=1 yarn battles` simula un ciclo con el grupo completo como veterano (arma +20, tres runas fuertes y ecos; `buildVeteran` en `tests/support/builds.ts`).
 
+## Interfaz
+
+Estilo de fantasía oscura, como un RPG de consola: ventanas de cuero oscuro con marco de bronce y diamantes dorados en las esquinas, títulos en Cinzel (Cinzel Decorative para el logo) y texto en Alegreya Sans. No hay barra superior: cada pantalla ocupa todo y el menú principal tiene el perfil y el cierre de sesión.
+
+- **Tokens**: colores, marco (`--frame-border`, `--frame-background`, `--frame-shadow`, `--frame-glow`) y barras de vida y foco en `app/globals.scss`, espejados en `GAME_COLORS` del tema de MUI.
+- **Piezas**: `GamePanel` (ventana con título entre filetes), `GameButton` (placa dorada, azul, brasa, verde o de cuero), `CommandMenu` (lista de comandos con cursor que sigue al puntero y a las flechas) y las clases globales `.frame-corners` y `.frame-title`.
+
 ## Arte y sonido — `scripts/art` y `app/(protected)/(art)`
 
 - **Guía**: el estilo, la paleta por bioma, los prompts y el orden de los lotes están en la guía de arte y sonido (Claude Docs). Todo se genera sobre fondo verde croma `#00FF00`.
-- **Catálogo**: `yarn art:catalog` escribe `art/catalog.csv` con las 219 piezas (id, tipo, tamaño, lote y prompt completo). Los prompts salen de `scripts/art/catalog.ts` y del aspecto de cada especie en `scripts/art/descriptions.ts`.
+- **Catálogo**: `yarn art:catalog` escribe `art/catalog.csv` con las 249 piezas (id, tipo, tamaño, lote y prompt completo). Los prompts salen de `scripts/art/catalog.ts` y del aspecto de cada especie en `scripts/art/descriptions.ts`.
 - **Carga**: los archivos generados van en `art/source/<id>.png` (no se suben al repo) y la música y los efectos en `art/source/music|sfx/<nombre>.mp3`. `yarn art` quita el verde, recorta, achica a WebP en `public/art/`, corta las hojas del mapa (decoraciones 4×4) y las de partes, copia el audio a `public/audio/` y escribe `public/art/manifest.json`. Al final lista lo que falta por lote.
-- **En el juego**: lo que está en el manifiesto reemplaza el arte provisional (figuras, fondos de combate, decoraciones del mapa); lo que falta sigue dibujado como hasta ahora o queda en silencio. Los héroes son títeres de perfil (`(art)/data/rigs.ts` y `(art)/utils/rig.ts`): un esqueleto fijo y hojas intercambiables por ranura: cabeza (tres caras: calma, esfuerzo y dolor), atuendo (`outfits/<héroe>-<atuendo>`, el cuerpo vestido en 10 piezas), arma (`weapons/<héroe>-<arma>`) y mano izquierda (`offhands/<héroe>`). Cambiar de atuendo o de arma es cambiar la hoja de su ranura (`HERO_LOADOUTS`); las articulaciones se miden en proporción a cada pieza, así que cualquier hoja con el mismo orden encaja. Sin sus hojas, el héroe usa la imagen entera. En desarrollo, `/dev/art` muestra los títeres con botones de ataque, conjuro y golpe (y cámara lenta).
+- **En el juego**: lo que está en el manifiesto reemplaza el arte provisional (figuras, fondos de combate, decoraciones del mapa); lo que falta sigue dibujado como hasta ahora o queda en silencio. Los héroes son títeres de perfil (`(art)/data/rigs.ts` y `(art)/utils/rig.ts`): un esqueleto fijo y una imagen por parte del cuerpo. Cada héroe tiene su carpeta `heroes/<héroe>/` con `full`, `portrait`, `outfits/<atuendo>/{head,torso,right-arm,left-arm,right-leg,left-leg}` y `weapons/<arma>`. Brazos y piernas vienen en dos piezas (de arriba y de abajo, una al lado de la otra); si llegan en una sola, `yarn art` la corta por la mitad. Cada parte puede venir de un atuendo distinto y el arma se cambia aparte (`HERO_LOADOUTS`); cada imagen se escala a su largo esperado y las articulaciones se miden en proporción, así que cualquier imagen encaja. Sin sus partes, el héroe usa la imagen entera. En desarrollo, `/dev/art` muestra los títeres con botones de ataque, conjuro y golpe (y cámara lenta).
 - **Sonido**: Howler (`(art)/utils/sound.ts`). Un tema por vez con fundido (menú, mapa por bioma, combate, jefe, Sello, Crisol, victoria y derrota) y efectos por evento de combate (`(battle)/utils/battleSounds.ts`) y del mapa. El botón de parlante (menú y mapa) regula música, efectos y silencio; se guarda en el dispositivo.
 - **Offline**: el arte y el audio no se precachean; el service worker los guarda a medida que se usan.
 

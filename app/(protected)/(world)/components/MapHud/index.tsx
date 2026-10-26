@@ -5,10 +5,12 @@ import CloudDoneIcon from '@mui/icons-material/CloudDone'
 import CloudOffIcon from '@mui/icons-material/CloudOff'
 import CloudSyncIcon from '@mui/icons-material/CloudSync'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import MenuIcon from '@mui/icons-material/Menu'
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
+import Link from 'next/link'
 import SoundButton from '@/app/(protected)/(art)/components/SoundButton'
 import { SyncStatus } from '@/app/(protected)/(world)/stores/game'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -30,13 +32,16 @@ const SYNC_ICONS: Record<SyncStatus, typeof CloudDoneIcon> = {
   offline: CloudOffIcon
 }
 
-/** Top of the map: where the party is, its gold and whether the game is saved. */
+/** Top of the map: the way back to the main menu, where the party is, its gold and whether the game is saved. */
 export default function MapHud({ location, biome, gold, cycle, sync, onRecenter }: MapHudProps) {
   const t = useT()
   const SyncIcon = SYNC_ICONS[sync]
 
   return (
     <div className="map-hud">
+      <IconButton component={Link} href="/menu" className="menu" size="small" aria-label={t('nav.mainMenu')}>
+        <MenuIcon fontSize="small" />
+      </IconButton>
       <div className="location">
         <span className="biome">{biome}</span>
         <span className="name">{location}</span>

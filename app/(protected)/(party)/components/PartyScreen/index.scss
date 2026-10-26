@@ -1,55 +1,108 @@
 .party-screen {
   .MuiDialog-paper {
-    background: var(--color-night);
-    background-image: none;
+    border: 0;
+    border-radius: 0;
+    background: radial-gradient(900px 500px at 50% 0%, rgba(122, 42, 12, 0.35) 0%, transparent 65%), var(--color-night);
+    box-shadow: none;
   }
 
   header {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: calc(8px + var(--safe-top)) 12px 4px 16px;
+    justify-content: center;
+    padding: calc(14px + var(--safe-top)) 56px 6px;
 
     h2 {
-      margin: 0;
-      font-family: var(--font-display);
+      flex: 1;
+      max-width: 520px;
       font-size: 1.3rem;
+    }
+
+    .close {
+      position: absolute;
+      top: calc(8px + var(--safe-top));
+      right: 8px;
       color: var(--color-gold);
+    }
+  }
+
+  // Console style tabs: framed plaques, the selected one lit like embers.
+  .views {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 10px 16px 4px;
+
+    button {
+      flex: 1;
+      padding: 9px 6px;
+      border: var(--frame-border);
+      border-radius: 3px;
+      background: var(--frame-background);
+      box-shadow:
+        0 0 0 2px #0a0604,
+        0 0 0 3px #5a3c16;
+      color: var(--color-text-secondary);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+
+      &.selected {
+        background: linear-gradient(180deg, #8a3a10 0%, #4a1a06 100%);
+        box-shadow: var(--frame-glow);
+        color: #fff3d0;
+        text-shadow: 0 0 8px var(--color-ember);
+      }
     }
   }
 
   .content {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 22px;
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
-    padding: 14px 16px calc(24px + var(--safe-bottom));
+    padding: 20px 16px calc(28px + var(--safe-bottom));
   }
 
-  // Shared look of the sections of the party screen.
+  // Shared look of the sections of the party screen: ornate windows.
   section {
-    padding: 12px;
-    border: 3px solid var(--color-panel-border);
-    border-radius: 14px;
-    background: var(--color-panel);
+    position: relative;
+    padding: 12px 14px 14px;
+    border: var(--frame-border);
+    border-radius: 4px;
+    background: var(--frame-background);
+    box-shadow: var(--frame-shadow);
 
     h3 {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: 8px;
-      margin: 0 0 8px;
-      font-family: var(--font-display);
-      font-size: 1rem;
+      margin: 0 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #5a3c16;
       color: var(--color-gold);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
 
       small {
-        color: var(--color-cyan);
-        font-family: inherit;
-        font-size: 0.75rem;
+        color: var(--color-ember);
+        font-family: var(--font-body);
+        font-size: 0.8rem;
         font-weight: 800;
+        letter-spacing: 0;
+        text-transform: none;
       }
     }
 
@@ -63,13 +116,13 @@
     .hint {
       margin: 8px 0 0;
       color: var(--color-text-secondary);
-      font-size: 0.75rem;
+      font-size: 0.8rem;
     }
 
     .lines {
       margin: 2px 0 0;
       color: var(--color-text-secondary);
-      font-size: 0.75rem;
+      font-size: 0.82rem;
       line-height: 1.35;
     }
   }
@@ -78,44 +131,70 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 6px;
-    border-radius: 10px;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 2px;
     cursor: pointer;
 
     &.selected {
-      background: rgba(34, 211, 238, 0.15);
-      outline: 2px solid var(--color-cyan);
+      border-color: var(--color-gold);
+      background: linear-gradient(90deg, rgba(122, 42, 12, 0.85) 0%, rgba(122, 42, 12, 0.2) 100%);
+      box-shadow: 0 0 10px rgba(255, 138, 42, 0.3);
+
+      .name::before {
+        content: '';
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 8px;
+        background: var(--color-gold);
+        box-shadow: 0 0 6px var(--color-ember);
+        transform: translateY(-2px) rotate(45deg);
+      }
     }
 
     .name {
       flex: 1;
-      font-weight: 900;
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-weight: 700;
     }
 
     .level {
-      color: var(--color-cyan);
-      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
       font-weight: 800;
     }
 
     .badge {
       min-width: 20px;
       padding: 0 6px;
+      border: 1px solid var(--color-gold);
       border-radius: 999px;
-      background: var(--color-magenta);
+      background: var(--color-magenta-dark);
       font-size: 0.75rem;
-      font-weight: 900;
+      font-weight: 800;
       text-align: center;
     }
 
     .role {
       color: var(--color-lime);
-      font-size: 0.7rem;
-      font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
 
       &.reserve {
         color: var(--color-text-secondary);
+      }
+    }
+
+    .MuiIconButton-root {
+      color: var(--color-gold);
+
+      &.Mui-disabled {
+        color: #4a3a28;
       }
     }
   }

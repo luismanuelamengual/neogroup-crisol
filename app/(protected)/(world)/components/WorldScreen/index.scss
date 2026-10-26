@@ -1,9 +1,9 @@
 .world-screen {
   position: relative;
   flex: 1;
-  min-height: calc(100dvh - var(--appbar-height) - var(--safe-top));
+  min-height: 100dvh;
   overflow: hidden;
-  background: #07040d;
+  background: var(--color-night);
 
   > .bottom {
     position: absolute;

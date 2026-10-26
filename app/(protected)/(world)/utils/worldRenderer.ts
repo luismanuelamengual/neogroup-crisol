@@ -106,7 +106,7 @@ export class WorldRenderer {
 
     await app.init({
       resizeTo: element,
-      background: '#07040d',
+      background: '#0d0806',
       antialias: true,
       autoDensity: true,
       resolution: Math.min(window.devicePixelRatio || 1, 2)
@@ -541,8 +541,8 @@ export class WorldRenderer {
     body.circle(0, 0, 40).fill({ color: OUTLINE, alpha: 0.35 })
     body
       .poly([0, -58, 30, -20, 26, 22, 0, 40, -26, 22, -30, -20])
-      .fill({ color: 0x1b2350 })
-      .stroke({ width: 7, color: 0xffc233 })
+      .fill({ color: 0x241711 })
+      .stroke({ width: 7, color: 0xe8b85a })
     body.poly([0, -34, 14, 4, 0, 22, -14, 4]).fill({ color: 0xff8a00 })
     this.hero.addChild(body)
   }

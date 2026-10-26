@@ -3,7 +3,7 @@
 import './index.scss'
 import classNames from 'classnames'
 
-const AVATAR_COLORS = ['#ffc233', '#22d3ee', '#ff4d8d', '#84f06b', '#a78bfa', '#fb923c']
+const AVATAR_COLORS = ['#7a2a0c', '#1f4f9a', '#3c6e22', '#5a2a6a', '#6b4a1c', '#7a1c10']
 
 interface PlayerAvatarProps {
   name: string
@@ -13,8 +13,8 @@ interface PlayerAvatarProps {
 }
 
 /**
- * Round "player badge" avatar: the initial of the player name over a color
- * (derived from the name by default).
+ * Round medallion: the initial of the player name in gold over a dark enamel
+ * color (derived from the name by default), set in a gold rim.
  */
 export default function PlayerAvatar({ name, color, className }: PlayerAvatarProps) {
   const initial = (name.trim()[0] ?? '?').toUpperCase()

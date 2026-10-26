@@ -7,7 +7,9 @@
   .title {
     text-align: center;
     color: var(--color-gold);
-    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
   }
 
   .subtitle {
@@ -22,9 +24,11 @@
   }
 
   .game-button.MuiButtonBase-root.google-button {
-    --btn-bg: #ffffff;
-    --btn-edge: #9aa3c7;
-    --btn-text: #1f1f1f;
+    --btn-light: #3a281c;
+    --btn-bg: #24180f;
+    --btn-dark: #140c07;
+    --btn-text: var(--color-text);
+    --btn-ring: #a8793a;
 
     text-shadow: none;
 

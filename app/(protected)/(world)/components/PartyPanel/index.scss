@@ -1,30 +1,36 @@
 .party-panel {
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px;
 
   .party {
     display: flex;
     flex: 0 1 auto;
-    gap: 6px;
+    gap: 10px;
     min-width: 0;
     margin: 0;
-    padding: 0;
+    padding: 4px;
     overflow-x: auto;
     list-style: none;
 
     li {
+      position: relative;
       display: flex;
       flex: 1 0 96px;
       flex-direction: column;
       gap: 4px;
       max-width: 160px;
-      padding: 6px 8px;
-      border: 3px solid var(--color-panel-border);
-      border-radius: 12px;
-      background: rgba(11, 16, 38, 0.9);
+      padding: 6px 9px;
+      border: var(--frame-border);
+      border-radius: 3px;
+      background: var(--frame-background);
+      box-shadow:
+        0 0 0 2px #0a0604,
+        0 0 0 3px #5a3c16;
 
       &.fallen {
+        filter: grayscale(0.8);
         opacity: 0.6;
       }
     }
@@ -33,100 +39,120 @@
       display: flex;
       justify-content: space-between;
       gap: 6px;
+      font-family: var(--font-display);
       font-size: 0.8rem;
-      font-weight: 900;
+      font-weight: 700;
+    }
+
+    .name {
+      color: var(--color-gold);
     }
 
     .level {
-      color: var(--color-cyan);
+      color: var(--color-text-secondary);
     }
 
     .health-bar {
-      height: 8px;
+      height: 7px;
       overflow: hidden;
-      border-radius: 999px;
-      background: #2a0d16;
+      border: 1px solid #5a3c16;
+      background: var(--bar-track);
 
       .fill {
         height: 100%;
-        background: var(--color-lime);
+        background: var(--bar-health);
         transition: width 0.4s ease;
 
         &.low {
-          background: var(--color-magenta);
+          animation: health-low 1s ease-in-out infinite alternate;
         }
       }
     }
 
     .health {
       color: var(--color-text-secondary);
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 700;
     }
   }
 
-  .open-party {
+  .open-party,
+  .flask {
     position: relative;
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
     width: 64px;
     min-height: 64px;
-    border: 3px solid var(--color-cyan-dark);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #0f3c4a 0%, #071d26 100%);
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
-    color: var(--color-cyan);
-    font-size: 0.7rem;
-    font-weight: 900;
+    border: var(--frame-border);
+    border-radius: 3px;
+    background: var(--frame-background);
+    box-shadow:
+      0 0 0 2px #0a0604,
+      0 0 0 3px #5a3c16,
+      0 6px 14px rgba(0, 0, 0, 0.5);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 
-    .badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      min-width: 22px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: var(--color-magenta);
-      color: #fff;
-      font-size: 0.75rem;
+    &:hover,
+    &:focus-visible {
+      box-shadow: var(--frame-glow);
     }
 
     &.Mui-disabled {
+      filter: grayscale(0.8);
       opacity: 0.6;
     }
   }
 
+  .open-party .badge {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    min-width: 22px;
+    padding: 1px 6px;
+    border: 1px solid var(--color-gold);
+    border-radius: 999px;
+    background: var(--color-magenta-dark);
+    color: #fff3e0;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 800;
+    box-shadow: 0 0 8px rgba(229, 83, 61, 0.7);
+  }
+
   .flask {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 72px;
+    width: 70px;
     height: 100%;
-    min-height: 64px;
-    border: 3px solid var(--color-gold-dark);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #4a2a05 0%, #241303 100%);
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
-    color: var(--color-gold);
+    color: var(--color-ember);
 
     .charges {
-      font-family: var(--font-display);
+      color: var(--color-gold-light);
       font-size: 0.9rem;
     }
 
     .potency {
-      color: #ffd98a;
+      color: var(--color-text-secondary);
+      font-family: var(--font-body);
       font-size: 0.7rem;
       font-weight: 800;
     }
+  }
+}
 
-    &.Mui-disabled {
-      filter: grayscale(0.7);
-      opacity: 0.6;
-    }
+@keyframes health-low {
+  from {
+    filter: brightness(0.8);
+  }
+
+  to {
+    filter: brightness(1.4);
   }
 }

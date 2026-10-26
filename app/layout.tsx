@@ -1,6 +1,12 @@
 // Fonts are self-hosted (bundled from npm) so they also work offline inside the installed PWA.
-import '@fontsource/bungee/400.css'
-import '@fontsource-variable/nunito/index.css'
+import '@fontsource/alegreya-sans/400.css'
+import '@fontsource/alegreya-sans/500.css'
+import '@fontsource/alegreya-sans/700.css'
+import '@fontsource/alegreya-sans/800.css'
+import '@fontsource/cinzel/600.css'
+import '@fontsource/cinzel/700.css'
+import '@fontsource/cinzel/900.css'
+import '@fontsource/cinzel-decorative/700.css'
 import './globals.scss'
 import { SerwistProvider } from '@serwist/turbopack/react'
 import type { Metadata, Viewport } from 'next'
@@ -82,10 +88,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               position="bottom-center"
               toastOptions={{
                 style: {
-                  background: 'var(--color-panel)',
+                  background: 'var(--frame-background)',
                   color: 'var(--color-text)',
-                  border: '3px solid var(--color-panel-border)',
-                  borderRadius: 14,
+                  border: 'var(--frame-border)',
+                  borderRadius: 3,
+                  boxShadow: 'var(--frame-shadow)',
                   fontWeight: 700
                 }
               }}

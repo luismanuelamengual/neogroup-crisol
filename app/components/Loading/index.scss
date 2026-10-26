@@ -3,11 +3,11 @@
   inset: 0;
   z-index: 20;
   overflow: hidden;
-  padding: calc(var(--appbar-height) + var(--safe-top)) 0 0;
+  padding: var(--safe-top) 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(11, 16, 38, 0.82);
+  background-color: rgba(13, 8, 6, 0.86);
   backdrop-filter: blur(4px);
 
   .wrapper {
@@ -18,59 +18,58 @@
     gap: 18px;
   }
 
-  .globe {
+  .seal {
     position: relative;
-    width: 96px;
-    height: 96px;
-    overflow: hidden;
-    border: 4px solid rgba(0, 0, 0, 0.4);
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #5eead4 0%, var(--color-cyan-dark) 55%, #064e5c 100%);
-    box-shadow:
-      0 6px 0 rgba(0, 0, 0, 0.45),
-      inset -10px -10px 20px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 104px;
+    height: 104px;
   }
 
-  .meridians {
+  .ring {
     position: absolute;
     inset: 0;
-    width: 200%;
-    background: repeating-linear-gradient(
-      90deg,
-      rgba(132, 240, 107, 0.85) 0 18px,
-      transparent 18px 34px,
-      rgba(132, 240, 107, 0.55) 34px 44px,
-      transparent 44px 64px
-    );
-    animation: globe-spin 2.4s linear infinite;
-    mask-image: radial-gradient(circle, #000 60%, transparent 61%);
-  }
-
-  .pin {
-    position: absolute;
-    top: -26px;
-    width: 30px;
-    height: 40px;
-    animation: pin-bounce 0.9s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
-
-    path {
-      fill: var(--color-magenta);
-      stroke: rgba(0, 0, 0, 0.35);
-      stroke-width: 1.5px;
-    }
+    animation: seal-turn 8s linear infinite;
 
     circle {
-      fill: var(--color-gold);
+      fill: none;
+      stroke: var(--color-gold-dark);
+      stroke-width: 2;
+    }
+
+    .runes {
+      stroke: var(--color-gold);
+      stroke-width: 3;
+      stroke-dasharray: 2 9 6 9;
+    }
+  }
+
+  .flame {
+    width: 40px;
+    height: 54px;
+    filter: drop-shadow(0 0 12px rgba(255, 138, 42, 0.9));
+    transform-origin: 50% 100%;
+    animation: flame-flicker 0.9s ease-in-out infinite alternate;
+
+    path {
+      fill: var(--color-ember);
+    }
+
+    .core {
+      fill: var(--color-gold-light);
     }
   }
 
   .message {
     margin: 0;
-    color: var(--color-text);
+    color: var(--color-gold);
     font-family: var(--font-display);
     font-size: 1rem;
-    letter-spacing: 1px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
     text-align: center;
+    text-transform: uppercase;
     animation: message-blink 1.4s ease-in-out infinite;
   }
 }
@@ -87,22 +86,21 @@ html:has(.loading-screen) body {
   }
 }
 
-@keyframes globe-spin {
-  from {
-    transform: translateX(0);
-  }
+@keyframes seal-turn {
   to {
-    transform: translateX(-50%);
+    transform: rotate(360deg);
   }
 }
 
-@keyframes pin-bounce {
-  0%,
-  100% {
-    transform: translateY(0);
+@keyframes flame-flicker {
+  0% {
+    transform: scale(1, 1) rotate(-2deg);
   }
   50% {
-    transform: translateY(-16px);
+    transform: scale(0.94, 1.06) rotate(1deg);
+  }
+  100% {
+    transform: scale(1.04, 0.96) rotate(2deg);
   }
 }
 

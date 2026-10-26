@@ -1,17 +1,20 @@
 import './index.scss'
 
-/** Full-area loading overlay: a spinning globe with a bouncing pin. */
+/** Full-area loading overlay: a flickering flame inside a slowly turning ring of runes. */
 export default function Loading({ message }: { message?: string }) {
   return (
     <div className="loading-screen">
       <div className="wrapper">
-        <div className="globe">
-          <div className="meridians" />
+        <div className="seal">
+          <svg className="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" />
+            <circle cx="50" cy="50" r="40" className="runes" />
+          </svg>
+          <svg className="flame" viewBox="0 0 24 32" aria-hidden="true">
+            <path d="M12 0c1.5 6-6 9.5-6 18a6 6 0 0 0 12 0c0-3-1.5-5-3-6.5.5 3-1 4.5-2.5 4.5 0-6 3-9.5-.5-16z" />
+            <path className="core" d="M12 20c-1.5 1.5-2.5 2.8-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1.7-1-3-2.5-4.5z" />
+          </svg>
         </div>
-        <svg className="pin" viewBox="0 0 24 32" aria-hidden="true">
-          <path d="M12 0C5.4 0 0 5.2 0 11.7 0 20.4 12 32 12 32s12-11.6 12-20.3C24 5.2 18.6 0 12 0z" />
-          <circle cx="12" cy="11.5" r="5" />
-        </svg>
         {message && <p className="message">{message}</p>}
       </div>
     </div>

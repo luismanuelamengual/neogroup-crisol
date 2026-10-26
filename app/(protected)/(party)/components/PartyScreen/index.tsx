@@ -6,8 +6,6 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import CloseIcon from '@mui/icons-material/Close'
 import Dialog from '@mui/material/Dialog'
 import IconButton from '@mui/material/IconButton'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
 import classNames from 'classnames'
 import { useState } from 'react'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -31,6 +29,8 @@ interface PartyScreenProps {
 
 type View = 'heroes' | 'inventory' | 'bestiary'
 
+const VIEWS: View[] = ['heroes', 'inventory', 'bestiary']
+
 /** The party (full screen over the map): formation and build of each hero, the inventory and the bestiary. */
 export default function PartyScreen({ open, state, atCamp, onChange, onClose }: PartyScreenProps) {
   const t = useT()
@@ -41,16 +41,25 @@ export default function PartyScreen({ open, state, atCamp, onChange, onClose }: 
   return (
     <Dialog open={open} onClose={onClose} fullScreen className="party-screen">
       <header>
-        <h2>{t('party.title')}</h2>
-        <IconButton onClick={onClose} aria-label={t('common.close')}>
+        <h2 className="frame-title">{t('party.title')}</h2>
+        <IconButton className="close" onClick={onClose} aria-label={t('common.close')}>
           <CloseIcon />
         </IconButton>
       </header>
-      <Tabs value={view} onChange={(_, value: View) => setView(value)} variant="fullWidth">
-        <Tab value="heroes" label={t('party.heroes')} />
-        <Tab value="inventory" label={t('party.inventory')} />
-        <Tab value="bestiary" label={t('party.bestiary')} />
-      </Tabs>
+      <nav className="views" role="tablist">
+        {VIEWS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="tab"
+            aria-selected={view === option}
+            className={classNames({ selected: view === option })}
+            onClick={() => setView(option)}
+          >
+            {t(`party.${option}`)}
+          </button>
+        ))}
+      </nav>
       <div className="content">
         {view === 'heroes' && (
           <>

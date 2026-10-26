@@ -22,9 +22,9 @@ interface GameButtonProps extends Omit<ButtonBaseProps, 'color'> {
 }
 
 /**
- * Chunky "arcade" button: saturated fill, a solid 3D bottom edge and a press
- * animation that sinks it into that edge. The main call to action of every
- * game screen (Jugar, Adivinar, Siguiente ronda...).
+ * Game button: a metal plaque (gold, blue, ember, green or dark leather) with a
+ * bronze ring that glows when hovered or focused. The main call to action of
+ * every game screen.
  */
 export default function GameButton({
   color = 'gold',

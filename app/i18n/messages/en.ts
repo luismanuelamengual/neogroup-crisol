@@ -15,7 +15,8 @@ export const en: Messages = {
   },
   nav: {
     myProfile: 'My profile',
-    logout: 'Sign out'
+    logout: 'Sign out',
+    mainMenu: 'Main menu'
   },
   metadata: {
     mainMenu: 'Main menu',

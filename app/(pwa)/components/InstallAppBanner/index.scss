@@ -1,7 +1,10 @@
 .install-alert-banner.MuiAlert-root {
   position: relative;
   align-items: center;
-  border: 3px solid var(--color-cyan-dark);
+  border: var(--frame-border);
+  border-radius: 3px;
+  background: var(--frame-background);
+  color: var(--color-text);
 
   .install-button {
     transform: translate(0px, -4px);

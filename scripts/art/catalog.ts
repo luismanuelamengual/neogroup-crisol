@@ -3,14 +3,7 @@ import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
-import {
-  ENEMY_LOOKS,
-  HERO_BODIES,
-  HERO_LOOKS,
-  HERO_OFFHANDS,
-  HERO_OUTFITS,
-  HERO_WEAPONS
-} from '@/scripts/art/descriptions'
+import { ENEMY_LOOKS, HERO_BODIES, HERO_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
 
 /**
  * Every piece of art of the game: its file (under art/source/ as generated,
@@ -21,10 +14,9 @@ import {
 
 export type PieceKind =
   | 'hero'
-  | 'heroHead'
-  | 'outfit'
+  | 'heroPart'
+  | 'heroLimb'
   | 'weapon'
-  | 'offhand'
   | 'portrait'
   | 'enemy'
   | 'boss'
@@ -185,11 +177,16 @@ function prompt(...parts: string[]): string {
 export function buildCatalog(): Piece[] {
   const pieces: Piece[] = []
 
-  // Heroes are puppets in strict profile: a head sheet, an outfit sheet per
-  // outfit and a sheet per weapon, all swappable on the same skeleton.
+  // Heroes are puppets in strict profile: every body part of every outfit is
+  // its own image (heroes/<id>/outfits/<outfit>/<part>), so outfits can be
+  // mixed part by part, and every weapon too (heroes/<id>/weapons/<weapon>).
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
-    const reference = `Using the attached full image of ${id[0].toUpperCase()}${id.slice(1)} as the exact reference (same style, colors and scale)`
+    const name = `${id[0].toUpperCase()}${id.slice(1)}`
+    const reference = `Using the attached full image of ${name} as the exact reference (same style, colors and proportions)`
+    const profile = 'in strict side profile facing right'
+    const limb = (what: string, upper: string, lower: string) =>
+      `only ${name}'s ${what}, in two separate pieces side by side with wide empty space between them, not touching: on the left ${upper}; on the right ${lower}. Both pieces perfectly straight and vertical, top joint up, ${profile}, with rounded ends at the joints so they overlap when assembled`
 
     pieces.push(
       {
@@ -199,32 +196,61 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          `Full-body character in strict side profile facing right (pure profile: we see the right side of the body, the left arm and left leg are behind it), standing in a combat stance with feet apart, the weapon held up and forward in the right hand. ${look}. ${FLAME}`,
+          `Full-body character ${profile} (pure profile: we see the right side of the body, the left arm and left leg are behind it), standing in a combat stance with feet apart, the weapon held up and forward in the right hand. ${look}. ${FLAME}`,
           CHROMA
         )
       },
-      {
-        id: `heroes/${id}/head`,
-        kind: 'heroHead',
-        width: 2048,
-        height: 1024,
-        batch,
-        prompt: prompt(
-          `${reference}, three heads of the same character in strict side profile facing right, the same size, in one row with wide empty space between them: calm, shouting with effort, grimacing in pain. Each head with its neck down to the collarbone, no shoulders, no clothes, no scarf, no hood. ${HERO_BODIES[id]}.`,
-          CHROMA
-        )
-      },
-      ...Object.entries(HERO_OUTFITS[id]).map(([outfit, clothes]) => ({
-        id: `heroes/${id}/outfits/${outfit}`,
-        kind: 'outfit' as const,
-        width: 2048,
-        height: 1152,
-        batch,
-        prompt: prompt(
-          `${reference}, the clothed body pieces of a cutout puppet for 2D animation, all in strict side profile facing right: ${clothes}. No head, no weapon, no shield, no full character. Exactly these 10 pieces in a grid of 5 columns and 2 rows, each isolated with wide empty space around it, nothing touching. Row 1: torso from the neck to the hips without arms or head | upper right arm with shoulder guard | lower right arm with the hand closed in a hollow fist, as if gripping a handle | upper left arm with shoulder guard | lower left arm with the hand closed in a hollow fist. Row 2: upper right leg | lower right leg with boot | upper left leg | lower left leg with boot | the cape, cloak or scarf alone. Every limb piece perfectly straight and vertical, top joint up, with rounded ends at the joints so the pieces overlap when assembled.`,
-          CHROMA
-        )
-      })),
+      ...Object.entries(HERO_OUTFITS[id]).flatMap(([outfit, clothes]) => {
+        const part = (file: string, kind: PieceKind, what: string) => ({
+          id: `heroes/${id}/outfits/${outfit}/${file}`,
+          kind,
+          width: 1024,
+          height: 1024,
+          batch,
+          prompt: prompt(`${reference}, ${what}. The outfit: ${clothes}. No full character, no weapon.`, CHROMA)
+        })
+
+        return [
+          part(
+            'head',
+            'heroPart',
+            `only ${name}'s head, ${profile}, cut cleanly just under the jaw and the base of the skull, without the neck (the neck belongs to the torso), wearing this outfit's headgear if it has any. ${HERO_BODIES[id]}`
+          ),
+          part(
+            'torso',
+            'heroPart',
+            `only ${name}'s torso from the top of the neck (just under the jaw) to the hips, the whole neck included, ${profile}, without head, arms or legs, with the scarf, cape or cloak of the outfit if it has one`
+          ),
+          part(
+            'right-arm',
+            'heroLimb',
+            limb(
+              'right arm',
+              'the upper arm from the shoulder (with its shoulder guard) to the elbow',
+              'the forearm from the elbow to the hand, closed in a hollow fist as if gripping a handle'
+            )
+          ),
+          part(
+            'left-arm',
+            'heroLimb',
+            limb(
+              'left arm',
+              'the upper arm from the shoulder (with its shoulder guard) to the elbow',
+              'the forearm from the elbow to the closed hand, with the shield or anything the outfit straps to it, seen from the inside'
+            )
+          ),
+          part(
+            'right-leg',
+            'heroLimb',
+            limb('right leg', 'the thigh from the hip to the knee', 'the shin from the knee to the foot with its boot')
+          ),
+          part(
+            'left-leg',
+            'heroLimb',
+            limb('left leg', 'the thigh from the hip to the knee', 'the shin from the knee to the foot with its boot')
+          )
+        ]
+      }),
       ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
         id: `heroes/${id}/weapons/${weapon}`,
         kind: 'weapon' as const,
@@ -233,17 +259,6 @@ export function buildCatalog(): Piece[] {
         batch,
         prompt: prompt(
           `${reference}, only the weapon: ${description}. Alone, full length, perfectly horizontal, pointing right with the handle on the left, seen from the side, no hand.`,
-          CHROMA
-        )
-      })),
-      ...Object.entries(HERO_OFFHANDS[id] ?? {}).map(([item, description]) => ({
-        id: `heroes/${id}/offhands/${item}`,
-        kind: 'offhand' as const,
-        width: 1024,
-        height: 1024,
-        batch,
-        prompt: prompt(
-          `${reference}, only ${description}, alone, seen from the inside (its back): the leather straps and the handle in the center.`,
           CHROMA
         )
       })),

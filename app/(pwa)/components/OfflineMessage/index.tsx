@@ -17,17 +17,17 @@ export default function OfflineMessage() {
         gap: '0.75rem',
         padding: '2rem',
         textAlign: 'center',
-        color: '#f8fafc',
-        background: '#0b1026'
+        color: '#f4e7cc',
+        background: '#0d0806'
       }}
     >
-      <div style={{ fontSize: '3rem' }}>🛰️</div>
+      <div style={{ fontSize: '3rem' }}>🔥</div>
       <h1
-        style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 400, margin: 0, color: '#ffc233' }}
+        style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, margin: 0, color: '#e8b85a' }}
       >
         {t('pwa.offlineTitle')}
       </h1>
-      <p style={{ maxWidth: '28rem', margin: 0, color: '#aab4e8', lineHeight: 1.5 }}>{t('pwa.offlineText')}</p>
+      <p style={{ maxWidth: '28rem', margin: 0, color: '#b8a07a', lineHeight: 1.5 }}>{t('pwa.offlineText')}</p>
     </main>
   )
 }

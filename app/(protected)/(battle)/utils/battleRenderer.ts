@@ -54,7 +54,7 @@ const DAMAGE_COLORS: Partial<Record<DamageType, number>> = {
   [DamageType.LIGHT]: 0xfff7c2,
   [DamageType.DARKNESS]: 0xc084fc
 }
-const FONT = 'Bungee, "Arial Black", sans-serif'
+const FONT = 'Cinzel, Georgia, serif'
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
 const FIGURE_HEIGHT = 120
 const OUTLINE = 0x0a0710
@@ -298,13 +298,19 @@ export class BattleRenderer {
     const healthBar = new Graphics()
     const statusText = new Text({
       text: '',
-      style: { fontFamily: FONT, fontSize: 11, fill: 0xe9d5ff, stroke: { color: OUTLINE, width: 4 } }
+      style: { fontFamily: FONT, fontWeight: '900', fontSize: 11, fill: 0xe9d5ff, stroke: { color: OUTLINE, width: 4 } }
     })
     const barsText =
       combatant.bars > 1
         ? new Text({
             text: '',
-            style: { fontFamily: FONT, fontSize: 14, fill: 0xffc233, stroke: { color: OUTLINE, width: 4 } }
+            style: {
+              fontFamily: FONT,
+              fontWeight: '900',
+              fontSize: 14,
+              fill: 0xffc233,
+              stroke: { color: OUTLINE, width: 4 }
+            }
           })
         : null
 
@@ -675,7 +681,7 @@ export class BattleRenderer {
   private float(figure: Figure, text: string, color: number, size: number, offset = 0): void {
     const label = new Text({
       text,
-      style: { fontFamily: FONT, fontSize: size, fill: color, stroke: { color: OUTLINE, width: 5 } }
+      style: { fontFamily: FONT, fontWeight: '900', fontSize: size, fill: color, stroke: { color: OUTLINE, width: 5 } }
     })
     const start = {
       x: figure.root.position.x + (Math.random() - 0.5) * 20,

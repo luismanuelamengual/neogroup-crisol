@@ -49,13 +49,13 @@ export function renderActionEmail({
   footer: string
 }): string {
   return `
-    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background:#0b1026; color:#f8fafc; padding:32px; border-radius:16px;">
-      <h2 style="margin-top:0;color:#ffc233;">${title}</h2>
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background:#1a110c; color:#f4e7cc; padding:32px; border:2px solid #a8793a; border-radius:4px;">
+      <h2 style="margin-top:0;color:#e8b85a;font-family:Georgia, serif;letter-spacing:1px;">${title}</h2>
       <p style="line-height:1.5;">${intro}</p>
-      <a href="${actionUrl}" style="display:inline-block;padding:14px 28px;background:#ffc233;color:#1a1300;border-radius:12px;text-decoration:none;font-weight:bold;box-shadow:0 4px 0 #b8860b;">
+      <a href="${actionUrl}" style="display:inline-block;padding:14px 28px;background:#e8b85a;color:#2a1404;border:1px solid #3a2208;border-radius:3px;text-decoration:none;font-weight:bold;letter-spacing:1px;">
         ${actionLabel}
       </a>
-      <p style="margin-top:24px;color:#94a3b8;font-size:13px;">${footer}</p>
+      <p style="margin-top:24px;color:#b8a07a;font-size:13px;">${footer}</p>
     </div>
   `
 }

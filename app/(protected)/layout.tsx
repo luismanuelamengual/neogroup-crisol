@@ -38,7 +38,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <UserStoreHydrator user={user} />
-      <AppShell user={user}>
+      <AppShell>
         <Suspense fallback={<Loading />}>{children}</Suspense>
       </AppShell>
     </>

@@ -28,12 +28,7 @@ export default async function LandingPage() {
       </section>
       <section className="steps">
         {STEPS.map((step, index) => (
-          <GamePanel
-            key={step.titleKey}
-            className="step"
-            title={`${index + 1}. ${t(step.titleKey)}`}
-            accent={index === 1 ? 'magenta' : index === 2 ? 'lime' : 'cyan'}
-          >
+          <GamePanel key={step.titleKey} className="step" title={`${index + 1}. ${t(step.titleKey)}`}>
             <div className="icon">{step.icon}</div>
             <p>{t(step.textKey)}</p>
           </GamePanel>
