@@ -3,7 +3,14 @@ import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
-import { ENEMY_LOOKS, HERO_LOOKS } from '@/scripts/art/descriptions'
+import {
+  ENEMY_LOOKS,
+  HERO_BODIES,
+  HERO_LOOKS,
+  HERO_OFFHANDS,
+  HERO_OUTFITS,
+  HERO_WEAPONS
+} from '@/scripts/art/descriptions'
 
 /**
  * Every piece of art of the game: its file (under art/source/ as generated,
@@ -13,7 +20,18 @@ import { ENEMY_LOOKS, HERO_LOOKS } from '@/scripts/art/descriptions'
  */
 
 export type PieceKind =
-  'hero' | 'heroParts' | 'portrait' | 'enemy' | 'boss' | 'bossParts' | 'background' | 'mapSheet' | 'icon'
+  | 'hero'
+  | 'heroHead'
+  | 'outfit'
+  | 'weapon'
+  | 'offhand'
+  | 'portrait'
+  | 'enemy'
+  | 'boss'
+  | 'bossParts'
+  | 'background'
+  | 'mapSheet'
+  | 'icon'
 
 export interface Piece {
   /** Path without extension, under art/source/ (png) and public/art/ (webp). */
@@ -167,8 +185,11 @@ function prompt(...parts: string[]): string {
 export function buildCatalog(): Piece[] {
   const pieces: Piece[] = []
 
+  // Heroes are puppets in strict profile: a head sheet, an outfit sheet per
+  // outfit and a sheet per weapon, all swappable on the same skeleton.
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
+    const reference = `Using the attached full image of ${id[0].toUpperCase()}${id.slice(1)} as the exact reference (same style, colors and scale)`
 
     pieces.push(
       {
@@ -177,30 +198,59 @@ export function buildCatalog(): Piece[] {
         width: 1024,
         height: 1536,
         batch,
-        prompt: prompt(`Full-body character, side view facing right, neutral combat stance. ${look}. ${FLAME}`, CHROMA)
-      },
-      {
-        id: `heroes/${id}-parts`,
-        kind: 'heroParts',
-        width: 2048,
-        height: 2048,
-        batch,
         prompt: prompt(
-          `Using the attached full image of this character as the exact reference (same clothes, colors, style and scale), a cutout puppet parts sheet for 2D animation: ${look}. Do not draw the full character anywhere, do not repeat any part, do not add armor or items that are not in the reference. Exactly these pieces in a clean grid, each isolated with wide empty space around it, nothing touching: head with hair and neck (no scarf), torso without arms or head, the scarf or cloak alone, the shield or off-hand item alone, upper right arm, lower right arm with hand, upper left arm, lower left arm with hand, upper right leg, lower right leg with foot, upper left leg, lower left leg with foot; the weapon alone, horizontal, below the grid. Every limb piece straight, side view facing right, with rounded ends at the joints so pieces can overlap when assembled.`,
-          'Plain flat #00FF00 background.'
+          `Full-body character in strict side profile facing right (pure profile: we see the right side of the body, the left arm and left leg are behind it), standing in a combat stance with feet apart, the weapon held up and forward in the right hand. ${look}. ${FLAME}`,
+          CHROMA
         )
       },
       {
-        id: `heroes/${id}-hands`,
-        kind: 'heroParts',
+        id: `heroes/${id}-head`,
+        kind: 'heroHead',
+        width: 2048,
+        height: 1024,
+        batch,
+        prompt: prompt(
+          `${reference}, three heads of the same character in strict side profile facing right, the same size, in one row with wide empty space between them: calm, shouting with effort, grimacing in pain. Each head with its neck down to the collarbone, no shoulders, no clothes, no scarf, no hood. ${HERO_BODIES[id]}.`,
+          CHROMA
+        )
+      },
+      ...Object.entries(HERO_OUTFITS[id]).map(([outfit, clothes]) => ({
+        id: `outfits/${id}-${outfit}`,
+        kind: 'outfit' as const,
         width: 2048,
         height: 1152,
         batch,
         prompt: prompt(
-          `Using the attached parts sheet of this character as the exact reference (same style, colors and scale), only these new pieces, each isolated with wide empty space around it, nothing touching, no full character: the lower right arm with the hand closed in a fist gripping (a hollow grip, as if holding the weapon's handle, without the weapon), straight; the lower left arm with the hand closed gripping a strap, straight; and the inner face of the shield or off-hand item (straps and handle) if it has one. ${look}.`,
-          'Plain flat #00FF00 background.'
+          `${reference}, the clothed body pieces of a cutout puppet for 2D animation, all in strict side profile facing right: ${clothes}. No head, no weapon, no shield, no full character. Exactly these 10 pieces in a grid of 5 columns and 2 rows, each isolated with wide empty space around it, nothing touching. Row 1: torso from the neck to the hips without arms or head | upper right arm with shoulder guard | lower right arm with the hand closed in a hollow fist, as if gripping a handle | upper left arm with shoulder guard | lower left arm with the hand closed in a hollow fist. Row 2: upper right leg | lower right leg with boot | upper left leg | lower left leg with boot | the cape, cloak or scarf alone. Every limb piece perfectly straight and vertical, top joint up, with rounded ends at the joints so the pieces overlap when assembled.`,
+          CHROMA
         )
-      },
+      })),
+      ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
+        id: `weapons/${id}-${weapon}`,
+        kind: 'weapon' as const,
+        width: 2048,
+        height: 512,
+        batch,
+        prompt: prompt(
+          `${reference}, only the weapon: ${description}. Alone, full length, perfectly horizontal, pointing right with the handle on the left, seen from the side, no hand.`,
+          CHROMA
+        )
+      })),
+      ...(HERO_OFFHANDS[id]
+        ? [
+            {
+              id: `offhands/${id}`,
+              kind: 'offhand' as const,
+              width: 1024,
+              height: 1024,
+              batch,
+              prompt: prompt(
+                `${reference}, only ${HERO_OFFHANDS[id]}, alone, seen from the inside (its back): the leather straps and the handle in the center.`,
+                CHROMA
+              )
+            }
+          ]
+        : []),
       {
         id: `portraits/${id}`,
         kind: 'portrait',

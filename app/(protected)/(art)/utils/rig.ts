@@ -1,4 +1,4 @@
-import { Container, Matrix, Rectangle, Sprite, Texture } from 'pixi.js'
+import { Container, Matrix, Sprite, Texture } from 'pixi.js'
 import { BoneRole, Rig, RigBone } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 
@@ -8,7 +8,10 @@ export type RigMove = 'attack' | 'cast' | 'hit'
 /** Angle offsets (radians) of a bone along a move: [progress, angle] keys. */
 type Keys = [number, number][]
 
+type Part = ArtManifest['parts'][string][number]
+
 const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
+  // Up over the head, then down onto the target.
   attack: {
     torso: [
       [0, 0],
@@ -22,32 +25,35 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0.65, 0.08],
       [1, 0]
     ],
-    // Up over the head, then down onto the target.
-    frontArm: [
+    rightArm: [
       [0, 0],
-      [0.45, -3.0],
-      [0.65, -0.7],
+      [0.45, -2.6],
+      [0.65, -0.5],
       [1, 0]
     ],
-    frontForearm: [
+    rightForearm: [
       [0, 0],
-      [0.45, 0.8],
-      [0.65, 0.9],
+      [0.45, 1.0],
+      [0.65, 1.2],
       [1, 0]
     ],
     weapon: [
       [0, 0],
-      [0.45, 0.4],
-      [0.65, 1.2],
+      [0.45, 0.3],
+      [0.65, 0.8],
       [1, 0]
     ],
-    backArm: [
+    rightThigh: [
       [0, 0],
-      [0.45, -0.25],
-      [0.65, 0.2],
+      [0.65, -0.15],
       [1, 0]
     ],
-    scarf: [
+    leftThigh: [
+      [0, 0],
+      [0.65, 0.1],
+      [1, 0]
+    ],
+    cape: [
       [0, 0],
       [0.65, -0.25],
       [1, 0]
@@ -60,16 +66,16 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0.75, -0.06],
       [1, 0]
     ],
-    frontArm: [
+    rightArm: [
       [0, 0],
       [0.4, -1.1],
       [0.75, -1.1],
       [1, 0]
     ],
-    frontForearm: [
+    rightForearm: [
       [0, 0],
-      [0.4, 0.3],
-      [0.75, 0.3],
+      [0.4, 0.4],
+      [0.75, 0.4],
       [1, 0]
     ],
     head: [
@@ -89,23 +95,25 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0.25, -0.28],
       [1, 0]
     ],
-    frontArm: [
+    rightArm: [
       [0, 0],
       [0.25, 0.35],
       [1, 0]
     ],
-    backArm: [
+    leftArm: [
       [0, 0],
       [0.25, 0.3],
       [1, 0]
     ],
-    scarf: [
+    cape: [
       [0, 0],
       [0.25, 0.3],
       [1, 0]
     ]
   }
 }
+/** The far side of the body is drawn a little darker. */
+const FAR_TINT = 0xb4b0c4
 
 function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
@@ -124,39 +132,60 @@ function sample(keys: Keys, progress: number): number {
   return keys[keys.length - 1][1]
 }
 
-/** The parts the puppet needs (ids of images), so they can be loaded first. */
-export function rigPartIds(rig: Rig, parts: ArtManifest['parts']): string[] {
-  return rig.bones.map((bone) => partOf(rig, bone, parts)?.id).filter((id): id is string => Boolean(id))
+function partOf(rig: Rig, bone: RigBone, parts: ArtManifest['parts'], part = bone.part): Part | undefined {
+  const sheet = rig.sheets[bone.slot]
+
+  return sheet ? parts[sheet]?.[part - 1] : undefined
 }
 
-function partOf(
-  rig: Rig,
-  bone: RigBone,
-  parts: ArtManifest['parts']
-): ArtManifest['parts'][string][number] | undefined {
-  return parts[bone.sheet ?? rig.sheet]?.[bone.part - 1]
+/** The bones the rig uses: those whose slot has a sheet, and whose parents are used too. */
+function usedBones(rig: Rig): RigBone[] {
+  const used = new Map<BoneRole, RigBone>()
+  const byRole = new Map(rig.bones.map((bone) => [bone.role, bone]))
+  const isUsed = (bone: RigBone): boolean =>
+    Boolean(rig.sheets[bone.slot]) && (!bone.parent || isUsed(byRole.get(bone.parent)!))
+
+  for (const bone of rig.bones) {
+    if (isUsed(bone)) {
+      used.set(bone.role, bone)
+    }
+  }
+
+  return [...used.values()]
+}
+
+/** The images the puppet needs, so they can be loaded first. */
+export function rigPartIds(rig: Rig, parts: ArtManifest['parts']): string[] {
+  const head = rig.bones.find((bone) => bone.role === 'head')
+  const faces =
+    head && rig.faces ? [rig.faces.effort, rig.faces.pain].map((part) => partOf(rig, head, parts, part)?.id) : []
+
+  return [...usedBones(rig).map((bone) => partOf(rig, bone, parts)?.id), ...faces].filter((id): id is string =>
+    Boolean(id)
+  )
 }
 
 /**
- * A figure put together from the parts of its sheet, with its joints moving:
- * it breathes, its scarf sways, and it swings, casts or flinches on demand.
- * `view` stands on its feet at (0, 0) and is `height` pixels tall.
+ * A figure put together from the pieces of its sheets, with its joints
+ * moving: it breathes, its cape sways, and it swings, casts or flinches on
+ * demand (with the matching face). `view` stands on its feet at (0, 0) and its
+ * body is `height` pixels tall.
  */
 export class RigFigure {
   readonly view = new Container()
   private readonly inner = new Container()
   private readonly sprites = new Map<BoneRole, Sprite>()
-  /** Images are smaller than the sheet: each is drawn back at the sheet's size. */
+  private readonly sizes = new Map<BoneRole, Part>()
+  /** The images are smaller than the sheet: each is drawn back at the sheet's size. */
   private readonly partScale = new Map<BoneRole, number>()
-  private readonly order: RigBone[]
+  private readonly order: RigBone[] = []
   private readonly bones = new Map<BoneRole, RigBone>()
+  private readonly faces = new Map<'calm' | RigMove, { texture: Texture; scale: number }>()
   private time = Math.random() * 10
   private move: { kind: RigMove; elapsed: number; duration: number } | null = null
 
-  private constructor(rig: Rig) {
-    this.order = []
-
-    for (const bone of rig.bones) {
+  private constructor(bones: RigBone[]) {
+    for (const bone of bones) {
       this.bones.set(bone.role, bone)
     }
 
@@ -171,50 +200,62 @@ export class RigFigure {
       }
     }
 
-    rig.bones.forEach(place)
+    bones.forEach(place)
     this.view.addChild(this.inner)
   }
 
-  /** The puppet, or null when its sheet or any of its parts is missing. */
+  /** The puppet, or null when any piece it needs is missing. */
   static create(
     rig: Rig,
     parts: ArtManifest['parts'],
     textures: Map<string, Texture>,
     height: number
   ): RigFigure | null {
-    if (rig.bones.some((bone) => !textures.get(partOf(rig, bone, parts)?.id ?? ''))) {
+    const bones = usedBones(rig)
+
+    if (bones.length === 0 || bones.some((bone) => !textures.get(partOf(rig, bone, parts)?.id ?? ''))) {
       return null
     }
 
-    const figure = new RigFigure(rig)
+    const figure = new RigFigure(bones)
 
-    for (const bone of rig.bones) {
+    for (const bone of bones) {
       const part = partOf(rig, bone, parts)!
-      const whole = textures.get(part.id)!
-      // The image is smaller than the sheet: areas of the sheet are scaled down to it.
-      const shrink = whole.width / part.width
-      const texture = bone.crop
-        ? new Texture({
-            source: whole.source,
-            frame: new Rectangle(
-              whole.frame.x + bone.crop[0] * shrink,
-              whole.frame.y + bone.crop[1] * shrink,
-              Math.min(bone.crop[2] * shrink, whole.frame.width - bone.crop[0] * shrink),
-              Math.min(bone.crop[3] * shrink, whole.frame.height - bone.crop[1] * shrink)
-            )
-          })
-        : whole
+      const texture = textures.get(part.id)!
       const sprite = new Sprite(texture)
 
-      figure.partScale.set(bone.role, 1 / shrink)
+      if (bone.far) {
+        sprite.tint = FAR_TINT
+      }
+
+      figure.sizes.set(bone.role, part)
+      figure.partScale.set(bone.role, part.width / texture.width)
       figure.sprites.set(bone.role, sprite)
       figure.inner.addChild(sprite)
+
+      if (bone.role === 'head') {
+        figure.faces.set('calm', { texture, scale: part.width / texture.width })
+
+        for (const [move, face] of [
+          ['attack', rig.faces?.effort],
+          ['cast', rig.faces?.effort],
+          ['hit', rig.faces?.pain]
+        ] as const) {
+          const piece = face ? partOf(rig, bone, parts, face) : undefined
+          const other = piece ? textures.get(piece.id) : undefined
+
+          if (piece && other) {
+            // Drawn at the calm face's size, so the head does not jump.
+            figure.faces.set(move, { texture: other, scale: part.width / other.width })
+          }
+        }
+      }
     }
 
     figure.layout()
 
     // Feet on the ground at (0, 0), hips centered, `height` tall (the body: what it holds can reach higher).
-    const held = (['weapon', 'shield'] as BoneRole[]).map((role) => figure.sprites.get(role)).filter(Boolean)
+    const held = (['weapon', 'offhand'] as BoneRole[]).map((role) => figure.sprites.get(role)).filter(Boolean)
 
     held.forEach((sprite) => (sprite!.visible = false))
 
@@ -251,9 +292,9 @@ export class RigFigure {
     const idle: Partial<Record<BoneRole, number>> = {
       torso: breath * 0.015,
       head: Math.sin(this.time * 2.4 + 0.6) * 0.03,
-      scarf: Math.sin(this.time * 3.1) * 0.06,
-      frontArm: breath * 0.04,
-      backArm: -breath * 0.03
+      cape: Math.sin(this.time * 3.1) * 0.06,
+      rightArm: breath * 0.04,
+      leftArm: -breath * 0.03
     }
     const keys = this.move ? MOVES[this.move.kind][role] : undefined
     const move = keys && this.move ? sample(keys, this.move.elapsed / this.move.duration) : 0
@@ -263,25 +304,31 @@ export class RigFigure {
 
   private layout(): void {
     const worlds = new Map<BoneRole, Matrix>()
+    const face = this.faces.get(this.move?.kind ?? 'calm') ?? this.faces.get('calm')
 
     for (const bone of this.order) {
       const parent = bone.parent ? worlds.get(bone.parent)! : new Matrix()
-      // A bone's scale sizes its own part only: the parent's is taken back out.
+      const size = this.sizes.get(bone.role)!
+      const parentSize = bone.parent ? this.sizes.get(bone.parent)! : null
+      // A bone's scale sizes its own piece only: the parent's is taken back out.
       const scale = (bone.scale ?? 1) / (bone.parent ? (this.bones.get(bone.parent)!.scale ?? 1) : 1)
       const world = new Matrix()
-        .translate(-bone.pivot[0], -bone.pivot[1])
+        .translate(-bone.pivot[0] * size.width, -bone.pivot[1] * size.height)
         .scale(scale, scale)
         .rotate((bone.rotation ?? 0) + this.angle(bone.role))
-        .translate(bone.at[0], bone.at[1])
+        .translate(bone.at[0] * (parentSize?.width ?? 0), bone.at[1] * (parentSize?.height ?? 0))
         .prepend(parent)
 
       worlds.set(bone.role, world)
 
       const sprite = this.sprites.get(bone.role)!
+      const partScale = bone.role === 'head' && face ? face.scale : this.partScale.get(bone.role)!
 
-      sprite.setFromMatrix(
-        new Matrix().scale(this.partScale.get(bone.role)!, this.partScale.get(bone.role)!).prepend(world)
-      )
+      if (bone.role === 'head' && face && sprite.texture !== face.texture) {
+        sprite.texture = face.texture
+      }
+
+      sprite.setFromMatrix(new Matrix().scale(partScale, partScale).prepend(world))
     }
   }
 }

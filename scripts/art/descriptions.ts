@@ -143,13 +143,52 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'crucible-herald': 'the Herald of Crisol: a winged herald in molten-red armor with a trumpet-shaped forge staff'
 }
 
-/** The heroes: look, weapon and colors. */
-export const HERO_LOOKS: Record<string, string> = {
-  kael: 'Kael, a young human swordsman in his twenties, lean and athletic, short messy dark-brown hair, determined amber eyes, a faint scar on the cheek. Worn brown leather armor with dented steel pauldrons and a tattered crimson scarf. A long straight steel sword held low in the right hand, a small round shield on the left arm',
-  sera: 'Sera, a young human archer woman, agile and slim, long auburn braid, sharp green eyes, a hooded forest-green cloak over light leather armor, a tall recurve bow of pale wood and a quiver of white-fletched arrows',
-  brann:
-    'Brann, a huge bearded human berserker, bald head with tribal tattoos, thick red beard, fur mantle over scarred bare arms and an iron chest plate, a massive double-bladed battle axe held in both hands',
-  oren: 'Oren, an old human druid with a long grey beard braided with leaves, kind tired eyes, robes of moss-green and brown bark with living vines, a gnarled wooden staff topped with a glowing seed',
-  ysolde:
-    'Ysolde, a young sorceress woman, long silver hair, violet eyes, an elegant deep-blue robe with gold embroidery and a high collar, a tall crystal staff with fire, ice and lightning swirling in its crystal'
+/** The heroes' own bodies: what stays when they change clothes and weapons. */
+export const HERO_BODIES: Record<string, string> = {
+  kael: 'Kael, a young human swordsman in his twenties, lean and athletic, short messy dark-brown hair, determined amber eyes, a faint scar on the cheek',
+  sera: 'Sera, a young human archer woman, agile and slim, long auburn braid, sharp green eyes',
+  brann: 'Brann, a huge human berserker, bald head with tribal tattoos, thick red beard, scarred muscular arms',
+  oren: 'Oren, an old human druid with a long grey beard braided with leaves, kind tired eyes',
+  ysolde: 'Ysolde, a young sorceress woman, long silver hair, violet eyes'
 }
+
+/** What each hero wears; the first one is the outfit they start with. */
+export const HERO_OUTFITS: Record<string, Record<string, string>> = {
+  kael: {
+    traveler:
+      'worn brown leather armor with dented steel pauldrons, brown trousers, leather boots and a tattered crimson scarf'
+  },
+  sera: { ranger: 'a hooded forest-green cloak over light brown leather armor, leather bracers and soft boots' },
+  brann: { berserker: 'a fur mantle over the shoulders, an iron chest plate, bare arms, leather kilt and fur boots' },
+  oren: { grove: 'long robes of moss-green and brown bark with living vines, sandals' },
+  ysolde: { court: 'an elegant deep-blue robe with gold embroidery and a high collar, long sleeves, soft boots' }
+}
+
+/** The weapons each hero can hold; the first one is the one they start with. */
+export const HERO_WEAPONS: Record<string, Record<string, string>> = {
+  kael: { sword: 'a long straight steel sword with a leather-wrapped grip and a simple cross guard' },
+  sera: { bow: 'a tall recurve bow of pale wood with a taut string' },
+  brann: { axe: 'a massive double-bladed battle axe with a long iron-banded haft' },
+  oren: { staff: 'a gnarled wooden staff topped with a glowing seed' },
+  ysolde: { staff: 'a tall crystal staff with fire, ice and lightning swirling in its crystal' }
+}
+
+/** What some heroes hold in the other hand. */
+export const HERO_OFFHANDS: Record<string, string> = {
+  kael: 'a small round wooden shield with a steel rim'
+}
+
+/** The heroes as they start: body, first outfit, first weapon and off-hand. */
+export const HERO_LOOKS: Record<string, string> = Object.fromEntries(
+  Object.entries(HERO_BODIES).map(([id, body]) => [
+    id,
+    [
+      body,
+      `wearing ${Object.values(HERO_OUTFITS[id])[0]}`,
+      `holding ${Object.values(HERO_WEAPONS[id])[0]}`,
+      HERO_OFFHANDS[id] ? `and ${HERO_OFFHANDS[id]} on the left arm` : ''
+    ]
+      .filter(Boolean)
+      .join(', ')
+  ])
+)

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
+import { HERO_LOADOUTS, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { BATCHES, buildCatalog } from '@/scripts/art/catalog'
-import { ENEMY_LOOKS } from '@/scripts/art/descriptions'
+import { ENEMY_LOOKS, HERO_OFFHANDS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
 import { findParts, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
 
 type Color = [number, number, number]
@@ -94,13 +95,29 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(224)
+    expect(catalog).toHaveLength(230)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
     for (const species of ENEMIES) {
       expect(ENEMY_LOOKS[species.id], species.id).toBeTruthy()
       expect(ids).toContain(`${species.rarity === 'boss' ? 'bosses' : 'enemies'}/${species.id}`)
+    }
+  })
+
+  it('gives every hero a puppet whose sheets are in the catalog', () => {
+    const ids = new Set(buildCatalog().map((piece) => piece.id))
+
+    for (const [hero, loadout] of Object.entries(HERO_LOADOUTS)) {
+      expect(Object.keys(HERO_OUTFITS[hero])[0], hero).toBe(loadout.outfit)
+      expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
+      expect(Boolean(HERO_OFFHANDS[hero]), hero).toBe(loadout.offhand)
+
+      for (const sheet of Object.values(RIGS[`heroes/${hero}`].sheets)) {
+        if (sheet) {
+          expect(ids, sheet).toContain(sheet)
+        }
+      }
     }
   })
 

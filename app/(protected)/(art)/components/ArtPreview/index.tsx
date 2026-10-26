@@ -28,7 +28,7 @@ export default function ArtPreview() {
 
     const start = async () => {
       const { images, parts } = await loadArtManifest()
-      const rigIds = Object.keys(RIGS).filter((id) => parts[RIGS[id].sheet])
+      const rigIds = Object.keys(RIGS).filter((id) => parts[RIGS[id].sheets.outfit ?? ''])
       const figureIds = Object.keys(images).filter(
         (id) => /^(heroes|enemies|bosses)\/[^/]+$/.test(id) && !id.endsWith('-parts')
       )

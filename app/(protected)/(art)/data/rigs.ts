@@ -1,94 +1,201 @@
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+
 /**
- * How the parts of a parts sheet are put together into a puppet. Coordinates
- * are pixels of the sheet: `pivot` is the joint on the part itself (from its
- * top-left corner) and `at` is where that joint sits on the parent part. The
- * parts are numbered as `yarn art` cut them (public/art/manifest.json → parts).
- * Bones are drawn in the order listed (back to front).
+ * Puppets: figures put together from pieces of their sheets. A hero has one
+ * skeleton and swappable sheets: the head (three faces), an outfit (the
+ * clothed body in 10 pieces), a weapon and maybe an off-hand item. Changing
+ * outfit or weapon only changes which sheet a slot reads.
+ *
+ * Coordinates are shares of a piece's box (0..1, from its top-left corner):
+ * `pivot` is the joint on the piece itself and `at` is where that joint sits
+ * on the parent's piece, so any outfit drawn in the same layout fits. Pieces
+ * are numbered as `yarn art` cut the sheet (rows top to bottom, left to right).
+ * Bones are drawn in the order listed (back to front). Limbs are drawn hanging
+ * straight down: rotation 0 hangs, positive turns clockwise.
  */
+
+/** Where a bone takes its piece from. */
+export type Slot = 'head' | 'outfit' | 'weapon' | 'offhand'
 
 /** What each bone does when the puppet moves. */
 export type BoneRole =
   | 'torso'
   | 'head'
-  | 'scarf'
-  | 'frontArm'
-  | 'frontForearm'
+  | 'cape'
+  | 'rightArm'
+  | 'rightForearm'
   | 'weapon'
-  | 'backArm'
-  | 'backForearm'
-  | 'shield'
-  | 'frontLeg'
-  | 'backLeg'
+  | 'leftArm'
+  | 'leftForearm'
+  | 'offhand'
+  | 'rightThigh'
+  | 'rightShin'
+  | 'leftThigh'
+  | 'leftShin'
 
 export interface RigBone {
   role: BoneRole
+  slot: Slot
+  /** 1 = the first piece of the slot's sheet. */
   part: number
-  /** Another sheet of the same figure (fixes, extra pieces); the rig's sheet when left out. */
-  sheet?: string
-  /** Only this area of the part, [x, y, width, height] from its top-left corner (a whole arm used as a forearm); pivot and children are then measured from the area's corner. */
-  crop?: [number, number, number, number]
   /** The root (torso) has none: its pivot is the hip. */
   parent?: BoneRole
   pivot: [number, number]
   at: [number, number]
-  /** Rest angle in radians (positive turns clockwise). */
+  /** Rest angle in radians. */
   rotation?: number
-  /** The generator draws some parts out of scale (a big head): this evens them out. Not passed on to children. */
+  /** Evens out pieces drawn out of scale (a big head). Not passed on to children. */
   scale?: number
+  /** On the far side of the body: drawn a little darker. */
+  far?: boolean
 }
 
 export interface Rig {
-  /** The parts sheet (catalog id). */
-  sheet: string
+  /** The sheet (catalog id) each slot reads; a bone whose slot has none is left out. */
+  sheets: Partial<Record<Slot, string>>
   bones: RigBone[]
+  /** Head pieces for the moves (the calm face is the bone's own part). */
+  faces?: { effort: number; pain: number }
 }
 
-export const RIGS: Record<string, Rig> = {
-  'heroes/kael': {
-    sheet: 'heroes/kael-parts',
-    bones: [
-      { role: 'scarf', part: 7, parent: 'torso', pivot: [214, 36], at: [108, 22], scale: 0.75 },
-      // Left arm, on the far side: behind the body, gripping the handle inside the shield.
-      {
-        role: 'shield',
-        sheet: 'heroes/kael-hands',
-        part: 2,
-        parent: 'backForearm',
-        pivot: [236, 250],
-        at: [88, 260],
-        scale: 0.32
-      },
-      { role: 'backArm', part: 9, parent: 'torso', pivot: [46, 28], at: [146, 62], rotation: -0.45, scale: 0.85 },
-      {
-        role: 'backForearm',
-        sheet: 'heroes/kael-hands',
-        part: 3,
-        crop: [0, 210, 156, 381],
-        parent: 'backArm',
-        pivot: [78, 12],
-        at: [50, 136],
-        rotation: -0.55,
-        scale: 0.45
-      },
-      // Left leg (foot forward) behind the right one (foot back, toward the camera), as in the full image.
-      { role: 'backLeg', part: 11, parent: 'torso', pivot: [42, 30], at: [104, 236], rotation: 0.15 },
-      { role: 'frontLeg', part: 6, parent: 'torso', pivot: [45, 32], at: [78, 236], rotation: 0.65 },
-      { role: 'torso', part: 5, pivot: [92, 230], at: [0, 0] },
-      { role: 'head', part: 3, parent: 'torso', pivot: [58, 138], at: [104, 22], scale: 0.78 },
-      // Right arm (sword), on the near side: in front of everything.
-      { role: 'frontArm', part: 1, parent: 'torso', pivot: [62, 34], at: [44, 66], rotation: -0.3 },
-      { role: 'weapon', part: 13, parent: 'frontForearm', pivot: [52, 45], at: [104, 266], rotation: 0.47 },
-      {
-        role: 'frontForearm',
-        sheet: 'heroes/kael-hands',
-        part: 1,
-        crop: [0, 210, 156, 320],
-        parent: 'frontArm',
-        pivot: [76, 12],
-        at: [26, 132],
-        rotation: -1.07,
-        scale: 0.45
-      }
-    ]
+/** What a hero wears and holds. */
+export interface Loadout {
+  outfit: string
+  weapon: string
+  /** Whether they hold something in the left hand (Kael's shield). */
+  offhand: boolean
+}
+
+/** What each hero starts with (the first outfit and weapon of scripts/art/descriptions.ts). */
+export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
+  [CharacterId.KAEL]: { outfit: 'traveler', weapon: 'sword', offhand: true },
+  [CharacterId.SERA]: { outfit: 'ranger', weapon: 'bow', offhand: false },
+  [CharacterId.BRANN]: { outfit: 'berserker', weapon: 'axe', offhand: false },
+  [CharacterId.OREN]: { outfit: 'grove', weapon: 'staff', offhand: false },
+  [CharacterId.YSOLDE]: { outfit: 'court', weapon: 'staff', offhand: false }
+}
+
+/** Where the hand holds each weapon: share of its length from the left (the handle end). */
+const GRIPS: Record<string, number> = { sword: 0.12, bow: 0.5, axe: 0.25, staff: 0.4 }
+
+/**
+ * The hero skeleton, in strict profile facing right. Outfit pieces: 1 torso,
+ * 2 upper right arm, 3 right forearm with fist, 4 upper left arm, 5 left
+ * forearm with fist, 6 right thigh, 7 right shin, 8 left thigh, 9 left shin,
+ * 10 cape. Head pieces: 1 calm, 2 effort, 3 pain.
+ */
+function heroBones(grip: number): RigBone[] {
+  return [
+    { role: 'cape', slot: 'outfit', part: 10, parent: 'torso', pivot: [0.85, 0.08], at: [0.45, 0.06], far: true },
+    // Left (far) side: behind the body, holding the off-hand item.
+    {
+      role: 'offhand',
+      slot: 'offhand',
+      part: 1,
+      parent: 'leftForearm',
+      pivot: [0.5, 0.5],
+      at: [0.5, 0.88],
+      rotation: 1.6
+    },
+    {
+      role: 'leftThigh',
+      slot: 'outfit',
+      part: 8,
+      parent: 'torso',
+      pivot: [0.5, 0.08],
+      at: [0.55, 0.9],
+      rotation: 0.35,
+      far: true
+    },
+    {
+      role: 'leftShin',
+      slot: 'outfit',
+      part: 9,
+      parent: 'leftThigh',
+      pivot: [0.5, 0.06],
+      at: [0.5, 0.92],
+      rotation: 0.1,
+      far: true
+    },
+    {
+      role: 'leftArm',
+      slot: 'outfit',
+      part: 4,
+      parent: 'torso',
+      pivot: [0.5, 0.1],
+      at: [0.6, 0.14],
+      rotation: -0.6,
+      far: true
+    },
+    {
+      role: 'leftForearm',
+      slot: 'outfit',
+      part: 5,
+      parent: 'leftArm',
+      pivot: [0.5, 0.06],
+      at: [0.5, 0.92],
+      rotation: -1.0,
+      far: true
+    },
+    { role: 'torso', slot: 'outfit', part: 1, pivot: [0.5, 0.92], at: [0, 0] },
+    // Right (near) side: in front.
+    {
+      role: 'rightThigh',
+      slot: 'outfit',
+      part: 6,
+      parent: 'torso',
+      pivot: [0.5, 0.08],
+      at: [0.5, 0.9],
+      rotation: -0.35
+    },
+    {
+      role: 'rightShin',
+      slot: 'outfit',
+      part: 7,
+      parent: 'rightThigh',
+      pivot: [0.5, 0.06],
+      at: [0.5, 0.92],
+      rotation: 0.35
+    },
+    { role: 'head', slot: 'head', part: 1, parent: 'torso', pivot: [0.45, 0.95], at: [0.55, 0.04] },
+    { role: 'rightArm', slot: 'outfit', part: 2, parent: 'torso', pivot: [0.5, 0.1], at: [0.45, 0.14], rotation: -0.3 },
+    {
+      role: 'weapon',
+      slot: 'weapon',
+      part: 1,
+      parent: 'rightForearm',
+      pivot: [grip, 0.5],
+      at: [0.5, 0.88],
+      rotation: 0.7
+    },
+    {
+      role: 'rightForearm',
+      slot: 'outfit',
+      part: 3,
+      parent: 'rightArm',
+      pivot: [0.5, 0.06],
+      at: [0.5, 0.92],
+      rotation: -1.4
+    }
+  ]
+}
+
+function heroRig(id: CharacterId): Rig {
+  const loadout = HERO_LOADOUTS[id]
+
+  return {
+    sheets: {
+      head: `heroes/${id}-head`,
+      outfit: `outfits/${id}-${loadout.outfit}`,
+      weapon: `weapons/${id}-${loadout.weapon}`,
+      offhand: loadout.offhand ? `offhands/${id}` : undefined
+    },
+    bones: heroBones(GRIPS[loadout.weapon] ?? 0.2),
+    faces: { effort: 2, pain: 3 }
   }
 }
+
+/** The puppets, by the id of their whole image (figureArtId). */
+export const RIGS: Record<string, Rig> = Object.fromEntries(
+  Object.values(CharacterId).map((id) => [`heroes/${id}`, heroRig(id)])
+)

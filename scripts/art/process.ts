@@ -23,7 +23,10 @@ const EXTENSIONS = ['png', 'webp', 'jpg', 'jpeg']
 /** Largest side of each kind of piece in the game, in pixels (about twice what a phone shows). */
 const MAX_SIDE: Record<PieceKind, number> = {
   hero: 720,
-  heroParts: 0,
+  heroHead: 0,
+  outfit: 0,
+  weapon: 0,
+  offhand: 0,
   portrait: 256,
   enemy: 512,
   boss: 900,
@@ -121,7 +124,7 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     return
   }
 
-  if (piece.kind === 'heroParts' || piece.kind === 'bossParts') {
+  if (['heroHead', 'outfit', 'weapon', 'offhand', 'bossParts'].includes(piece.kind)) {
     const parts: ArtManifest['parts'][string] = []
 
     for (const [index, box] of findParts(image).entries()) {
