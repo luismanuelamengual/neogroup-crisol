@@ -62,17 +62,17 @@ export interface Rig {
 export interface Loadout {
   outfit: string
   weapon: string
-  /** Whether they hold something in the left hand (Kael's shield). */
-  offhand: boolean
+  /** What they hold in the left hand, if anything (Kael's shield). */
+  offhand?: string
 }
 
 /** What each hero starts with (the first outfit and weapon of scripts/art/descriptions.ts). */
 export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
-  [CharacterId.KAEL]: { outfit: 'traveler', weapon: 'sword', offhand: true },
-  [CharacterId.SERA]: { outfit: 'ranger', weapon: 'bow', offhand: false },
-  [CharacterId.BRANN]: { outfit: 'berserker', weapon: 'axe', offhand: false },
-  [CharacterId.OREN]: { outfit: 'grove', weapon: 'staff', offhand: false },
-  [CharacterId.YSOLDE]: { outfit: 'court', weapon: 'staff', offhand: false }
+  [CharacterId.KAEL]: { outfit: 'traveller', weapon: 'sword', offhand: 'shield' },
+  [CharacterId.SERA]: { outfit: 'ranger', weapon: 'bow' },
+  [CharacterId.BRANN]: { outfit: 'berserker', weapon: 'axe' },
+  [CharacterId.OREN]: { outfit: 'grove', weapon: 'staff' },
+  [CharacterId.YSOLDE]: { outfit: 'court', weapon: 'staff' }
 }
 
 /** Where the hand holds each weapon: share of its length from the left (the handle end). */
@@ -185,17 +185,21 @@ function heroRig(id: CharacterId): Rig {
 
   return {
     sheets: {
-      head: `heroes/${id}-head`,
-      outfit: `outfits/${id}-${loadout.outfit}`,
-      weapon: `weapons/${id}-${loadout.weapon}`,
-      offhand: loadout.offhand ? `offhands/${id}` : undefined
+      head: `heroes/${id}/head`,
+      outfit: `heroes/${id}/outfits/${loadout.outfit}`,
+      weapon: `heroes/${id}/weapons/${loadout.weapon}`,
+      offhand: loadout.offhand ? `heroes/${id}/offhands/${loadout.offhand}` : undefined
     },
     bones: heroBones(GRIPS[loadout.weapon] ?? 0.2),
     faces: { effort: 2, pain: 3 }
   }
 }
 
-/** The puppets, by the id of their whole image (figureArtId). */
+/**
+ * The puppets, by the id of their whole image (figureArtId). A hero's art lives
+ * under heroes/<id>/: full, portrait, head, outfits/<outfit>, weapons/<weapon>
+ * and offhands/<item>.
+ */
 export const RIGS: Record<string, Rig> = Object.fromEntries(
-  Object.values(CharacterId).map((id) => [`heroes/${id}`, heroRig(id)])
+  Object.values(CharacterId).map((id) => [`heroes/${id}/full`, heroRig(id)])
 )

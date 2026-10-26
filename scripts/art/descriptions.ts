@@ -155,7 +155,7 @@ export const HERO_BODIES: Record<string, string> = {
 /** What each hero wears; the first one is the outfit they start with. */
 export const HERO_OUTFITS: Record<string, Record<string, string>> = {
   kael: {
-    traveler:
+    traveller:
       'worn brown leather armor with dented steel pauldrons, brown trousers, leather boots and a tattered crimson scarf'
   },
   sera: { ranger: 'a hooded forest-green cloak over light brown leather armor, leather bracers and soft boots' },
@@ -173,9 +173,9 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
   ysolde: { staff: 'a tall crystal staff with fire, ice and lightning swirling in its crystal' }
 }
 
-/** What some heroes hold in the other hand. */
-export const HERO_OFFHANDS: Record<string, string> = {
-  kael: 'a small round wooden shield with a steel rim'
+/** What some heroes hold in the other hand; the first one is what they start with. */
+export const HERO_OFFHANDS: Record<string, Record<string, string>> = {
+  kael: { shield: 'a small round wooden shield with a steel rim' }
 }
 
 /** The heroes as they start: body, first outfit, first weapon and off-hand. */
@@ -186,7 +186,7 @@ export const HERO_LOOKS: Record<string, string> = Object.fromEntries(
       body,
       `wearing ${Object.values(HERO_OUTFITS[id])[0]}`,
       `holding ${Object.values(HERO_WEAPONS[id])[0]}`,
-      HERO_OFFHANDS[id] ? `and ${HERO_OFFHANDS[id]} on the left arm` : ''
+      HERO_OFFHANDS[id] ? `and ${Object.values(HERO_OFFHANDS[id])[0]} on the left arm` : ''
     ]
       .filter(Boolean)
       .join(', ')

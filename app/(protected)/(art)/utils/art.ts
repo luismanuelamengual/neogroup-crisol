@@ -42,5 +42,5 @@ export async function loadTextures(ids: string[]): Promise<Map<string, Texture>>
 
 /** The image of a fighter: its hero figure, or its enemy or boss figure. */
 export function figureArtId(side: 'hero' | 'enemy', id: string, boss: boolean): string {
-  return side === 'hero' ? `heroes/${id}` : `${boss ? 'bosses' : 'enemies'}/${id}`
+  return side === 'hero' ? `heroes/${id}/full` : `${boss ? 'bosses' : 'enemies'}/${id}`
 }

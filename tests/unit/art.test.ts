@@ -111,9 +111,9 @@ describe('art pipeline', () => {
     for (const [hero, loadout] of Object.entries(HERO_LOADOUTS)) {
       expect(Object.keys(HERO_OUTFITS[hero])[0], hero).toBe(loadout.outfit)
       expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
-      expect(Boolean(HERO_OFFHANDS[hero]), hero).toBe(loadout.offhand)
+      expect(Object.keys(HERO_OFFHANDS[hero] ?? {})[0], hero).toBe(loadout.offhand)
 
-      for (const sheet of Object.values(RIGS[`heroes/${hero}`].sheets)) {
+      for (const sheet of Object.values(RIGS[`heroes/${hero}/full`].sheets)) {
         if (sheet) {
           expect(ids, sheet).toContain(sheet)
         }

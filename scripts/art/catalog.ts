@@ -193,7 +193,7 @@ export function buildCatalog(): Piece[] {
 
     pieces.push(
       {
-        id: `heroes/${id}`,
+        id: `heroes/${id}/full`,
         kind: 'hero',
         width: 1024,
         height: 1536,
@@ -204,7 +204,7 @@ export function buildCatalog(): Piece[] {
         )
       },
       {
-        id: `heroes/${id}-head`,
+        id: `heroes/${id}/head`,
         kind: 'heroHead',
         width: 2048,
         height: 1024,
@@ -215,7 +215,7 @@ export function buildCatalog(): Piece[] {
         )
       },
       ...Object.entries(HERO_OUTFITS[id]).map(([outfit, clothes]) => ({
-        id: `outfits/${id}-${outfit}`,
+        id: `heroes/${id}/outfits/${outfit}`,
         kind: 'outfit' as const,
         width: 2048,
         height: 1152,
@@ -226,7 +226,7 @@ export function buildCatalog(): Piece[] {
         )
       })),
       ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
-        id: `weapons/${id}-${weapon}`,
+        id: `heroes/${id}/weapons/${weapon}`,
         kind: 'weapon' as const,
         width: 2048,
         height: 512,
@@ -236,23 +236,19 @@ export function buildCatalog(): Piece[] {
           CHROMA
         )
       })),
-      ...(HERO_OFFHANDS[id]
-        ? [
-            {
-              id: `offhands/${id}`,
-              kind: 'offhand' as const,
-              width: 1024,
-              height: 1024,
-              batch,
-              prompt: prompt(
-                `${reference}, only ${HERO_OFFHANDS[id]}, alone, seen from the inside (its back): the leather straps and the handle in the center.`,
-                CHROMA
-              )
-            }
-          ]
-        : []),
+      ...Object.entries(HERO_OFFHANDS[id] ?? {}).map(([item, description]) => ({
+        id: `heroes/${id}/offhands/${item}`,
+        kind: 'offhand' as const,
+        width: 1024,
+        height: 1024,
+        batch,
+        prompt: prompt(
+          `${reference}, only ${description}, alone, seen from the inside (its back): the leather straps and the handle in the center.`,
+          CHROMA
+        )
+      })),
       {
-        id: `portraits/${id}`,
+        id: `heroes/${id}/portrait`,
         kind: 'portrait',
         width: 512,
         height: 512,

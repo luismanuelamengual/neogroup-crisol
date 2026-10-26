@@ -29,9 +29,7 @@ export default function ArtPreview() {
     const start = async () => {
       const { images, parts } = await loadArtManifest()
       const rigIds = Object.keys(RIGS).filter((id) => parts[RIGS[id].sheets.outfit ?? ''])
-      const figureIds = Object.keys(images).filter(
-        (id) => /^(heroes|enemies|bosses)\/[^/]+$/.test(id) && !id.endsWith('-parts')
-      )
+      const figureIds = Object.keys(images).filter((id) => /^(heroes\/[^/]+\/full|(enemies|bosses)\/[^/]+)$/.test(id))
       const textures = await loadTextures([...figureIds, ...rigIds.flatMap((id) => rigPartIds(RIGS[id], parts))])
 
       await app.init({ resizeTo: element, background: '#2a1a40', antialias: true })
