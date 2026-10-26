@@ -70,9 +70,9 @@ export const RIGS: Record<string, Rig> = {
         rotation: -0.55,
         scale: 0.45
       },
-      // Left leg behind the right one.
-      { role: 'backLeg', part: 6, parent: 'torso', pivot: [45, 32], at: [104, 236], rotation: 0.15 },
-      { role: 'frontLeg', part: 11, parent: 'torso', pivot: [42, 30], at: [78, 236], rotation: 0.65 },
+      // Left leg (foot forward) behind the right one (foot back, toward the camera), as in the full image.
+      { role: 'backLeg', part: 11, parent: 'torso', pivot: [42, 30], at: [104, 236], rotation: 0.15 },
+      { role: 'frontLeg', part: 6, parent: 'torso', pivot: [45, 32], at: [78, 236], rotation: 0.65 },
       { role: 'torso', part: 5, pivot: [92, 230], at: [0, 0] },
       { role: 'head', part: 3, parent: 'torso', pivot: [58, 138], at: [104, 22], scale: 0.78 },
       // Right arm (sword), on the near side: in front of everything.
