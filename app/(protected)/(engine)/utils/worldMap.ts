@@ -111,9 +111,10 @@ function canEnter(index: WorldIndex, state: GameState, node: WorldNode): boolean
 
 /**
  * Shortest route (in trail steps) from the party to a point, walking only
- * through cleared points: a fight not won yet blocks the way. The target can
- * be a cleared point or an uncleared one next to a cleared one. Returns the
- * nodes from the current one to the target, or null when there is no route.
+ * through cleared points: a fight not won yet blocks the way, and so does one
+ * that came back after resting at a camp, until it is won again. The target
+ * can be any point next to one the party can walk through. Returns the nodes
+ * from the current one to the target, or null when there is no route.
  */
 export function planRoute(index: WorldIndex, state: GameState, targetId: string): string[] | null {
   const start = state.positionNodeId
@@ -144,7 +145,7 @@ export function planRoute(index: WorldIndex, state: GameState, targetId: string)
         return route.reverse()
       }
 
-      if (isCleared(state, next)) {
+      if (isCleared(state, next) && !state.respawnedNodeIds.includes(next)) {
         previous.set(next, current)
         queue.push(next)
       }

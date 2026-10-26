@@ -128,15 +128,24 @@ describe('fights', () => {
     expect(defeated.characters[0].health).toBe(getMaxHealth(defeated.characters[0]))
   })
 
-  it('brings the common enemies back when resting, but they do not block the way', () => {
+  it('brings the common enemies back when resting, and they block the way until won again', () => {
     const cleared = { ...win(start, combat), positionNodeId: world.startNodeId }
     const rested = rest(index, cleared)
     const behind = neighborsOf(combat).find((id) => !rested.clearedNodeIds.includes(id))!
 
     expect(rested.respawnedNodeIds).toEqual([combat])
     expect(getEncounter(index, rested, combat)?.kind).toBe(EncounterKind.COMBAT)
-    expect(planRoute(index, rested, behind)).toEqual([world.startNodeId, combat, behind])
-    expect(win(rested, combat).respawnedNodeIds).toEqual([])
+    expect(planRoute(index, rested, behind)).toBeNull()
+    expect(planRoute(index, rested, combat)).toEqual([world.startNodeId, combat])
+
+    const won = win(rested, combat)
+
+    expect(won.respawnedNodeIds).toEqual([])
+    expect(planRoute(index, { ...won, positionNodeId: world.startNodeId }, behind)).toEqual([
+      world.startNodeId,
+      combat,
+      behind
+    ])
   })
 
   it('opens a chest without a fight: gold, stones and a potion of its biome', () => {
