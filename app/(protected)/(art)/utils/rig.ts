@@ -1,4 +1,4 @@
-import { Container, Matrix, Sprite, Texture } from 'pixi.js'
+import { Container, Matrix, Rectangle, Sprite, Texture } from 'pixi.js'
 import { BoneRole, Rig, RigBone } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 
@@ -190,10 +190,23 @@ export class RigFigure {
 
     for (const bone of rig.bones) {
       const part = partOf(rig, bone, parts)!
-      const texture = textures.get(part.id)!
+      const whole = textures.get(part.id)!
+      // The image is smaller than the sheet: areas of the sheet are scaled down to it.
+      const shrink = whole.width / part.width
+      const texture = bone.crop
+        ? new Texture({
+            source: whole.source,
+            frame: new Rectangle(
+              whole.frame.x + bone.crop[0] * shrink,
+              whole.frame.y + bone.crop[1] * shrink,
+              Math.min(bone.crop[2] * shrink, whole.frame.width - bone.crop[0] * shrink),
+              Math.min(bone.crop[3] * shrink, whole.frame.height - bone.crop[1] * shrink)
+            )
+          })
+        : whole
       const sprite = new Sprite(texture)
 
-      figure.partScale.set(bone.role, part.width / texture.width)
+      figure.partScale.set(bone.role, 1 / shrink)
       figure.sprites.set(bone.role, sprite)
       figure.inner.addChild(sprite)
     }
