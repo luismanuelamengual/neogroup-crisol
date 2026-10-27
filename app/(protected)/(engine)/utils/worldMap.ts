@@ -155,6 +155,37 @@ export function planRoute(index: WorldIndex, state: GameState, targetId: string)
   return null
 }
 
+/**
+ * Points the party can travel to from where it stands, with the same rules as
+ * planRoute: every point it can walk through, and the ones next to them that it
+ * can enter.
+ */
+export function getReachableNodeIds(index: WorldIndex, state: GameState): Set<string> {
+  const reachable = new Set<string>()
+  const visited = new Set([state.positionNodeId])
+  const queue = [state.positionNodeId]
+
+  for (let head = 0; head < queue.length; head++) {
+    for (const next of index.adjacency.get(queue[head]) ?? []) {
+      if (visited.has(next)) {
+        continue
+      }
+
+      visited.add(next)
+
+      if (isCleared(state, next) || canEnter(index, state, index.nodes.get(next)!)) {
+        reachable.add(next)
+      }
+
+      if (isCleared(state, next) && !state.respawnedNodeIds.includes(next)) {
+        queue.push(next)
+      }
+    }
+  }
+
+  return reachable
+}
+
 /** The fight that waits at a point, or null when there is none (cleared, or a point without enemies). */
 export function getEncounter(index: WorldIndex, state: GameState, nodeId: string): Encounter | null {
   const node = getNode(index, nodeId)

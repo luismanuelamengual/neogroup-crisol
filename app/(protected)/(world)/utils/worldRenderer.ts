@@ -14,6 +14,8 @@ export interface MapView {
   /** Points seen (cleared ones and their neighbors, the latter as silhouettes). */
   revealed: Set<string>
   respawned: Set<string>
+  /** Points the party can travel to now (see getReachableNodeIds). */
+  reachable: Set<string>
   openCamps: Set<string>
   positionNodeId: string
   selectedNodeId: string | null
@@ -40,6 +42,12 @@ const TAP_RADIUS = 28
 const TRAIL_EDGE = 0x1a120c
 const TRAIL_DOT = 0xf3e2b3
 const ROUTE_DOT = 0xffc233
+/** Ring, sonar wave and arrow over the new destinations (points within reach with a fight or something to find). */
+const BEACON = 0xffc233
+/** Points seen but out of reach: darker, see-through and with a padlock. */
+const OUT_OF_REACH_SHADE = 0.4
+const OUT_OF_REACH_ALPHA = 0.55
+const LOCK = 0x8a8195
 const OUTLINE = 0x0a0710
 /** Map decorations: how many around each point, how far from it, their size and the room kept free for points and trails. */
 const DECORATIONS_PER_NODE = 2
@@ -59,6 +67,8 @@ export class WorldRenderer {
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
+  private readonly outOfReach = new Graphics()
+  private readonly beacons = new Graphics()
   private readonly selection = new Graphics()
   private readonly hero = new Container()
   private readonly fogCanvas: HTMLCanvasElement
@@ -90,7 +100,19 @@ export class WorldRenderer {
 
     fog.scale.set(FOG_SCALE)
     this.drawHero()
-    viewport.addChild(ground, this.decorations, this.trails, this.route, this.markers, fog, this.selection, this.hero)
+    this.outOfReach.alpha = OUT_OF_REACH_ALPHA
+    viewport.addChild(
+      ground,
+      this.decorations,
+      this.trails,
+      this.route,
+      this.outOfReach,
+      this.markers,
+      fog,
+      this.beacons,
+      this.selection,
+      this.hero
+    )
 
     viewport.on('clicked', ({ world: point }) => onTap(this.nodeAt(point.x, point.y)))
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
@@ -226,6 +248,9 @@ export class WorldRenderer {
       this.drawTrails(view)
       this.drawMarkers(view)
       this.drawFog(view)
+    } else if (previous.reachable !== view.reachable) {
+      this.drawTrails(view)
+      this.drawMarkers(view)
     } else if (previous.openCamps !== view.openCamps) {
       this.drawMarkers(view)
     }
@@ -401,12 +426,14 @@ export class WorldRenderer {
       const from = this.nodes.get(a)!
       const to = this.nodes.get(b)!
       const known = view.cleared.has(a) && view.cleared.has(b)
+      // A trail the party can take: both ends within reach (or where it stands).
+      const open = [a, b].every((id) => id === view.positionNodeId || view.reachable.has(id))
 
       this.trails
         .moveTo(from.x, from.y)
         .lineTo(to.x, to.y)
-        .stroke({ width: 30, color: TRAIL_EDGE, alpha: known ? 0.75 : 0.4, cap: 'round' })
-      this.dots(this.trails, from, to, known ? TRAIL_DOT : darken(TRAIL_DOT, 0.55), 7)
+        .stroke({ width: 30, color: TRAIL_EDGE, alpha: open ? 0.75 : 0.3, cap: 'round' })
+      this.dots(this.trails, from, to, open ? TRAIL_DOT : darken(TRAIL_DOT, known ? 0.55 : 0.4), 7)
     }
   }
 
@@ -433,26 +460,42 @@ export class WorldRenderer {
 
   private drawMarkers(view: MapView): void {
     this.markers.clear()
+    this.outOfReach.clear()
 
     for (const id of view.revealed) {
       const node = this.nodes.get(id)!
-      const cleared = view.cleared.has(id)
+      // An enemy that came back after resting looks again like a fight not won yet.
+      const cleared = view.cleared.has(id) && !view.respawned.has(id)
       const style = markerOf(node, cleared, view.openCamps.has(id))
 
-      this.marker(node, cleared ? style : { ...style, color: darken(style.color, 0.55) })
-
-      if (view.respawned.has(id)) {
-        this.markers
-          .circle(node.x + 16, node.y - 16, 9)
-          .fill({ color: 0xd7263d })
-          .stroke({ width: 4, color: OUTLINE })
+      if (id !== view.positionNodeId && !view.reachable.has(id)) {
+        this.marker(this.outOfReach, node, { ...style, color: darken(style.color, OUT_OF_REACH_SHADE) })
+        this.lock(node.x + style.radius * 0.7, node.y + style.radius * 0.7)
+        continue
       }
+
+      this.marker(this.markers, node, style)
     }
   }
 
-  private marker(node: WorldNode, { shape, color, radius }: MarkerStyle): void {
+  /** A small padlock on the points out of reach. */
+  private lock(x: number, y: number): void {
+    this.markers
+      .moveTo(x - 8, y - 6)
+      .arc(x, y - 6, 8, Math.PI, 0)
+      .stroke({ width: 7, color: OUTLINE })
+      .moveTo(x - 8, y - 6)
+      .arc(x, y - 6, 8, Math.PI, 0)
+      .stroke({ width: 3, color: LOCK })
+    this.markers
+      .roundRect(x - 12, y - 6, 24, 18, 4)
+      .fill({ color: LOCK })
+      .stroke({ width: 4, color: OUTLINE })
+    this.markers.circle(x, y + 2, 3).fill({ color: OUTLINE })
+  }
+
+  private marker(g: Graphics, node: WorldNode, { shape, color, radius }: MarkerStyle): void {
     const { x, y } = node
-    const g = this.markers
     const stroke = { width: Math.max(5, radius / 6), color: OUTLINE }
 
     switch (shape) {
@@ -547,13 +590,50 @@ export class WorldRenderer {
     this.hero.addChild(body)
   }
 
-  /** Small life: the hero breathes and the selected point pulses. */
+  /**
+   * The new destinations (within reach, with a fight or something to find): a
+   * golden ring, a wave that grows from it and an arrow bouncing above it, over
+   * the fog so they are seen from far.
+   */
+  private drawBeacons(pulse: number): void {
+    this.beacons.clear()
+
+    if (!this.view || this.walking) {
+      return
+    }
+
+    const wave = (this.elapsed * 0.8) % 1
+    const bounce = Math.abs(Math.sin(this.elapsed * 3)) * 12
+
+    for (const id of this.view.reachable) {
+      if (this.view.cleared.has(id) && !this.view.respawned.has(id)) {
+        continue
+      }
+
+      const node = this.nodes.get(id)!
+      const radius = markerOf(node, false, this.view.openCamps.has(id)).radius
+      const ring = radius + 12 + pulse * 3
+      const top = node.y - radius - 30 - bounce
+
+      this.beacons.circle(node.x, node.y, ring).stroke({ width: 8, color: BEACON, alpha: 0.9 })
+      this.beacons
+        .circle(node.x, node.y, ring + wave * radius * 1.4)
+        .stroke({ width: 5, color: BEACON, alpha: (1 - wave) * 0.6 })
+      this.beacons
+        .poly([node.x - 22, top - 24, node.x + 22, top - 24, node.x, top])
+        .fill({ color: BEACON })
+        .stroke({ width: 5, color: OUTLINE })
+    }
+  }
+
+  /** Small life: the hero breathes, the selected point pulses and the new destinations call. */
   private animate(deltaMS: number): void {
     this.elapsed += deltaMS / 1000
 
     const pulse = Math.sin(this.elapsed * 4)
 
     this.hero.scale.set(1 + pulse * 0.04)
+    this.drawBeacons(pulse)
     this.selection.clear()
 
     const selected = this.view?.selectedNodeId ? this.nodes.get(this.view.selectedNodeId) : null

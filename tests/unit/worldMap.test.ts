@@ -18,6 +18,7 @@ import {
   drinkFlask,
   getEncounter,
   getFlask,
+  getReachableNodeIds,
   getRevealedNodeIds,
   indexWorld,
   isAbyssOpen,
@@ -97,6 +98,18 @@ describe('fog and routes', () => {
     const cleared = win({ ...win(start, first), positionNodeId: world.startNodeId }, second)
 
     expect(planRoute(index, cleared, first)).toEqual([second, world.startNodeId, first])
+  })
+
+  it('lists as reachable exactly the points with a route', () => {
+    const rested = rest(index, { ...win(win(start, first), second), positionNodeId: world.startNodeId })
+
+    for (const state of [start, win(start, first), rested]) {
+      const reachable = getReachableNodeIds(index, state)
+
+      for (const node of world.nodes) {
+        expect(reachable.has(node.id)).toBe(planRoute(index, state, node.id) !== null)
+      }
+    }
   })
 })
 

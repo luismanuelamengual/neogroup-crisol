@@ -20,6 +20,7 @@ import {
   drinkFlask,
   getEncounter,
   getFlask,
+  getReachableNodeIds,
   getRevealedNodeIds,
   indexWorld,
   isAtOpenCamp,
@@ -120,6 +121,12 @@ export default function WorldScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [index, state?.clearedNodeIds]
   )
+  const reachable = useMemo(
+    () => (index && state ? getReachableNodeIds(index, state) : new Set<string>()),
+    // Where the party can go only changes with where it stands and what it cleared.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [index, state?.positionNodeId, state?.clearedNodeIds, state?.respawnedNodeIds]
+  )
   const route = useMemo(
     () => (index && state && selectedNodeId && !walking ? planRoute(index, state, selectedNodeId) : null),
     [index, state, selectedNodeId, walking]
@@ -131,13 +138,14 @@ export default function WorldScreen() {
             cleared,
             revealed,
             respawned,
+            reachable,
             openCamps,
             positionNodeId: state.positionNodeId,
             selectedNodeId,
             route
           }
         : null,
-    [cleared, openCamps, respawned, revealed, route, selectedNodeId, state]
+    [cleared, openCamps, reachable, respawned, revealed, route, selectedNodeId, state]
   )
   const showRewards = useCallback(
     (rewards: Reward[]) => {
@@ -249,7 +257,9 @@ export default function WorldScreen() {
   const position = index.nodes.get(state.positionNodeId)!
   const flask = getFlask(index, state)
   const selected = selectedNodeId ? index.nodes.get(selectedNodeId)! : null
-  const nameOf = (nodeId: string) => pointName(t, index.nodes.get(nodeId)!, cleared.has(nodeId), openCamps.has(nodeId))
+  // An enemy that came back after resting is named again like a fight not won yet.
+  const nameOf = (nodeId: string) =>
+    pointName(t, index.nodes.get(nodeId)!, cleared.has(nodeId) && !respawned.has(nodeId), openCamps.has(nodeId))
   const busy = walking || !!pending
   const merchantHere = getMerchantHere(index, state)
 
