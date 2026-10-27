@@ -16,8 +16,10 @@ export interface CharacterState {
   talents: string[]
   /** Skill points traded for Echoes once its tree was complete. */
   traded: number
-  /** Upgrade of its weapon, 0..20. */
-  weapon: number
+  /** The weapon it holds (data/weapons.ts). */
+  weaponId: string
+  /** The weapons it owns, with their upgrade (0..20): the one it starts with and those taken from the reliquaries. */
+  weapons: Record<string, number>
   /** Runes equipped (up to 3, by index). */
   runes: number[]
   /** Echoes assigned to it for good: the budget of its echoes. */

@@ -140,7 +140,28 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'death-knight': 'a death knight in black plate armor riding nothing, with a skull helm and a soul-draining runeblade',
   'wraith-lord': 'a towering hooded wraith lord with a crown of black iron and ghostly chains',
   'void-sentinel': 'a massive faceless sentinel of black stone and violet void light',
-  'crucible-herald': 'the Herald of Crisol: a winged herald in molten-red armor with a trumpet-shaped forge staff'
+  'crucible-herald': 'the Herald of Crisol: a winged herald in molten-red armor with a trumpet-shaped forge staff',
+  // Reliquary wardens
+  'cinder-stag':
+    'the Cinder Stag: a huge stag of charred black bark and glowing embers, its antlers burning with orange flames',
+  'shell-colossus':
+    'the Shell Colossus: a towering turtle-like giant with a mossy jade shell covered in barnacles, standing upright on thick legs',
+  'glass-djinn':
+    'the Glass Djinn: a floating djinn made of clear blue glass with a whirlwind of sand and ice instead of legs',
+  'storm-harpy':
+    'the Storm Harpy: a large harpy with slate-gray feathers, sharp talons and wings crackling with blue lightning',
+  'granite-warden':
+    'the Granite Warden: a massive knight-shaped golem of gray granite blocks holding a stone tower shield, with amber runes',
+  'frost-reaver':
+    'the Frost Reaver: a hulking pale raider in ice-crusted furs with frozen braids and two jagged ice cleavers',
+  'ashen-seraph':
+    'the Ashen Seraph: a six-winged angelic figure of ash and gold with a cracked halo and a flaming sword held downwards',
+  'thorn-widow':
+    'the Thorn Widow: a giant black spider whose legs are thorny brambles and whose body is a withered violet flower',
+  'storm-revenant':
+    'the Storm Revenant: a ghostly armored knight made of storm clouds, its hollow helm full of lightning',
+  'prism-horror':
+    'the Prism Horror: a floating mass of crystal shards and many eyes that splits light into burning rainbow beams'
 }
 
 /** The heroes' own bodies: what stays when they change clothes and weapons. */
@@ -166,11 +187,38 @@ export const HERO_OUTFITS: Record<string, Record<string, string>> = {
 
 /** The weapons each hero can hold; the first one is the one they start with. */
 export const HERO_WEAPONS: Record<string, Record<string, string>> = {
-  kael: { sword: 'a long straight steel sword with a leather-wrapped grip and a simple cross guard' },
-  sera: { bow: 'a tall recurve bow of pale wood with a taut string' },
-  brann: { axe: 'a massive double-bladed battle axe with a long iron-banded haft' },
-  oren: { staff: 'a gnarled wooden staff topped with a glowing seed' },
-  ysolde: { staff: 'a tall crystal staff with fire, ice and lightning swirling in its crystal' }
+  kael: {
+    sword: 'a long straight steel sword with a leather-wrapped grip and a simple cross guard',
+    dawnbrand:
+      'Dawnclear, a slightly curved longsword whose blade glows orange-gold from within like a sunrise, with thin flames licking along its edge and a sun-shaped guard',
+    mace: "Ormund's Bastion, a heavy flanged steel mace with a long grip wrapped in blue leather and a small round shield-shaped pommel"
+  },
+  sera: {
+    bow: 'a tall recurve bow of pale wood with a taut string',
+    crossbow:
+      'Winter Fang, a compact crossbow of dark wood and frosted steel, with icicle-like prongs on its limbs and a pale blue bolt loaded',
+    'gale-bow':
+      'Gale Song, a slender bow of silver-white wood carved with wind spirals, with small feathers on its tips and faint sparks of lightning along the string'
+  },
+  brann: {
+    axe: 'a massive double-bladed battle axe with a long iron-banded haft',
+    maul: 'Quarry Heart, a huge two-handed maul whose head is a rough block of granite bound with iron bands, cracks glowing faint amber',
+    hatchets:
+      'one of the Red Sisters: a short single-bladed hatchet with a red-lacquered haft and a notched, blood-red steel blade'
+  },
+  oren: {
+    staff: 'a gnarled wooden staff topped with a glowing seed',
+    scepter:
+      'Noon, a short scepter of white wood and gold topped with a radiant sun disc that sheds warm light, with small leaves around the disc',
+    sickle:
+      'Last Harvest, a long-handled sickle of black wood whose curved blade is made of a single huge thorn dripping green venom'
+  },
+  ysolde: {
+    staff: 'a tall crystal staff with fire, ice and lightning swirling in its crystal',
+    'storm-scepter':
+      'Thunder Voice, a silver scepter crowned with a caged storm cloud, blue-white lightning crackling between its prongs',
+    wand: 'Dusk Prism, a slim wand of dark glass ending in a floating prism that splits the light into rainbow rays'
+  }
 }
 
 /** The heroes as they start: body, first outfit and first weapon. */

@@ -24,4 +24,4 @@ console.log(`World generated in ${Date.now() - started} ms (seed ${seed} → ${w
 console.log(`  ${world.nodes.length} points, ${world.edges.length} trails`)
 console.log(`  ${count(NodeType.CAMP_BOSS) + count(NodeType.START)} camps, ${count(NodeType.SANCTUARY)} sanctuaries`)
 console.log(`  ${count(NodeType.MERCHANT)} merchants, ${count(NodeType.TEAR)} Tears, ${count(NodeType.CHEST)} chests`)
-console.log(`  ${count(NodeType.COMBAT)} fights`)
+console.log(`  ${count(NodeType.RELIQUARY)} reliquaries, ${count(NodeType.COMBAT)} fights`)

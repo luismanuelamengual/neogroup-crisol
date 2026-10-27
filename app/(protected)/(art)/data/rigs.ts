@@ -92,7 +92,17 @@ const WEAPONS: Record<string, { grip: number; length: number }> = {
   sword: { grip: 0.12, length: 1.3 },
   bow: { grip: 0.5, length: 1.6 },
   axe: { grip: 0.3, length: 1.5 },
-  staff: { grip: 0.4, length: 2 }
+  staff: { grip: 0.4, length: 2 },
+  dawnbrand: { grip: 0.12, length: 1.35 },
+  mace: { grip: 0.15, length: 1.1 },
+  crossbow: { grip: 0.35, length: 1.1 },
+  'gale-bow': { grip: 0.5, length: 1.6 },
+  maul: { grip: 0.25, length: 1.6 },
+  hatchets: { grip: 0.2, length: 0.9 },
+  scepter: { grip: 0.3, length: 1.1 },
+  sickle: { grip: 0.35, length: 1.5 },
+  'storm-scepter': { grip: 0.3, length: 1.2 },
+  wand: { grip: 0.25, length: 0.9 }
 }
 /** Limbs are sized by their upper segment: the lower one may carry a shield. */
 const SIZES: Record<BodyPart, SlotSize> = {

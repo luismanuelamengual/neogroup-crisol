@@ -21,8 +21,10 @@ import type { MessageKey } from '@/app/i18n/messages'
 interface PartyScreenProps {
   open: boolean
   state: GameState
-  /** The party stands at an open camp: the weapon, the runes and the echoes can be changed. */
+  /** The party stands at an open camp: the weapons can be upgraded and the runes and the echoes changed. */
   atCamp: boolean
+  /** The party stands on a cleared point: the weapons can be swapped. */
+  canSwap: boolean
   onChange: (state: GameState) => void
   onClose: () => void
 }
@@ -32,7 +34,7 @@ type View = 'heroes' | 'inventory' | 'bestiary'
 const VIEWS: View[] = ['heroes', 'inventory', 'bestiary']
 
 /** The party (full screen over the map): formation and build of each hero, the inventory and the bestiary. */
-export default function PartyScreen({ open, state, atCamp, onChange, onClose }: PartyScreenProps) {
+export default function PartyScreen({ open, state, atCamp, canSwap, onChange, onClose }: PartyScreenProps) {
   const t = useT()
   const [view, setView] = useState<View>('heroes')
   const [selectedId, setSelectedId] = useState<CharacterId>(state.characters[0].id)
@@ -109,7 +111,7 @@ export default function PartyScreen({ open, state, atCamp, onChange, onClose }: 
               </ol>
               {state.characters.length > ACTIVE_HEROES && <p className="hint">{t('party.formationHint')}</p>}
             </section>
-            <HeroSheet state={state} character={selected} atCamp={atCamp} onChange={onChange} />
+            <HeroSheet state={state} character={selected} atCamp={atCamp} canSwap={canSwap} onChange={onChange} />
           </>
         )}
         {view === 'inventory' && <InventoryList state={state} />}

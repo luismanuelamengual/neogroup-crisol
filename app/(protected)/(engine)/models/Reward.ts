@@ -9,6 +9,7 @@ export type Reward =
   | { type: 'flaskPotency'; potency: number }
   | { type: 'rune'; runeIndex: number; tier: RuneTier }
   | { type: 'tear' }
+  | { type: 'weapon'; weaponId: string; characterId: CharacterId }
   | { type: 'gold'; amount: number }
   | { type: 'item'; itemId: string; count: number }
   | { type: 'echoes'; count: number }

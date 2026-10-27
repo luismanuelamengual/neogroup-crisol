@@ -214,6 +214,7 @@ export function createBattle(setup: BattleSetup): BattleStep {
       id: `h-${character.id}`,
       side: 'hero',
       characterId: character.id,
+      weaponId: character.weaponId,
       level: character.level,
       stats,
       health: Math.min(character.health, stats.maxHealth),

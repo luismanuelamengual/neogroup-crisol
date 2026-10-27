@@ -5,11 +5,12 @@ import AddIcon from '@mui/icons-material/Add'
 import IconButton from '@mui/material/IconButton'
 import classNames from 'classnames'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getTree } from '@/app/(protected)/(engine)/data/talents'
 import {
+  getCharacterWeapons,
   getUpgradeCost,
   MAX_WEAPON_LEVEL,
-  WEAPON_EFFECTS,
   WEAPON_POWER_PER_LEVEL
 } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
@@ -23,10 +24,12 @@ import {
   canUpgradeWeapon,
   equipEcho,
   equipRune,
+  equipWeapon,
   getAttributePoints,
   getCharacterStats,
   getEchoLoad,
   getSkillPoints,
+  getWeaponLevel,
   isRuneMastered,
   isTreeComplete,
   spendAttributePoint,
@@ -45,6 +48,7 @@ import {
   formatStat,
   itemName,
   runeName,
+  skillName,
   talentName
 } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
@@ -55,6 +59,8 @@ interface HeroSheetProps {
   state: GameState
   character: CharacterState
   atCamp: boolean
+  /** The party stands on a cleared point: the weapons can be swapped. */
+  canSwap: boolean
   onChange: (state: GameState) => void
 }
 
@@ -70,7 +76,7 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
 ]
 
 /** The build of one hero: attributes, skill tree, weapon, runes and echoes. */
-export default function HeroSheet({ state, character, atCamp, onChange }: HeroSheetProps) {
+export default function HeroSheet({ state, character, atCamp, canSwap, onChange }: HeroSheetProps) {
   const t = useT()
   const id = character.id
   const name = t(`characters.${id}.name` as MessageKey)
@@ -81,8 +87,6 @@ export default function HeroSheet({ state, character, atCamp, onChange }: HeroSh
   const owner = (index: number) => state.characters.find((other) => other.runes.includes(index))
   const mastered = state.runes.filter((index) => isRuneMastered(state, index)).sort((a, b) => a - b)
   const echoLoad = getEchoLoad(character)
-  const nextUpgrade = character.weapon < MAX_WEAPON_LEVEL ? getUpgradeCost(character.weapon + 1) : null
-  const nextEffect = WEAPON_EFFECTS[id][Math.floor(character.weapon / 5)]
 
   return (
     <div className="hero-sheet">
@@ -179,43 +183,97 @@ export default function HeroSheet({ state, character, atCamp, onChange }: HeroSh
       {!atCamp && <p className="camp-only">{t('party.campOnly')}</p>}
 
       <section>
-        <h3>
-          {t('party.weapon')}
-          <small>{t('party.weaponLevel', { level: character.weapon })}</small>
-        </h3>
-        <p className="lines">
-          {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * character.weapon).slice(1) })}
-        </p>
-        {nextEffect && (
-          <p className="lines">
-            {t('party.weaponNext', {
-              level: (Math.floor(character.weapon / 5) + 1) * 5,
-              effect: describeBonuses(t, nextEffect).join(' · ')
-            })}
-          </p>
-        )}
-        {nextUpgrade ? (
-          <div className="row">
-            <span className="lines">
-              {t('party.upgradeCost', {
-                stones: nextUpgrade.stones,
-                stone: itemName(t, nextUpgrade.stoneId),
-                gold: nextUpgrade.gold
-              })}
-              {' · '}
-              {t('party.have', { count: state.inventory[nextUpgrade.stoneId] ?? 0 })}
-            </span>
-            <GameButton
-              size="small"
-              disabled={!atCamp || !canUpgradeWeapon(state, character)}
-              onClick={() => onChange(upgradeWeapon(state, id))}
-            >
-              {t('party.upgrade', { level: character.weapon + 1 })}
-            </GameButton>
-          </div>
-        ) : (
-          <p className="lines">{t('party.weaponMax')}</p>
-        )}
+        <h3>{t('party.weapons')}</h3>
+        {!canSwap && <p className="lines">{t('party.swapOnly')}</p>}
+        <ul className="cards weapons">
+          {getCharacterWeapons(id).map((weapon) => {
+            const owned = weapon.id in character.weapons
+            const held = weapon.id === character.weaponId
+            const level = getWeaponLevel(character, weapon.id)
+            const attack = getSkill(weapon.attack)
+            const nextUpgrade = owned && level < MAX_WEAPON_LEVEL ? getUpgradeCost(level + 1) : null
+            const nextEffect = weapon.effects[Math.floor(level / 5)]
+            const traits = describeBonuses(t, weapon.traits)
+
+            return (
+              <li key={weapon.id} className={classNames({ worn: held, missing: !owned })}>
+                <div className="titles">
+                  <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
+                  <span className="tag">{held ? t('party.weaponHeld') : owned ? `+${level}` : t('party.unknown')}</span>
+                </div>
+                <p className="lines kind">
+                  {t(`weapons.${weapon.id}.kind` as MessageKey)}
+                  {owned && held && ` · +${level}`}
+                </p>
+                <p className="lines">
+                  {t('party.weaponAttack', {
+                    skill: skillName(t, attack.id),
+                    type: t(`damageTypes.${attack.damageType}`),
+                    target: t(`targets.${attack.target}`)
+                  })}
+                </p>
+                <p className="lines">
+                  {traits.length > 0
+                    ? t('party.weaponStyle', { traits: traits.join(' · ') })
+                    : t('party.weaponBalanced')}
+                </p>
+                {owned ? (
+                  <>
+                    <p className="lines">
+                      {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * level).slice(1) })}
+                    </p>
+                    {nextEffect && (
+                      <p className="lines">
+                        {t('party.weaponNext', {
+                          level: (Math.floor(level / 5) + 1) * 5,
+                          effect: describeBonuses(t, nextEffect).join(' · ')
+                        })}
+                      </p>
+                    )}
+                    {nextUpgrade ? (
+                      <p className="lines">
+                        {t('party.upgradeCost', {
+                          stones: nextUpgrade.stones,
+                          stone: itemName(t, nextUpgrade.stoneId),
+                          gold: nextUpgrade.gold
+                        })}
+                        {' · '}
+                        {t('party.have', { count: state.inventory[nextUpgrade.stoneId] ?? 0 })}
+                      </p>
+                    ) : (
+                      <p className="lines">{t('party.weaponMax')}</p>
+                    )}
+                    <div className="actions">
+                      {!held && (
+                        <GameButton
+                          size="small"
+                          color="cyan"
+                          disabled={!canSwap}
+                          onClick={() => onChange(equipWeapon(state, id, weapon.id))}
+                        >
+                          {t('party.wield')}
+                        </GameButton>
+                      )}
+                      {nextUpgrade && (
+                        <GameButton
+                          size="small"
+                          disabled={!atCamp || !canUpgradeWeapon(state, character, weapon.id)}
+                          onClick={() => onChange(upgradeWeapon(state, id, weapon.id))}
+                        >
+                          {t('party.upgrade', { level: level + 1 })}
+                        </GameButton>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <p className="lines">
+                    {t('party.weaponMissing', { biome: t(`world.biomes.${weapon.biome}` as MessageKey) })}
+                  </p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       <section>

@@ -1,5 +1,6 @@
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getTree } from '@/app/(protected)/(engine)/data/talents'
+import { getStartingWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
@@ -15,7 +16,7 @@ const CASTERS = [CharacterId.OREN, CharacterId.YSOLDE]
  * level (about +1 every three levels in the first biomes).
  */
 export function buildCharacter(id: CharacterId, level: number, weapon = Math.min(5, Math.floor(level / 3))) {
-  let character: CharacterState = { ...createCharacter(id, level), weapon }
+  let character: CharacterState = { ...createCharacter(id, level), weapons: { [getStartingWeapon(id).id]: weapon } }
 
   for (let point = 0; point < level - 1; point++) {
     const planned = ATTRIBUTE_PLAN[point % ATTRIBUTE_PLAN.length]

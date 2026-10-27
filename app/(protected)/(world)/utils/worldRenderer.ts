@@ -540,6 +540,30 @@ export class WorldRenderer {
         g.circle(x + radius * 0.35, y - radius * 0.1, radius * 0.22).fill({ color: OUTLINE })
         g.rect(x - radius * 0.3, y + radius * 0.35, radius * 0.6, radius * 0.18).fill({ color: OUTLINE })
         break
+      case 'sword':
+        // A blade pointing up on a dark shield.
+        g.circle(x, y, radius)
+          .fill({ color: 0x1a1220 })
+          .stroke({ ...stroke, color })
+        g.poly([
+          x,
+          y - radius * 0.8,
+          x + radius * 0.16,
+          y - radius * 0.55,
+          x + radius * 0.16,
+          y + radius * 0.25,
+          x - radius * 0.16,
+          y + radius * 0.25,
+          x - radius * 0.16,
+          y - radius * 0.55
+        ])
+          .fill({ color })
+          .stroke({ width: 3, color: OUTLINE })
+        g.roundRect(x - radius * 0.45, y + radius * 0.22, radius * 0.9, radius * 0.16, radius * 0.06)
+          .fill({ color: 0xffc233 })
+          .stroke({ width: 3, color: OUTLINE })
+        g.rect(x - radius * 0.08, y + radius * 0.38, radius * 0.16, radius * 0.32).fill({ color: 0x6b3f1d })
+        break
       case 'gate':
         g.roundRect(x - radius * 0.7, y - radius, radius * 1.4, radius * 1.8, radius * 0.7)
           .fill({ color })

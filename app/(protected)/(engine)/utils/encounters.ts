@@ -5,6 +5,7 @@ import {
   getSpecies,
   GUARDIAN_SPECIES
 } from '@/app/(protected)/(engine)/data/enemies'
+import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { WORLD_SEED } from '@/app/(protected)/(engine)/data/world'
 import { EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
@@ -16,7 +17,8 @@ import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
  * The enemies of each point: a fixed encounter (the same every time, also
  * after resting) chosen from the node id, with 1 to 3 phases of 1 to 3
  * enemies of its biome (the rare species show up less). The first points of
- * a biome are gentler. Camps, sanctuaries and Seals have their own bosses.
+ * a biome are gentler. Camps, sanctuaries, Seals and reliquaries have their
+ * own bosses.
  */
 
 /** How often each rarity shows up in the fights of its biome. */
@@ -127,6 +129,10 @@ export function getEncounterPhases(node: WorldNode, encounter: Encounter): Enemy
         ? [[{ speciesId: boss, level }, ...commonPhase(random, node, level - 2, 1)]]
         : [[{ speciesId: boss, level }]]
     }
+
+    case EncounterKind.WARDEN:
+      // Its elite escort first, then the warden.
+      return [commonPhase(random, node, level - 2, 2, true), [{ speciesId: getWeapon(node.weaponId!).warden!, level }]]
 
     case EncounterKind.CAPTOR:
     case EncounterKind.SEAL:

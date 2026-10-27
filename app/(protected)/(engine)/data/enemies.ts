@@ -7,8 +7,9 @@ import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 
 /**
  * Catalog of enemies (names in i18n, enemies.<id>): nine species per biome
- * (four common, three uncommon and two rare) and the 42 bosses: 22 mini
- * bosses, 4 captors, 3 Seals, 12 sanctuary guardians and Crisol.
+ * (four common, three uncommon and two rare) and the 52 bosses: 22 mini
+ * bosses, 4 captors, 3 Seals, 12 sanctuary guardians, 10 reliquary wardens
+ * and Crisol.
  */
 
 /** Attributes of each archetype at level 1. */
@@ -1155,8 +1156,105 @@ const BOSSES: EnemySpecies[] = [
     { rarity: 'boss', strength: 2.6, bars: 2, size: 2, phaseSkills: [['fire-wave', 'war-cry']] }
   )
 ]
+/**
+ * The wardens of the reliquaries (one per weapon to find, see data/weapons.ts):
+ * the hardest fights out of the way, with three health bars and a script.
+ */
+const WARDEN = { rarity: 'boss', bars: 3, size: 2 } as const
+const WARDENS: EnemySpecies[] = [
+  species(
+    'cinder-stag',
+    Biome.FOREST,
+    Archetype.BRUTE,
+    ['claw', 'gore', 'fire-breath'],
+    { [ICE]: WEAK, [FIRE]: ABSORB, [PIERCE]: RESIST },
+    0xea580c,
+    { ...WARDEN, strength: 2.5, phaseSkills: [['roar'], ['blood-howl']] }
+  ),
+  species(
+    'shell-colossus',
+    Biome.TROPICAL,
+    Archetype.TANK,
+    ['bash', 'crush', 'bulwark'],
+    { [LIGHTNING]: WEAK, [BLUNT]: RESIST, [SLASH]: RESIST },
+    0x0f766e,
+    { ...WARDEN, strength: 2, phaseSkills: [['quake'], ['war-cry']] }
+  ),
+  species(
+    'glass-djinn',
+    Biome.DESERT,
+    Archetype.CASTER,
+    ['ice-bolt', 'ice-wave', 'hex'],
+    { [FIRE]: WEAK, [ICE]: ABSORB, [EARTH]: RESIST },
+    0x67e8f9,
+    { ...WARDEN, strength: 2.8, phaseSkills: [['curse'], ['sandstorm']] }
+  ),
+  species(
+    'storm-harpy',
+    Biome.MOUNTAINS,
+    Archetype.AGILE,
+    ['bite', 'lunge', 'lightning-bolt', 'shriek'],
+    { [EARTH]: WEAK, [LIGHTNING]: ABSORB },
+    0x6366f1,
+    { ...WARDEN, strength: 2.6, phaseSkills: [['pounce'], ['lightning-wave']] }
+  ),
+  species(
+    'granite-warden',
+    Biome.MOUNTAINS,
+    Archetype.TANK,
+    ['bash', 'earth-wave', 'bulwark'],
+    { [BLUNT]: WEAK, [EARTH]: ABSORB, [SLASH]: RESIST, [PIERCE]: RESIST },
+    0x78716c,
+    { ...WARDEN, strength: 1.85, phaseSkills: [['quake'], ['crush']] }
+  ),
+  species(
+    'frost-reaver',
+    Biome.SNOW,
+    Archetype.BRUTE,
+    ['claw', 'rend', 'frost-breath'],
+    { [FIRE]: WEAK, [ICE]: IMMUNE },
+    0x93c5fd,
+    { ...WARDEN, strength: 1.9, phaseSkills: [['war-cry', 'blood-howl'], ['crush']] }
+  ),
+  species(
+    'ashen-seraph',
+    Biome.VOLCANIC,
+    Archetype.CASTER,
+    ['fire-bolt', 'smite', 'fire-wave'],
+    { [ICE]: WEAK, [FIRE]: ABSORB, [LIGHT]: RESIST },
+    0xfcd34d,
+    { ...WARDEN, strength: 1.8, phaseSkills: [['war-cry'], ['chorus']] }
+  ),
+  species(
+    'thorn-widow',
+    Biome.WASTELANDS,
+    Archetype.AGILE,
+    ['bite', 'venom-bite', 'web', 'rend'],
+    { [FIRE]: WEAK, [LIGHT]: WEAK, [DARKNESS]: RESIST },
+    0x4a044e,
+    { ...WARDEN, strength: 2, phaseSkills: [['spore-cloud'], ['shriek']] }
+  ),
+  species(
+    'storm-revenant',
+    Biome.WASTELANDS,
+    Archetype.CASTER,
+    ['lightning-bolt', 'soul-drain', 'lightning-wave'],
+    { [LIGHT]: WEAK, [LIGHTNING]: ABSORB, [DARKNESS]: RESIST },
+    0x818cf8,
+    { ...WARDEN, strength: 2, phaseSkills: [['curse'], ['darkness-wave']] }
+  ),
+  species(
+    'prism-horror',
+    Biome.ABYSS,
+    Archetype.CASTER,
+    ['fire-bolt', 'ice-bolt', 'lightning-wave', 'curse'],
+    { [DARKNESS]: WEAK, [LIGHT]: ABSORB, [FIRE]: RESIST, [ICE]: RESIST },
+    0xf0abfc,
+    { ...WARDEN, strength: 2.1, phaseSkills: [['darkness-wave'], ['war-cry']] }
+  )
+]
 
-export const ENEMIES: EnemySpecies[] = [...COMMON, ...BOSSES]
+export const ENEMIES: EnemySpecies[] = [...COMMON, ...BOSSES, ...WARDENS]
 
 const ENEMIES_BY_ID = new Map(ENEMIES.map((enemy) => [enemy.id, enemy]))
 

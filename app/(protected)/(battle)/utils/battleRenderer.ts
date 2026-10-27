@@ -1,5 +1,5 @@
 import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
-import { RIGS } from '@/app/(protected)/(art)/data/rigs'
+import { HERO_LOADOUTS, heroRig, Rig, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
@@ -8,6 +8,7 @@ import { BattleScenery, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
+import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
 import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
@@ -59,6 +60,20 @@ const FONT = 'Cinzel, Georgia, serif'
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
 const FIGURE_HEIGHT = 120
 const OUTLINE = 0x0a0710
+
+/** The puppet of a fighter: a hero holds its weapon (the one it starts with while that image is missing). */
+function rigOf(combatant: Combatant, artId: string, parts: ArtManifest['parts']): Rig | null {
+  if (combatant.side === 'hero' && combatant.weaponId) {
+    const id = combatant.characterId!
+    const rig = heroRig(id, { ...HERO_LOADOUTS[id], weapon: getWeapon(combatant.weaponId).art })
+
+    if (parts[rig.images.weapon]) {
+      return rig
+    }
+  }
+
+  return RIGS[artId] ?? null
+}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -119,14 +134,14 @@ export class BattleRenderer {
     const { images, parts, props, decorations } = await loadArtManifest()
     // While only one of a biome's two backgrounds exists, every battle there uses it.
     const backgroundId = images[wantedBackground] ? wantedBackground : wantedBackground.replace(/-\d$/, '-1')
+    const heroes = battle.combatants.filter((combatant) => combatant.side === 'hero')
     const figureIds = [
-      ...battle.combatants
-        .filter((combatant) => combatant.side === 'hero')
-        .map((hero) => figureArtId('hero', hero.characterId!, false)),
+      ...heroes.map((hero) => figureArtId('hero', hero.characterId!, false)),
       ...battle.phases
         .flat()
         .map((spawn) => figureArtId('enemy', spawn.speciesId, getSpecies(spawn.speciesId).rarity === 'boss'))
     ]
+    const heroRigs = heroes.map((hero) => rigOf(hero, figureArtId('hero', hero.characterId!, false), parts))
     // The biome's battle props; until they exist, its map decorations that stand upright.
     const propIds = props[battle.biome]?.length
       ? props[battle.biome]
@@ -135,7 +150,8 @@ export class BattleRenderer {
       backgroundId,
       ...propIds,
       ...figureIds,
-      ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : []))
+      ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : [])),
+      ...heroRigs.flatMap((rig) => (rig ? rigPartIds(rig, parts) : []))
     ])
 
     await app.init({
@@ -304,7 +320,8 @@ export class BattleRenderer {
         ? figureArtId('hero', combatant.characterId!, false)
         : figureArtId('enemy', combatant.speciesId!, getSpecies(combatant.speciesId!).rarity === 'boss')
     const texture = this.art.get(artId)
-    const rig = RIGS[artId] ? RigFigure.create(RIGS[artId], this.parts, this.art, artHeight(combatant.side)) : null
+    const puppet = rigOf(combatant, artId, this.parts)
+    const rig = puppet ? RigFigure.create(puppet, this.parts, this.art, artHeight(combatant.side)) : null
     const body = rig
       ? drawRig(rig)
       : texture

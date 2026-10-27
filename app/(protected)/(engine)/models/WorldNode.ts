@@ -24,6 +24,8 @@ export interface WorldNode {
   runeIndex?: number
   runeTier?: RuneTier
   guardian?: boolean
+  /** RELIQUARY: the weapon it keeps (data/weapons.ts). */
+  weaponId?: string
   /** MERCHANT. */
   merchant?: MerchantId
 }

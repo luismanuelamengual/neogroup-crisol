@@ -20,6 +20,25 @@ const ELEMENTS = [
 const HERO_SKILLS: Skill[] = [
   // Kael: sword.
   { id: 'kael-strike', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.SLASH },
+  // The attacks of its other weapons (data/weapons.ts).
+  {
+    id: 'kael-dawn-cut',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.9,
+    stat: 'attack',
+    damageType: DamageType.FIRE,
+    statuses: [{ type: StatusType.BURN, chance: 0.25, turns: 2 }]
+  },
+  {
+    id: 'kael-mace-blow',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.95,
+    stat: 'attack',
+    damageType: DamageType.BLUNT,
+    statuses: [{ type: StatusType.STUN, chance: 0.12, turns: 1 }]
+  },
   { id: 'kael-firm-cut', cost: 12, target: TargetType.ENEMY, power: 1.7, stat: 'attack', damageType: DamageType.SLASH },
   {
     id: 'kael-flame-edge',
@@ -86,6 +105,23 @@ const HERO_SKILLS: Skill[] = [
   // Sera: bow.
   { id: 'sera-shot', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.PIERCE },
   {
+    id: 'sera-frost-bolt',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 1.25,
+    stat: 'attack',
+    damageType: DamageType.ICE,
+    statuses: [{ type: StatusType.FREEZE, chance: 0.1, turns: 1 }]
+  },
+  {
+    id: 'sera-gale-shot',
+    cost: 0,
+    target: TargetType.ALL_ENEMIES,
+    power: 0.55,
+    stat: 'attack',
+    damageType: DamageType.LIGHTNING
+  },
+  {
     id: 'sera-piercing-arrow',
     cost: 12,
     target: TargetType.ENEMY,
@@ -113,6 +149,25 @@ const HERO_SKILLS: Skill[] = [
   },
   // Brann: axe.
   { id: 'brann-chop', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.SLASH },
+  {
+    id: 'brann-maul-smash',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 1.15,
+    stat: 'attack',
+    damageType: DamageType.EARTH,
+    statuses: [{ type: StatusType.STUN, chance: 0.15, turns: 1 }]
+  },
+  {
+    id: 'brann-twin-cut',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.8,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    critBonus: 0.1,
+    statuses: [{ type: StatusType.BLEED, chance: 0.35, turns: 2 }]
+  },
   { id: 'brann-cleave', cost: 14, target: TargetType.ENEMY, power: 1.9, stat: 'attack', damageType: DamageType.SLASH },
   {
     id: 'brann-earthsplitter',
@@ -134,6 +189,24 @@ const HERO_SKILLS: Skill[] = [
   },
   // Oren: staff, support.
   { id: 'oren-staff', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.BLUNT },
+  {
+    id: 'oren-sun-ray',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.8,
+    stat: 'special',
+    damageType: DamageType.LIGHT,
+    statuses: [{ type: StatusType.BLIND, chance: 0.15, turns: 2 }]
+  },
+  {
+    id: 'oren-sickle-cut',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 1.05,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    statuses: [{ type: StatusType.POISON, chance: 0.35, turns: 3 }]
+  },
   {
     id: 'oren-mend',
     cost: 12,
@@ -163,6 +236,24 @@ const HERO_SKILLS: Skill[] = [
   },
   // Ysolde: magic staff.
   { id: 'ysolde-rod', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.BLUNT },
+  {
+    id: 'ysolde-storm-strike',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.6,
+    stat: 'special',
+    damageType: DamageType.LIGHTNING,
+    statuses: [{ type: StatusType.SPEED_DOWN, chance: 0.2, turns: 2 }]
+  },
+  {
+    id: 'ysolde-prism-ray',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 0.75,
+    stat: 'special',
+    damageType: DamageType.LIGHT,
+    statuses: [{ type: StatusType.BLIND, chance: 0.15, turns: 2 }]
+  },
   {
     id: 'ysolde-fireball',
     cost: 14,

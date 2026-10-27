@@ -79,6 +79,23 @@ describe('saved games', () => {
     expect(loaded.state.characters).toEqual([{ ...createCharacter(CharacterId.KAEL, 2), xp: 5, health: 132 }])
   })
 
+  it('gives the upgrade of the only weapon of a v4 game to the weapon each character starts with', async () => {
+    await startNewGame(userId)
+
+    const stored = await Save.where('userId', userId).first()
+    const { weaponId, weapons, ...kael } = createCharacter(CharacterId.KAEL, 12)
+
+    expect([weaponId, weapons]).toEqual(['oath-sword', { 'oath-sword': 0 }])
+    stored!.saveVersion = 4
+    stored!.data = { ...(stored!.data as object), characters: [{ ...kael, weapon: 7 }] }
+    await stored!.save()
+
+    const loaded = await loadGame(userId)
+
+    expect(isGameState(loaded.state)).toBe(true)
+    expect(loaded.state.characters[0]).toMatchObject({ weaponId: 'oath-sword', weapons: { 'oath-sword': 7 } })
+  })
+
   it('replaces the saved game when a new one is started', async () => {
     const save = await startNewGame(userId)
 

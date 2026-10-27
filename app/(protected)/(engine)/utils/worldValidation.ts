@@ -1,4 +1,5 @@
 import { BIOME_LINKS, BIOMES } from '@/app/(protected)/(engine)/data/biomes'
+import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
@@ -173,11 +174,21 @@ export function validateWorld(world: World): string[] {
 
   // Dead ends: sanctuaries, Tears and chests are never on the way through.
   for (const node of world.nodes) {
-    if ([NodeType.SANCTUARY, NodeType.TEAR, NodeType.CHEST].includes(node.type)) {
+    if ([NodeType.SANCTUARY, NodeType.TEAR, NodeType.CHEST, NodeType.RELIQUARY].includes(node.type)) {
       check(adjacency.get(node.id)!.length === 1, `${node.id} (${node.type}) is not in a dead end`)
     }
   }
 
+  // Reliquaries: one per weapon to find, in its biome.
+  const reliquaries = world.nodes.filter((node) => node.type === NodeType.RELIQUARY)
+
+  for (const weapon of WEAPONS.filter((item) => item.biome)) {
+    const found = reliquaries.filter((node) => node.weaponId === weapon.id)
+
+    check(found.length === 1 && found[0].biome === weapon.biome, `the reliquary of ${weapon.id} is misplaced`)
+  }
+
+  check(reliquaries.length === WEAPONS.filter((item) => item.biome).length, `${reliquaries.length} reliquaries`)
   // Merchants and Tears.
   const merchants = world.nodes.filter((node) => node.type === NodeType.MERCHANT)
 

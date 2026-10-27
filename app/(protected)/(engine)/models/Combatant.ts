@@ -18,6 +18,8 @@ export interface Combatant {
   side: 'hero' | 'enemy'
   /** Heroes. */
   characterId?: CharacterId
+  /** Heroes: the weapon they hold (it shows in their figure). */
+  weaponId?: string
   /** Enemies: their species (bosses included) and whether they are the elite variant. */
   speciesId?: string
   elite?: boolean

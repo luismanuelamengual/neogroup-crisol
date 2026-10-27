@@ -22,7 +22,7 @@ export const BIOME_GROUND: Record<Biome, string> = {
   [Biome.ABYSS]: '#2b0c3d'
 }
 
-export type MarkerShape = 'circle' | 'diamond' | 'square' | 'flame' | 'skull' | 'drop' | 'gate'
+export type MarkerShape = 'circle' | 'diamond' | 'square' | 'flame' | 'skull' | 'drop' | 'gate' | 'sword'
 
 export interface MarkerStyle {
   shape: MarkerShape
@@ -54,6 +54,8 @@ export function markerOf(node: WorldNode, cleared: boolean, openCamp: boolean): 
       return { shape: 'drop', color: cleared ? 0x5a6f99 : 0x3b82f6, radius: 34 }
     case NodeType.CHEST:
       return { shape: 'square', color: cleared ? 0x6b5233 : 0xc98a3b, radius: 28 }
+    case NodeType.RELIQUARY:
+      return { shape: 'sword', color: cleared ? 0x7a8494 : 0xe2e8f0, radius: 44 }
     case NodeType.ABYSS_GATE:
       return { shape: 'gate', color: cleared ? 0x7c3aed : 0x3b1d5c, radius: 60 }
     case NodeType.FINAL_BOSS:

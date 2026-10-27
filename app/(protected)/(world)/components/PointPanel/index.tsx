@@ -15,8 +15,11 @@ interface PointPanelProps {
   name: string
   /** Line under the name: what waits there (kind and level), or its state. */
   detail: string | null
-  /** Where the point is: the party stands on it, there is a route to it, or there is none yet. */
-  reach: 'here' | 'route' | 'none'
+  /**
+   * Where the point is: the party stands on it, there is a route to it, there
+   * is none yet, or it is shut for the party (its detail says why).
+   */
+  reach: 'here' | 'route' | 'none' | 'shut'
   steps: number
   openCamp: boolean
   merchant: boolean

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { CAPTOR_ECHOES, CAPTOR_STONES, CYCLE_LEVELS } from '@/app/(protected)/(engine)/data/cycles'
 import { EMBER_MINIBOSS_IDS } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
+import { getStartingWeapon, getWeapon, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
@@ -9,6 +10,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
+import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
 import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
 import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
@@ -18,6 +20,7 @@ import {
   drinkFlask,
   getEncounter,
   getFlask,
+  getMissingOwner,
   getReachableNodeIds,
   getRevealedNodeIds,
   indexWorld,
@@ -179,13 +182,68 @@ describe('fights', () => {
   })
 })
 
+describe('weapon reliquaries', () => {
+  const reliquaryOf = (weaponId: string) => findNode((node) => node.weaponId === weaponId)
+
+  it('keeps every weapon to find in a reliquary of its biome, guarded by its warden', () => {
+    for (const weapon of WEAPONS.filter((item) => item.biome)) {
+      const node = reliquaryOf(weapon.id)
+
+      expect(node).toMatchObject({ type: NodeType.RELIQUARY, biome: weapon.biome })
+      expect(neighborsOf(node.id)).toHaveLength(1)
+
+      const encounter = getEncounter(index, nextTo(node.id), node.id)!
+
+      expect(encounter.kind).toBe(EncounterKind.WARDEN)
+      expect(encounter.canRetreat).toBe(false)
+      expect(
+        getEncounterPhases(node, encounter)
+          .flat()
+          .map((spawn) => spawn.speciesId)
+      ).toContain(weapon.warden)
+    }
+  })
+
+  it('opens only for the owner of the weapon and gives it to them', () => {
+    const node = reliquaryOf('frost-crossbow')
+    const withoutSera = nextTo(node.id)
+
+    expect(getMissingOwner(withoutSera, node)).toBe(CharacterId.SERA)
+    expect(planRoute(index, withoutSera, node.id)).toBeNull()
+
+    const withSera = { ...withoutSera, characters: [...withoutSera.characters, createCharacter(CharacterId.SERA, 20)] }
+
+    expect(getMissingOwner(withSera, node)).toBeNull()
+    expect(planRoute(index, withSera, node.id)).toHaveLength(2)
+
+    const won = winEncounter(index, arriveAt(index, withSera, node.id).state, {})
+    const sera = won.state.characters.find((character) => character.id === CharacterId.SERA)!
+
+    expect(won.rewards).toContainEqual({ type: 'weapon', weaponId: 'frost-crossbow', characterId: CharacterId.SERA })
+    expect(sera.weapons).toEqual({ 'ranger-bow': 0, 'frost-crossbow': 0 })
+    expect(sera.weaponId).toBe('ranger-bow')
+  })
+
+  it("gives Echoes and stones instead when the weapon is already the party's (New Game+)", () => {
+    const node = reliquaryOf(getWeapon('dawnbrand').id)
+    const state = nextTo(node.id, {
+      cycle: 1,
+      characters: [{ ...createCharacter(CharacterId.KAEL, 30), weapons: { 'oath-sword': 0, dawnbrand: 7 } }]
+    })
+    const won = winEncounter(index, arriveAt(index, state, node.id).state, {})
+
+    expect(won.rewards.map((reward) => reward.type)).toEqual(expect.arrayContaining(['echoes', 'item']))
+    expect(won.state.characters[0].weapons.dawnbrand).toBe(7)
+  })
+})
+
 describe('camp bosses and the Amber Flask', () => {
   const captor = findNode((node) => node.bossKind === BossKind.CAPTOR)
   const seals = world.nodes.filter((node) => node.bossKind === BossKind.SEAL)
 
   it('opens a camp and rescues the captive when a captor falls', () => {
     const state = nextTo(captor.id, {
-      characters: [{ ...createCharacter(CharacterId.KAEL, 10), xp: 0, health: 1 }]
+      characters: [{ ...createCharacter(CharacterId.KAEL, 20), xp: 0, health: 1 }]
     })
     const arrived = arriveAt(index, state, captor.id)
 
@@ -195,10 +253,10 @@ describe('camp bosses and the Amber Flask', () => {
 
     expect(won.openCampIds).toContain(captor.id)
     expect(won.characters.map((character) => character.id)).toEqual([CharacterId.KAEL, captor.captive])
-    expect(won.characters[1]).toMatchObject({ level: 7 })
+    expect(won.characters[1]).toMatchObject({ level: 10 })
     expect(rewards).toEqual([
       { type: 'camp', nodeId: captor.id },
-      { type: 'character', characterId: captor.captive, level: 7 },
+      { type: 'character', characterId: captor.captive, level: 10 },
       { type: 'flaskPotency', potency: 15 }
     ])
   })
@@ -257,7 +315,14 @@ describe('New Game+', () => {
   const beaten: GameState = {
     ...createInitialGameState('test'),
     characters: [
-      { ...createCharacter(CharacterId.KAEL, 60), weapon: 12, talents: ['kael-sharpness'], xp: 0, health: 1 },
+      {
+        ...createCharacter(CharacterId.KAEL, 60),
+        weaponId: 'dawnbrand',
+        weapons: { 'oath-sword': 12, dawnbrand: 3 },
+        talents: ['kael-sharpness'],
+        xp: 0,
+        health: 1
+      },
       { ...createCharacter(captor.captive!, 55), xp: 0, health: 1 }
     ],
     clearedNodeIds: [world.startNodeId, crisol, captor.id],
@@ -297,9 +362,9 @@ describe('New Game+', () => {
       tears: 2,
       kills: beaten.kills
     })
-    expect(next.characters.map((character) => [character.id, character.level, character.weapon])).toEqual([
-      [CharacterId.KAEL, 60, 12],
-      [captor.captive, 55, 0]
+    expect(next.characters.map((character) => [character.id, character.level, character.weapons])).toEqual([
+      [CharacterId.KAEL, 60, { 'oath-sword': 12, dawnbrand: 3 }],
+      [captor.captive, 55, { [getStartingWeapon(captor.captive!).id]: 0 }]
     ])
     expect(next.characters.every((character) => character.health === getMaxHealth(character))).toBe(true)
   })

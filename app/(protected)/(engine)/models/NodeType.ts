@@ -14,6 +14,8 @@ export enum NodeType {
   TEAR = 'tear',
   /** A small chest with gold or smithing stones, behind a fight. */
   CHEST = 'chest',
+  /** A reliquary: a weapon of a character, guarded by a warden (only that character can claim it). */
+  RELIQUARY = 'reliquary',
   /** The door of the Abyss: it opens once the three Seals are defeated. */
   ABYSS_GATE = 'abyssGate',
   /** Crisol, the final boss, in the castle of the Abyss. */

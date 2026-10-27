@@ -72,6 +72,7 @@ const BATTLE_MUSIC: Record<EncounterKind, MusicId> = {
   [EncounterKind.ELITE]: 'battle',
   [EncounterKind.GUARDIAN]: 'boss',
   [EncounterKind.MINIBOSS]: 'boss',
+  [EncounterKind.WARDEN]: 'boss',
   [EncounterKind.CAPTOR]: 'boss',
   [EncounterKind.SEAL]: 'seal',
   [EncounterKind.CRISOL]: 'crisol'

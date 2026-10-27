@@ -1,5 +1,6 @@
 import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { FLASK_BASE_CHARGES } from '@/app/(protected)/(engine)/data/flask'
+import { getStartingWeapon, MAX_WEAPON_LEVEL, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
@@ -7,7 +8,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 4
+export const SAVE_VERSION = 5
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -84,6 +85,20 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
     }
   }
 
+  if (fromVersion < 5) {
+    // v5: three weapons per character. The upgrade it had goes to the weapon it starts with, which it holds.
+    state = {
+      ...state,
+      characters: (
+        (state.characters ?? []) as (Omit<CharacterState, 'weaponId' | 'weapons'> & { weapon?: number })[]
+      ).map(({ weapon, ...character }) => {
+        const starting = getStartingWeapon(character.id).id
+
+        return { ...character, weaponId: starting, weapons: { [starting]: weapon ?? 0 } }
+      })
+    }
+  }
+
   return state
 }
 
@@ -100,6 +115,13 @@ export function isGameState(value: unknown): value is GameState {
     !!item && typeof item === 'object' && !Array.isArray(item) && Object.values(item).every(isCount)
   const isRuneIndex = (item: unknown) => Number.isInteger(item) && (item as number) >= 1 && (item as number) <= 60
   const characterIds = Object.values(CharacterId) as string[]
+  // The weapons of a character: its own, with an upgrade from 0 to the maximum.
+  const isWeaponsOf = (id: unknown, item: unknown) =>
+    isCountMap(item) &&
+    Object.entries(item as Record<string, number>).every(
+      ([weaponId, level]) =>
+        WEAPONS.some((weapon) => weapon.id === weaponId && weapon.characterId === id) && level <= MAX_WEAPON_LEVEL
+    )
 
   return (
     typeof state.gameId === 'string' &&
@@ -122,8 +144,8 @@ export function isGameState(value: unknown): value is GameState {
     Array.isArray(state.characters) &&
     state.characters.length > 0 &&
     state.characters.every((character) => {
-      const { id, level, xp, health, attributes, talents, traded, weapon, runes, echoCapacity, echoes } = (character ??
-        {}) as Record<string, unknown>
+      const { id, level, xp, health, attributes, talents, traded, weaponId, weapons, runes, echoCapacity, echoes } =
+        (character ?? {}) as Record<string, unknown>
 
       return (
         characterIds.includes(id as string) &&
@@ -134,8 +156,9 @@ export function isGameState(value: unknown): value is GameState {
         isCountMap(attributes) &&
         isStringArray(talents) &&
         isCount(traded) &&
-        isCount(weapon) &&
-        (weapon as number) <= 20 &&
+        isWeaponsOf(id, weapons) &&
+        typeof weaponId === 'string' &&
+        weaponId in (weapons as Record<string, number>) &&
         Array.isArray(runes) &&
         runes.length <= 3 &&
         runes.every(isRuneIndex) &&

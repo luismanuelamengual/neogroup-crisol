@@ -2,8 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNES } from '@/app/(protected)/(engine)/data/runes'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getTree, getTreeCost } from '@/app/(protected)/(engine)/data/talents'
-import { getUpgradeCost, getWeaponEffects } from '@/app/(protected)/(engine)/data/weapons'
+import {
+  getCharacterWeapons,
+  getUpgradeCost,
+  getWeapon,
+  getWeaponEffects,
+  WEAPONS
+} from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { StoneId } from '@/app/(protected)/(engine)/models/Item'
@@ -17,11 +24,13 @@ import {
   createCharacter,
   equipEcho,
   equipRune,
+  equipWeapon,
   getAttributePoints,
   getCharacterSkills,
   getCharacterStats,
   getHeroBonuses,
   getSkillPoints,
+  getWeaponLevel,
   moveInFormation,
   spendAttributePoint,
   spendTear,
@@ -120,14 +129,55 @@ describe('weapons', () => {
     const state = game(10, { gold: 1000, inventory: { [StoneId.ROUGH]: 3 } })
     const upgraded = upgradeWeapon(state, KAEL)
 
-    expect(kaelOf(upgraded).weapon).toBe(1)
+    expect(getWeaponLevel(kaelOf(upgraded))).toBe(1)
     expect(upgraded.gold).toBe(940)
     expect(upgraded.inventory[StoneId.ROUGH]).toBe(2)
     expect(getCharacterStats(kaelOf(upgraded)).attack).toBeGreaterThan(getCharacterStats(kaelOf(state)).attack)
-    expect(getWeaponEffects(KAEL, 4)).toHaveLength(0)
-    expect(getWeaponEffects(KAEL, 5)).toHaveLength(1)
+    expect(getWeaponEffects('oath-sword', 4)).toHaveLength(0)
+    expect(getWeaponEffects('oath-sword', 5)).toHaveLength(1)
     expect(() => upgradeWeapon({ ...state, positionNodeId: 'elsewhere' }, KAEL)).toThrow()
     expect(() => upgradeWeapon({ ...state, gold: 0 }, KAEL)).toThrow()
+  })
+
+  it('gives every character three weapons with different attacks, two of them in reliquaries', () => {
+    for (const id of Object.values(CharacterId)) {
+      const weapons = getCharacterWeapons(id)
+      const attacks = weapons.map((weapon) => getSkill(weapon.attack))
+
+      expect(weapons).toHaveLength(3)
+      expect(weapons[0].biome).toBeUndefined()
+      expect(weapons.slice(1).every((weapon) => weapon.biome && weapon.warden)).toBe(true)
+      // Different, not better: each one hits in its own way.
+      expect(
+        new Set(attacks.map((skill) => `${skill.damageType}:${skill.target}:${skill.stat}:${skill.power}`)).size
+      ).toBe(3)
+      expect(attacks.every((skill) => skill.cost === 0)).toBe(true)
+    }
+
+    expect(new Set(WEAPONS.map((weapon) => weapon.id)).size).toBe(WEAPONS.length)
+  })
+
+  it('upgrades each weapon on its own and swaps them at any cleared point', () => {
+    const owned: GameState = {
+      ...game(10, { gold: 1000, inventory: { [StoneId.ROUGH]: 3 } }),
+      characters: [{ ...createCharacter(KAEL, 10), weapons: { 'oath-sword': 4, dawnbrand: 0 } }]
+    }
+    const upgraded = upgradeWeapon(owned, KAEL, 'dawnbrand')
+
+    expect(kaelOf(upgraded).weapons).toEqual({ 'oath-sword': 4, dawnbrand: 1 })
+    expect(() => upgradeWeapon(owned, KAEL, 'bulwark-mace')).toThrow()
+
+    const away = { ...upgraded, positionNodeId: 'n1', clearedNodeIds: [...upgraded.clearedNodeIds, 'n1'] }
+    const swapped = equipWeapon(away, KAEL, 'dawnbrand')
+
+    expect(kaelOf(swapped).weaponId).toBe('dawnbrand')
+    expect(getCharacterSkills(kaelOf(swapped))[0]).toBe(getWeapon('dawnbrand').attack)
+    expect(getCharacterSkills(kaelOf(swapped)).slice(1)).toEqual(getCharacterSkills(kaelOf(away)).slice(1))
+    expect(getWeaponLevel(kaelOf(swapped))).toBe(1)
+    expect(getCharacterStats(kaelOf(swapped)).special).toBeGreaterThan(getCharacterStats(kaelOf(away)).special)
+    expect(() => equipWeapon(away, KAEL, 'bulwark-mace')).toThrow()
+    expect(() => equipWeapon({ ...away, positionNodeId: 'n2' }, KAEL, 'dawnbrand')).toThrow()
+    expect(() => equipWeapon({ ...away, respawnedNodeIds: ['n1'] }, KAEL, 'dawnbrand')).toThrow()
   })
 })
 

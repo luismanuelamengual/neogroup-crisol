@@ -12,6 +12,7 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
+import { canSwapWeapons } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
   arriveAt,
@@ -20,6 +21,7 @@ import {
   drinkFlask,
   getEncounter,
   getFlask,
+  getMissingOwner,
   getReachableNodeIds,
   getRevealedNodeIds,
   indexWorld,
@@ -186,6 +188,16 @@ export default function WorldScreen() {
           case 'tear':
             showSuccessMessage(t('world.rewards.tear'))
             break
+          case 'weapon':
+            playSfx('rune')
+            showSuccessMessage(
+              t('world.rewards.weapon', {
+                name: t(`characters.${reward.characterId}.name` as MessageKey),
+                weapon: t(`weapons.${reward.weaponId}.name` as MessageKey)
+              }),
+              8000
+            )
+            break
           case 'gold':
             playSfx('chest')
             showSuccessMessage(t('world.rewards.gold', { amount: reward.amount }))
@@ -273,6 +285,12 @@ export default function WorldScreen() {
       if (left > 0) {
         return t('world.points.gateSealed', { count: left })
       }
+    }
+
+    const missingOwner = getMissingOwner(state, node)
+
+    if (missingOwner && !cleared.has(nodeId)) {
+      return t('world.points.reliquaryLocked', { name: t(`characters.${missingOwner}.name` as MessageKey) })
     }
 
     if (!encounter) {
@@ -369,7 +387,15 @@ export default function WorldScreen() {
           <PointPanel
             name={nameOf(selected.id)}
             detail={detailOf(selected.id)}
-            reach={selected.id === state.positionNodeId ? 'here' : route ? 'route' : 'none'}
+            reach={
+              selected.id === state.positionNodeId
+                ? 'here'
+                : route
+                  ? 'route'
+                  : getMissingOwner(state, selected) && !cleared.has(selected.id)
+                    ? 'shut'
+                    : 'none'
+            }
             steps={route ? route.length - 1 : 0}
             openCamp={selected.id === state.positionNodeId && isAtOpenCamp(state)}
             merchant={selected.type === NodeType.MERCHANT}
@@ -407,6 +433,7 @@ export default function WorldScreen() {
           open
           state={state}
           atCamp={isAtOpenCamp(state)}
+          canSwap={canSwapWeapons(state)}
           onChange={update}
           onClose={() => setPartyOpen(false)}
         />

@@ -7,6 +7,7 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH
 } from '@/app/(protected)/(engine)/data/biomes'
+import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { START_NODE_ID, WORLD_SEED, WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
@@ -34,7 +35,8 @@ import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
  *      biomes; and some extra trails close loops (alternative routes).
  *   4. Points of interest: the starting camp, the bosses that open the camps,
  *      the rune sanctuaries, merchants, Tears of Oblivion and chests (in dead
- *      ends), the door of the Abyss and Crisol.
+ *      ends), the reliquaries of the weapons (in the deepest dead ends), the
+ *      door of the Abyss and Crisol.
  *   5. Levels: from the entrance of each biome to its deepest point.
  *
  * An attempt that does not pass validateWorld is thrown away and the next seed
@@ -61,6 +63,8 @@ const KEY_BOSS_EXTRA_LEVELS = 2
 const MINIBOSS_EXTRA_LEVELS = 2
 const GUARDIAN_EXTRA_LEVELS = 3
 const ELITE_EXTRA_LEVELS = 2
+/** The wardens of the reliquaries: over the deepest level of their biome. */
+const WARDEN_EXTRA_LEVELS = 4
 const TIER_ORDER = [RuneTier.LESSER, RuneTier.GREATER, RuneTier.ANCESTRAL, RuneTier.ABYSSAL]
 
 interface Point {
@@ -486,6 +490,26 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       node.runeIndex = position + 1
     })
 
+  // Reliquaries: one per weapon to find, in the deepest dead ends of its biome and apart from each other.
+  const reliquaries: WorldNode[] = []
+
+  for (const weapon of WEAPONS.filter((item) => item.biome)) {
+    const spread = hopDistances(
+      adjacency,
+      [...reliquaries, ...camps()].map((node) => node.id)
+    )
+    const options = nodes.filter((node) => node.biome === weapon.biome && isFree(node) && isLeaf(node))
+
+    if (options.length === 0) {
+      return null
+    }
+
+    const node = maxBy(options, (candidate) => fromStart.get(candidate.id)! + (spread.get(candidate.id) ?? 0))
+
+    Object.assign(node, { type: NodeType.RELIQUARY, weaponId: weapon.id })
+    reliquaries.push(node)
+  }
+
   assignLevels(nodes, fromStart)
 
   return {
@@ -548,6 +572,9 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
           break
         case NodeType.TEAR:
           node.level = level + ELITE_EXTRA_LEVELS
+          break
+        case NodeType.RELIQUARY:
+          node.level = definition.levelMax + WARDEN_EXTRA_LEVELS
           break
         case NodeType.FINAL_BOSS:
           node.level = getBiomeDefinition(Biome.ABYSS).levelMax

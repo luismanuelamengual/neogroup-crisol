@@ -15,6 +15,7 @@ import {
 } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
+import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { SEALS_TO_OPEN_ABYSS, START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -48,10 +49,11 @@ const FIGHT_TYPES = new Set([
   NodeType.CAMP_BOSS,
   NodeType.SANCTUARY,
   NodeType.TEAR,
+  NodeType.RELIQUARY,
   NodeType.FINAL_BOSS
 ])
 /** Rescued characters join at the average level of the party minus this (at least 1). */
-const RESCUED_LEVEL_GAP = 3
+const RESCUED_LEVEL_GAP = 10
 /** Gold of a chest: grows with the biome. */
 const CHEST_BASE_GOLD = 30
 const CHEST_GOLD_PER_BIOME = 30
@@ -104,9 +106,31 @@ export function getRevealedNodeIds(index: WorldIndex, state: GameState): Set<str
   return revealed
 }
 
-/** Whether the party can step on a point that is not cleared yet (the door of the Abyss stays shut until the Seals fall). */
+/**
+ * Whether the party can step on a point that is not cleared yet: the door of
+ * the Abyss stays shut until the Seals fall, and a reliquary opens only for
+ * the character its weapon belongs to.
+ */
 function canEnter(index: WorldIndex, state: GameState, node: WorldNode): boolean {
-  return node.type !== NodeType.ABYSS_GATE || isAbyssOpen(index, state)
+  switch (node.type) {
+    case NodeType.ABYSS_GATE:
+      return isAbyssOpen(index, state)
+    case NodeType.RELIQUARY:
+      return state.characters.some((character) => character.id === getWeapon(node.weaponId!).characterId)
+    default:
+      return true
+  }
+}
+
+/** The character a reliquary is waiting for, while it is not in the party (null otherwise). */
+export function getMissingOwner(state: GameState, node: WorldNode): CharacterId | null {
+  if (node.type !== NodeType.RELIQUARY) {
+    return null
+  }
+
+  const owner = getWeapon(node.weaponId!).characterId
+
+  return state.characters.some((character) => character.id === owner) ? null : owner
 }
 
 /**
@@ -218,6 +242,8 @@ function encounterKindOf(node: WorldNode): EncounterKind {
       return node.guardian ? EncounterKind.GUARDIAN : EncounterKind.ELITE
     case NodeType.TEAR:
       return EncounterKind.ELITE
+    case NodeType.RELIQUARY:
+      return EncounterKind.WARDEN
     case NodeType.FINAL_BOSS:
       return EncounterKind.CRISOL
     default:
@@ -326,6 +352,30 @@ export function winEncounter(
 
       echoes += count
       rewards.push({ type: 'echoes', count })
+    }
+  }
+
+  if (!wasCleared && node.type === NodeType.RELIQUARY && node.weaponId) {
+    const weapon = getWeapon(node.weaponId)
+    const owner = characters.find((character) => character.id === weapon.characterId)
+
+    if (owner && !(weapon.id in owner.weapons)) {
+      characters = characters.map((character) =>
+        character === owner ? { ...character, weapons: { ...character.weapons, [weapon.id]: 0 } } : character
+      )
+      rewards.push({ type: 'weapon', weaponId: weapon.id, characterId: weapon.characterId })
+    } else {
+      // New Game+: the weapon is already the party's, so Echoes and stones instead.
+      const count = CAPTOR_ECHOES * Math.max(1, state.cycle)
+      const added = addItems({ ...state, inventory }, { [BIOME_STONE[node.biome]]: CAPTOR_STONES }, MAX_CONSUMABLES)
+
+      echoes += count
+      inventory = added.state.inventory
+      rewards.push({ type: 'echoes', count })
+
+      for (const [itemId, kept] of Object.entries(added.kept)) {
+        rewards.push({ type: 'item', itemId, count: kept })
+      }
     }
   }
 

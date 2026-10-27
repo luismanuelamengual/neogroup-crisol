@@ -56,10 +56,10 @@ for (const biome of Object.values(Biome).filter((candidate) => !only || candidat
     }
 
     const phases = getEncounterPhases(node, encounter)
-    // DETAIL=1 lists each boss on its own.
+    // DETAIL=1 lists each boss on its own (it comes in the last phase, after any escort).
     const key =
       process.env.DETAIL && encounter.kind !== EncounterKind.COMBAT && encounter.kind !== EncounterKind.ELITE
-        ? `${encounter.kind}:${phases[0][0].speciesId}`
+        ? `${encounter.kind}:${phases[phases.length - 1][0].speciesId}`
         : encounter.kind
     const seen = rows.get(key) ?? []
 

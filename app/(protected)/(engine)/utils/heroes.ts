@@ -3,7 +3,9 @@ import { getItem } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getTalent, getTree } from '@/app/(protected)/(engine)/data/talents'
 import {
+  getStartingWeapon,
   getUpgradeCost,
+  getWeapon,
   getWeaponEffects,
   MAX_WEAPON_LEVEL,
   WEAPON_POWER_PER_LEVEL
@@ -18,7 +20,8 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
  * The build of each character: attribute points, skill tree, weapon, runes
  * and echoes, and the attributes and bonuses that come out of them. Pure
  * functions: the actions return a new GameState and throw when not allowed.
- * The weapon, the runes and the echoes are changed only at an open camp.
+ * The weapons are upgraded and the runes and the echoes changed only at an
+ * open camp; the weapon held is changed at any cleared point.
  */
 
 /** Echoes a skill point is traded for, once the tree of the character is complete. */
@@ -36,7 +39,8 @@ export function createCharacter(id: CharacterId, level = 1): CharacterState {
     attributes: {},
     talents: [],
     traded: 0,
-    weapon: 0,
+    weaponId: getStartingWeapon(id).id,
+    weapons: { [getStartingWeapon(id).id]: 0 },
     runes: [],
     echoCapacity: 0,
     echoes: []
@@ -57,7 +61,9 @@ export function getHeroBonuses(character: CharacterState): Bonuses {
     }
   }
 
-  for (const effect of getWeaponEffects(character.id, character.weapon)) {
+  addBonuses(bonuses, getWeapon(character.weaponId).traits)
+
+  for (const effect of getWeaponEffects(character.weaponId, getWeaponLevel(character))) {
     addBonuses(bonuses, effect)
   }
 
@@ -78,7 +84,7 @@ export function getHeroBonuses(character: CharacterState): Bonuses {
 /** Attributes of a character: its level, its points, its weapon and the shares of its bonuses. */
 export function getCharacterStats(character: CharacterState, bonuses = getHeroBonuses(character)): CombatStats {
   const stats = getBaseStats(character.id, character.level)
-  const weapon = 1 + WEAPON_POWER_PER_LEVEL * character.weapon
+  const weapon = 1 + WEAPON_POWER_PER_LEVEL * getWeaponLevel(character)
   const result = {} as CombatStats
 
   for (const stat of Object.keys(stats) as (keyof CombatStats)[]) {
@@ -99,13 +105,19 @@ export function getMaxHealth(character: CharacterState): number {
   return getCharacterStats(character).maxHealth
 }
 
-/** The skills of a character: those it starts with and the specials bought in its tree. */
+/** The upgrade of a weapon of a character (the one it holds by default). */
+export function getWeaponLevel(character: CharacterState, weaponId = character.weaponId): number {
+  return character.weapons[weaponId] ?? 0
+}
+
+/** The skills of a character: the attack of its weapon, the rest it starts with and the specials bought in its tree. */
 export function getCharacterSkills(character: CharacterState): string[] {
+  const [, ...starting] = getCharacterDefinition(character.id).skills
   const bought = getTree(character.id)
     .filter((talent) => talent.skillId && character.talents.includes(talent.id))
     .map((talent) => talent.skillId!)
 
-  return [...getCharacterDefinition(character.id).skills, ...bought]
+  return [getWeapon(character.weaponId).attack, ...starting, ...bought]
 }
 
 export function getAttributePoints(character: CharacterState): number {
@@ -230,38 +242,72 @@ export function spendTear(state: GameState, id: CharacterId): GameState {
   return { ...withCharacter(state, id, (character) => ({ ...character, talents: [] })), tears: state.tears - 1 }
 }
 
-/** Upgrades the weapon of a character one level, paying stones and gold. */
-export function upgradeWeapon(state: GameState, id: CharacterId): GameState {
+/** Upgrades one weapon of a character (the one it holds by default) one level, paying stones and gold. */
+export function upgradeWeapon(state: GameState, id: CharacterId, weaponId?: string): GameState {
   requireCamp(state)
 
   const character = getCharacter(state, id)
+  const weapon = weaponId ?? character.weaponId
 
-  if (character.weapon >= MAX_WEAPON_LEVEL) {
+  if (!(weapon in character.weapons)) {
+    throw new Error(`${id} does not own ${weapon}`)
+  }
+
+  if (getWeaponLevel(character, weapon) >= MAX_WEAPON_LEVEL) {
     throw new Error('The weapon is at its best')
   }
 
-  const cost = getUpgradeCost(character.weapon + 1)
+  const cost = getUpgradeCost(getWeaponLevel(character, weapon) + 1)
 
   if ((state.inventory[cost.stoneId] ?? 0) < cost.stones || state.gold < cost.gold) {
     throw new Error('Not enough stones or gold')
   }
 
   return {
-    ...withCharacter(state, id, (current) => ({ ...current, weapon: current.weapon + 1 })),
+    ...withCharacter(state, id, (current) => ({
+      ...current,
+      weapons: { ...current.weapons, [weapon]: getWeaponLevel(current, weapon) + 1 }
+    })),
     gold: state.gold - cost.gold,
     inventory: { ...state.inventory, [cost.stoneId]: state.inventory[cost.stoneId] - cost.stones }
   }
 }
 
-/** Whether a weapon upgrade can be paid now. */
-export function canUpgradeWeapon(state: GameState, character: CharacterState): boolean {
-  if (character.weapon >= MAX_WEAPON_LEVEL) {
+/** Whether an upgrade of a weapon of a character (the one it holds by default) can be paid now. */
+export function canUpgradeWeapon(state: GameState, character: CharacterState, weaponId = character.weaponId): boolean {
+  if (!(weaponId in character.weapons) || getWeaponLevel(character, weaponId) >= MAX_WEAPON_LEVEL) {
     return false
   }
 
-  const cost = getUpgradeCost(character.weapon + 1)
+  const cost = getUpgradeCost(getWeaponLevel(character, weaponId) + 1)
 
   return (state.inventory[cost.stoneId] ?? 0) >= cost.stones && state.gold >= cost.gold
+}
+
+/** Whether the party stands on a cleared point (not one whose enemies came back): the weapons can be swapped. */
+export function canSwapWeapons(state: GameState): boolean {
+  return state.clearedNodeIds.includes(state.positionNodeId) && !state.respawnedNodeIds.includes(state.positionNodeId)
+}
+
+/** Gives a character another of its weapons to hold (at any cleared point). */
+export function equipWeapon(state: GameState, id: CharacterId, weaponId: string): GameState {
+  if (!canSwapWeapons(state)) {
+    throw new Error('Only at a cleared point')
+  }
+
+  if (!(weaponId in getCharacter(state, id).weapons)) {
+    throw new Error(`${id} does not own ${weaponId}`)
+  }
+
+  return withCharacter(state, id, (character) => {
+    const before = getMaxHealth(character)
+    const changed = { ...character, weaponId }
+    // The health keeps its share of the maximum (a weapon can add or take some); a fallen hero stays fallen.
+    const health =
+      character.health > 0 ? Math.max(1, Math.round((character.health / before) * getMaxHealth(changed))) : 0
+
+    return { ...changed, health }
+  })
 }
 
 /** Equips a rune the party owns on a character (taking it off whoever wore it). */
