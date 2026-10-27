@@ -11,7 +11,9 @@ let manifest: Promise<ArtManifest> | null = null
 
 export function loadArtManifest(): Promise<ArtManifest> {
   manifest ??= fetch('/art/manifest.json')
+    // A manifest written before a field existed gets it empty.
     .then((response) => (response.ok ? (response.json() as Promise<ArtManifest>) : EMPTY_MANIFEST))
+    .then((loaded) => ({ ...EMPTY_MANIFEST, ...loaded }))
     .catch(() => EMPTY_MANIFEST)
 
   return manifest

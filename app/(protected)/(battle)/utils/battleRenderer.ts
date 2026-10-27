@@ -4,6 +4,7 @@ import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
+import { BattleScenery, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/utils/battleScenery'
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
@@ -66,19 +67,24 @@ function wait(ms: number): Promise<void> {
 /**
  * The side-view battle scene (Hero Wars style) drawn with PixiJS: heroes on
  * the left, monsters on the right, provisional figures made of shapes,
- * floating numbers, flashes and camera shake. It only shows what the engine
- * says (see `play`); the choices are made in the React interface.
+ * floating numbers, flashes and camera shake, over a layered scenery that
+ * gives it depth (see BattleScenery). A slow camera sways and leans towards
+ * each action. It only shows what the engine says (see `play`); the choices
+ * are made in the React interface.
  */
 export class BattleRenderer {
   private readonly stage = new Container()
+  /** Everything the camera sees (it zooms around the ground line; the stage itself shakes). */
+  private readonly world = new Container()
   private readonly background = new Graphics()
-  private readonly backdrop = new Sprite()
   private readonly fighters = new Container()
   private readonly effects = new Container()
   private readonly figures = new Map<string, Figure>()
   private readonly marker = new Graphics()
   private markedId: string | null = null
   private elapsed = 0
+  /** The camera: how far it panned right (pixels) and its zoom, easing towards their targets. */
+  private readonly camera = { x: 0, zoom: 1, targetX: 0, targetZoom: 1 }
   /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
   private resizeObserver: ResizeObserver | null = null
   /** Animation speed (×1 or ×2). */
@@ -91,10 +97,11 @@ export class BattleRenderer {
     private readonly onTap: (combatantId: string) => void,
     /** The final art that exists for this battle (figures by art id, and the background). */
     private readonly art: Map<string, Texture>,
-    private readonly backgroundId: string,
-    private readonly parts: ArtManifest['parts']
+    private readonly parts: ArtManifest['parts'],
+    private readonly scenery: BattleScenery
   ) {
-    this.stage.addChild(this.background, this.backdrop, this.marker, this.fighters, this.effects)
+    this.world.addChild(this.background, scenery.back, this.marker, this.fighters, this.effects, scenery.front)
+    this.stage.addChild(this.world)
     app.stage.addChild(this.stage)
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
   }
@@ -104,10 +111,12 @@ export class BattleRenderer {
     battle: BattleState,
     labels: BattleLabels,
     onTap: (combatantId: string) => void,
-    wantedBackground: string
+    wantedBackground: string,
+    /** Each point of the map has its own scenery, made from this (its id). */
+    sceneSeed: string
   ): Promise<BattleRenderer> {
     const app = new Application()
-    const { images, parts } = await loadArtManifest()
+    const { images, parts, props, decorations } = await loadArtManifest()
     // While only one of a biome's two backgrounds exists, every battle there uses it.
     const backgroundId = images[wantedBackground] ? wantedBackground : wantedBackground.replace(/-\d$/, '-1')
     const figureIds = [
@@ -118,8 +127,13 @@ export class BattleRenderer {
         .flat()
         .map((spawn) => figureArtId('enemy', spawn.speciesId, getSpecies(spawn.speciesId).rarity === 'boss'))
     ]
+    // The biome's battle props; until they exist, its map decorations that stand upright.
+    const propIds = props[battle.biome]?.length
+      ? props[battle.biome]
+      : (decorations[battle.biome] ?? []).filter((id) => images[id] && images[id].width < images[id].height * 1.45)
     const art = await loadTextures([
       backgroundId,
+      ...propIds,
       ...figureIds,
       ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : []))
     ])
@@ -133,7 +147,18 @@ export class BattleRenderer {
     })
     element.appendChild(app.canvas)
 
-    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, backgroundId, parts)
+    const tallest = Math.max(1, ...propIds.map((id) => images[id].height))
+    const fromSheet = !!props[battle.biome]?.length
+    const sceneryProps: SceneryProp[] = propIds
+      .filter((id) => art.has(id))
+      .map((id) => {
+        // Sheet props keep their sizes; map decorations come all the same size, so only tall or low.
+        const height = fromSheet ? images[id].height / tallest : images[id].height > images[id].width * 1.1 ? 1 : 0.4
+
+        return { texture: art.get(id)!, height, framing: fromSheet && height >= 0.6 }
+      })
+    const scenery = new BattleScenery(sceneSeed, battle.biome, art.get(backgroundId) ?? null, sceneryProps)
+    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, parts, scenery)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
@@ -179,20 +204,12 @@ export class BattleRenderer {
   }
 
   private drawBackground(): void {
-    const texture = this.art.get(this.backgroundId)
+    this.scenery.layout(this.width, this.height, this.groundY, this.scale)
+    this.world.pivot.set(this.width / 2, this.groundY)
+    this.world.position.set(this.width / 2, this.groundY)
+    this.background.clear()
 
-    this.backdrop.visible = !!texture
-
-    if (texture) {
-      // The final background covers the stage, with the bottom 35% of the picture (its open ground) under the fighters.
-      const scale = Math.max(this.width / texture.width, (this.groundY + 60 * this.scale) / (texture.height * 0.72))
-
-      this.backdrop.texture = texture
-      this.backdrop.scale.set(scale)
-      this.backdrop.position.set((this.width - texture.width * scale) / 2, this.groundY - texture.height * 0.72 * scale)
-      this.background.clear()
-      this.background.rect(0, 0, this.width, this.height).fill({ color: 0x07040d })
-
+    if (this.scenery.painted) {
       return
     }
 
@@ -397,6 +414,16 @@ export class BattleRenderer {
     for (const event of events) {
       await this.playEvent(event, after)
     }
+
+    this.focus(null)
+  }
+
+  /** Leans the camera towards a spot of the stage (a little closer), or back to the whole field. */
+  private focus(x: number | null, zoom = 1.05): void {
+    const limit = this.width * MAX_PAN
+
+    this.camera.targetX = x === null ? 0 : Math.max(-limit, Math.min(limit, (x - this.width / 2) * 0.3))
+    this.camera.targetZoom = x === null ? 1 : zoom
   }
 
   private async playEvent(event: BattleEvent, after: BattleState): Promise<void> {
@@ -427,6 +454,7 @@ export class BattleRenderer {
         }
 
         this.float(actor, this.labels.skill(event.skillId), 0xffffff, 15, -40)
+        this.focus(target && target.side !== actor.side ? (actor.home.x + target.home.x) / 2 : actor.home.x)
 
         if (target && target.side !== actor.side) {
           const dx = (target.home.x - actor.home.x) * 0.55
@@ -728,10 +756,23 @@ export class BattleRenderer {
     })
   }
 
-  /** The marked fighter (whose turn it is, or the chosen target) gets a ring at its feet; everybody breathes. */
+  /**
+   * Every frame: the camera eases towards its target with a slow sway, the
+   * scenery follows it by depth, the marked fighter (whose turn it is, or the
+   * chosen target) gets a ring at its feet and everybody breathes.
+   */
   private animate(deltaMS: number): void {
     this.elapsed += deltaMS / 1000
     this.marker.clear()
+
+    const ease = Math.min(1, (deltaMS / 1000) * 3 * this.speed)
+    const sway = Math.sin(this.elapsed * 0.25) * this.width * 0.012
+
+    this.camera.x += (this.camera.targetX + sway - this.camera.x) * ease
+    this.camera.zoom += (this.camera.targetZoom - this.camera.zoom) * ease
+    this.world.scale.set(this.camera.zoom)
+    this.fighters.x = this.marker.x = this.effects.x = -this.camera.x
+    this.scenery.update(deltaMS, this.camera.x)
 
     const marked = this.markedId ? this.figures.get(this.markedId) : null
 

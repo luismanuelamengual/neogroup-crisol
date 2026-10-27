@@ -23,6 +23,7 @@ export type PieceKind =
   | 'bossParts'
   | 'background'
   | 'mapSheet'
+  | 'propSheet'
   | 'icon'
 
 export interface Piece {
@@ -108,6 +109,27 @@ const MAP_SHEETS: Record<Biome, string> = {
     '4 dead twisted trees, 3 tombstones, 2 broken walls, 2 bone piles, 2 broken siege machines, 1 ruined tower, 1 crooked gibbet, 1 green toxic pool',
   [Biome.ABYSS]:
     '4 jagged black rock spires, 3 chains anchored in rock, 3 red crystal shards, 2 lava cracks, 2 iron spikes, 1 skull pile, 1 broken black statue'
+}
+/** Battle scenery of each biome: props scattered in front of and behind the fighters (see battleScenery.ts). */
+const PROP_SHEETS: Record<Biome, string> = {
+  [Biome.MEADOWS]:
+    '2 leafy oak trees, 1 young birch, 2 haystacks, 1 wooden fence section, 2 grey boulders, 1 wildflower bush, 1 wooden signpost, 1 broken cart wheel, 1 tree stump, 1 scarecrow',
+  [Biome.FOREST]:
+    '2 huge mossy oak trunks, 1 tall pine, 2 mossy rocks, 1 fallen log, 2 fern bushes, 1 cluster of glowing mushrooms, 1 hollow stump, 1 rune standing stone, 1 thorny bramble',
+  [Biome.TROPICAL]:
+    '2 palm trees, 1 jungle tree with hanging vines, 2 giant ferns, 1 magenta flower bush, 2 mossy rocks, 1 broken jade statue, 1 carved totem, 1 bamboo cluster, 1 fallen log',
+  [Biome.DESERT]:
+    '2 tall saguaro cacti, 1 dead acacia tree, 2 sandstone rocks, 1 bleached ox skull, 1 broken pillar, 1 half-buried statue head, 1 dry thorn bush, 1 clay pots pile, 1 small obelisk, 1 tattered banner pole',
+  [Biome.MOUNTAINS]:
+    '2 windswept pine trees, 3 grey boulders, 1 cyan crystal cluster, 1 stone cairn, 1 broken dwarven pillar, 1 mine cart, 1 dead shrub, 1 rune stone, 1 rocky outcrop',
+  [Biome.SNOW]:
+    '2 snowy pine trees, 1 bare frozen tree, 2 ice spikes, 2 snow-covered rocks, 1 frozen warrior statue, 1 mammoth tusk, 1 snowdrift, 1 wooden totem with frost, 1 broken sled',
+  [Biome.VOLCANIC]:
+    '2 dead burnt trees, 2 basalt spires, 2 obsidian rocks, 1 smoking vent, 1 cracked rock glowing with lava, 1 broken anvil, 1 charred skeleton, 1 ash-covered shrub, 1 iron brazier',
+  [Biome.WASTELANDS]:
+    '2 dead twisted trees, 2 tombstones, 1 broken stone wall, 1 bone pile, 1 crooked gibbet, 1 broken siege wheel, 1 rusty sword stuck in the ground, 1 dead shrub, 1 cracked statue, 1 old well',
+  [Biome.ABYSS]:
+    '2 jagged black rock spires, 2 red crystal shards, 1 chained pillar, 1 iron spike fence, 1 skull pile, 1 broken black statue, 1 burning brazier, 1 cracked obsidian rock, 1 hanging cage on a pole'
 }
 const SPECIAL_SHEETS: [string, string][] = [
   [
@@ -351,6 +373,20 @@ export function buildCatalog(): Piece[] {
       batch: biome,
       prompt: prompt(
         `Sprite sheet of 16 separate map decorations in a 4 by 4 grid, top-down three-quarter view, each one centered in its cell with empty space around it: ${contents}. Same scale for all.`,
+        'Plain flat #00FF00 background, no shadows on the background.'
+      )
+    })
+  }
+
+  for (const [biome, contents] of Object.entries(PROP_SHEETS)) {
+    pieces.push({
+      id: `props/${biome}-sheet`,
+      kind: 'propSheet',
+      width: 2048,
+      height: 2048,
+      batch: biome,
+      prompt: prompt(
+        `Sprite sheet of 12 separate battle scenery props for a side-view 2D game, seen from the side at eye level (not from above), each one standing on its base with wide empty space around it, nothing touching: ${contents}. All at the same scale as each other (a tree much taller than a rock), no ground under them.`,
         'Plain flat #00FF00 background, no shadows on the background.'
       )
     })

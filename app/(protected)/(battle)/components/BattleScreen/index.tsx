@@ -191,7 +191,8 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         battleRef.current,
         labels,
         (id) => handleTapRef.current(id),
-        backgroundOf(node, encounter)
+        backgroundOf(node, encounter),
+        node.id
       )
 
       if (cancelled) {

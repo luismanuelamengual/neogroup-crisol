@@ -32,11 +32,14 @@ const MAX_SIDE: Record<PieceKind, number> = {
   bossParts: 0,
   background: 1920,
   mapSheet: 0,
+  propSheet: 0,
   icon: 128
 }
 /** A part keeps the scale of its figure: the sheet is reduced by this. */
 const PARTS_SCALE = 0.5
 const DECORATION_SIDE = 256
+/** Props keep their sizes relative to each other (a tree taller than a rock): the whole sheet is reduced by this. */
+const PROPS_SCALE = 0.5
 
 function sourceOf(id: string): string | null {
   return EXTENSIONS.map((extension) => join(SOURCE, `${id}.${extension}`)).find((path) => existsSync(path)) ?? null
@@ -160,6 +163,22 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     return
   }
 
+  if (piece.kind === 'propSheet') {
+    const biome = piece.id.replace(/^props\//, '').replace(/-sheet$/, '')
+    const ids: string[] = []
+
+    for (const [index, box] of findParts(image, 0.004).entries()) {
+      const id = `props/${biome}/${index + 1}`
+
+      manifest.images[id] = await writeWebp(image, box, id, Math.max(box.width, box.height) * PROPS_SCALE)
+      ids.push(id)
+    }
+
+    manifest.props[biome] = ids
+
+    return
+  }
+
   if (piece.kind === 'heroLimb') {
     manifest.parts[piece.id] = await writeLimb(image, piece, manifest)
 
@@ -214,7 +233,7 @@ function copyAudio(kind: 'music' | 'sfx', names: readonly string[]): string[] {
 
 async function main(): Promise<void> {
   const catalog = buildCatalog()
-  const manifest: ArtManifest = { images: {}, decorations: {}, parts: {}, music: [], sfx: [] }
+  const manifest: ArtManifest = { images: {}, decorations: {}, props: {}, parts: {}, music: [], sfx: [] }
   const missing = new Map<string, string[]>()
 
   rmSync(OUTPUT, { recursive: true, force: true })
