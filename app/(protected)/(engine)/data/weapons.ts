@@ -185,11 +185,11 @@ export const WEAPONS: Weapon[] = [
     warden: 'frost-reaver',
     art: 'hatchets'
   },
-  // Oren: a staff for the sap, a scepter of light that heals more and a sickle that poisons.
+  // Oren, a druid up close: a root sickle that entangles, a sun scythe for the sap and a thorn sickle that poisons.
   {
-    id: 'grove-staff',
+    id: 'root-sickle',
     characterId: CharacterId.OREN,
-    attack: 'oren-staff',
+    attack: 'oren-root-cut',
     traits: {},
     effects: [
       { focusRegen: 0.04 },
@@ -197,17 +197,17 @@ export const WEAPONS: Weapon[] = [
       { onHit: [{ type: StatusType.ATTACK_DOWN, chance: 0.25, turns: 2 }] },
       { stats: { special: 0.12 } }
     ],
-    art: 'staff'
+    art: 'root-sickle'
   },
   {
-    id: 'sun-scepter',
+    id: 'noon-scythe',
     characterId: CharacterId.OREN,
-    attack: 'oren-sun-ray',
+    attack: 'oren-sun-reap',
     traits: { stats: { special: 0.12, attack: -0.1 } },
     effects: [{ damage: { [LIGHT]: 0.15 } }, { statusChance: 0.1 }, { focusRegen: 0.06 }, { regen: 0.02 }],
     biome: Biome.VOLCANIC,
     warden: 'ashen-seraph',
-    art: 'scepter'
+    art: 'scythe'
   },
   {
     id: 'thorn-sickle',
@@ -222,13 +222,14 @@ export const WEAPONS: Weapon[] = [
     ],
     biome: Biome.WASTELANDS,
     warden: 'thorn-widow',
-    art: 'sickle'
+    art: 'thorn-sickle'
   },
-  // Ysolde: a staff of three elements, a scepter that fills the focus and a wand of light made to break things.
+  // Ysolde, a sorceress from afar with grimoires floating at her side: a tome of three seals, a storm codex that
+  // fills the focus and a crystal book of light made to break things.
   {
-    id: 'crystal-staff',
+    id: 'trinity-tome',
     characterId: CharacterId.YSOLDE,
-    attack: 'ysolde-rod',
+    attack: 'ysolde-seal-bolt',
     traits: {},
     effects: [
       { damage: { [FIRE]: 0.15 } },
@@ -236,27 +237,27 @@ export const WEAPONS: Weapon[] = [
       { damage: { [LIGHTNING]: 0.15 } },
       { focusRegen: 0.06 }
     ],
-    art: 'staff'
+    art: 'tome'
   },
   {
-    id: 'storm-scepter',
+    id: 'thunder-codex',
     characterId: CharacterId.YSOLDE,
-    attack: 'ysolde-storm-strike',
+    attack: 'ysolde-thunder-page',
     traits: { stats: { speed: 0.08, maxFocus: 0.15 }, focusRegen: 0.04 },
     effects: [{ damage: { [LIGHTNING]: 0.15 } }, { initiative: 15 }, { focusRegen: 0.04 }, { stats: { special: 0.1 } }],
     biome: Biome.WASTELANDS,
     warden: 'storm-revenant',
-    art: 'storm-scepter'
+    art: 'codex'
   },
   {
-    id: 'prism-wand',
+    id: 'dusk-grimoire',
     characterId: CharacterId.YSOLDE,
     attack: 'ysolde-prism-ray',
     traits: { stats: { special: 0.2, maxHealth: -0.12, defense: -0.12 } },
     effects: [{ damage: { [LIGHT]: 0.15 } }, { weakness: 0.2 }, { lifesteal: 0.04 }, { stats: { critDamage: 0.4 } }],
     biome: Biome.ABYSS,
     warden: 'prism-horror',
-    art: 'wand'
+    art: 'grimoire'
   }
 ]
 

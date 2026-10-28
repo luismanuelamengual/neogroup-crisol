@@ -87,7 +87,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.5
     },
     growth: { maxHealth: 11, maxFocus: 3, defense: 1.6, speed: 0.6, attack: 1.1, special: 1.8 },
-    skills: ['oren-staff', 'oren-mend'],
+    skills: ['oren-root-cut', 'oren-mend'],
     trait: Trait.SAP,
     color: 0x84cc16
   },
@@ -104,7 +104,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.6
     },
     growth: { maxHealth: 7, maxFocus: 3, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
-    skills: ['ysolde-rod', 'ysolde-fireball'],
+    skills: ['ysolde-seal-bolt', 'ysolde-fireball'],
     trait: Trait.CHARGES,
     color: 0xa855f7
   }

@@ -83,8 +83,8 @@ export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
   [CharacterId.KAEL]: { parts: outfit('traveller'), weapon: 'sword' },
   [CharacterId.SERA]: { parts: outfit('ranger'), weapon: 'bow' },
   [CharacterId.BRANN]: { parts: outfit('berserker'), weapon: 'axe' },
-  [CharacterId.OREN]: { parts: outfit('grove'), weapon: 'staff' },
-  [CharacterId.YSOLDE]: { parts: outfit('court'), weapon: 'staff' }
+  [CharacterId.OREN]: { parts: outfit('grove'), weapon: 'root-sickle' },
+  [CharacterId.YSOLDE]: { parts: outfit('court'), weapon: 'tome' }
 }
 
 /** Each weapon: where the hand holds it (share of its length from the handle end) and how long it is. */
@@ -92,17 +92,19 @@ const WEAPONS: Record<string, { grip: number; length: number }> = {
   sword: { grip: 0.12, length: 1.3 },
   bow: { grip: 0.5, length: 1.6 },
   axe: { grip: 0.3, length: 1.5 },
-  staff: { grip: 0.4, length: 2 },
   dawnbrand: { grip: 0.12, length: 1.35 },
   mace: { grip: 0.15, length: 1.1 },
   crossbow: { grip: 0.35, length: 1.1 },
   'gale-bow': { grip: 0.5, length: 1.6 },
   maul: { grip: 0.25, length: 1.6 },
   hatchets: { grip: 0.2, length: 0.9 },
-  scepter: { grip: 0.3, length: 1.1 },
-  sickle: { grip: 0.35, length: 1.5 },
-  'storm-scepter': { grip: 0.3, length: 1.2 },
-  wand: { grip: 0.25, length: 0.9 }
+  'root-sickle': { grip: 0.2, length: 0.9 },
+  scythe: { grip: 0.4, length: 2 },
+  'thorn-sickle': { grip: 0.35, length: 1.5 },
+  // The grimoires float beside the hand: it "holds" them by their spine.
+  tome: { grip: 0.5, length: 0.8 },
+  codex: { grip: 0.5, length: 0.8 },
+  grimoire: { grip: 0.5, length: 0.8 }
 }
 /** Limbs are sized by their upper segment: the lower one may carry a shield. */
 const SIZES: Record<BodyPart, SlotSize> = {

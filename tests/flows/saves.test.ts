@@ -96,6 +96,32 @@ describe('saved games', () => {
     expect(loaded.state.characters[0]).toMatchObject({ weaponId: 'oath-sword', weapons: { 'oath-sword': 7 } })
   })
 
+  it('renames the staves, scepters and wand of a v5 game to the sickles, scythe and grimoires', async () => {
+    await startNewGame(userId)
+
+    const stored = await Save.where('userId', userId).first()
+    const oren = { ...createCharacter(CharacterId.OREN, 20), weaponId: 'sun-scepter' }
+    const ysolde = { ...createCharacter(CharacterId.YSOLDE, 20), weaponId: 'crystal-staff' }
+
+    stored!.saveVersion = 5
+    stored!.data = {
+      ...(stored!.data as object),
+      characters: [
+        { ...oren, weapons: { 'grove-staff': 4, 'sun-scepter': 2, 'thorn-sickle': 1 } },
+        { ...ysolde, weapons: { 'crystal-staff': 9, 'storm-scepter': 0, 'prism-wand': 3 } }
+      ]
+    }
+    await stored!.save()
+
+    const loaded = await loadGame(userId)
+
+    expect(isGameState(loaded.state)).toBe(true)
+    expect(loaded.state.characters.map(({ weaponId, weapons }) => [weaponId, weapons])).toEqual([
+      ['noon-scythe', { 'root-sickle': 4, 'noon-scythe': 2, 'thorn-sickle': 1 }],
+      ['trinity-tome', { 'trinity-tome': 9, 'thunder-codex': 0, 'dusk-grimoire': 3 }]
+    ])
+  })
+
   it('replaces the saved game when a new one is started', async () => {
     const save = await startNewGame(userId)
 

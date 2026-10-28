@@ -187,10 +187,18 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.BLUNT,
     statuses: [{ type: StatusType.ATTACK_UP, chance: 1, turns: 3 }]
   },
-  // Oren: staff, support.
-  { id: 'oren-staff', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.BLUNT },
+  // Oren: sickles and scythes, support.
   {
-    id: 'oren-sun-ray',
+    id: 'oren-root-cut',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 1,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    statuses: [{ type: StatusType.SPEED_DOWN, chance: 0.15, turns: 2 }]
+  },
+  {
+    id: 'oren-sun-reap',
     cost: 0,
     target: TargetType.ENEMY,
     power: 0.8,
@@ -234,10 +242,17 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.EARTH,
     statuses: [{ type: StatusType.POISON, chance: 0.5, turns: 3 }]
   },
-  // Ysolde: magic staff.
-  { id: 'ysolde-rod', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.BLUNT },
+  // Ysolde: grimoires, magic from afar.
   {
-    id: 'ysolde-storm-strike',
+    id: 'ysolde-seal-bolt',
+    cost: 0,
+    target: TargetType.ENEMY,
+    power: 1,
+    stat: 'attack',
+    damageType: DamageType.PIERCE
+  },
+  {
+    id: 'ysolde-thunder-page',
     cost: 0,
     target: TargetType.ENEMY,
     power: 0.6,

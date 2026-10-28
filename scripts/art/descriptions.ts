@@ -207,17 +207,19 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
       'one of the Red Sisters: a short single-bladed hatchet with a red-lacquered haft and a notched, blood-red steel blade'
   },
   oren: {
-    staff: 'a gnarled wooden staff topped with a glowing seed',
-    scepter:
-      'Noon, a short scepter of white wood and gold topped with a radiant sun disc that sheds warm light, with small leaves around the disc',
-    sickle:
+    'root-sickle':
+      'Old Root, a one-handed sickle whose grip is a living gnarled root and whose curved wooden blade is edged with green-glowing bark, small roots trailing from the pommel',
+    scythe:
+      'Noon, a tall scythe of white wood and gold whose long curved blade glows with warm sunlight, a radiant sun disc where the blade meets the shaft',
+    'thorn-sickle':
       'Last Harvest, a long-handled sickle of black wood whose curved blade is made of a single huge thorn dripping green venom'
   },
   ysolde: {
-    staff: 'a tall crystal staff with fire, ice and lightning swirling in its crystal',
-    'storm-scepter':
-      'Thunder Voice, a silver scepter crowned with a caged storm cloud, blue-white lightning crackling between its prongs',
-    wand: 'Dusk Prism, a slim wand of dark glass ending in a floating prism that splits the light into rainbow rays'
+    tome: 'Trinity, a thick open grimoire floating beside her hand, bound in deep-blue leather with three glowing seals of fire, ice and lightning on its cover',
+    codex:
+      'Thunder Voice, an open storm codex floating beside her hand, iron-bound with silver clasps, its pages fluttering and crackling with blue-white lightning',
+    grimoire:
+      'Dusk Prism, an open book of dark crystal pages floating beside her hand, a prism set in its cover splitting the light into rainbow rays'
   }
 }
 

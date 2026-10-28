@@ -8,7 +8,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 5
+export const SAVE_VERSION = 6
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -96,6 +96,27 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
 
         return { ...character, weaponId: starting, weapons: { [starting]: weapon ?? 0 } }
       })
+    }
+  }
+
+  if (fromVersion < 6) {
+    // v6: Oren wields sickles and scythes and Ysolde grimoires (the weapons that were staves, scepters and a wand).
+    const renamed: Record<string, string> = {
+      'grove-staff': 'root-sickle',
+      'sun-scepter': 'noon-scythe',
+      'crystal-staff': 'trinity-tome',
+      'storm-scepter': 'thunder-codex',
+      'prism-wand': 'dusk-grimoire'
+    }
+    const rename = (id: string) => renamed[id] ?? id
+
+    state = {
+      ...state,
+      characters: ((state.characters ?? []) as CharacterState[]).map((character) => ({
+        ...character,
+        weaponId: rename(character.weaponId),
+        weapons: Object.fromEntries(Object.entries(character.weapons).map(([id, level]) => [rename(id), level]))
+      }))
     }
   }
 
