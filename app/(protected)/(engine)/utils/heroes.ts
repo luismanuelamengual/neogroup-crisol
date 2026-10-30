@@ -1,6 +1,7 @@
 import { ATTRIBUTE_POINT, getBaseStats, getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getItem } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getTalent, getTree } from '@/app/(protected)/(engine)/data/talents'
 import {
   getStartingWeapon,
@@ -26,6 +27,8 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 
 /** Echoes a skill point is traded for, once the tree of the character is complete. */
 export const TRADE_ECHOES = 2
+/** Skills a character takes into a battle, besides the attack of its weapon. */
+export const SKILL_SLOTS = 6
 /** Attributes whose bonuses add up as points instead of shares (critical chance and damage). */
 const ADDITIVE = new Set<keyof CombatStats>(['critChance', 'critDamage'])
 
@@ -39,6 +42,7 @@ export function createCharacter(id: CharacterId, level = 1): CharacterState {
     attributes: {},
     talents: [],
     traded: 0,
+    skills: getKnownSkills({ id, talents: [] }),
     weaponId: getStartingWeapon(id).id,
     weapons: { [getStartingWeapon(id).id]: 0 },
     runes: [],
@@ -110,14 +114,55 @@ export function getWeaponLevel(character: CharacterState, weaponId = character.w
   return character.weapons[weaponId] ?? 0
 }
 
-/** The skills of a character: the attack of its weapon, the rest it starts with and the specials bought in its tree. */
-export function getCharacterSkills(character: CharacterState): string[] {
+/**
+ * The skills a character knows besides its weapon attack and its secondary
+ * actions: the ones it starts with and the specials bought in its tree.
+ */
+export function getKnownSkills(character: Pick<CharacterState, 'id' | 'talents'>): string[] {
   const [, ...starting] = getCharacterDefinition(character.id).skills
   const bought = getTree(character.id)
     .filter((talent) => talent.skillId && character.talents.includes(talent.id))
     .map((talent) => talent.skillId!)
 
-  return [getWeapon(character.weaponId).attack, ...starting, ...bought]
+  return [...starting, ...bought].filter((skill) => !getSkill(skill).stance)
+}
+
+/** Its secondary actions: always at hand, outside the six slots (Kael's change of stance). */
+export function getSecondaryActions(characterId: CharacterId): string[] {
+  return getCharacterDefinition(characterId).skills.filter((skill) => getSkill(skill).stance)
+}
+
+/** The skills a character takes into a battle: the attack of its weapon, the ones it equipped (up to six) and its secondary actions. */
+export function getCharacterSkills(character: CharacterState): string[] {
+  const known = getKnownSkills(character)
+
+  return [
+    getWeapon(character.weaponId).attack,
+    ...character.skills.filter((skill) => known.includes(skill)),
+    ...getSecondaryActions(character.id)
+  ]
+}
+
+/** Equips a known skill in a free slot (at any time out of battle). */
+export function equipSkill(state: GameState, id: CharacterId, skillId: string): GameState {
+  const character = getCharacter(state, id)
+
+  if (!getKnownSkills(character).includes(skillId) || character.skills.includes(skillId)) {
+    throw new Error(`${id} cannot equip ${skillId}`)
+  }
+
+  if (character.skills.length >= SKILL_SLOTS) {
+    throw new Error('No free skill slot')
+  }
+
+  return withCharacter(state, id, (current) => ({ ...current, skills: [...current.skills, skillId] }))
+}
+
+export function unequipSkill(state: GameState, id: CharacterId, skillId: string): GameState {
+  return withCharacter(state, id, (character) => ({
+    ...character,
+    skills: character.skills.filter((skill) => skill !== skillId)
+  }))
 }
 
 export function getAttributePoints(character: CharacterState): number {
@@ -215,7 +260,17 @@ export function buyTalent(state: GameState, id: CharacterId, talentId: string): 
     throw new Error(`${id} cannot buy ${talentId}`)
   }
 
-  return withCharacter(state, id, (character) => ({ ...character, talents: [...character.talents, talentId] }))
+  const skillId = getTalent(talentId).skillId
+
+  return withCharacter(state, id, (character) => ({
+    ...character,
+    talents: [...character.talents, talentId],
+    // A new skill goes to a free slot, if there is one.
+    skills:
+      skillId && character.skills.length < SKILL_SLOTS && !character.skills.includes(skillId)
+        ? [...character.skills, skillId]
+        : character.skills
+  }))
 }
 
 /** Trades a free skill point for Echoes of that character (only with its tree complete). */
@@ -239,7 +294,16 @@ export function spendTear(state: GameState, id: CharacterId): GameState {
     throw new Error('Cannot use a tear')
   }
 
-  return { ...withCharacter(state, id, (character) => ({ ...character, talents: [] })), tears: state.tears - 1 }
+  return {
+    ...withCharacter(state, id, (character) => {
+      const reset = { ...character, talents: [] }
+      const known = getKnownSkills(reset)
+
+      // The skills bought leave their slots.
+      return { ...reset, skills: character.skills.filter((skill) => known.includes(skill)) }
+    }),
+    tears: state.tears - 1
+  }
 }
 
 /** Upgrades one weapon of a character (the one it holds by default) one level, paying stones and gold. */

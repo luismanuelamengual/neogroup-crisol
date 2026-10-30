@@ -16,6 +16,8 @@ export interface CharacterState {
   talents: string[]
   /** Skill points traded for Echoes once its tree was complete. */
   traded: number
+  /** The skills it takes into battle (up to six, besides its weapon attack), in the order they are shown. */
+  skills: string[]
   /** The weapon it holds (data/weapons.ts). */
   weaponId: string
   /** The weapons it owns, with their upgrade (0..20): the one it starts with and those taken from the reliquaries. */

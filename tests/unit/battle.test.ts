@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import {
   chooseEnemyAction,
@@ -14,12 +15,19 @@ import {
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
-import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
+import { createCharacter, getKnownSkills } from '@/app/(protected)/(engine)/utils/heroes'
 import { simulateBattle, winRate } from '@/tests/support/battleSimulator'
 import { buildCharacter } from '@/tests/support/builds'
 
+/** A character with talents bought and every skill it knows equipped. */
+function withTalents(character: CharacterState, talents: string[]): CharacterState {
+  const bought = { ...character, talents }
+
+  return { ...bought, skills: getKnownSkills(bought) }
+}
+
 /** Kael at level 5 with Sweep and Flame Edge bought. */
-const kael = { ...createCharacter(CharacterId.KAEL, 5), talents: ['kael-sharpness', 'kael-sweep', 'kael-flame-edge'] }
+const kael = withTalents(createCharacter(CharacterId.KAEL, 5), ['kael-sharpness', 'kael-sweep', 'kael-flame-edge'])
 
 function battle(phases: EnemySpawn[][], heroes = [kael], canRetreat = true): BattleState {
   return createBattle({ heroes, phases, seed: 42, biome: Biome.MEADOWS, canRetreat }).state
@@ -119,7 +127,7 @@ describe('damage', () => {
 
     expect(flame.events).toContainEqual(expect.objectContaining({ type: 'damage', targetId: 'e1-1', weak: true }))
 
-    const brann = { ...createCharacter(CharacterId.BRANN, 5), talents: ['brann-earthsplitter'] }
+    const brann = withTalents(createCharacter(CharacterId.BRANN, 5), ['brann-earthsplitter'])
     const quake = performAction(turnOf(battle([[{ speciesId: 'sand-worm', level: 5 }]], [brann]), 'h-brann'), {
       type: 'skill',
       skillId: 'brann-earthsplitter',
@@ -439,7 +447,7 @@ describe('items, bonuses and loot', () => {
   })
 
   it('makes the upgrades of the tree change the specials', () => {
-    const upgraded = { ...kael, talents: [...kael.talents, 'kael-precision', 'kael-deep-cut'] }
+    const upgraded = withTalents(kael, [...kael.talents, 'kael-precision', 'kael-deep-cut'])
     const cut = (hero: typeof kael) =>
       getUsableSkills(turnOf(field([hero]), 'h-kael'), 'h-kael').find((skill) => skill.id === 'kael-firm-cut')!
 
@@ -492,7 +500,7 @@ describe('the mechanics of each hero', () => {
   })
 
   it('charges Ysolde with the elements she casts, and spends them all at once', () => {
-    const ysolde = { ...createCharacter(CharacterId.YSOLDE, 20), talents: ['ysolde-combustion'] }
+    const ysolde = withTalents(createCharacter(CharacterId.YSOLDE, 20), ['ysolde-combustion'])
     const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 30 }]], [ysolde]), 'h-ysolde')
     const { state: charged } = performAction(state, { type: 'skill', skillId: 'ysolde-fireball', targetIds: ['e1-1'] })
 
@@ -508,7 +516,7 @@ describe('the mechanics of each hero', () => {
   })
 
   it('lets Oren bring a fallen hero back', () => {
-    const oren = { ...createCharacter(CharacterId.OREN, 30), talents: ['oren-rebirth'] }
+    const oren = withTalents(createCharacter(CharacterId.OREN, 30), ['oren-rebirth'])
     const start = battle(boar, [kael, oren])
     const fallen: BattleState = {
       ...start,

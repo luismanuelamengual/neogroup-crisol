@@ -24,17 +24,21 @@ import {
   createCharacter,
   equipEcho,
   equipRune,
+  equipSkill,
   equipWeapon,
   getAttributePoints,
   getCharacterSkills,
   getCharacterStats,
   getHeroBonuses,
+  getKnownSkills,
   getSkillPoints,
   getWeaponLevel,
   moveInFormation,
+  SKILL_SLOTS,
   spendAttributePoint,
   spendTear,
   tradeSkillPoint,
+  unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
 import { gainExperience } from '@/app/(protected)/(engine)/utils/progression'
@@ -80,6 +84,42 @@ describe('attribute and skill points', () => {
     expect(getCharacterSkills(kaelOf(state))).toContain('kael-sweep')
     expect(getSkillPoints(kaelOf(state))).toBe(9 - 1 - 1)
     expect(() => buyTalent(state, KAEL, 'kael-sweep')).toThrow()
+  })
+
+  it('takes up to six skills into battle, besides the weapon attack', () => {
+    const veteran = { ...createCharacter(KAEL, 60), talents: getTree(KAEL).map((talent) => talent.id), skills: [] }
+    let state: GameState = { ...game(1), characters: [veteran] }
+    const known = getKnownSkills(veteran)
+
+    expect(known.length).toBeGreaterThan(SKILL_SLOTS)
+
+    for (const skill of known.slice(0, SKILL_SLOTS)) {
+      state = equipSkill(state, KAEL, skill)
+    }
+
+    expect(known).not.toContain('kael-stance')
+    expect(getCharacterSkills(kaelOf(state))).toEqual(['kael-strike', ...known.slice(0, SKILL_SLOTS), 'kael-stance'])
+    expect(() => equipSkill(state, KAEL, known[SKILL_SLOTS])).toThrow()
+    expect(() => equipSkill(state, KAEL, 'sera-volley')).toThrow()
+
+    state = equipSkill(unequipSkill(state, KAEL, known[0]), KAEL, known[SKILL_SLOTS])
+
+    expect(getCharacterSkills(kaelOf(state))).toEqual([
+      'kael-strike',
+      ...known.slice(1, SKILL_SLOTS + 1),
+      'kael-stance'
+    ])
+  })
+
+  it('puts a skill just bought in a free slot, and only then', () => {
+    const full = { ...game(10), characters: [{ ...kaelOf(game(10)), skills: ['kael-firm-cut'] }] }
+    const bought = buyTalent(buyTalent(full, KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')
+
+    expect(kaelOf(bought).skills).toEqual(['kael-firm-cut', 'kael-sweep'])
+
+    const crowded = { ...full, characters: [{ ...kaelOf(full), skills: ['a', 'b', 'c', 'd', 'e', 'f'] }] }
+
+    expect(kaelOf(buyTalent(buyTalent(crowded, KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')).skills).toHaveLength(6)
   })
 
   it('trades skill points for Echoes of the character only with the tree complete', () => {

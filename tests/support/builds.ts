@@ -4,7 +4,7 @@ import { getStartingWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
-import { canBuyTalent, createCharacter, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
+import { canBuyTalent, createCharacter, getMaxHealth, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
 const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
@@ -34,7 +34,14 @@ export function buildCharacter(id: CharacterId, level: number, weapon = Math.min
       break
     }
 
-    character = { ...character, talents: [...character.talents, next.id] }
+    const skillId = next.skillId
+
+    character = {
+      ...character,
+      talents: [...character.talents, next.id],
+      // As in the game: a new skill goes to a free slot.
+      skills: skillId && character.skills.length < SKILL_SLOTS ? [...character.skills, skillId] : character.skills
+    }
   }
 
   return { ...character, health: getMaxHealth(character) }

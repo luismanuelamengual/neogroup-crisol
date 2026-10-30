@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { getTree } from '@/app/(protected)/(engine)/data/talents'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { isGameState } from '@/app/(protected)/(engine)/utils/gameState'
-import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
+import { createCharacter, getKnownSkills } from '@/app/(protected)/(engine)/utils/heroes'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { getSaveSummary, loadGame, saveGame, startNewGame } from '@/app/(protected)/(saves)/services/saves'
 import { createUser, resetDatabase } from '@/tests/setup/database'
@@ -120,6 +121,39 @@ describe('saved games', () => {
       ['noon-scythe', { 'root-sickle': 4, 'noon-scythe': 2, 'thorn-sickle': 1 }],
       ['trinity-tome', { 'trinity-tome': 9, 'thunder-codex': 0, 'dusk-grimoire': 3 }]
     ])
+  })
+
+  it('equips the first six skills each character knows in a v6 game', async () => {
+    await startNewGame(userId)
+
+    const stored = await Save.where('userId', userId).first()
+    const { skills, ...kael } = {
+      ...createCharacter(CharacterId.KAEL, 60),
+      talents: getTree(CharacterId.KAEL).map((talent) => talent.id)
+    }
+
+    expect(skills).toEqual(['kael-firm-cut'])
+    stored!.saveVersion = 6
+    stored!.data = { ...(stored!.data as object), characters: [kael] }
+    await stored!.save()
+
+    const loaded = await loadGame(userId)
+
+    expect(isGameState(loaded.state)).toBe(true)
+    expect(loaded.state.characters[0].skills).toEqual(getKnownSkills(loaded.state.characters[0]).slice(0, 6))
+  })
+
+  it('takes Kael’s change of stance out of the skill slots of a v7 game', async () => {
+    await startNewGame(userId)
+
+    const stored = await Save.where('userId', userId).first()
+    const kael = { ...createCharacter(CharacterId.KAEL, 5), skills: ['kael-firm-cut', 'kael-stance'] }
+
+    stored!.saveVersion = 7
+    stored!.data = { ...(stored!.data as object), characters: [kael] }
+    await stored!.save()
+
+    expect((await loadGame(userId)).state.characters[0].skills).toEqual(['kael-firm-cut'])
   })
 
   it('replaces the saved game when a new one is started', async () => {

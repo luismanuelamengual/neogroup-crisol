@@ -2,6 +2,8 @@
 
 import './index.scss'
 import AddIcon from '@mui/icons-material/Add'
+import CloseIcon from '@mui/icons-material/Close'
+import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import classNames from 'classnames'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
@@ -24,20 +26,24 @@ import {
   canUpgradeWeapon,
   equipEcho,
   equipRune,
+  equipSkill,
   equipWeapon,
   getAttributePoints,
   getCharacterStats,
   getEchoLoad,
+  getKnownSkills,
   getSkillPoints,
   getWeaponLevel,
   isRuneMastered,
   isTreeComplete,
+  SKILL_SLOTS,
   spendAttributePoint,
   spendTear,
   TRADE_ECHOES,
   tradeSkillPoint,
   unequipEcho,
   unequipRune,
+  unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
 import {
@@ -87,6 +93,8 @@ export default function HeroSheet({ state, character, atCamp, canSwap, onChange 
   const owner = (index: number) => state.characters.find((other) => other.runes.includes(index))
   const mastered = state.runes.filter((index) => isRuneMastered(state, index)).sort((a, b) => a - b)
   const echoLoad = getEchoLoad(character)
+  const spare = getKnownSkills(character).filter((skill) => !character.skills.includes(skill))
+  const costOf = (skillId: string) => getSkill(skillId).cost
 
   return (
     <div className="hero-sheet">
@@ -111,6 +119,56 @@ export default function HeroSheet({ state, character, atCamp, canSwap, onChange 
             </li>
           ))}
         </ul>
+      </section>
+
+      <section>
+        <h3>
+          {t('party.battleSkills')}
+          <small>
+            {character.skills.length}/{SKILL_SLOTS}
+          </small>
+        </h3>
+        <p className="lines">{t('party.battleSkillsHint', { count: SKILL_SLOTS })}</p>
+        <ul className="loadout">
+          {Array.from({ length: SKILL_SLOTS }, (_, index) => character.skills[index]).map((skillId, index) =>
+            skillId ? (
+              <li key={skillId} className="slot">
+                <span className="name">{skillName(t, skillId)}</span>
+                {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
+                <IconButton
+                  size="small"
+                  aria-label={t('party.unequipSkill', { skill: skillName(t, skillId) })}
+                  onClick={() => onChange(unequipSkill(state, id, skillId))}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </li>
+            ) : (
+              <li key={`empty-${index}`} className="slot empty">
+                {t('battle.emptySlot')}
+              </li>
+            )
+          )}
+        </ul>
+        {spare.length > 0 && (
+          <>
+            <h4 className="spare-title">{t('party.spareSkills')}</h4>
+            <div className="spare">
+              {spare.map((skillId) => (
+                <ButtonBase
+                  key={skillId}
+                  className="spare-skill"
+                  disabled={character.skills.length >= SKILL_SLOTS}
+                  onClick={() => onChange(equipSkill(state, id, skillId))}
+                >
+                  <AddIcon fontSize="inherit" />
+                  {skillName(t, skillId)}
+                  {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
+                </ButtonBase>
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       <section>

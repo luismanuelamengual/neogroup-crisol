@@ -347,6 +347,14 @@ export const en: Messages = {
     }
   },
   battle: {
+    stance: 'Stance',
+    stances: { offense: 'Offense', defense: 'Defense' },
+    special: 'Special',
+    turnOf: '{name}’s turn',
+    tapEnemy: 'Tap an enemy',
+    tapAlly: 'Tap an ally',
+    reach: { enemy: 'One', allEnemies: 'All', ally: 'Ally', allAllies: 'Party', self: 'Self' },
+    emptySlot: 'Empty',
     traits: {
       offense: 'Offense stance',
       defense: 'Defense stance',
@@ -682,6 +690,11 @@ export const en: Messages = {
     'dusk-grimoire': { name: 'Dusk Prism', kind: 'Crystal book' }
   },
   party: {
+    battleSkills: 'Battle skills',
+    battleSkillsHint:
+      'Each hero goes into battle with its weapon attack and up to {count} skills. Change them any time out of a fight.',
+    spareSkills: 'Other skills it knows',
+    unequipSkill: 'Remove {skill}',
     title: 'Party',
     open: 'Party',
     heroes: 'Heroes',

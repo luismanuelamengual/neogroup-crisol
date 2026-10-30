@@ -97,6 +97,11 @@ export class BattleRenderer {
   private readonly figures = new Map<string, Figure>()
   private readonly marker = new Graphics()
   private markedId: string | null = null
+  /** The fighters the player can pick now (an arrow bobs over each one). */
+  private targetIds: string[] = []
+  /** Room the screen covers at the top and at the bottom (its HUD): the fighters stand in what is left. */
+  private insets = { top: 0, bottom: 0 }
+  private lastBattle: BattleState | null = null
   private elapsed = 0
   /** The camera: how far it panned right (pixels) and its zoom, easing towards their targets. */
   private readonly camera = { x: 0, zoom: 1, targetX: 0, targetZoom: 1 }
@@ -180,7 +185,7 @@ export class BattleRenderer {
     renderer.resizeObserver.observe(element)
 
     renderer.layout(battle)
-    app.renderer.on('resize', () => renderer.layout(battle))
+    app.renderer.on('resize', () => renderer.layout(renderer.lastBattle ?? battle))
 
     return renderer
   }
@@ -199,17 +204,43 @@ export class BattleRenderer {
     return this.app.screen.height
   }
 
-  private get scale(): number {
-    return Math.max(0.5, Math.min(1.1, this.width / 560, this.height / 380))
+  /** Height of the field the HUD leaves free. */
+  private get fieldHeight(): number {
+    return Math.max(200, this.height - this.insets.top - this.insets.bottom)
   }
 
-  /** The ground line: low on wide screens, closer to the middle on tall ones. */
+  private get scale(): number {
+    return Math.max(0.5, Math.min(1.1, this.width / 560, this.fieldHeight / 380))
+  }
+
+  /** The ground line, within the free field: low on wide screens, closer to the middle on tall ones. */
   private get groundY(): number {
-    return Math.min(this.height * 0.74, this.height / 2 + 150 * this.scale)
+    const field = this.fieldHeight
+
+    return Math.min(this.height, this.insets.top) + Math.min(field * 0.88, field / 2 + 230 * this.scale)
+  }
+
+  /** Room the HUD covers at the top and the bottom: the fighters move to the free field. */
+  setInsets(top: number, bottom: number): void {
+    if (top === this.insets.top && bottom === this.insets.bottom) {
+      return
+    }
+
+    this.insets = { top, bottom }
+
+    if (this.lastBattle) {
+      this.layout(this.lastBattle)
+    }
+  }
+
+  /** The fighters the player can pick now (none when not choosing a target). */
+  setTargets(ids: string[]): void {
+    this.targetIds = ids
   }
 
   /** Draws the background and places every fighter at its spot (on start and on resize). */
   layout(battle: BattleState): void {
+    this.lastBattle = battle
     this.drawBackground()
 
     for (const combatant of battle.combatants) {
@@ -411,6 +442,7 @@ export class BattleRenderer {
   /** Brings the drawing in line with the state (statuses, health, who is on the field, the marked fighter). */
   sync(battle: BattleState, markedId: string | null): void {
     this.markedId = markedId
+    this.lastBattle = battle
 
     for (const combatant of battle.combatants) {
       const figure = this.ensureFigure(combatant, battle)
@@ -800,6 +832,30 @@ export class BattleRenderer {
       this.marker
         .ellipse(marked.root.position.x, marked.root.position.y + 4, width, width * 0.3)
         .stroke({ width: 4, color: marked.side === 'hero' ? 0xffc233 : 0xff4d8d })
+    }
+
+    // The fighters that can be picked: a ring at the feet and an arrow bobbing over the head.
+    for (const id of this.targetIds) {
+      const target = this.figures.get(id)
+
+      if (!target || !target.root.visible) {
+        continue
+      }
+
+      const color = target.side === 'enemy' ? 0xff4d8d : 0x84f06b
+      const { x, y } = target.root.position
+      const width = 42 * target.size * this.scale
+      const top = y - (FIGURE_HEIGHT * target.size + 34) * this.scale - Math.abs(Math.sin(this.elapsed * 4)) * 10
+      const arrow = 11 * this.scale
+
+      this.marker
+        .ellipse(x, y + 4, width, width * 0.3)
+        .fill({ color, alpha: 0.18 + Math.sin(this.elapsed * 5) * 0.08 })
+        .stroke({ width: 3, color, alpha: 0.9 })
+      this.marker
+        .poly([x - arrow, top - arrow * 1.3, x + arrow, top - arrow * 1.3, x, top])
+        .fill({ color })
+        .stroke({ width: 3, color: OUTLINE })
     }
 
     for (const [, figure] of this.figures) {

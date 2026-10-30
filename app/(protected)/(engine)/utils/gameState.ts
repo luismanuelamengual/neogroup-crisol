@@ -5,10 +5,10 @@ import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
+import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 6
+export const SAVE_VERSION = 8
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -120,6 +120,28 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
     }
   }
 
+  if (fromVersion < 7) {
+    // v7: up to six skills equipped for battle. The first six it knows are equipped.
+    state = {
+      ...state,
+      characters: ((state.characters ?? []) as Omit<CharacterState, 'skills'>[]).map((character) => ({
+        ...character,
+        skills: getKnownSkills(character).slice(0, SKILL_SLOTS)
+      }))
+    }
+  }
+
+  if (fromVersion < 8) {
+    // v8: Kael's change of stance is a secondary action, out of the six slots.
+    state = {
+      ...state,
+      characters: ((state.characters ?? []) as CharacterState[]).map((character) => ({
+        ...character,
+        skills: character.skills.filter((skill) => skill !== 'kael-stance')
+      }))
+    }
+  }
+
   return state
 }
 
@@ -165,8 +187,21 @@ export function isGameState(value: unknown): value is GameState {
     Array.isArray(state.characters) &&
     state.characters.length > 0 &&
     state.characters.every((character) => {
-      const { id, level, xp, health, attributes, talents, traded, weaponId, weapons, runes, echoCapacity, echoes } =
-        (character ?? {}) as Record<string, unknown>
+      const {
+        id,
+        level,
+        xp,
+        health,
+        attributes,
+        talents,
+        traded,
+        skills,
+        weaponId,
+        weapons,
+        runes,
+        echoCapacity,
+        echoes
+      } = (character ?? {}) as Record<string, unknown>
 
       return (
         characterIds.includes(id as string) &&
@@ -177,6 +212,9 @@ export function isGameState(value: unknown): value is GameState {
         isCountMap(attributes) &&
         isStringArray(talents) &&
         isCount(traded) &&
+        isStringArray(skills) &&
+        (skills as string[]).length <= SKILL_SLOTS &&
+        new Set(skills as string[]).size === (skills as string[]).length &&
         isWeaponsOf(id, weapons) &&
         typeof weaponId === 'string' &&
         weaponId in (weapons as Record<string, number>) &&

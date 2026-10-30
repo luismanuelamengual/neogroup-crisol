@@ -6,7 +6,30 @@
   flex-direction: column;
   background: var(--color-night);
 
-  .top {
+  // The scene fills the whole screen; the HUD floats over it.
+  .stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+    }
+  }
+
+  // Glass: what the HUD is made of (the scene shows through, blurred).
+  %glass {
+    border: 1px solid rgba(232, 184, 90, 0.45);
+    background: linear-gradient(180deg, rgba(36, 23, 17, 0.72) 0%, rgba(13, 8, 6, 0.78) 100%);
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 226, 160, 0.12);
+    backdrop-filter: blur(6px);
+  }
+
+  .hud-top {
     position: absolute;
     top: 0;
     right: 0;
@@ -14,20 +37,27 @@
     z-index: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: calc(10px + var(--safe-top)) calc(12px + var(--safe-right)) 14px calc(12px + var(--safe-left));
-    background: linear-gradient(180deg, rgba(13, 8, 6, 0.85) 0%, rgba(13, 8, 6, 0) 100%);
+    gap: 8px;
+    padding: calc(8px + var(--safe-top)) calc(10px + var(--safe-right)) 8px calc(10px + var(--safe-left));
+    pointer-events: none;
 
-    // Turn order: enamel medallions in a gold rim, the one acting now bigger and lit.
+    > * {
+      pointer-events: auto;
+    }
+
+    // Turn order: small medallions, the one acting now bigger and lit, the later ones fading.
     .queue {
+      @extend %glass;
+
       display: flex;
-      flex: 1;
+      flex: 0 1 auto;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       min-width: 0;
-      margin: 0;
-      padding: 4px;
+      margin: 0 auto 0 0;
+      padding: 4px 8px 4px 4px;
       overflow: hidden;
+      border-radius: 999px;
       list-style: none;
 
       li {
@@ -35,16 +65,23 @@
         flex: 0 0 auto;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
-        border: 2px solid var(--color-gold-dark);
+        width: 24px;
+        height: 24px;
+        border: 1.5px solid var(--color-gold-dark);
         border-radius: 50%;
         color: var(--color-gold-light);
         font-family: var(--font-display);
-        font-size: 0.8rem;
+        font-size: 0.68rem;
         font-weight: 700;
         text-shadow: 0 1px 2px #000;
-        box-shadow: 0 0 0 2px #0a0604;
+
+        &:nth-child(n + 5) {
+          opacity: 0.7;
+        }
+
+        &:nth-child(n + 7) {
+          opacity: 0.45;
+        }
 
         &.hero {
           background: radial-gradient(circle at 35% 30%, #4f8fe0 0%, #173a7a 75%);
@@ -55,201 +92,675 @@
         }
 
         &.current {
-          width: 38px;
-          height: 38px;
-          border-color: var(--color-gold-light);
-          box-shadow:
-            0 0 0 2px #0a0604,
-            0 0 14px var(--color-ember);
+          width: 32px;
+          height: 32px;
+          border: 2px solid var(--color-gold-light);
+          font-size: 0.82rem;
+          box-shadow: 0 0 12px var(--color-ember);
         }
       }
     }
 
-    .phase {
-      color: var(--color-gold);
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
+    .phase,
     .speed {
+      @extend %glass;
+
       display: flex;
       align-items: center;
       gap: 2px;
-      height: 34px;
-      padding: 0 10px;
-      border: var(--frame-border);
-      border-radius: 3px;
-      background: var(--frame-background);
-      box-shadow:
-        0 0 0 2px #0a0604,
-        0 0 0 3px #5a3c16;
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
       color: var(--color-gold);
       font-family: var(--font-display);
+      font-size: 0.75rem;
       font-weight: 700;
+      white-space: nowrap;
     }
   }
 
-  .stage {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
+  .hud-bottom {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 28px calc(10px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(10px + var(--safe-left));
+    // A shade only behind the HUD, fading into the scene: no band.
+    background: linear-gradient(180deg, rgba(13, 8, 6, 0) 0%, rgba(13, 8, 6, 0.55) 30%, rgba(13, 8, 6, 0.8) 100%);
+    pointer-events: none;
 
-    canvas {
-      position: absolute;
-      inset: 0;
-      display: block;
+    > * {
+      pointer-events: auto;
     }
   }
 
-  .bottom {
+  // The commands of the hero whose turn it is. Always the same height, so the scene does not jump.
+  .command {
     position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    width: 100%;
+    max-width: 560px;
+    height: 182px;
+    margin-left: auto;
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+
+    .turn-of {
+      align-self: flex-start;
+      padding: 2px 12px;
+      border-left: 3px solid var(--color-gold);
+      background: linear-gradient(90deg, rgba(13, 8, 6, 0.8) 0%, rgba(13, 8, 6, 0) 100%);
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .banner {
+      @extend %glass;
+
+      align-self: center;
+      margin-bottom: 8px;
+      padding: 8px 22px;
+      border-radius: 999px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+
+      &.enemy {
+        border-color: rgba(229, 83, 61, 0.7);
+        color: #ff8f7a;
+      }
+    }
+  }
+
+  .command-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    animation: battle-rise 0.18s ease-out;
+  }
+
+  // The command menu: the options stacked beside the big attack button, slanted like blades.
+  .menu {
+    align-items: center;
+    justify-content: flex-end;
     gap: 14px;
-    padding: 14px calc(14px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(14px + var(--safe-left));
-    border-top: var(--frame-border);
-    background: linear-gradient(180deg, #1e140e 0%, var(--color-night) 100%);
-    box-shadow:
-      0 -3px 0 #0a0604,
-      0 -4px 0 #5a3c16;
 
-    .heroes {
+    .options {
       display: flex;
-      gap: 10px;
-      margin: 0;
-      padding: 3px;
-      list-style: none;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
 
-      li {
-        display: flex;
-        flex: 1 1 0;
-        flex-direction: column;
-        gap: 3px;
-        min-width: 0;
-        max-width: 200px;
-        padding: 6px 9px;
-        border: var(--frame-border);
-        border-radius: 3px;
-        background: var(--frame-background);
-        box-shadow:
-          0 0 0 2px #0a0604,
-          0 0 0 3px #5a3c16;
+    .option {
+      @extend %glass;
 
-        &.active {
-          border-color: var(--color-gold-light);
-          box-shadow: var(--frame-glow);
-        }
+      --tone: var(--color-cyan);
 
-        &.fallen {
-          filter: grayscale(0.8);
-          opacity: 0.5;
-        }
+      justify-content: flex-start;
+      gap: 8px;
+      min-width: 168px;
+      height: 42px;
+      padding: 0 14px 0 12px;
+      border-left: 3px solid var(--tone);
+      border-radius: 4px;
+      color: var(--color-text);
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: skewX(-12deg);
+      transition:
+        transform 0.12s ease,
+        border-color 0.12s ease;
+
+      > * {
+        transform: skewX(12deg);
       }
 
-      .name {
+      svg {
+        color: var(--tone);
+      }
+
+      &.special {
+        --tone: var(--color-cyan);
+
+        min-width: 188px;
+        height: 48px;
+        font-size: 1rem;
+        box-shadow:
+          0 4px 14px rgba(0, 0, 0, 0.45),
+          0 0 14px rgba(116, 180, 255, 0.3);
+      }
+
+      &:not(.special, .ghost, .secondary) {
+        --tone: var(--color-lime);
+      }
+
+      &.secondary {
+        --tone: var(--color-gold);
+      }
+
+      &.ghost {
+        --tone: var(--color-text-secondary);
+
+        font-size: 0.8rem;
+      }
+
+      &:hover:not(.Mui-disabled) {
+        border-color: var(--tone);
+      }
+
+      &:active {
+        transform: skewX(-12deg) scale(0.97);
+      }
+
+      &.Mui-disabled {
+        opacity: 0.4;
+      }
+
+      .count {
+        margin-left: auto;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: rgba(255, 226, 160, 0.15);
+        color: var(--color-gold-light);
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        letter-spacing: 0;
+      }
+    }
+
+    .attack {
+      width: 112px;
+      height: 112px;
+
+      .attack-label {
+        font-size: 1rem;
+      }
+
+      .attack-skill {
+        font-size: 0.68rem;
+      }
+    }
+  }
+
+  .skills {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 44px;
+    gap: 6px;
+    min-width: 0;
+
+    &.items {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  }
+
+  .skill {
+    @extend %glass;
+
+    --tone: var(--color-cyan);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 4px 8px 4px 12px;
+    overflow: hidden;
+    border-radius: 6px 14px 6px 14px;
+    color: var(--color-text);
+    text-align: left;
+    transition:
+      transform 0.12s ease,
+      border-color 0.12s ease;
+
+    // The stripe of its color on the left.
+    &::before {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 4px;
+      width: 3px;
+      border-radius: 2px;
+      background: var(--tone);
+      box-shadow: 0 0 8px var(--tone);
+      content: '';
+    }
+
+    &.heal {
+      --tone: var(--color-lime);
+    }
+
+    &.support {
+      --tone: var(--color-gold);
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:hover:not(.Mui-disabled) {
+      border-color: var(--tone);
+    }
+
+    &.Mui-disabled {
+      opacity: 0.45;
+    }
+
+    &.empty {
+      align-items: center;
+      border-style: dashed;
+      background: rgba(13, 8, 6, 0.35);
+      color: var(--color-text-secondary);
+      font-size: 0.7rem;
+      opacity: 0.55;
+
+      &::before {
+        display: none;
+      }
+    }
+
+    .skill-name {
+      width: 100%;
+      overflow: hidden;
+      font-family: var(--font-display);
+      font-size: 0.74rem;
+      font-weight: 700;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .skill-meta {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      color: var(--color-text-secondary);
+      font-size: 0.66rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .element {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c9b48c;
+
+      &.fire {
+        background: #ff7a3c;
+      }
+
+      &.ice {
+        background: #8fd8ff;
+      }
+
+      &.lightning {
+        background: #ffe45c;
+      }
+
+      &.earth {
+        background: #b98a4a;
+      }
+
+      &.light {
+        background: #fff3c4;
+      }
+
+      &.darkness {
+        background: #a06bff;
+      }
+
+      &.slash,
+      &.pierce,
+      &.blunt {
+        background: #d8d0c0;
+      }
+    }
+
+    .cost {
+      margin-left: auto;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(63, 127, 216, 0.35);
+      color: #cfe3ff;
+      font-size: 0.66rem;
+
+      &.short {
+        background: rgba(229, 83, 61, 0.35);
+        color: #ffb3a6;
+      }
+    }
+  }
+
+  // The attack of the weapon: the big round button, with items and retreat beside it.
+  .core {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .attack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 92px;
+    height: 92px;
+    padding: 8px;
+    border: 2px solid var(--color-gold-light);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 28%, #ffe2a0 0%, #e8b85a 35%, #8a5a1c 100%);
+    box-shadow:
+      0 0 0 3px rgba(13, 8, 6, 0.85),
+      0 0 22px rgba(255, 138, 42, 0.55);
+    color: #2a1608;
+    text-align: center;
+    transition: transform 0.12s ease;
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &.Mui-disabled {
+      filter: grayscale(0.8);
+      opacity: 0.5;
+    }
+
+    .attack-label {
+      font-family: var(--font-display);
+      font-size: 0.86rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .attack-skill {
+      max-width: 100%;
+      overflow: hidden;
+      font-size: 0.62rem;
+      font-weight: 800;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .minor {
+    display: flex;
+    gap: 10px;
+  }
+
+  .round {
+    @extend %glass;
+
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--color-gold);
+
+    &.Mui-disabled {
+      opacity: 0.4;
+    }
+
+    .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--color-ember);
+      color: #1a0d04;
+      font-size: 0.62rem;
+      font-weight: 900;
+      line-height: 17px;
+    }
+  }
+
+  // Choosing a target: tap it on the scene (or on its chip).
+  .targeting {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: battle-rise 0.18s ease-out;
+
+    .prompt {
+      @extend %glass;
+
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      align-self: center;
+      padding: 4px 4px 4px 16px;
+      border-radius: 999px;
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+
+      .round {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .target-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .chip {
+      @extend %glass;
+
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 3px;
+      width: 112px;
+      padding: 5px 9px;
+      border-radius: 8px;
+      color: var(--color-text);
+
+      &.enemy {
+        border-color: rgba(255, 77, 141, 0.7);
+      }
+
+      &.hero {
+        border-color: rgba(132, 240, 107, 0.7);
+      }
+
+      .chip-name {
         overflow: hidden;
-        color: var(--color-gold);
-        font-family: var(--font-display);
-        font-size: 0.82rem;
-        font-weight: 700;
+        font-size: 0.72rem;
+        font-weight: 800;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
-      .bar {
-        height: 7px;
+      .chip-bar {
+        height: 4px;
         overflow: hidden;
-        border: 1px solid #5a3c16;
+        border-radius: 2px;
         background: var(--bar-track);
 
-        div {
+        span {
+          display: block;
           height: 100%;
-          transition: width 0.3s ease;
-        }
-
-        &.health div {
           background: var(--bar-health);
         }
+      }
+    }
+  }
 
-        &.focus div {
+  // The party: compact plates along the bottom edge.
+  .party {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      @extend %glass;
+
+      display: flex;
+      flex: 1 1 0;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      max-width: 220px;
+      padding: 5px 8px 5px 5px;
+      border-radius: 999px 10px 10px 999px;
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+
+      &.active {
+        border-color: var(--color-gold-light);
+        box-shadow:
+          0 0 0 1px var(--color-gold),
+          0 0 16px rgba(255, 138, 42, 0.5);
+        transform: translateY(-4px);
+      }
+
+      &.fallen {
+        filter: grayscale(0.85);
+        opacity: 0.5;
+      }
+    }
+
+    .medallion {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border: 1.5px solid var(--color-gold-dark);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #4f8fe0 0%, #173a7a 75%);
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .vitals {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .line {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .name {
+      flex: 1;
+      overflow: hidden;
+      color: var(--color-gold);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .numbers {
+      color: var(--color-text);
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: var(--bar-track);
+
+      div {
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      &.health div {
+        background: var(--bar-health);
+      }
+
+      &.focus {
+        height: 3px;
+
+        div {
           background: var(--bar-focus);
         }
       }
-
-      .numbers {
-        color: var(--color-text-secondary);
-        font-size: 0.72rem;
-        font-weight: 700;
-        white-space: nowrap;
-      }
-
-      .trait {
-        color: var(--color-ember);
-        font-size: 0.7rem;
-        font-weight: 800;
-        white-space: nowrap;
-      }
     }
 
-    // The command window: one command per cell, two per row.
-    .actions {
-      position: relative;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: stretch;
-      gap: 12px;
-      padding: 14px 13px;
-      border: var(--frame-border);
-      border-radius: 4px;
-      background: var(--frame-background);
-      box-shadow: var(--frame-shadow);
+    .trait {
+      overflow: hidden;
+      color: var(--color-ember);
+      font-size: 0.6rem;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 
-      .game-button {
-        flex-wrap: wrap;
-        gap: 0 6px;
-        min-width: 0;
-
-        .label {
-          white-space: normal;
-          text-align: center;
-          line-height: 1.15;
-        }
-      }
-
-      .cost {
-        display: block;
-        margin-top: 1px;
-        font-family: var(--font-body);
-        font-size: 0.72rem;
-        letter-spacing: 0;
-        text-transform: none;
-        opacity: 0.85;
-      }
-
-      .prompt {
-        grid-column: 1 / -1;
-        color: var(--color-gold);
-        font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-align: center;
-        text-transform: uppercase;
-      }
+  // Wide screens: the party on the left, the commands on the right, side by side.
+  @media (min-width: 900px) {
+    .hud-bottom {
+      flex-direction: row-reverse;
+      align-items: flex-end;
+      justify-content: space-between;
     }
 
-    .waiting {
-      margin: 0;
-      min-height: 40px;
-      color: var(--color-magenta);
-      font-family: var(--font-display);
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      line-height: 40px;
-      text-align: center;
-      text-transform: uppercase;
+    .command {
+      margin-left: 0;
+    }
+
+    .party {
+      flex-direction: column;
+      width: 240px;
+
+      li {
+        max-width: none;
+      }
     }
   }
 
@@ -299,5 +810,17 @@
         margin-top: 14px;
       }
     }
+  }
+}
+
+@keyframes battle-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

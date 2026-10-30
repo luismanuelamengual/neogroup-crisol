@@ -351,6 +351,14 @@ export const es = {
     }
   },
   battle: {
+    stance: 'Postura',
+    stances: { offense: 'Ofensiva', defense: 'Defensiva' },
+    special: 'Especial',
+    turnOf: 'Turno de {name}',
+    tapEnemy: 'Tocá un enemigo',
+    tapAlly: 'Tocá un aliado',
+    reach: { enemy: 'Uno', allEnemies: 'Todos', ally: 'Aliado', allAllies: 'Grupo', self: 'Propio' },
+    emptySlot: 'Libre',
     traits: {
       offense: 'Postura ofensiva',
       defense: 'Postura defensiva',
@@ -687,6 +695,11 @@ export const es = {
     'dusk-grimoire': { name: 'Prisma del Ocaso', kind: 'Libro de cristal' }
   },
   party: {
+    battleSkills: 'Habilidades en batalla',
+    battleSkillsHint:
+      'Cada héroe va a la batalla con el ataque de su arma y hasta {count} habilidades. Cambialas cuando quieras fuera de la pelea.',
+    spareSkills: 'Otras habilidades que conoce',
+    unequipSkill: 'Quitar {skill}',
     title: 'Grupo',
     open: 'Grupo',
     heroes: 'Héroes',
