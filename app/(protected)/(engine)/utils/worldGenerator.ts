@@ -15,7 +15,7 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
-import { buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
+import { Adjacency, buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom, Random, shuffle } from '@/app/(protected)/(engine)/utils/random'
 import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
@@ -412,6 +412,13 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
   }
 
+  // The camp of each merchant: once it is open the merchant is reached without a fight.
+  const merchantCamps = chooseMerchantCamps(nodes, adjacency, fromStart, start.biome)
+
+  if (!merchantCamps) {
+    return null
+  }
+
   // Sanctuaries, Tears and chests: in dead ends, never on the way through.
   for (const definition of BIOMES) {
     const deadEnds = () => biomeNodes(definition).filter((node) => isFree(node) && isLeaf(node))
@@ -458,22 +465,17 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       node.type = NodeType.CHEST
     }
 
-    // Merchants: right next to a camp of their biome, so once the camp is open they are reached without a fight.
-    // In the biome of the starting camp, next to the boss camp closest to it (the first one the party can open).
+    // Merchants: right next to the camp chosen for them (see chooseMerchantCamps).
     if (definition.merchant) {
       const freeBeside = (camp: WorldNode) =>
         adjacency
           .get(camp.id)!
           .map((id) => byId.get(id)!)
           .filter((node) => node.biome === definition.biome && isFree(node) && !isBorder(node))
-      let besideCamp = biomeNodes(definition).filter(isCamp).flatMap(freeBeside)
+      let besideCamp = freeBeside(merchantCamps.get(definition.biome)!)
 
-      if (start.biome === definition.biome) {
-        const nearest = biomeNodes(definition)
-          .filter((node) => node.type === NodeType.CAMP_BOSS && freeBeside(node).length > 0)
-          .sort((a, b) => fromStart.get(a.id)! - fromStart.get(b.id)!)[0]
-
-        besideCamp = nearest ? freeBeside(nearest) : []
+      if (besideCamp.length === 0) {
+        besideCamp = biomeNodes(definition).filter(isCamp).flatMap(freeBeside)
       }
 
       // A dead end beside the camp is preferred: the merchant does not become a free way through.
@@ -597,6 +599,74 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
       }
     }
   }
+}
+
+/**
+ * The camp next to which each merchant waits. In the biome of the starting camp,
+ * the boss camp closest to it (the first one the party can open); in the other
+ * biomes, the camps that keep the merchants as far apart from each other as
+ * possible (the combination with the largest minimum distance between them).
+ */
+function chooseMerchantCamps(
+  nodes: WorldNode[],
+  adjacency: Adjacency,
+  fromStart: Map<string, number>,
+  startBiome: Biome
+): Map<Biome, WorldNode> | null {
+  const byId = new Map(nodes.map((node) => [node.id, node]))
+  const hasRoom = (camp: WorldNode) =>
+    adjacency.get(camp.id)!.some((id) => {
+      const node = byId.get(id)!
+
+      return (
+        node.type === NodeType.COMBAT &&
+        node.biome === camp.biome &&
+        adjacency.get(id)!.every((other) => byId.get(other)!.biome === node.biome)
+      )
+    })
+  const choices = BIOMES.filter((definition) => definition.merchant).map((definition) => {
+    const camps = nodes.filter(
+      (node) =>
+        node.biome === definition.biome &&
+        (node.type === NodeType.CAMP_BOSS || (node.type === NodeType.START && definition.biome !== startBiome)) &&
+        hasRoom(node)
+    )
+
+    if (definition.biome !== startBiome) {
+      return camps
+    }
+
+    return [...camps].sort((a, b) => fromStart.get(a.id)! - fromStart.get(b.id)!).slice(0, 1)
+  })
+
+  if (choices.some((camps) => camps.length === 0)) {
+    return null
+  }
+
+  let best: WorldNode[] = []
+  let bestScore = -Infinity
+  const search = (picked: WorldNode[], score: number) => {
+    if (score <= bestScore) {
+      return
+    }
+
+    if (picked.length === choices.length) {
+      best = picked
+      bestScore = score
+
+      return
+    }
+
+    for (const camp of choices[picked.length]) {
+      const closest = Math.min(score, ...picked.map((other) => Math.hypot(camp.x - other.x, camp.y - other.y)))
+
+      search([...picked, camp], closest)
+    }
+  }
+
+  search([], Infinity)
+
+  return new Map(best.map((camp) => [camp.biome, camp]))
 }
 
 function maxBy<T>(items: T[], score: (item: T) => number): T {
