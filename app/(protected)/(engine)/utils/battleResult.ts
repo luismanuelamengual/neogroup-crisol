@@ -6,9 +6,8 @@ import { addItems } from '@/app/(protected)/(engine)/utils/heroes'
 import { gainExperience, loseExperience } from '@/app/(protected)/(engine)/utils/progression'
 import { loseEncounter, retreat, winEncounter, WorldIndex } from '@/app/(protected)/(engine)/utils/worldMap'
 
-/** Share of the experience of the current level lost by the whole party on a defeat, and by the active heroes on a retreat. */
+/** Share of the experience of the current level lost by the whole party on a defeat. */
 export const DEFEAT_XP_LOSS = 0.5
-export const RETREAT_XP_LOSS = 0.1
 
 export interface LevelUp {
   characterId: CharacterId
@@ -58,8 +57,8 @@ function spendItems(state: GameState, battle: BattleState): GameState {
  *     the fallen come back with 1 health.
  *   - defeat: everybody loses half the experience of its current level and
  *     wakes up at the last camp where it rested.
- *   - retreat: the heroes that fought lose 10% of the experience of their
- *     level and go back to `fromNodeId`; the fallen come back with 1 health.
+ *   - retreat (only possible with every hero alive): nobody loses experience
+ *     and the party goes back to `fromNodeId` with the health it had.
  *
  * The enemies defeated count for the bestiary whatever the outcome.
  */
@@ -137,12 +136,10 @@ export function applyBattleResult(
   }
 
   if (battle.outcome === 'retreat') {
-    const characters = game.characters.map((character) => {
-      const hero = heroes.get(character.id)
-      const afterBattle = { ...character, health: Math.max(1, hero?.health ?? character.health) }
-
-      return hero?.fought ? loseExperience(afterBattle, RETREAT_XP_LOSS) : afterBattle
-    })
+    const characters = game.characters.map((character) => ({
+      ...character,
+      health: Math.max(1, heroes.get(character.id)?.health ?? character.health)
+    }))
 
     return { state: retreat(index, { ...afterItems, characters, kills }, fromNodeId), rewards: [], levelUps: [] }
   }

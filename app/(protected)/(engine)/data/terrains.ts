@@ -11,17 +11,24 @@ export const TERRAINS: Terrain[] = [
   Terrain.SNOW,
   Terrain.SAND,
   Terrain.ASH,
+  Terrain.SCORCHED,
+  Terrain.GLOOM,
   Terrain.DIRT,
   Terrain.ROCK,
+  Terrain.MAGMA,
+  Terrain.MYCELIUM,
   Terrain.ICE,
   Terrain.STONE,
   Terrain.COBBLESTONE,
+  Terrain.FIRESTONE,
+  Terrain.RUNESTONE,
   Terrain.WATER,
-  Terrain.LAVA
+  Terrain.LAVA,
+  Terrain.ICHOR
 ]
 
 /** Terrains of the lakes (frozen in the snow), kept away from points and trails. */
-export const LAKES = new Set([Terrain.WATER, Terrain.LAVA, Terrain.ICE])
+export const LAKES = new Set([Terrain.WATER, Terrain.LAVA, Terrain.ICE, Terrain.ICHOR])
 
 /** Every biome, in the order TileMap.biomes refers to them. */
 export const BIOMES_ORDER = Object.values(Biome)
@@ -42,12 +49,20 @@ export const BIOME_RISE: Record<Biome, number> = {
   [Biome.ABYSS]: 0.02
 }
 
-/** Terrains of a biome: its plain ground, the patches over it, its trails and its lakes (none in the desert). */
+/**
+ * Terrains of a biome: its plain ground, the patches over it, its trails and
+ * its lakes (none in the desert). Some biomes have more lakes than the rest
+ * (`lakes`, the share of the noise over which they lie, 0.56 by default) and
+ * rivers of them winding between the trails (`rivers`, their width in shares
+ * of the noise).
+ */
 export interface BiomeTerrains {
   ground: Terrain
   patches: Terrain
   trail: Terrain
   lake: Terrain | null
+  lakes?: number
+  rivers?: number
 }
 
 export const BIOME_TERRAINS: Record<Biome, BiomeTerrains> = {
@@ -57,7 +72,21 @@ export const BIOME_TERRAINS: Record<Biome, BiomeTerrains> = {
   [Biome.DESERT]: { ground: Terrain.SAND, patches: Terrain.ROCK, trail: Terrain.STONE, lake: null },
   [Biome.MOUNTAINS]: { ground: Terrain.ROCK, patches: Terrain.SNOW, trail: Terrain.DIRT, lake: Terrain.WATER },
   [Biome.SNOW]: { ground: Terrain.SNOW, patches: Terrain.ROCK, trail: Terrain.STONE, lake: Terrain.ICE },
-  [Biome.VOLCANIC]: { ground: Terrain.ASH, patches: Terrain.ROCK, trail: Terrain.STONE, lake: Terrain.LAVA },
+  [Biome.VOLCANIC]: {
+    ground: Terrain.SCORCHED,
+    patches: Terrain.MAGMA,
+    trail: Terrain.FIRESTONE,
+    lake: Terrain.LAVA,
+    lakes: 0.5,
+    rivers: 0.035
+  },
   [Biome.WASTELANDS]: { ground: Terrain.ASH, patches: Terrain.DIRT, trail: Terrain.COBBLESTONE, lake: Terrain.WATER },
-  [Biome.ABYSS]: { ground: Terrain.ASH, patches: Terrain.ROCK, trail: Terrain.STONE, lake: Terrain.LAVA }
+  [Biome.ABYSS]: {
+    ground: Terrain.GLOOM,
+    patches: Terrain.MYCELIUM,
+    trail: Terrain.RUNESTONE,
+    lake: Terrain.ICHOR,
+    lakes: 0.52,
+    rivers: 0.025
+  }
 }

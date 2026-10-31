@@ -42,8 +42,8 @@ import { getCharacterSkills, getCharacterStats, getHeroBonuses } from '@/app/(pr
 
 export const ACTIVE_HEROES = 3
 const INITIATIVE_FULL = 100
-/** Share of the maximum focus recovered at the start of each turn. */
-const FOCUS_REGEN = 0.12
+/** Share of the maximum focus recovered with each weapon attack. */
+const ATTACK_FOCUS = 0.25
 /** Health lost per turn by each damage over time (share of the maximum; bosses take a third). */
 const DOT_SHARE: Partial<Record<StatusType, number>> = {
   [StatusType.POISON]: 0.06,
@@ -152,6 +152,11 @@ export function getCombatant(state: BattleState, id: string): Combatant {
 
 export function isAlive(combatant: Combatant): boolean {
   return combatant.health > 0
+}
+
+/** The party can retreat when the fight allows it (not against bosses) and every hero, on the field or in reserve, is alive. */
+export function canRetreat(state: BattleState): boolean {
+  return state.canRetreat && state.combatants.every((combatant) => combatant.side !== 'hero' || isAlive(combatant))
 }
 
 /** Fighters on the field: alive and not waiting in reserve. */
@@ -338,7 +343,7 @@ function tickStatuses(combatant: Combatant, events: BattleEvent[]): void {
 
 /**
  * Moves the timeline to the next fighter that can act and starts its turn:
- * it recovers focus, takes its damage over time and loses the turn if it is
+ * it takes its damage over time and loses the turn if it is
  * frozen or stunned (then the timeline moves on).
  */
 export function nextTurn(battle: BattleState): BattleStep {
@@ -364,10 +369,6 @@ export function nextTurn(battle: BattleState): BattleStep {
     }
 
     actor.initiative = 0
-    actor.focus = Math.min(
-      actor.stats.maxFocus,
-      actor.focus + Math.ceil(actor.stats.maxFocus * (FOCUS_REGEN + (actor.bonuses?.focusRegen ?? 0)))
-    )
     events.push({ type: 'turn', actorId: actor.id })
 
     if (actor.bonuses?.regen && actor.health < actor.stats.maxHealth) {
@@ -514,7 +515,7 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   }
 
   if (action.type === 'retreat') {
-    if (actor.side !== 'hero' || !state.canRetreat) {
+    if (actor.side !== 'hero' || !canRetreat(state)) {
       throw new Error('Retreating is not allowed')
     }
 
@@ -553,6 +554,19 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
   actor.focus -= skill.cost
   events.push({ type: 'action', actorId: actor.id, skillId: skill.id, targetIds })
+
+  // The weapon attack is how focus comes back.
+  if (skill.id === actor.skills[0]) {
+    const restored = Math.min(
+      actor.stats.maxFocus - actor.focus,
+      Math.ceil(actor.stats.maxFocus * (ATTACK_FOCUS + (actor.bonuses?.focusRegen ?? 0)))
+    )
+
+    if (restored > 0) {
+      actor.focus += restored
+      events.push({ type: 'focus', targetId: actor.id, amount: restored })
+    }
+  }
 
   if (skill.stance && actor.stance) {
     actor.stance = actor.stance === 'offense' ? 'defense' : 'offense'

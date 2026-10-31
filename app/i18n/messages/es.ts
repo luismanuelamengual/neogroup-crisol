@@ -374,6 +374,7 @@ export const es = {
     attack: 'Atacar',
     specials: 'Especiales',
     retreat: 'Retirarse',
+    retreatBlocked: 'Solo podés retirarte con todos los héroes en pie',
     chooseTarget: 'Elegí un objetivo',
     back: 'Volver',
     focusCost: '{cost} conc.',
@@ -391,7 +392,7 @@ export const es = {
     defeatText:
       'Perdés la mitad de la experiencia de tu nivel actual y despertás en el último campamento donde descansaste.',
     retreated: 'Te retiraste',
-    retreatText: 'Los que pelearon pierden el 10% de la experiencia de su nivel actual.',
+    retreatText: 'Volvés al punto anterior sin perder experiencia.',
     xpGained: '+{xp} de experiencia',
     goldGained: '+{gold} de oro',
     levelUp: '{name} sube al nivel {level}',
@@ -814,7 +815,7 @@ export const es = {
   bonuses: {
     stat: '{value} {stat}',
     lifesteal: 'Se cura el {value} del daño que hace',
-    focusRegen: '+{value} de concentración por turno',
+    focusRegen: '+{value} de concentración por ataque normal',
     regen: 'Recupera el {value} de la vida por turno',
     initiative: 'Empieza las batallas un {value}% adelantado en los turnos',
     guard: 'Recibe un {value} menos de daño',

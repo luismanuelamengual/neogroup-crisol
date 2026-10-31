@@ -68,7 +68,16 @@ const TILES: Record<Terrain, string> = {
   [Terrain.COBBLESTONE]:
     'a paved road of small rounded cobblestones in warm beige and brown tones, dark gaps between them and a little moss',
   [Terrain.WATER]: 'clear blue lake water with small light ripples and glints, no shore',
-  [Terrain.LAVA]: 'molten glowing orange lava with floating plates of black cooling crust'
+  [Terrain.LAVA]: 'bright molten flowing lava in yellow, orange and red swirls, a few thin dark crust streaks',
+  [Terrain.SCORCHED]: 'scorched dark red volcanic earth with cinders, small cracks and scattered glowing orange embers',
+  [Terrain.MAGMA]: 'cooled lava crust of black and deep red plates split by thin glowing yellow-orange cracks',
+  [Terrain.FIRESTONE]:
+    'big flat slabs of red and orange baked stone fitted together with dark joints and a few soot stains',
+  [Terrain.GLOOM]: 'dark violet almost black alien soil with tiny faint glowing purple specks',
+  [Terrain.MYCELIUM]:
+    'a carpet of alien purple and magenta fungal growth with thin glowing violet veins and tiny bulbs',
+  [Terrain.RUNESTONE]: 'black obsidian slabs fitted together with thin glowing violet joints and faint carved runes',
+  [Terrain.ICHOR]: 'glowing violet alien liquid with slow swirls of magenta and pale lilac light, no shore'
 }
 /** Where each hero joins: their pieces go with that biome's batch. */
 const HERO_BATCH: Record<CharacterId, Biome> = {
@@ -134,11 +143,11 @@ const MAP_SHEETS: Record<Biome, string> = {
   [Biome.SNOW]:
     '4 snowy pine trees, 3 ice spikes, 2 snow-covered rocks, 2 frozen ponds, 2 snowdrifts, 1 frozen statue, 1 igloo-like ruin, 1 mammoth skeleton',
   [Biome.VOLCANIC]:
-    '3 small volcanoes, 3 basalt spires, 3 lava pools, 2 obsidian rocks, 2 dead burnt trees, 2 smoking vents, 1 ruined forge',
+    '3 small erupting volcanoes, 3 red rock spires with lava veins, 3 lava pools, 2 glowing magma rocks, 2 burning trees, 2 fire geysers, 1 ruined forge',
   [Biome.WASTELANDS]:
     '4 dead twisted trees, 3 tombstones, 2 broken walls, 2 bone piles, 2 broken siege machines, 1 ruined tower, 1 crooked gibbet, 1 green toxic pool',
   [Biome.ABYSS]:
-    '4 jagged black rock spires, 3 chains anchored in rock, 3 red crystal shards, 2 lava cracks, 2 iron spikes, 1 skull pile, 1 broken black statue'
+    '3 alien trees with glowing violet bulbs, 3 black obelisks with glowing purple runes, 3 violet crystal shards, 2 glowing ichor pools, 2 giant alien fungi, 1 floating alien ring, 1 broken alien machine'
 }
 /** Battle scenery of each biome: props scattered in front of and behind the fighters (see battleScenery.ts). */
 /**
@@ -178,9 +187,9 @@ const SCENERY_SHEETS: Record<Biome, [string, string, string]> = {
     '1 cluster of icy pebbles, 1 small snowdrift, 1 frozen grass tuft, 1 small icicle shard'
   ],
   [Biome.VOLCANIC]: [
-    '5 burnt black dead trees, 3 tall basalt spires',
-    '2 black obsidian rocks, 1 rock with glowing orange lava cracks, 1 small smoking vent',
-    '1 cluster of black pebbles, 1 cluster of glowing ember pebbles, 1 small ash pile, 1 dry burnt tuft'
+    '3 charred dead trees with flames burning on their branches, 3 red rock spires with glowing lava veins, 2 fire geysers erupting from a rock cone',
+    '2 dark red rocks with glowing orange lava cracks, 1 burning bush of flames, 1 cluster of orange and yellow sulfur crystals',
+    '1 cluster of glowing ember pebbles, 1 small flickering flame, 1 cluster of red pebbles, 1 small yellow sulfur crust'
   ],
   [Biome.WASTELANDS]: [
     '6 twisted grey dead trees, 2 broken stone pillars',
@@ -188,9 +197,9 @@ const SCENERY_SHEETS: Record<Biome, [string, string, string]> = {
     '1 dry grass tuft, 1 cluster of grey pebbles, 1 small skull, 1 small bone pile'
   ],
   [Biome.ABYSS]: [
-    '4 tall purple glowing crystal spires, 4 black twisted dead trees',
-    '2 dark rocks with purple glowing veins, 1 purple crystal cluster, 1 rusty iron spike',
-    '1 cluster of dark pebbles, 1 small purple crystal shard, 1 small chain link pile, 1 tuft of black thorny grass'
+    '3 twisted alien trees with glowing violet bulbs, 2 giant alien mushrooms with glowing spots, 2 black obelisks with glowing purple runes, 1 tall violet crystal spire',
+    '1 alien pod plant with a glowing violet bulb, 1 cluster of tentacle sprouts, 1 small rune stone artifact, 1 violet crystal cluster',
+    '1 cluster of glowing violet spores, 1 cluster of tiny alien mushrooms, 1 curled alien tendril, 1 cluster of black pebbles with violet glints'
   ]
 }
 const PROP_SHEETS: Record<Biome, string> = {
@@ -211,7 +220,7 @@ const PROP_SHEETS: Record<Biome, string> = {
   [Biome.WASTELANDS]:
     '2 dead twisted trees, 2 tombstones, 1 broken stone wall, 1 bone pile, 1 crooked gibbet, 1 broken siege wheel, 1 rusty sword stuck in the ground, 1 dead shrub, 1 cracked statue, 1 old well',
   [Biome.ABYSS]:
-    '2 jagged black rock spires, 2 red crystal shards, 1 chained pillar, 1 iron spike fence, 1 skull pile, 1 broken black statue, 1 burning brazier, 1 cracked obsidian rock, 1 hanging cage on a pole'
+    '2 jagged black rock spires, 2 violet crystal shards, 1 chained pillar, 1 iron spike fence, 1 skull pile, 1 broken black statue, 1 burning brazier, 1 cracked obsidian rock, 1 hanging cage on a pole'
 }
 /** The building beside each merchant on the world map. */
 const MERCHANT_HOUSES: [string, string][] = [

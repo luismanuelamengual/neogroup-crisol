@@ -19,7 +19,7 @@ export const SCENERY_DENSITY: Record<Biome, SceneryDensity> = {
   [Biome.DESERT]: { tall: 0.12, low: 0.14, ground: 0.5 },
   [Biome.MOUNTAINS]: { tall: 0.35, low: 0.3, ground: 0.8 },
   [Biome.SNOW]: { tall: 0.4, low: 0.16, ground: 0.5 },
-  [Biome.VOLCANIC]: { tall: 0.14, low: 0.24, ground: 0.6 },
+  [Biome.VOLCANIC]: { tall: 0.2, low: 0.26, ground: 0.8 },
   [Biome.WASTELANDS]: { tall: 0.16, low: 0.2, ground: 0.7 },
-  [Biome.ABYSS]: { tall: 0.12, low: 0.24, ground: 0.5 }
+  [Biome.ABYSS]: { tall: 0.32, low: 0.3, ground: 1 }
 }

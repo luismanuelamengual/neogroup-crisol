@@ -29,7 +29,7 @@ export interface Bonuses {
   stats: Partial<Record<keyof CombatStats, number>>
   /** Share of the damage dealt that heals the hero. */
   lifesteal: number
-  /** Extra share of focus recovered at the start of each turn. */
+  /** Extra share of focus recovered with each weapon attack. */
   focusRegen: number
   /** Share of the maximum health recovered at the start of each turn. */
   regen: number

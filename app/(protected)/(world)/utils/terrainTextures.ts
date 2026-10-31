@@ -34,7 +34,9 @@ interface Look {
   base: Rgb
   dark: Rgb
   light: Rgb
-  pattern: 'speckles' | 'blades' | 'cobbles' | 'slabs' | 'cracks' | 'ripples' | 'waves' | 'crust'
+  pattern: 'speckles' | 'blades' | 'cobbles' | 'slabs' | 'cracks' | 'ripples' | 'waves' | 'crust' | 'flow'
+  /** Color that glows in the cracks, the joints or a few specks (embers, alien light). */
+  glow?: Rgb
 }
 
 const LOOKS: Record<Terrain, Look> = {
@@ -49,7 +51,43 @@ const LOOKS: Record<Terrain, Look> = {
   [Terrain.STONE]: { base: [180, 166, 138], dark: [94, 82, 64], light: [216, 206, 182], pattern: 'slabs' },
   [Terrain.COBBLESTONE]: { base: [190, 160, 116], dark: [86, 64, 42], light: [228, 204, 156], pattern: 'cobbles' },
   [Terrain.WATER]: { base: [56, 138, 206], dark: [34, 96, 168], light: [170, 222, 250], pattern: 'waves' },
-  [Terrain.LAVA]: { base: [236, 98, 28], dark: [52, 26, 22], light: [255, 214, 92], pattern: 'crust' }
+  [Terrain.LAVA]: { base: [255, 112, 12], dark: [196, 28, 10], light: [255, 236, 110], pattern: 'flow' },
+  [Terrain.SCORCHED]: {
+    base: [124, 38, 24],
+    dark: [66, 16, 12],
+    light: [176, 70, 36],
+    pattern: 'cracks',
+    glow: [255, 140, 36]
+  },
+  [Terrain.MAGMA]: { base: [214, 66, 18], dark: [58, 18, 14], light: [255, 206, 72], pattern: 'crust' },
+  [Terrain.FIRESTONE]: {
+    base: [214, 102, 40],
+    dark: [104, 32, 14],
+    light: [244, 152, 66],
+    pattern: 'slabs'
+  },
+  [Terrain.GLOOM]: {
+    base: [38, 20, 54],
+    dark: [14, 6, 22],
+    light: [74, 40, 100],
+    pattern: 'speckles',
+    glow: [196, 116, 255]
+  },
+  [Terrain.MYCELIUM]: {
+    base: [82, 30, 110],
+    dark: [36, 10, 56],
+    light: [176, 82, 222],
+    pattern: 'blades',
+    glow: [240, 150, 255]
+  },
+  [Terrain.RUNESTONE]: {
+    base: [70, 50, 98],
+    dark: [20, 12, 32],
+    light: [112, 86, 148],
+    pattern: 'slabs',
+    glow: [132, 76, 200]
+  },
+  [Terrain.ICHOR]: { base: [128, 44, 208], dark: [44, 12, 86], light: [226, 160, 255], pattern: 'flow' }
 }
 
 /** The provisional textures. */
@@ -100,7 +138,7 @@ async function readImage(url: string): Promise<TerrainTexture> {
 
 /** The provisional texture of a terrain. */
 function paintTerrain(terrain: Terrain, random: Random): TerrainTexture {
-  const { base, dark, light, pattern } = LOOKS[terrain]
+  const { base, dark, light, pattern, glow } = LOOKS[terrain]
   const data = new Uint8ClampedArray(SIZE * SIZE * 4)
   const broad = periodicNoise(random, 4)
   const fine = periodicNoise(random, 16)
@@ -113,6 +151,14 @@ function paintTerrain(terrain: Terrain, random: Random): TerrainTexture {
       // From -1 (dark) to 1 (light).
       let tone = (broad(x, y) - 0.5) * 0.9 + (fine(x, y) - 0.5) * 0.6
       let color = base
+
+      if (pattern === 'flow') {
+        // Swirling bands of molten liquid: four per side, bent by the noise, so they wrap around.
+        const bend = broad(x, y) * 2.4 + fine(x, y) * 0.6
+        const band = Math.sin(((x + y * 0.5) / SIZE) * Math.PI * 2 * 4 + bend * Math.PI)
+
+        tone = band * 0.85 + (fine(x, y) - 0.5) * 0.5
+      }
 
       if (pattern === 'ripples') {
         // Five ripples per side, so they wrap around.
@@ -128,9 +174,10 @@ function paintTerrain(terrain: Terrain, random: Random): TerrainTexture {
           color = border < 3 ? light : border < 6 ? base : dark
           tone = border < 6 ? 0 : (cellShade[cell] - 0.5) * 0.6
         } else if (pattern === 'cracks') {
-          color = border < 1.4 ? (terrain === Terrain.ICE ? light : dark) : base
+          color = border < 1.4 ? (glow ?? (terrain === Terrain.ICE ? light : dark)) : base
+          tone = border < 1.4 && glow ? 0 : tone
         } else if (border < (pattern === 'cobbles' ? 2.2 : 1.6)) {
-          color = dark
+          color = glow ?? dark
           tone = 0
         } else {
           tone += (cellShade[cell] - 0.5) * 0.7
@@ -151,7 +198,7 @@ function paintTerrain(terrain: Terrain, random: Random): TerrainTexture {
   }
 
   if (pattern === 'blades' || pattern === 'speckles' || pattern === 'waves') {
-    strokes(data, random, pattern, dark, light)
+    strokes(data, random, pattern, dark, light, glow)
   }
 
   return withAverage(SIZE, data)
@@ -196,8 +243,15 @@ function paintCliff(random: Random): TerrainTexture {
   return withAverage(SIZE, data)
 }
 
-/** Blades of grass, specks or short wave crests over the texture, wrapping around its sides. */
-function strokes(data: Uint8ClampedArray, random: Random, pattern: Look['pattern'], dark: Rgb, light: Rgb): void {
+/** Blades of grass, specks or short wave crests over the texture (some glowing), wrapping around its sides. */
+function strokes(
+  data: Uint8ClampedArray,
+  random: Random,
+  pattern: Look['pattern'],
+  dark: Rgb,
+  light: Rgb,
+  glow?: Rgb
+): void {
   const count = pattern === 'blades' ? 260 : pattern === 'waves' ? 40 : 220
 
   const put = (x: number, y: number, color: Rgb) => {
@@ -209,7 +263,9 @@ function strokes(data: Uint8ClampedArray, random: Random, pattern: Look['pattern
   for (let index = 0; index < count; index++) {
     const x = Math.floor(random() * SIZE)
     const y = Math.floor(random() * SIZE)
-    const color = random() < 0.55 ? dark : light
+    const roll = random()
+    // A few glowing ones (embers, alien light) among the dark and light ones.
+    const color = glow && roll > 0.88 ? glow : roll < 0.55 ? dark : light
 
     if (pattern === 'blades') {
       const length = 3 + Math.floor(random() * 4)

@@ -4,6 +4,22 @@
    "width": 448,
    "height": 689
   },
+  "heroes/kael/outfits/traveller/head": {
+   "width": 476,
+   "height": 512
+  },
+  "heroes/kael/outfits/traveller/torso": {
+   "width": 372,
+   "height": 512
+  },
+  "heroes/kael/outfits/traveller/right-arm/1": {
+   "width": 221,
+   "height": 512
+  },
+  "heroes/kael/outfits/traveller/right-arm/2": {
+   "width": 187,
+   "height": 512
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 388
@@ -117,7 +133,44 @@
    "map/meadows/20"
   ]
  },
- "parts": {},
+ "scenery": {},
+ "props": {},
+ "parts": {
+  "heroes/kael/outfits/traveller/head": [
+   {
+    "id": "heroes/kael/outfits/traveller/head",
+    "x": 442,
+    "y": 37,
+    "width": 551,
+    "height": 593
+   }
+  ],
+  "heroes/kael/outfits/traveller/torso": [
+   {
+    "id": "heroes/kael/outfits/traveller/torso",
+    "x": 448,
+    "y": 187,
+    "width": 397,
+    "height": 546
+   }
+  ],
+  "heroes/kael/outfits/traveller/right-arm": [
+   {
+    "id": "heroes/kael/outfits/traveller/right-arm/1",
+    "x": 203,
+    "y": 42,
+    "width": 288,
+    "height": 668
+   },
+   {
+    "id": "heroes/kael/outfits/traveller/right-arm/2",
+    "x": 941,
+    "y": 103,
+    "width": 225,
+    "height": 617
+   }
+  ]
+ },
  "music": [],
  "sfx": []
 }

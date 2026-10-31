@@ -1,5 +1,6 @@
 import { BufferImageSource, Container, Geometry, Mesh, Rectangle, Shader, Sprite, Texture } from 'pixi.js'
 import { LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { createRandom } from '@/app/(protected)/(engine)/utils/random'
 import { GROUND_FRAGMENT, GROUND_VERTEX } from '@/app/(protected)/(world)/utils/groundShader'
@@ -21,8 +22,21 @@ import { GroundTextures, TerrainTexture } from '@/app/(protected)/(world)/utils/
  * in the middle and repeated around it, so that the smaller mipmaps never
  * blend it with its neighbors.
  */
-const ATLAS_COLUMNS = 4
-const ATLAS_CELL = 512
+const ATLAS_COLUMNS = 5
+const ATLAS_CELL = 400
+/** Cells of the info texture (see infoTexture): room for every terrain. */
+const INFO_WIDTH = ATLAS_COLUMNS * ATLAS_COLUMNS
+/** How much the face of a cliff takes the color of the plateau over it (the rest: earth and rock). */
+const CLIFF_TINT = 0.3
+/** Plateaus whose cliffs take more of their color: the red rock of the volcano, the black one of the Abyss. */
+const STRONG_CLIFF_TINT: Partial<Record<Terrain, number>> = {
+  [Terrain.SCORCHED]: 0.7,
+  [Terrain.MAGMA]: 0.7,
+  [Terrain.FIRESTONE]: 0.6,
+  [Terrain.GLOOM]: 0.75,
+  [Terrain.MYCELIUM]: 0.75,
+  [Terrain.RUNESTONE]: 0.75
+}
 /** Side of the noise that makes the borders wobble. */
 const NOISE_SIZE = 512
 /** Wider than this on screen (world pixels), only the picture from far is shown. */
@@ -70,7 +84,8 @@ export class WorldGround extends Container {
           uInfo: Texture.EMPTY.source,
           groundUniforms: {
             uGrid: { value: [columns, rows], type: 'vec2<f32>' },
-            uTileSize: { value: tileSize, type: 'f32' }
+            uTileSize: { value: tileSize, type: 'f32' },
+            uCliff: { value: TERRAINS.length, type: 'f32' }
           }
         }
       })
@@ -185,16 +200,23 @@ function atlasTexture(textures: TerrainTexture[]): Texture {
   return texture
 }
 
-/** One pixel per terrain: its average color (to tint the cliffs under it) and, in alpha, whether it is a lake. */
+/**
+ * Two pixels per terrain: on the first row its average color (to tint the
+ * cliffs under it) and, in alpha, whether it is a lake; on the second, in red,
+ * how much the cliffs under it take that color.
+ */
 function infoTexture(textures: TerrainTexture[]): Texture {
-  const data = new Uint8Array(16 * 4)
+  const data = new Uint8Array(INFO_WIDTH * 2 * 4)
 
-  textures.forEach((texture, index) =>
-    data.set([...texture.average.map(Math.round), LAKES.has(TERRAINS[index]) ? 255 : 0], index * 4)
-  )
+  textures.forEach((texture, index) => {
+    const terrain = TERRAINS[index]
+
+    data.set([...texture.average.map(Math.round), LAKES.has(terrain) ? 255 : 0], index * 4)
+    data.set([Math.round((STRONG_CLIFF_TINT[terrain] ?? CLIFF_TINT) * 255), 0, 0, 255], (INFO_WIDTH + index) * 4)
+  })
 
   return new Texture({
-    source: new BufferImageSource({ resource: data, width: 16, height: 1, scaleMode: 'nearest' })
+    source: new BufferImageSource({ resource: data, width: INFO_WIDTH, height: 2, scaleMode: 'nearest' })
   })
 }
 

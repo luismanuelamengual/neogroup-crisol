@@ -1,4 +1,5 @@
 import { BIOME_RISE, BIOME_TERRAINS, BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -30,6 +31,17 @@ const LAKE_THRESHOLD = 0.56
 const LAKE_SCALE = 1100
 const PATCH_THRESHOLD = 0.62
 const PATCH_SCALE = 520
+/** World pixels per bend of the rivers (see BiomeTerrains.rivers). */
+const RIVER_SCALE = 1400
+/**
+ * Biomes that fade into their neighbors across a wide band (tiles on each
+ * side of the border) instead of changing at once, and the ones they do not
+ * fade into (the Abyss keeps its sharp edge).
+ */
+const BLENDED: Partial<Record<Biome, number>> = { [Biome.VOLCANIC]: 15 }
+const UNBLENDED = new Set([Biome.ABYSS])
+/** World pixels per blot of the noise that mixes the two looks along a blended border. */
+const BLEND_SCALE = 170
 /** How much the noise widens or narrows the trails (never under half the diagonal of a tile, or they would break). */
 const TRAIL_WOBBLE = 0.12
 /** World pixels per hill of the noise of the levels. */
@@ -52,10 +64,14 @@ export function buildTileMap(world: World): TileMap {
   const patchNoise = createNoise(random, 3)
   const trailNoise = createNoise(random, 2)
   const heightNoise = createNoise(random, 3)
+  // Made after the rest, so that the other noises stay as they were.
+  const riverNoise = createNoise(random, 2)
+  const blendNoise = createNoise(random, 3)
   const paved = new Uint8Array(columns * rows)
   const rise = new Float32Array(columns * rows)
   const grounds = new Uint8Array(columns * rows)
   const biomes = new Uint8Array(columns * rows)
+  const clearings = new Uint8Array(columns * rows)
   const nodes = new Map(world.nodes.map((node) => [node.id, node]))
   const nodeBuckets = new Buckets<WorldNode>(world.width)
   const trailBuckets = new Buckets<[WorldNode, WorldNode]>(world.width)
@@ -103,11 +119,13 @@ export function buildTileMap(world: World): TileMap {
       if (trailDistance < width || nodeDistance < CLEARING_RADIUS) {
         terrain = biome.trail
         paved[row * columns + column] = 1
+        clearings[row * columns + column] = nodeDistance < CLEARING_RADIUS ? 1 : 0
       } else if (
         biome.lake &&
         trailDistance > LAKE_CLEARANCE &&
         nodeDistance > LAKE_CLEARANCE &&
-        lakeNoise(x / LAKE_SCALE, y / LAKE_SCALE) > LAKE_THRESHOLD
+        (lakeNoise(x / LAKE_SCALE, y / LAKE_SCALE) > (biome.lakes ?? LAKE_THRESHOLD) ||
+          (biome.rivers !== undefined && Math.abs(riverNoise(x / RIVER_SCALE, y / RIVER_SCALE) - 0.5) < biome.rivers))
       ) {
         terrain = biome.lake
       } else if (patchNoise(x / PATCH_SCALE, y / PATCH_SCALE) > PATCH_THRESHOLD) {
@@ -122,6 +140,16 @@ export function buildTileMap(world: World): TileMap {
       grounds[row * columns + column] = terrainIndex.get(biome.ground)!
       biomes[row * columns + column] = BIOMES_ORDER.indexOf((closest ?? world.nodes[0]).biome)
     }
+  }
+
+  for (const [biome, band] of Object.entries(BLENDED) as [Biome, number][]) {
+    blendBorder(
+      { columns, rows, terrains, paved, clearings, biomes, grounds },
+      BIOMES_ORDER.indexOf(biome),
+      band,
+      (x, y) => Math.min(1, Math.max(0, (blendNoise(x / BLEND_SCALE, y / BLEND_SCALE) - 0.5) * 2.4 + 0.5)),
+      terrainIndex
+    )
   }
 
   const heights = buildHeights(world, columns, rows, rise)
@@ -139,6 +167,130 @@ export function buildTileMap(world: World): TileMap {
   }
 
   return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes }
+}
+
+interface BlendTiles {
+  columns: number
+  rows: number
+  terrains: Uint8Array
+  paved: Uint8Array
+  /** 1 for the paved tiles of the clearing of a point (they keep the paving of its biome). */
+  clearings: Uint8Array
+  biomes: Uint8Array
+  grounds: Uint8Array
+}
+
+/**
+ * Fades a biome into its neighbors: across a band on each side of its border,
+ * blots of noise take the look of one side or the other (its plain ground and
+ * its scenery, and the paving of the trails), more of the biome the deeper
+ * inside it. The clearings of the points keep the paving of their biome, and
+ * the lakes and patches of the biome only start well inside it.
+ */
+function blendBorder(
+  tiles: BlendTiles,
+  biome: number,
+  band: number,
+  noise: (x: number, y: number) => number,
+  terrainIndex: Map<Terrain, number>
+): void {
+  const { columns, rows, terrains, paved, clearings, biomes, grounds } = tiles
+  const unblended = new Set([...UNBLENDED].map((other) => BIOMES_ORDER.indexOf(other)))
+  const inside = (index: number) => biomes[index] === biome
+  const outside = (index: number) => biomes[index] !== biome && !unblended.has(biomes[index])
+  // Distance in tiles to the other side of the border, and the biome found there.
+  const distances = new Float32Array(columns * rows).fill(Infinity)
+  const across = new Uint8Array(biomes)
+  let frontier: number[] = []
+
+  for (let index = 0; index < distances.length; index++) {
+    const column = index % columns
+    const neighbors = [
+      column > 0 ? index - 1 : -1,
+      column < columns - 1 ? index + 1 : -1,
+      index >= columns ? index - columns : -1,
+      index + columns < distances.length ? index + columns : -1
+    ].filter((neighbor) => neighbor >= 0)
+    const other = neighbors.find((neighbor) => (inside(index) ? outside(neighbor) : outside(index) && inside(neighbor)))
+
+    if (other !== undefined && (inside(index) || outside(index))) {
+      distances[index] = 0.5
+      across[index] = biomes[other]
+      frontier.push(index)
+    }
+  }
+
+  for (let distance = 1.5; distance < band && frontier.length; distance++) {
+    const next: number[] = []
+
+    for (const index of frontier) {
+      const column = index % columns
+
+      for (const neighbor of [
+        column > 0 ? index - 1 : -1,
+        column < columns - 1 ? index + 1 : -1,
+        index - columns,
+        index + columns
+      ]) {
+        if (
+          neighbor >= 0 &&
+          neighbor < distances.length &&
+          distances[neighbor] === Infinity &&
+          inside(neighbor) === inside(index) &&
+          (inside(neighbor) || outside(neighbor))
+        ) {
+          distances[neighbor] = distance
+          across[neighbor] = across[index]
+          next.push(neighbor)
+        }
+      }
+    }
+
+    frontier = next
+  }
+
+  const own = BIOME_TERRAINS[BIOMES_ORDER[biome]]
+  const lakes = new Set([...LAKES].map((terrain) => terrainIndex.get(terrain)!))
+
+  for (let index = 0; index < distances.length; index++) {
+    if (distances[index] === Infinity) {
+      continue
+    }
+
+    // How much of the biome shows here: 1 deep inside, 0 deep outside.
+    const share = 0.5 + ((inside(index) ? 1 : -1) * distances[index]) / (2 * band)
+    const x = ((index % columns) + 0.5) * TILE_SIZE
+    const y = (Math.floor(index / columns) + 0.5) * TILE_SIZE
+    const shows = noise(x, y) < share
+
+    if (paved[index]) {
+      // The trails change their paving in blots too, but every point keeps the one of its biome.
+      if (!clearings[index]) {
+        const trail = shows ? own.trail : BIOME_TERRAINS[BIOMES_ORDER[across[index]]].trail
+
+        terrains[index] = terrainIndex.get(trail)!
+      }
+
+      continue
+    }
+
+    if (inside(index)) {
+      const neighbor = BIOME_TERRAINS[BIOMES_ORDER[across[index]]]
+
+      if (!shows) {
+        terrains[index] = terrainIndex.get(neighbor.ground)!
+        grounds[index] = terrains[index]
+        biomes[index] = across[index]
+      } else if (share < 0.8 && terrains[index] !== terrainIndex.get(own.ground)) {
+        // Its lakes and patches only well inside it.
+        terrains[index] = terrainIndex.get(own.ground)!
+      }
+    } else if (shows && !lakes.has(terrains[index])) {
+      terrains[index] = terrainIndex.get(own.ground)!
+      grounds[index] = terrains[index]
+      biomes[index] = biome
+    }
+  }
 }
 
 /**

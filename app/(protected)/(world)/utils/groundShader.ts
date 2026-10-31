@@ -28,20 +28,21 @@ export const GROUND_FRAGMENT = `#version 300 es
 in vec2 vWorld;
 out vec4 finalColor;
 
-// Tiles (terrain, level, paved), the atlas of textures (4 by 4: the terrains, then the cliff, each one
-// in the middle half of its cell and repeated around it),
-// the noise of the wobble and the average color and lake flag of each terrain.
+// Tiles (terrain, level, paved), the atlas of textures (5 by 5: the terrains, then the cliff at uCliff,
+// each one in the middle half of its cell and repeated around it),
+// the noise of the wobble and, for each terrain, its average color and lake flag (first row) and how
+// much the cliffs under it take that color (second row).
 uniform sampler2D uTiles;
 uniform sampler2D uAtlas;
 uniform sampler2D uNoise;
 uniform sampler2D uInfo;
 uniform vec2 uGrid;
 uniform float uTileSize;
+uniform float uCliff;
 
 // World pixels per repetition of a texture; the atlas.
 const float TEXTURE_SPAN = 128.0;
-const float ATLAS_COLUMNS = 4.0;
-const float CLIFF = 12.0;
+const float ATLAS_COLUMNS = 5.0;
 // World pixels per value of the noise, and its side.
 const float NOISE_SPAN = 4.0;
 const float NOISE_SIZE = 512.0;
@@ -58,7 +59,6 @@ const float FOOT_SHADOW = 26.0;
 const float FACE_SHADE = 0.5;
 const float FOOT_SHADE = 0.72;
 const float RIM = 3.0;
-const float FACE_TINT = 0.3;
 // Stairs: how much lighter their treads are, and how dark their risers.
 const float STAIR_TREAD_LIGHT = 0.22;
 const float STAIR_RISER_SHADE = 0.6;
@@ -86,7 +86,9 @@ vec2 gradientY;
 
 vec3 textureOf(float index, vec2 p)
 {
-  vec2 cell = vec2(mod(index, ATLAS_COLUMNS), floor(index / ATLAS_COLUMNS));
+  // Half a cell more before dividing: with 5 columns a division can land just under a whole number.
+  float row = floor((index + 0.5) / ATLAS_COLUMNS);
+  vec2 cell = vec2(index - row * ATLAS_COLUMNS, row);
   vec2 uv = (cell + 0.25 + fract(p / TEXTURE_SPAN) * 0.5) / ATLAS_COLUMNS;
 
   return textureGrad(uAtlas, uv, gradientX, gradientY).rgb;
@@ -175,9 +177,10 @@ vec3 face(vec2 p, float level)
   }
 
   vec3 tint = texelFetch(uInfo, ivec2(int(plateau), 0), 0).rgb;
+  float amount = texelFetch(uInfo, ivec2(int(plateau), 1), 0).r;
   float shade = above < RIM || above > FACE - RIM ? OUTLINE_SHADE : 1.0 - FACE_SHADE * (above / FACE);
 
-  return mix(textureOf(CLIFF, p), tint, FACE_TINT) * shade;
+  return mix(textureOf(uCliff, p), tint, amount) * shade;
 }
 
 // The terrains at a position, with their wobbling borders, outlines and shadows.

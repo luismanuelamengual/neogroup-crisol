@@ -115,7 +115,7 @@ describe('battle results on the map', () => {
     expect(result.state.characters[0]).toMatchObject({ xp: 5, health: 120 })
   })
 
-  it('goes back on a retreat losing a tenth of the experience of the level', () => {
+  it('goes back on a retreat without losing experience', () => {
     const { state } = createBattle({
       heroes: start.characters,
       phases,
@@ -127,7 +127,7 @@ describe('battle results on the map', () => {
     const result = applyBattleResult(index, game, { ...state, outcome: 'retreat' }, world.startNodeId)
 
     expect(result.state.positionNodeId).toBe(world.startNodeId)
-    expect(result.state.characters[0].xp).toBe(9)
+    expect(result.state.characters[0].xp).toBe(10)
     expect(result.state.clearedNodeIds).not.toContain(combatId)
   })
 })

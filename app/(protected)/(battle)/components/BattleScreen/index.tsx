@@ -28,6 +28,7 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import {
+  canRetreat,
   chooseEnemyAction,
   createBattle,
   getCombatant,
@@ -456,7 +457,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                   {itemCount > 0 && <span className="count">{itemCount}</span>}
                 </ButtonBase>
                 {battle.canRetreat && (
-                  <ButtonBase className="option ghost" onClick={() => choose({ type: 'retreat' })}>
+                  <ButtonBase
+                    className="option ghost"
+                    disabled={!canRetreat(battle)}
+                    title={canRetreat(battle) ? undefined : t('battle.retreatBlocked')}
+                    onClick={() => choose({ type: 'retreat' })}
+                  >
                     <DirectionsRunIcon fontSize="small" />
                     {t('battle.retreat')}
                   </ButtonBase>

@@ -6,6 +6,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import {
+  canRetreat,
   chooseEnemyAction,
   createBattle,
   getCombatant,
@@ -262,6 +263,24 @@ describe('phases, reserves and bosses', () => {
       performAction(turnOf(battle([[{ speciesId: 'thorn-boar', level: 1 }]]), 'h-kael'), { type: 'retreat' }).state
         .outcome
     ).toBe('retreat')
+  })
+
+  it('only lets the party retreat with every hero alive, reserves included', () => {
+    const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 1 }]]), 'h-kael')
+
+    expect(canRetreat(state)).toBe(true)
+
+    const fallen = structuredClone(state)
+
+    fallen.combatants.push({
+      ...structuredClone(getCombatant(state, 'h-kael')),
+      id: 'h-fallen',
+      health: 0,
+      reserve: true
+    })
+
+    expect(canRetreat(fallen)).toBe(false)
+    expect(() => performAction(fallen, { type: 'retreat' })).toThrow()
   })
 })
 

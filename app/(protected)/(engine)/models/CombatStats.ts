@@ -1,7 +1,7 @@
 /** Attributes of a fighter (hero or enemy) at its level. */
 export interface CombatStats {
   maxHealth: number
-  /** Focus (concentración): spent by the specials, partly recovered at the start of each turn. */
+  /** Focus (concentración): spent by the specials, partly recovered with each weapon attack. */
   maxFocus: number
   defense: number
   /** Fills the initiative bar: twice as fast, twice as many turns. */

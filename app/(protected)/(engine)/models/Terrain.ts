@@ -14,5 +14,19 @@ export enum Terrain {
   /** Paved trails. */
   COBBLESTONE = 'cobblestone',
   WATER = 'water',
-  LAVA = 'lava'
+  LAVA = 'lava',
+  /** Scorched red ground of the volcano, with embers. */
+  SCORCHED = 'scorched',
+  /** Cooled crust of lava, black and red with glowing cracks. */
+  MAGMA = 'magma',
+  /** Paved trails of the volcano: slabs of red baked stone. */
+  FIRESTONE = 'firestone',
+  /** Dark violet ground of the Abyss. */
+  GLOOM = 'gloom',
+  /** Carpet of glowing alien growth of the Abyss. */
+  MYCELIUM = 'mycelium',
+  /** Paved trails of the Abyss: black slabs with glowing violet joints. */
+  RUNESTONE = 'runestone',
+  /** Glowing violet liquid of the pools of the Abyss. */
+  ICHOR = 'ichor'
 }

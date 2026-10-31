@@ -10,6 +10,9 @@ export interface TileMap {
   heights: Uint8Array
   /** 1 for the tiles paved by a trail or the clearing of a point, 0 for the rest. */
   paved: Uint8Array
-  /** Biome of each tile (the one of its closest point), as its index in BIOMES_ORDER (data/terrains.ts). */
+  /**
+   * Biome whose look (ground and scenery) each tile takes, as its index in BIOMES_ORDER (data/terrains.ts): the
+   * one of its closest point, except along the borders that fade from one biome into the next.
+   */
   biomes: Uint8Array
 }
