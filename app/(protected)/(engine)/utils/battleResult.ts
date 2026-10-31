@@ -1,4 +1,3 @@
-import { MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
@@ -105,7 +104,7 @@ export function applyBattleResult(
       (sum, character, position) => sum + character.level - game.characters[position].level,
       0
     )
-    const looted = addItems(afterItems, battle.loot, MAX_CONSUMABLES)
+    const looted = addItems(afterItems, battle.loot)
     const won = winEncounter(
       index,
       {

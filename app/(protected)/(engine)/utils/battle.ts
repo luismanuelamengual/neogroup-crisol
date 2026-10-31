@@ -1,7 +1,15 @@
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { CYCLE_BOSS_SKILLS } from '@/app/(protected)/(engine)/data/cycles'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
-import { BIOME_POTIONS, BIOME_STONE, BOSS_STONES, DROP_CHANCE, getItem } from '@/app/(protected)/(engine)/data/items'
+import {
+  BASIC_POTIONS,
+  BIOME_POTIONS,
+  BIOME_STONE,
+  BOSS_STONES,
+  DROP_CHANCE,
+  getItem,
+  victoryPotionChance
+} from '@/app/(protected)/(engine)/data/items'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
@@ -870,6 +878,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
       } else {
         state.outcome = 'victory'
         state.actorId = null
+        dropVictoryPotions(state)
         events.push({ type: 'end', outcome: 'victory' })
       }
     }
@@ -901,7 +910,7 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
     state.loot[itemId] = (state.loot[itemId] ?? 0) + count
   }
 
-  const potions = BIOME_POTIONS[state.biome]
+  const potions = BIOME_POTIONS[state.biome].filter((itemId) => !BASIC_POTIONS.includes(itemId))
 
   if (species.strength > 1) {
     add(BIOME_STONE[state.biome], BOSS_STONES * species.bars)
@@ -909,12 +918,27 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
     add(BIOME_STONE[state.biome])
   }
 
-  if (roll(state) < (enemy.elite || species.strength > 1 ? DROP_CHANCE.elitePotion : DROP_CHANCE.potion)) {
+  if (
+    potions.length > 0 &&
+    roll(state) < (enemy.elite || species.strength > 1 ? DROP_CHANCE.elitePotion : DROP_CHANCE.potion)
+  ) {
     add(potions[Math.floor(roll(state) * potions.length)])
   }
 
   if (roll(state) < DROP_CHANCE.echo) {
     state.echoes++
+  }
+}
+
+/**
+ * After a victory, each basic potion is rolled on its own: the fewer of it the
+ * party carries, the likelier it drops (none once it carries the maximum).
+ */
+function dropVictoryPotions(state: BattleState): void {
+  for (const itemId of BASIC_POTIONS) {
+    if (roll(state) < victoryPotionChance(state.items[itemId] ?? 0)) {
+      state.loot[itemId] = (state.loot[itemId] ?? 0) + 1
+    }
   }
 }
 

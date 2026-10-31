@@ -1,10 +1,4 @@
-import {
-  getItem,
-  MAX_CONSUMABLES,
-  MERCHANT_STOCK,
-  SCHOLAR_STOCK,
-  scholarPrice
-} from '@/app/(protected)/(engine)/data/items'
+import { maxCarried, MERCHANT_STOCK, SCHOLAR_STOCK, scholarPrice } from '@/app/(protected)/(engine)/data/items'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { MerchantId } from '@/app/(protected)/(engine)/models/MerchantId'
 import { WorldIndex } from '@/app/(protected)/(engine)/utils/worldMap'
@@ -29,7 +23,7 @@ export function canBuyItem(index: WorldIndex, state: GameState, itemId: string):
     return false
   }
 
-  return getItem(itemId).kind !== 'consumable' || (state.inventory[itemId] ?? 0) < MAX_CONSUMABLES
+  return (state.inventory[itemId] ?? 0) < maxCarried(itemId)
 }
 
 export function buyItem(index: WorldIndex, state: GameState, itemId: string): GameState {

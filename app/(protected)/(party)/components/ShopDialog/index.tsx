@@ -3,7 +3,7 @@
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
-import { getItem, MAX_CONSUMABLES, MERCHANT_STOCK, SCHOLAR_STOCK } from '@/app/(protected)/(engine)/data/items'
+import { maxCarried, MERCHANT_STOCK, SCHOLAR_STOCK } from '@/app/(protected)/(engine)/data/items'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { MerchantId } from '@/app/(protected)/(engine)/models/MerchantId'
 import { buyEcho, buyItem, canBuyItem, getScholarOffer } from '@/app/(protected)/(engine)/utils/shop'
@@ -37,7 +37,7 @@ export default function ShopDialog({ open, index, state, merchant, onChange, onC
         <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, margin: 0, padding: 0, listStyle: 'none' }}>
           {MERCHANT_STOCK[merchant].map(({ itemId, price }) => {
             const owned = state.inventory[itemId] ?? 0
-            const full = getItem(itemId).kind === 'consumable' && owned >= MAX_CONSUMABLES
+            const full = owned >= maxCarried(itemId)
 
             return (
               <li key={itemId}>

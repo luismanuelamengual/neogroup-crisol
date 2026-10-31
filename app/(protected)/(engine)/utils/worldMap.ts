@@ -13,7 +13,7 @@ import {
   FLASK_MAX_CHARGES,
   FLASK_MAX_POTENCY
 } from '@/app/(protected)/(engine)/data/flask'
-import { BIOME_POTIONS, BIOME_STONE, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
+import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { SEALS_TO_OPEN_ABYSS, START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
@@ -285,8 +285,7 @@ export function arriveAt(
       CHEST_BASE_GOLD + CHEST_GOLD_PER_BIOME * BIOMES.findIndex((definition) => definition.biome === node.biome)
     const added = addItems(
       { ...next, gold: next.gold + amount },
-      { [BIOME_STONE[node.biome]]: CHEST_STONES, [BIOME_POTIONS[node.biome][0]]: 1 },
-      MAX_CONSUMABLES
+      { [BIOME_STONE[node.biome]]: CHEST_STONES, [BIOME_POTIONS[node.biome][0]]: 1 }
     )
 
     next = added.state
@@ -336,7 +335,7 @@ export function winEncounter(
     } else if (node.captive) {
       // New Game+: nobody left to free, so Echoes and stones instead.
       const count = CAPTOR_ECHOES * state.cycle
-      const added = addItems(state, { [BIOME_STONE[node.biome]]: CAPTOR_STONES }, MAX_CONSUMABLES)
+      const added = addItems(state, { [BIOME_STONE[node.biome]]: CAPTOR_STONES })
 
       echoes += count
       inventory = added.state.inventory
@@ -373,7 +372,7 @@ export function winEncounter(
     } else {
       // New Game+: the weapon is already the party's, so Echoes and stones instead.
       const count = CAPTOR_ECHOES * Math.max(1, state.cycle)
-      const added = addItems({ ...state, inventory }, { [BIOME_STONE[node.biome]]: CAPTOR_STONES }, MAX_CONSUMABLES)
+      const added = addItems({ ...state, inventory }, { [BIOME_STONE[node.biome]]: CAPTOR_STONES })
 
       echoes += count
       inventory = added.state.inventory

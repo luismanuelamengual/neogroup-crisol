@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getBestiaryLevel } from '@/app/(protected)/(engine)/data/bestiary'
-import { MAX_CONSUMABLES, MERCHANT_STOCK, scholarPrice } from '@/app/(protected)/(engine)/data/items'
+import { MAX_BASIC_POTIONS, MAX_CONSUMABLES, MERCHANT_STOCK, scholarPrice } from '@/app/(protected)/(engine)/data/items'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -52,12 +52,12 @@ function finished(game: GameState, outcome: BattleState['outcome'], extra: Parti
 
 describe('battle results', () => {
   it('keeps the loot, adds a win to the runes worn and an Echo per level gained', () => {
-    const game = atFight({ inventory: { 'health-potion': 4 } })
+    const game = atFight({ inventory: { antidote: 4 } })
     const battle = finished(game, 'victory', {
       xp: 5000,
       kills: { 'thorn-boar': 1 },
-      loot: { 'rough-stone': 2, 'health-potion': 3 },
-      items: { 'health-potion': 3 },
+      loot: { 'rough-stone': 2, antidote: 3 },
+      items: { antidote: 3 },
       echoes: 1
     })
     const { state, rewards, levelUps } = applyBattleResult(index, game, battle, from)
@@ -66,7 +66,7 @@ describe('battle results', () => {
     expect(levelUps).toHaveLength(1)
     expect(state.echoes).toBe(levels + 1)
     expect(state.runeWins).toEqual({ 3: 1 })
-    expect(state.inventory).toEqual({ 'health-potion': MAX_CONSUMABLES, 'rough-stone': 2 })
+    expect(state.inventory).toEqual({ antidote: MAX_CONSUMABLES, 'rough-stone': 2 })
     expect(rewards).toContainEqual({ type: 'item', itemId: 'rough-stone', count: 2 })
     expect(rewards).toContainEqual({ type: 'echoes', count: 1 })
   })
@@ -113,7 +113,11 @@ describe('merchants', () => {
     expect(bought.gold).toBe(600 - price)
     expect(bought.inventory['health-potion']).toBe(1)
     expect(canBuyItem(index, state, 'revive-potion')).toBe(false)
-    expect(canBuyItem(index, { ...state, inventory: { 'health-potion': 5 } }, 'health-potion')).toBe(false)
+    expect(canBuyItem(index, { ...state, inventory: { 'health-potion': 5 } }, 'health-potion')).toBe(true)
+    expect(canBuyItem(index, { ...state, inventory: { 'health-potion': MAX_BASIC_POTIONS } }, 'health-potion')).toBe(
+      false
+    )
+    expect(canBuyItem(index, { ...state, inventory: { antidote: MAX_CONSUMABLES } }, 'antidote')).toBe(false)
     expect(canBuyItem(index, { ...state, positionNodeId: scholar.id }, 'health-potion')).toBe(false)
   })
 

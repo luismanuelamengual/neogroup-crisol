@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
-import { MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
+import { MAX_BASIC_POTIONS, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getTree, getTreeCost } from '@/app/(protected)/(engine)/data/talents'
@@ -282,15 +282,21 @@ describe('party', () => {
     expect(moveInFormation(state, KAEL, 9).characters.map((character) => character.id)).toEqual([SERA, BRANN, KAEL])
   })
 
-  it('carries at most five of each consumable, and any number of stones', () => {
-    const { state, kept } = addItems(
-      game(5, { inventory: { 'health-potion': 4 } }),
-      { 'health-potion': 3, [StoneId.ROUGH]: 12 },
-      MAX_CONSUMABLES
-    )
+  it('carries at most five of each consumable, ten basic potions and any number of stones', () => {
+    const { state, kept } = addItems(game(5, { inventory: { antidote: 4, 'health-potion': 8 } }), {
+      antidote: 3,
+      'health-potion': 3,
+      'focus-potion': 12,
+      [StoneId.ROUGH]: 12
+    })
 
-    expect(state.inventory).toEqual({ 'health-potion': 5, [StoneId.ROUGH]: 12 })
-    expect(kept).toEqual({ 'health-potion': 1, [StoneId.ROUGH]: 12 })
+    expect(state.inventory).toEqual({
+      antidote: MAX_CONSUMABLES,
+      'health-potion': MAX_BASIC_POTIONS,
+      'focus-potion': MAX_BASIC_POTIONS,
+      [StoneId.ROUGH]: 12
+    })
+    expect(kept).toEqual({ antidote: 1, 'health-potion': 2, 'focus-potion': 10, [StoneId.ROUGH]: 12 })
   })
 
   it('keeps the health gained with a level', () => {

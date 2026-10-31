@@ -5,12 +5,31 @@ import { MerchantId } from '@/app/(protected)/(engine)/models/MerchantId'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /**
- * Items, merchants and drops. Gold is scarce: a health potion costs about
- * fifteen fights, and prices never go down.
+ * Items, merchants and drops. Gold is scarce and prices never go down, but the
+ * basic health and focus potions are cheap and drop often after a victory.
  */
 
 /** Most units of each consumable the party can carry (stones have no limit). */
 export const MAX_CONSUMABLES = 5
+
+/** The basic potions: the party carries more of them and they drop after each victory (see VICTORY_POTION_CHANCES). */
+export const BASIC_POTIONS = ['health-potion', 'focus-potion']
+export const MAX_BASIC_POTIONS = 10
+
+/**
+ * Chance that a victory leaves one of each basic potion, by how many of it the
+ * party carries (the last one counts for any number above, up to the maximum).
+ */
+export const VICTORY_POTION_CHANCES = [0.5, 0.3, 0.2, 0.1]
+
+/** Chance that a victory leaves a basic potion when the party carries `owned` of it. */
+export function victoryPotionChance(owned: number): number {
+  if (owned >= MAX_BASIC_POTIONS) {
+    return 0
+  }
+
+  return VICTORY_POTION_CHANCES[Math.min(owned, VICTORY_POTION_CHANCES.length - 1)]
+}
 
 export const ITEMS: Item[] = [
   { id: 'health-potion', kind: 'consumable', target: 'ally', heal: 0.35 },
@@ -47,16 +66,25 @@ export function getItem(id: string): Item {
   return item
 }
 
+/** Most units of an item the party can carry (Infinity for stones). */
+export function maxCarried(itemId: string): number {
+  if (getItem(itemId).kind !== 'consumable') {
+    return Infinity
+  }
+
+  return BASIC_POTIONS.includes(itemId) ? MAX_BASIC_POTIONS : MAX_CONSUMABLES
+}
+
 /** What each merchant sells and its price. The Scholar sells Echoes (see SCHOLAR_*). */
 export const MERCHANT_STOCK: Record<MerchantId, { itemId: string; price: number }[]> = {
   [MerchantId.PEDDLER]: [
-    { itemId: 'health-potion', price: 250 },
-    { itemId: 'focus-potion', price: 200 },
+    { itemId: 'health-potion', price: 125 },
+    { itemId: 'focus-potion', price: 100 },
     { itemId: 'antidote', price: 120 },
     { itemId: 'fire-bomb', price: 180 }
   ],
   [MerchantId.ALCHEMIST]: [
-    { itemId: 'health-potion', price: 250 },
+    { itemId: 'health-potion', price: 125 },
     { itemId: 'greater-health-potion', price: 700 },
     { itemId: 'greater-focus-potion', price: 550 },
     { itemId: 'revive-potion', price: 900 },
@@ -99,7 +127,10 @@ export const BIOME_STONE: Record<Biome, StoneId> = {
   [Biome.ABYSS]: StoneId.ABYSSAL
 }
 
-/** The potions that drop in each biome: the basic ones first, the strong ones further on. */
+/**
+ * The potions of each biome: the basic ones first, the strong ones further on.
+ * Enemies drop the ones that are not BASIC_POTIONS (those drop after each victory).
+ */
 export const BIOME_POTIONS: Record<Biome, string[]> = {
   [Biome.MEADOWS]: ['health-potion', 'antidote'],
   [Biome.FOREST]: ['health-potion', 'antidote', 'focus-potion'],

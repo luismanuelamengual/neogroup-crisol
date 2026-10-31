@@ -1,5 +1,5 @@
 import { ATTRIBUTE_POINT, getBaseStats, getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
-import { getItem } from '@/app/(protected)/(engine)/data/items'
+import { maxCarried } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getTalent, getTree } from '@/app/(protected)/(engine)/data/talents'
@@ -459,15 +459,14 @@ export function moveInFormation(state: GameState, id: CharacterId, position: num
 /** Gives items to the party (consumables stop at their maximum). Returns the state and what was kept. */
 export function addItems(
   state: GameState,
-  items: Record<string, number>,
-  maxConsumables: number
+  items: Record<string, number>
 ): { state: GameState; kept: Record<string, number> } {
   const inventory = { ...state.inventory }
   const kept: Record<string, number> = {}
 
   for (const [itemId, count] of Object.entries(items)) {
     const owned = inventory[itemId] ?? 0
-    const room = getItem(itemId).kind === 'consumable' ? Math.max(0, maxConsumables - owned) : count
+    const room = Math.max(0, maxCarried(itemId) - owned)
     const added = Math.min(room, count)
 
     if (added > 0) {

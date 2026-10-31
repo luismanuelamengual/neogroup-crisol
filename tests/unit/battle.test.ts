@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MAX_BASIC_POTIONS, victoryPotionChance } from '@/app/(protected)/(engine)/data/items'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -478,6 +479,55 @@ describe('items, bonuses and loot', () => {
 
     expect(after.outcome).toBe('victory')
     expect(after.loot['rough-stone']).toBe(4)
+  })
+
+  it('makes basic potions likelier the fewer the party carries', () => {
+    expect([0, 1, 2, 3, 9].map(victoryPotionChance)).toEqual([0.5, 0.3, 0.2, 0.1, 0.1])
+    expect(victoryPotionChance(MAX_BASIC_POTIONS)).toBe(0)
+  })
+
+  it('rolls each basic potion on its own after a victory', () => {
+    const potionsWon = (items: Record<string, number>, seed: number) => {
+      const state = turnOf(
+        createBattle({
+          heroes: [kael],
+          phases: [[{ speciesId: 'thorn-boar', level: 1 }]],
+          seed,
+          biome: Biome.MEADOWS,
+          canRetreat: true,
+          items
+        }).state,
+        'h-kael'
+      )
+      const nearlyDead = {
+        ...state,
+        combatants: state.combatants.map((combatant) =>
+          combatant.side === 'enemy' ? { ...combatant, health: 1 } : combatant
+        )
+      }
+      const { state: after } = performAction(nearlyDead, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+      expect(after.outcome).toBe('victory')
+
+      return after.loot
+    }
+
+    const rate = (items: Record<string, number>, itemId: string) => {
+      let won = 0
+
+      for (let seed = 1; seed <= 2000; seed++) {
+        won += potionsWon(items, seed)[itemId] ?? 0
+      }
+
+      return won / 2000
+    }
+
+    expect(rate({}, 'health-potion')).toBeCloseTo(0.5, 1)
+    expect(rate({}, 'focus-potion')).toBeCloseTo(0.5, 1)
+    expect(rate({ 'health-potion': 1, 'focus-potion': 3 }, 'health-potion')).toBeCloseTo(0.3, 1)
+    expect(rate({ 'health-potion': 2 }, 'health-potion')).toBeCloseTo(0.2, 1)
+    expect(rate({ 'focus-potion': 3 }, 'focus-potion')).toBeCloseTo(0.1, 1)
+    expect(rate({ 'focus-potion': MAX_BASIC_POTIONS }, 'focus-potion')).toBe(0)
   })
 })
 
