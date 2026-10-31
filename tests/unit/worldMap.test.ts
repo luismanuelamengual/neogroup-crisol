@@ -11,7 +11,7 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
-import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
+import { createInitialGameState, isGameState, migrateGameState } from '@/app/(protected)/(engine)/utils/gameState'
 import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 import {
@@ -27,6 +27,7 @@ import {
   isAbyssOpen,
   loseEncounter,
   planRoute,
+  RESPAWN_RESTS,
   rest,
   retreat,
   startNextCycle,
@@ -136,6 +137,25 @@ describe('fights', () => {
     expect(getEncounter(index, state, combat)).toBeNull()
   })
 
+  it('counts waking up at a camp after a defeat as a rest', () => {
+    const cleared = { ...win(start, combat), positionNodeId: world.startNodeId }
+    const defeated = loseEncounter(index, loseEncounter(index, rest(index, cleared)))
+
+    expect(defeated.respawnedNodeIds).toEqual([combat])
+  })
+
+  it('starts counting the rests from zero in a game saved before the count existed', () => {
+    const cleared = { ...win(start, combat), positionNodeId: world.startNodeId }
+    const { restsSinceCleared, ...old } = rest(index, cleared)
+    const migrated = migrateGameState({ ...old, respawnedNodeIds: [] }, 8) as GameState
+
+    expect(restsSinceCleared).toEqual({ [combat]: 1 })
+    expect(isGameState(old)).toBe(false)
+    expect(isGameState(migrated)).toBe(true)
+    expect(restTimes(migrated, RESPAWN_RESTS - 1).respawnedNodeIds).toEqual([])
+    expect(restTimes(migrated, RESPAWN_RESTS).respawnedNodeIds).toEqual([combat])
+  })
+
   it('wakes up at the last rest after a defeat, with full health', () => {
     const fighting = { ...arriveAt(index, start, combat).state }
     const defeated = loseEncounter(index, { ...fighting, characters: [{ ...fighting.characters[0], health: 0 }] })
@@ -144,9 +164,31 @@ describe('fights', () => {
     expect(defeated.characters[0].health).toBe(getMaxHealth(defeated.characters[0]))
   })
 
-  it('brings the common enemies back when resting, and they block the way until won again', () => {
+  /** Rests `times` times at the camp where the party stands. */
+  function restTimes(state: GameState, times: number): GameState {
+    let next = state
+
+    for (let count = 0; count < times; count++) {
+      next = rest(index, next)
+    }
+
+    return next
+  }
+
+  it('brings the common enemies back on the third rest, and they block the way until won again', () => {
     const cleared = { ...win(start, combat), positionNodeId: world.startNodeId }
-    const rested = rest(index, cleared)
+
+    expect(RESPAWN_RESTS).toBe(3)
+
+    for (let rests = 1; rests < RESPAWN_RESTS; rests++) {
+      const waiting = restTimes(cleared, rests)
+
+      expect(waiting.respawnedNodeIds).toEqual([])
+      expect(waiting.restsSinceCleared).toEqual({ [combat]: rests })
+      expect(getEncounter(index, waiting, combat)).toBeNull()
+    }
+
+    const rested = restTimes(cleared, RESPAWN_RESTS)
     const behind = neighborsOf(combat).find((id) => !rested.clearedNodeIds.includes(id))!
 
     expect(rested.respawnedNodeIds).toEqual([combat])
@@ -154,9 +196,14 @@ describe('fights', () => {
     expect(planRoute(index, rested, behind)).toBeNull()
     expect(planRoute(index, rested, combat)).toEqual([world.startNodeId, combat])
 
+    expect(rested.restsSinceCleared).toEqual({})
+    expect(restTimes(rested, 1).respawnedNodeIds).toEqual([combat])
+
     const won = win(rested, combat)
 
     expect(won.respawnedNodeIds).toEqual([])
+    expect(restTimes({ ...won, positionNodeId: world.startNodeId }, RESPAWN_RESTS - 1).respawnedNodeIds).toEqual([])
+    expect(restTimes({ ...won, positionNodeId: world.startNodeId }, RESPAWN_RESTS).respawnedNodeIds).toEqual([combat])
     expect(planRoute(index, { ...won, positionNodeId: world.startNodeId }, behind)).toEqual([
       world.startNodeId,
       combat,

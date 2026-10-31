@@ -8,7 +8,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 8
+export const SAVE_VERSION = 9
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -20,6 +20,7 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
     openCampIds: [START_NODE_ID],
     clearedNodeIds: [START_NODE_ID],
     respawnedNodeIds: [],
+    restsSinceCleared: {},
     flaskCharges: FLASK_BASE_CHARGES,
     characters: [createCharacter(CharacterId.KAEL)],
     gold: 0,
@@ -142,6 +143,12 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
     }
   }
 
+  if (fromVersion < 9) {
+    // v9: the enemies of a common fight come back after three rests, not after one. The fights won count from
+    // zero; the ones already back stay back.
+    state = { ...state, restsSinceCleared: {} }
+  }
+
   return state
 }
 
@@ -174,6 +181,7 @@ export function isGameState(value: unknown): value is GameState {
     isStringArray(state.openCampIds) &&
     isStringArray(state.clearedNodeIds) &&
     isStringArray(state.respawnedNodeIds) &&
+    isCountMap(state.restsSinceCleared) &&
     isCount(state.flaskCharges) &&
     isCount(state.gold) &&
     isCount(state.tears) &&

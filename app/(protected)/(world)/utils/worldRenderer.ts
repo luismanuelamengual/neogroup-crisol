@@ -1,11 +1,16 @@
-import { Application, Assets, Container, Graphics, Sprite, Texture } from 'pixi.js'
+import { Application, Container, Graphics, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
-import { artUrl, loadArtManifest } from '@/app/(protected)/(art)/utils/art'
+import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
-import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
-import { createRandom } from '@/app/(protected)/(engine)/utils/random'
-import { BIOME_GROUND, darken, markerOf, MarkerStyle } from '@/app/(protected)/(world)/utils/mapStyle'
+import { placeScenery } from '@/app/(protected)/(engine)/utils/scenery'
+import { buildTileMap } from '@/app/(protected)/(engine)/utils/tileMap'
+import { darken, markerOf, MarkerStyle } from '@/app/(protected)/(world)/utils/mapStyle'
+import { loadMerchantHouses } from '@/app/(protected)/(world)/utils/merchantHouses'
+import { loadSceneryArt, paintSceneryTextures, paintShadow } from '@/app/(protected)/(world)/utils/sceneryTextures'
+import { loadGroundArt, paintGroundTextures } from '@/app/(protected)/(world)/utils/terrainTextures'
+import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
+import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
 
 /** What the map shows: it comes from the game state (see WorldMap). */
 export interface MapView {
@@ -23,8 +28,6 @@ export interface MapView {
   route: string[] | null
 }
 
-/** World pixels per pixel of the background texture. */
-const GROUND_SCALE = 20
 /** World pixels per pixel of the fog mask. */
 const FOG_SCALE = 16
 /** Radius of the clear area around a cleared point, and of the half-clear one around a silhouette. */
@@ -49,21 +52,20 @@ const OUT_OF_REACH_SHADE = 0.4
 const OUT_OF_REACH_ALPHA = 0.55
 const LOCK = 0x8a8195
 const OUTLINE = 0x0a0710
-/** Map decorations: how many around each point, how far from it, their size and the room kept free for points and trails. */
-const DECORATIONS_PER_NODE = 2
-const DECORATION_RING = [70, 150]
-const DECORATION_SIZE = [70, 120]
-const DECORATION_CLEARANCE = 46
+/** Height of the building of each merchant, standing on its point in place of its marker (the door just behind the hero). */
+const HOUSE_HEIGHT = 170
 const FOG = 'rgba(7, 4, 13, 0.95)'
 
 /**
- * The world map drawn with PixiJS: a background colored by biome, the known
+ * The world map drawn with PixiJS: the ground made of tiles, the known
  * trails, the points, the fog and the hero, inside a viewport with drag,
  * pinch and wheel zoom. Plain TypeScript, wrapped by the WorldMap component.
  */
 export class WorldRenderer {
   private readonly nodes: Map<string, WorldNode>
-  private readonly decorations = new Container()
+  private readonly tiles: TileMap
+  private readonly ground: WorldGround
+  private readonly scenery: WorldScenery
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
@@ -74,6 +76,8 @@ export class WorldRenderer {
   private readonly fogCanvas: HTMLCanvasElement
   private readonly fogTexture: Texture
   private view: MapView | null = null
+  /** The building of each merchant, by point. */
+  private readonly houses = new Map<string, Sprite>()
   private walking = false
   private elapsed = 0
   /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
@@ -87,9 +91,13 @@ export class WorldRenderer {
   ) {
     this.nodes = new Map(world.nodes.map((node) => [node.id, node]))
 
-    const ground = new Sprite(Texture.from(this.paintGround()))
-
-    ground.scale.set(GROUND_SCALE)
+    this.tiles = buildTileMap(world)
+    // Without WebGL 2 the ground is only the picture from far (its shader needs it).
+    this.ground = new WorldGround(
+      this.tiles,
+      paintGroundTextures(),
+      (app.renderer as WebGLRenderer).context?.webGLVersion === 2
+    )
 
     this.fogCanvas = document.createElement('canvas')
     this.fogCanvas.width = Math.ceil(world.width / FOG_SCALE)
@@ -100,18 +108,22 @@ export class WorldRenderer {
 
     fog.scale.set(FOG_SCALE)
     this.drawHero()
+    this.scenery = new WorldScenery(world.width, this.hero, paintShadow())
+    this.scenery.setItems(placeScenery(world, this.tiles), paintSceneryTextures())
     this.outOfReach.alpha = OUT_OF_REACH_ALPHA
+    // The trees, the landmarks and the hero stand over the trails and the points, sorted by depth.
     viewport.addChild(
-      ground,
-      this.decorations,
+      this.ground,
+      this.scenery.ground,
       this.trails,
       this.route,
       this.outOfReach,
       this.markers,
+      this.scenery.shadows,
+      this.scenery.standing,
       fog,
       this.beacons,
-      this.selection,
-      this.hero
+      this.selection
     )
 
     viewport.on('clicked', ({ world: point }) => onTap(this.nodeAt(point.x, point.y)))
@@ -131,7 +143,9 @@ export class WorldRenderer {
       background: '#0d0806',
       antialias: true,
       autoDensity: true,
-      resolution: Math.min(window.devicePixelRatio || 1, 2)
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      // The ground is drawn by a WebGL shader (see groundShader.ts).
+      preference: 'webgl'
     })
     element.appendChild(app.canvas)
 
@@ -153,7 +167,9 @@ export class WorldRenderer {
 
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
-    void renderer.addDecorations()
+    void renderer.addMerchantHouses()
+    void renderer.loadGroundArt()
+    void renderer.loadSceneryArt()
     app.renderer.on('resize', (width: number, height: number) => {
       viewport.resize(width, height)
       renderer.fitZoom()
@@ -163,63 +179,49 @@ export class WorldRenderer {
     return renderer
   }
 
-  /**
-   * Scatters the decorations of each biome (trees, rocks, ruins) around its
-   * points, the same every time, never on a point or a trail. Only for the
-   * biomes whose decoration sheet exists (see `yarn art`).
-   */
-  private async addDecorations(): Promise<void> {
-    const { decorations } = await loadArtManifest()
-    const textures = new Map<string, Texture[]>()
+  /** A house, tent or tower beside each merchant, so that the place reads from far. */
+  private async addMerchantHouses(): Promise<void> {
+    const houses = await loadMerchantHouses()
 
-    for (const [biome, ids] of Object.entries(decorations)) {
-      const loaded = await Promise.all(ids.map((id) => Assets.load<Texture>(artUrl(id)).catch(() => null)))
-
-      textures.set(
-        biome,
-        loaded.filter((texture): texture is Texture => !!texture)
-      )
-    }
-
-    if (textures.size === 0 || this.decorations.destroyed) {
+    if (this.scenery.standing.destroyed) {
       return
     }
 
-    const random = createRandom(this.world.seed ^ 0x5eed)
-    const segments = this.world.edges.map(([a, b]) => [this.nodes.get(a)!, this.nodes.get(b)!])
-    const isFree = (x: number, y: number) =>
-      this.world.nodes.every((node) => Math.hypot(node.x - x, node.y - y) > DECORATION_CLEARANCE * 1.4) &&
-      segments.every(([a, b]) => distanceToSegment(x, y, a, b) > DECORATION_CLEARANCE)
-    const sprites: Sprite[] = []
-
     for (const node of this.world.nodes) {
-      const choices = textures.get(node.biome)
-
-      for (let index = 0; index < DECORATIONS_PER_NODE; index++) {
-        const angle = random() * Math.PI * 2
-        const radius = DECORATION_RING[0] + random() * (DECORATION_RING[1] - DECORATION_RING[0])
-        const x = node.x + Math.cos(angle) * radius
-        const y = node.y + Math.sin(angle) * radius
-        const texture = choices?.[Math.floor(random() * choices.length)]
-        const size = DECORATION_SIZE[0] + random() * (DECORATION_SIZE[1] - DECORATION_SIZE[0])
-
-        if (!texture || !isFree(x, y)) {
-          continue
-        }
-
-        const sprite = new Sprite(texture)
-
-        sprite.anchor.set(0.5, 0.9)
-        sprite.position.set(x, y)
-        sprite.scale.set(size / Math.max(texture.width, texture.height))
-        sprite.scale.x *= random() < 0.5 ? -1 : 1
-        sprites.push(sprite)
+      if (!node.merchant) {
+        continue
       }
+
+      const sprite = new Sprite(houses[node.merchant])
+
+      sprite.anchor.set(0.5, 0.96)
+      sprite.scale.set(HOUSE_HEIGHT / sprite.texture.height)
+      sprite.position.set(node.x, node.y - 2)
+      this.scenery.add(sprite)
+      this.houses.set(node.id, sprite)
     }
 
-    // The lower ones in front.
-    sprites.sort((a, b) => a.y - b.y)
-    this.decorations.addChild(...sprites)
+    if (this.view) {
+      this.drawMarkers(this.view)
+    }
+  }
+
+  /** The final art of the scenery, as far as it exists. */
+  private async loadSceneryArt(): Promise<void> {
+    const art = await loadSceneryArt(paintSceneryTextures())
+
+    if (!this.scenery.standing.destroyed) {
+      this.scenery.setItems(placeScenery(this.world, this.tiles), art)
+    }
+  }
+
+  /** The final art of the terrains, as far as it exists (the provisional textures stay otherwise). */
+  private async loadGroundArt(): Promise<void> {
+    const art = await loadGroundArt(paintGroundTextures())
+
+    if (art && !this.ground.destroyed) {
+      this.ground.setTextures(art)
+    }
   }
 
   /** Zoom limits: from the whole world on screen to the detail of a trail. */
@@ -232,8 +234,8 @@ export class WorldRenderer {
 
   destroy(): void {
     this.resizeObserver?.disconnect()
-    // The decorations first, keeping their textures: they are shared through the asset cache.
-    this.decorations.destroy({ children: true })
+    // The scenery first, keeping its textures: they are shared through the asset cache.
+    this.scenery.destroy()
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true, texture: true })
   }
@@ -350,71 +352,6 @@ export class WorldRenderer {
     return best
   }
 
-  /** Background: every pixel takes the biome of its closest point, shaded with noise; far from the points, darker. */
-  private paintGround(): HTMLCanvasElement {
-    const width = Math.ceil(this.world.width / GROUND_SCALE)
-    const height = Math.ceil(this.world.height / GROUND_SCALE)
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')!
-    const image = context.createImageData(width, height)
-    const noise = createNoise(createRandom(this.world.seed), 4)
-    const cell = 400
-    const columns = Math.ceil(this.world.width / cell)
-    const buckets = new Map<number, WorldNode[]>()
-    const rgb = Object.fromEntries(
-      Object.entries(BIOME_GROUND).map(([biome, hex]) => [
-        biome,
-        [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16))
-      ])
-    )
-
-    for (const node of this.world.nodes) {
-      const key = Math.floor(node.y / cell) * columns + Math.floor(node.x / cell)
-
-      buckets.set(key, [...(buckets.get(key) ?? []), node])
-    }
-
-    for (let py = 0; py < height; py++) {
-      for (let px = 0; px < width; px++) {
-        const x = px * GROUND_SCALE
-        const y = py * GROUND_SCALE
-        const column = Math.floor(x / cell)
-        const row = Math.floor(y / cell)
-        let closest: WorldNode | null = null
-        let distance = Infinity
-
-        for (let dy = -2; dy <= 2; dy++) {
-          for (let dx = -2; dx <= 2; dx++) {
-            for (const node of buckets.get((row + dy) * columns + column + dx) ?? []) {
-              const d = Math.hypot(node.x - x, node.y - y)
-
-              if (d < distance) {
-                closest = node
-                distance = d
-              }
-            }
-          }
-        }
-
-        const color = closest ? rgb[closest.biome] : [10, 7, 16]
-        const shade =
-          (0.72 + 0.45 * noise(x / 700, y / 700)) * (distance > 450 ? Math.max(0.35, 1 - (distance - 450) / 700) : 1)
-        const offset = (py * width + px) * 4
-
-        image.data[offset] = Math.min(255, color[0] * shade)
-        image.data[offset + 1] = Math.min(255, color[1] * shade)
-        image.data[offset + 2] = Math.min(255, color[2] * shade)
-        image.data[offset + 3] = 255
-      }
-    }
-
-    canvas.width = width
-    canvas.height = height
-    context.putImageData(image, 0, 0)
-
-    return canvas
-  }
-
   private drawTrails(view: MapView): void {
     this.trails.clear()
 
@@ -467,8 +404,21 @@ export class WorldRenderer {
       // An enemy that came back after resting looks again like a fight not won yet.
       const cleared = view.cleared.has(id) && !view.respawned.has(id)
       const style = markerOf(node, cleared, view.openCamps.has(id))
+      const house = this.houses.get(id)
+      const reachable = id === view.positionNodeId || view.reachable.has(id)
 
-      if (id !== view.positionNodeId && !view.reachable.has(id)) {
+      if (house) {
+        // The building is the marker: darker out of reach.
+        house.tint = reachable ? 0xffffff : darken(0xffffff, OUT_OF_REACH_SHADE + 0.25)
+
+        if (!reachable) {
+          this.lock(node.x + style.radius * 0.7, node.y + style.radius * 0.7)
+        }
+
+        continue
+      }
+
+      if (!reachable) {
         this.marker(this.outOfReach, node, { ...style, color: darken(style.color, OUT_OF_REACH_SHADE) })
         this.lock(node.x + style.radius * 0.7, node.y + style.radius * 0.7)
         continue
@@ -655,7 +605,10 @@ export class WorldRenderer {
     this.elapsed += deltaMS / 1000
 
     const pulse = Math.sin(this.elapsed * 4)
+    const visible = this.viewport.getVisibleBounds()
 
+    this.ground.update(visible)
+    this.scenery.update(visible, this.elapsed)
     this.hero.scale.set(1 + pulse * 0.04)
     this.drawBeacons(pulse)
     this.selection.clear()
@@ -668,14 +621,4 @@ export class WorldRenderer {
       this.selection.circle(selected.x, selected.y, radius).stroke({ width: 7, color: 0xffffff, alpha: 0.85 })
     }
   }
-}
-
-/** Distance from a point to the segment between two points of the map. */
-function distanceToSegment(x: number, y: number, a: WorldNode, b: WorldNode): number {
-  const dx = b.x - a.x
-  const dy = b.y - a.y
-  const length = dx * dx + dy * dy
-  const t = length === 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / length))
-
-  return Math.hypot(a.x + t * dx - x, a.y + t * dy - y)
 }

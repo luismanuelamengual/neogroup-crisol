@@ -304,7 +304,7 @@ export const en: Messages = {
       here: 'You are here',
       noRoute: 'There is no cleared trail to this point yet.',
       rest: 'Rest',
-      rested: 'You rested: the party and the Flask recovered, and the common enemies came back.',
+      rested: 'You rested: the party and the Flask recovered. Common enemies come back 3 rests after you beat them.',
       teleport: 'Travel',
       teleportTitle: 'Travel to another camp',
       shop: 'Shop'

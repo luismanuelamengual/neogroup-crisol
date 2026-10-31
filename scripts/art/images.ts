@@ -1,6 +1,7 @@
 /**
  * Image operations of `yarn art` on raw RGBA pixels: removing the flat green
- * background of the generated art, trimming and finding separate parts.
+ * background of the generated art, trimming, finding separate parts and
+ * making ground textures repeat without a seam.
  */
 
 export interface RawImage {
@@ -253,4 +254,37 @@ export function findParts({ data, width, height }: RawImage, minShare = 0.001): 
   }
 
   return rows.flatMap((row) => row.boxes.sort((a, b) => a.x - b.x))
+}
+
+/** Share of each side over which a ground texture fades into its shifted copy. */
+const SEAM_FADE = 0.25
+
+/**
+ * Makes a square texture repeat without a seam: it is blended with a copy of
+ * itself shifted by half its size (whose edges already match, since they come
+ * from its middle), the copy showing near the edges and the original in the
+ * middle, where the copy has its own seams.
+ */
+export function makeSeamless({ data, width, height }: RawImage): RawImage {
+  const output = new Uint8ClampedArray(data.length)
+
+  const ramp = (share: number) => {
+    const t = Math.min(1, Math.min(share, 1 - share) / SEAM_FADE)
+
+    return t * t * (3 - 2 * t)
+  }
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const weight = ramp((x + 0.5) / width) * ramp((y + 0.5) / height)
+      const pixel = (y * width + x) * 4
+      const shifted = (((y + height / 2) % height) * width + ((x + width / 2) % width)) * 4
+
+      for (let channel = 0; channel < 4; channel++) {
+        output[pixel + channel] = data[pixel + channel] * weight + data[shifted + channel] * (1 - weight)
+      }
+    }
+  }
+
+  return { data: output, width, height }
 }

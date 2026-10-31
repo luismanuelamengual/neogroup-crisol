@@ -22,8 +22,14 @@ export interface GameState {
    * The party walks freely through them and the fog is lifted around them.
    */
   clearedNodeIds: string[]
-  /** Cleared common fights whose enemies came back when resting: fought again only by stopping there. */
+  /** Cleared common fights whose enemies came back after resting: fought again only by stopping there. */
   respawnedNodeIds: string[]
+  /**
+   * Rests (at a camp, or waking up at one after a defeat) since each common
+   * fight was won. Its enemies come back on the RESPAWN_RESTS-th one; a fight
+   * won and missing here has had none yet.
+   */
+  restsSinceCleared: Record<string, number>
   /** Charges left in the Amber Flask (its maximum and potency come from the bosses defeated). */
   flaskCharges: number
   /** Unlocked characters, in the order of the formation: the first three fight, the rest wait in reserve. */

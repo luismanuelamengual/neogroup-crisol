@@ -308,7 +308,8 @@ export const es = {
       here: 'Estás acá',
       noRoute: 'Todavía no hay un camino despejado hasta acá.',
       rest: 'Descansar',
-      rested: 'Descansaste: el grupo y el Frasco se recuperaron, y los enemigos comunes volvieron.',
+      rested:
+        'Descansaste: el grupo y el Frasco se recuperaron. Los enemigos comunes vuelven a los 3 descansos de vencerlos.',
       teleport: 'Viajar',
       teleportTitle: 'Viajar a otro campamento',
       shop: 'Tienda'

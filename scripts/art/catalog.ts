@@ -1,8 +1,10 @@
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
+import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { ENEMY_LOOKS, HERO_BODIES, HERO_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
 
 /**
@@ -24,6 +26,9 @@ export type PieceKind =
   | 'background'
   | 'mapSheet'
   | 'propSheet'
+  | 'scenerySheet'
+  | 'building'
+  | 'tile'
   | 'icon'
 
 export interface Piece {
@@ -40,6 +45,31 @@ export const BASE_PROMPT =
   'Mature dark-fantasy mobile game art, bold clean black ink outlines, high-contrast cel shading with two-tone shadows, saturated colors, subtle painterly texture, strong rim light, clear readable silhouette, no text, no watermark, no signature.'
 const CHROMA = 'Plain flat #00FF00 background, no ground shadow.'
 const FLAME = 'A small glowing amber flame (#FFB020) embedded in the chest or the weapon.'
+/**
+ * Ground textures of the world map: they repeat across the ground, so they
+ * share a style of their own (no silhouettes, no rim light) and each one,
+ * after the grass, is made with the grass attached as reference.
+ */
+const TILE_PROMPT =
+  'Mature dark-fantasy mobile game art, hand-painted ground texture, high-contrast cel shading with two-tone shadows, saturated colors, subtle painterly texture, fine dark ink lines on the details, no text, no watermark, no signature.'
+const TILE_RULES =
+  'Seamless tileable square texture for the ground of a 2D game map, seen from straight above (pure top-down, no perspective, no horizon). The pattern fills the whole square evenly and continues across the four edges so copies placed side by side join without a seam. Soft even light from the top-left, no cast shadows of anything outside, no frame, no border, no vignette, no single big object: every detail is smaller than a tenth of the square.'
+const TILE_REFERENCE = 'Same style, scale of detail, lighting and saturation as the attached grass texture.'
+const TILES: Record<Terrain, string> = {
+  [Terrain.GRASS]: 'short lush green meadow grass with tiny tufts and a few small clover leaves',
+  [Terrain.MOSS]: 'dark green forest floor of thick moss with fallen needles and tiny ferns',
+  [Terrain.SNOW]: 'fresh packed snow, white with pale blue shadows and soft little drifts',
+  [Terrain.SAND]: 'warm golden desert sand with gentle wind ripples and scattered tiny pebbles',
+  [Terrain.ASH]: 'cold grey-violet volcanic ash with small cinders and a few faint glowing embers',
+  [Terrain.DIRT]: 'packed brown earth with small pebbles, cracks and a few roots',
+  [Terrain.ROCK]: 'rough grey bedrock with cracks, chips and patches of lichen',
+  [Terrain.ICE]: 'frozen lake ice, translucent pale blue with white cracks and trapped bubbles',
+  [Terrain.STONE]: 'big flat worn sandstone slabs fitted together with thin dark joints',
+  [Terrain.COBBLESTONE]:
+    'a paved road of small rounded cobblestones in warm beige and brown tones, dark gaps between them and a little moss',
+  [Terrain.WATER]: 'clear blue lake water with small light ripples and glints, no shore',
+  [Terrain.LAVA]: 'molten glowing orange lava with floating plates of black cooling crust'
+}
 /** Where each hero joins: their pieces go with that biome's batch. */
 const HERO_BATCH: Record<CharacterId, Biome> = {
   [CharacterId.KAEL]: Biome.MEADOWS,
@@ -111,6 +141,58 @@ const MAP_SHEETS: Record<Biome, string> = {
     '4 jagged black rock spires, 3 chains anchored in rock, 3 red crystal shards, 2 lava cracks, 2 iron spikes, 1 skull pile, 1 broken black statue'
 }
 /** Battle scenery of each biome: props scattered in front of and behind the fighters (see battleScenery.ts). */
+/**
+ * The scenery that fills each biome's map around the trails, in rows: 8 tall
+ * pieces (rows 1 and 2), 4 low ones (row 3) and 4 small things that lie on the
+ * ground (row 4). The row says where each piece goes, so the order matters.
+ */
+const SCENERY_SHEETS: Record<Biome, [string, string, string]> = {
+  [Biome.MEADOWS]: [
+    '6 round leafy oak and beech trees of different sizes and greens, 2 slim poplar trees',
+    '2 round green bushes, 1 bush with pink flowers, 1 grey boulder',
+    '2 grass tufts, 1 patch of yellow wildflowers, 1 cluster of small pebbles'
+  ],
+  [Biome.FOREST]: [
+    '5 tall dark pine trees of different heights, 3 big dark oak trees',
+    '2 dense dark bushes, 1 mossy rock, 1 fern',
+    '1 grass tuft, 1 red-capped mushroom, 1 purple mushroom, 1 cluster of mossy pebbles'
+  ],
+  [Biome.TROPICAL]: [
+    '5 palm trees leaning different ways, 3 broad jungle trees',
+    '2 giant ferns, 1 bush with magenta flowers, 1 mossy rock',
+    '1 bright grass tuft, 1 patch of magenta flowers, 1 patch of orange flowers, 1 small fern'
+  ],
+  [Biome.DESERT]: [
+    '5 tall saguaro cacti of different shapes, 3 bare twisted dead trees',
+    '2 orange sandstone rocks, 1 round barrel cactus, 1 dry shrub',
+    '1 dry grass tuft, 1 cluster of sandstone pebbles, 1 small bleached bone, 1 small cactus sprout'
+  ],
+  [Biome.MOUNTAINS]: [
+    '6 mountain pine trees of different heights, 2 tall grey rock spires',
+    '3 grey boulders of different shapes, 1 low mountain shrub',
+    '1 mountain grass tuft, 1 cluster of grey pebbles, 1 small edelweiss patch, 1 small flat stone'
+  ],
+  [Biome.SNOW]: [
+    '6 snow-covered pine trees of different heights, 2 tall ice spikes',
+    '2 snow-covered rocks, 1 snowy bush, 1 small ice crystal cluster',
+    '1 cluster of icy pebbles, 1 small snowdrift, 1 frozen grass tuft, 1 small icicle shard'
+  ],
+  [Biome.VOLCANIC]: [
+    '5 burnt black dead trees, 3 tall basalt spires',
+    '2 black obsidian rocks, 1 rock with glowing orange lava cracks, 1 small smoking vent',
+    '1 cluster of black pebbles, 1 cluster of glowing ember pebbles, 1 small ash pile, 1 dry burnt tuft'
+  ],
+  [Biome.WASTELANDS]: [
+    '6 twisted grey dead trees, 2 broken stone pillars',
+    '2 grey rocks, 1 dry thorny bush, 1 broken sword stuck in the ground',
+    '1 dry grass tuft, 1 cluster of grey pebbles, 1 small skull, 1 small bone pile'
+  ],
+  [Biome.ABYSS]: [
+    '4 tall purple glowing crystal spires, 4 black twisted dead trees',
+    '2 dark rocks with purple glowing veins, 1 purple crystal cluster, 1 rusty iron spike',
+    '1 cluster of dark pebbles, 1 small purple crystal shard, 1 small chain link pile, 1 tuft of black thorny grass'
+  ]
+}
 const PROP_SHEETS: Record<Biome, string> = {
   [Biome.MEADOWS]:
     '2 leafy oak trees, 1 young birch, 2 haystacks, 1 wooden fence section, 2 grey boulders, 1 wildflower bush, 1 wooden signpost, 1 broken cart wheel, 1 tree stump, 1 scarecrow',
@@ -131,6 +213,17 @@ const PROP_SHEETS: Record<Biome, string> = {
   [Biome.ABYSS]:
     '2 jagged black rock spires, 2 red crystal shards, 1 chained pillar, 1 iron spike fence, 1 skull pile, 1 broken black statue, 1 burning brazier, 1 cracked obsidian rock, 1 hanging cage on a pole'
 }
+/** The building beside each merchant on the world map. */
+const MERCHANT_HOUSES: [string, string][] = [
+  ['peddler', 'a small cozy wooden cottage with a red tiled roof, crates and sacks of goods at its side'],
+  [
+    'alchemist',
+    'a purple alchemist tent with golden trim, a small flag on top and colorful potion bottles at its door'
+  ],
+  ['smith', 'a stone blacksmith forge house with a dark slate roof, a smoking chimney, glowing windows and an anvil'],
+  ['scholar', 'a slim stone scholar tower with a pointed blue roof, a glowing window and books piled at its door'],
+  ['threshold', 'a black merchant tent with red trim and a red lantern, ominous, at the edge of the Abyss']
+]
 const SPECIAL_SHEETS: [string, string][] = [
   [
     'map/special-1',
@@ -378,6 +471,20 @@ export function buildCatalog(): Piece[] {
     })
   }
 
+  for (const [biome, [tall, low, ground]] of Object.entries(SCENERY_SHEETS)) {
+    pieces.push({
+      id: `map/${biome}-scenery`,
+      kind: 'scenerySheet',
+      width: 2048,
+      height: 2048,
+      batch: biome,
+      prompt: prompt(
+        `Sprite sheet of 16 separate map scenery pieces in a 4 by 4 grid, top-down three-quarter view (seen from above at an angle, like a classic 2D RPG map), each one standing on its base at the bottom of its cell with empty space around it, nothing touching. Rows 1 and 2: ${tall}. Row 3: ${low}. Row 4: ${ground}. Same scale for all (a tree much taller than a bush, a tuft much smaller than a rock).`,
+        'Plain flat #00FF00 background, no shadows, no ground under the pieces.'
+      )
+    })
+  }
+
   for (const [biome, contents] of Object.entries(PROP_SHEETS)) {
     pieces.push({
       id: `props/${biome}-sheet`,
@@ -388,6 +495,20 @@ export function buildCatalog(): Piece[] {
       prompt: prompt(
         `Sprite sheet of 12 separate battle scenery props for a side-view 2D game, seen from the side at eye level (not from above), each one standing on its base with wide empty space around it, nothing touching: ${contents}. All at the same scale as each other (a tree much taller than a rock), no ground under them.`,
         'Plain flat #00FF00 background, no shadows on the background.'
+      )
+    })
+  }
+
+  for (const [merchant, what] of MERCHANT_HOUSES) {
+    pieces.push({
+      id: `map/merchants/${merchant}`,
+      kind: 'building',
+      width: 1024,
+      height: 1024,
+      batch: 'map',
+      prompt: prompt(
+        `A single building for a 2D game world map, top-down three-quarter view (seen from above at an angle, like a classic 2D RPG map), standing on its base in the middle with empty space around it, no ground under it: ${what}.`,
+        CHROMA
       )
     })
   }
@@ -403,6 +524,35 @@ export function buildCatalog(): Piece[] {
         `Sprite sheet of 16 separate special map buildings and landmarks in a 4 by 4 grid, top-down three-quarter view, each one centered in its cell, in this order: ${contents}. Same scale for all.`,
         'Plain flat #00FF00 background.'
       )
+    })
+  }
+
+  pieces.push({
+    id: 'tiles/cliff',
+    kind: 'tile',
+    width: 1024,
+    height: 1024,
+    batch: 'tiles',
+    prompt: [
+      TILE_PROMPT,
+      'Seamless tileable square texture of the vertical face of a cliff in a 2D game map, seen straight from the front (no perspective, no top, no ground): packed brown earth and grey rock in vertical streaks and layers, a few hanging roots and cracks. The pattern fills the whole square evenly and continues across the four edges. Soft even light from the top, no frame, no border, no vignette.',
+      TILE_REFERENCE
+    ].join(' ')
+  })
+
+  for (const terrain of TERRAINS) {
+    pieces.push({
+      id: `tiles/${terrain}`,
+      kind: 'tile',
+      width: 1024,
+      height: 1024,
+      batch: 'tiles',
+      prompt: [
+        TILE_PROMPT,
+        TILE_RULES,
+        `The ground: ${TILES[terrain]}.`,
+        ...(terrain === Terrain.GRASS ? [] : [TILE_REFERENCE])
+      ].join(' ')
     })
   }
 
@@ -439,4 +589,4 @@ export function buildCatalog(): Piece[] {
 }
 
 /** Batches in the order they are generated. */
-export const BATCHES = [...Object.values(Biome), 'map', 'ui']
+export const BATCHES = [...Object.values(Biome), 'tiles', 'map', 'ui']

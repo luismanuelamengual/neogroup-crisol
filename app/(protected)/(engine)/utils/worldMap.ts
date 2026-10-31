@@ -36,6 +36,12 @@ import { addItems, createCharacter, getMaxHealth } from '@/app/(protected)/(engi
  * GameState and never changes the one it gets.
  */
 
+/**
+ * Rests (at a camp, or waking up at one after a defeat) after which the
+ * enemies of a common fight already won come back.
+ */
+export const RESPAWN_RESTS = 3
+
 /** The world with its lookups, built once (see indexWorld). */
 export interface WorldIndex {
   world: World
@@ -397,7 +403,8 @@ export function winEncounter(
     echoes,
     inventory,
     clearedNodeIds: wasCleared ? state.clearedNodeIds : [...state.clearedNodeIds, nodeId],
-    respawnedNodeIds: state.respawnedNodeIds.filter((id) => id !== nodeId)
+    respawnedNodeIds: state.respawnedNodeIds.filter((id) => id !== nodeId),
+    restsSinceCleared: Object.fromEntries(Object.entries(state.restsSinceCleared).filter(([id]) => id !== nodeId))
   }
   const flaskAfter = getFlask(index, next)
 
@@ -420,7 +427,8 @@ export function winEncounter(
 
 /**
  * The whole party fell: it wakes up at the last camp where it rested, as if
- * it had rested there (full health, flask refilled, common enemies back).
+ * it had rested there (full health, flask refilled, and it counts as a rest
+ * for the common enemies to come back).
  */
 export function loseEncounter(index: WorldIndex, state: GameState): GameState {
   return rest(index, { ...state, positionNodeId: state.lastRestCampId })
@@ -443,19 +451,38 @@ export function isAtOpenCamp(state: GameState): boolean {
 
 /**
  * Rest at the camp where the party stands: full health, the flask refilled,
- * this camp becomes the respawn point and the common enemies come back to the
- * fights already won (bosses and guardians never do within a cycle).
+ * this camp becomes the respawn point and every common fight already won
+ * counts one more rest; on the RESPAWN_RESTS-th its enemies come back (bosses
+ * and guardians never do within a cycle).
  */
 export function rest(index: WorldIndex, state: GameState): GameState {
   if (!isAtOpenCamp(state)) {
     throw new Error('The party is not at an open camp')
   }
 
+  const respawned = new Set(state.respawnedNodeIds)
+  const restsSinceCleared: Record<string, number> = {}
+
+  for (const id of state.clearedNodeIds) {
+    if (respawned.has(id) || index.nodes.get(id)?.type !== NodeType.COMBAT) {
+      continue
+    }
+
+    const rests = (state.restsSinceCleared[id] ?? 0) + 1
+
+    if (rests >= RESPAWN_RESTS) {
+      respawned.add(id)
+    } else {
+      restsSinceCleared[id] = rests
+    }
+  }
+
   return {
     ...state,
     lastRestCampId: state.positionNodeId,
     flaskCharges: getFlask(index, state).maxCharges,
-    respawnedNodeIds: state.clearedNodeIds.filter((id) => index.nodes.get(id)?.type === NodeType.COMBAT),
+    respawnedNodeIds: [...respawned],
+    restsSinceCleared,
     characters: state.characters.map((character) => ({ ...character, health: getMaxHealth(character) }))
   }
 }
@@ -538,6 +565,7 @@ export function startNextCycle(index: WorldIndex, state: GameState): GameState {
     openCampIds: [START_NODE_ID],
     clearedNodeIds: [START_NODE_ID],
     respawnedNodeIds: [],
+    restsSinceCleared: {},
     gold: 0,
     inventory: {},
     scholarSold: 0

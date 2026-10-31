@@ -7,6 +7,8 @@ export interface ArtManifest {
   images: Record<string, { width: number; height: number }>
   /** Map decorations of each biome (ids of images), cut from its sheet. */
   decorations: Record<string, string[]>
+  /** Scenery of the world map of each biome, by layer (ids of images), cut from its sheet (see placeScenery). */
+  scenery: Record<string, { tall: string[]; low: string[]; ground: string[] }>
   /** Battle scenery props of each biome (ids of images), cut from its sheet at a shared scale. */
   props: Record<string, string[]>
   /** Parts cut from a parts sheet (ids of images) with their box on the sheet, for the skeletal rigs. */
@@ -16,4 +18,12 @@ export interface ArtManifest {
   sfx: string[]
 }
 
-export const EMPTY_MANIFEST: ArtManifest = { images: {}, decorations: {}, props: {}, parts: {}, music: [], sfx: [] }
+export const EMPTY_MANIFEST: ArtManifest = {
+  images: {},
+  decorations: {},
+  scenery: {},
+  props: {},
+  parts: {},
+  music: [],
+  sfx: []
+}

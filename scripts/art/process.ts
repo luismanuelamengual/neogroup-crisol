@@ -14,7 +14,16 @@ import sharp from 'sharp'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { BATCHES, buildCatalog, Piece, PieceKind } from '@/scripts/art/catalog'
-import { Box, findParts, hasChromaBackground, opaqueBox, Part, RawImage, removeChroma } from '@/scripts/art/images'
+import {
+  Box,
+  findParts,
+  hasChromaBackground,
+  makeSeamless,
+  opaqueBox,
+  Part,
+  RawImage,
+  removeChroma
+} from '@/scripts/art/images'
 
 const SOURCE = 'art/source'
 const OUTPUT = 'public/art'
@@ -33,11 +42,22 @@ const MAX_SIDE: Record<PieceKind, number> = {
   background: 1920,
   mapSheet: 0,
   propSheet: 0,
+  scenerySheet: 0,
+  building: 320,
+  tile: 256,
   icon: 128
 }
 /** A part keeps the scale of its figure: the sheet is reduced by this. */
 const PARTS_SCALE = 0.5
 const DECORATION_SIDE = 256
+/**
+ * Scenery: the longest side of each layer as drawn on the map, doubled so it
+ * stays sharp at the closest zoom (the `@2x` in its name tells PixiJS to draw
+ * it at half its pixels), and where each layer ends on the sheet (share of its
+ * height, by the middle of each piece).
+ */
+const SCENERY_SIDE = { tall: 328, low: 160, ground: 64 }
+const SCENERY_ROWS = { tall: 0.5, low: 0.75 }
 /** Props keep their sizes relative to each other (a tree taller than a rock): the whole sheet is reduced by this. */
 const PROPS_SCALE = 0.5
 
@@ -45,8 +65,12 @@ function sourceOf(id: string): string | null {
   return EXTENSIONS.map((extension) => join(SOURCE, `${id}.${extension}`)).find((path) => existsSync(path)) ?? null
 }
 
-async function readRaw(path: string): Promise<RawImage> {
-  const { data, info } = await sharp(path).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+/** The pixels of an image; with `square`, cut to a centered square of that side. */
+async function readRaw(path: string, square?: number): Promise<RawImage> {
+  const image = sharp(path).ensureAlpha()
+  const { data, info } = await (square ? image.resize(square, square, { fit: 'cover' }) : image)
+    .raw()
+    .toBuffer({ resolveWithObject: true })
 
   return { data, width: info.width, height: info.height }
 }
@@ -142,6 +166,21 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     return
   }
 
+  if (piece.kind === 'tile') {
+    // Ground textures fill the whole square: no background to remove, nothing to trim.
+    const square = Math.min(image.width, image.height)
+    const cropped = await readRaw(path, square)
+
+    manifest.images[piece.id] = await writeWebp(
+      makeSeamless(cropped),
+      { x: 0, y: 0, width: square, height: square },
+      piece.id,
+      MAX_SIDE.tile
+    )
+
+    return
+  }
+
   if (hasChromaBackground(image)) {
     removeChroma(image)
   }
@@ -159,6 +198,24 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     }
 
     manifest.decorations[biome] = ids
+
+    return
+  }
+
+  if (piece.kind === 'scenerySheet') {
+    const biome = piece.id.replace(/^map\//, '').replace(/-scenery$/, '')
+    const layers: ArtManifest['scenery'][string] = { tall: [], low: [], ground: [] }
+
+    for (const box of findParts(image, 0.0005)) {
+      const middle = (box.y + box.height / 2) / image.height
+      const layer = middle < SCENERY_ROWS.tall ? 'tall' : middle < SCENERY_ROWS.low ? 'low' : 'ground'
+      const id = `map/${biome}/scenery/${layer}-${layers[layer].length + 1}@2x`
+
+      manifest.images[id] = await writeWebp(image, box, id, SCENERY_SIDE[layer])
+      layers[layer].push(id)
+    }
+
+    manifest.scenery[biome] = layers
 
     return
   }
@@ -233,7 +290,7 @@ function copyAudio(kind: 'music' | 'sfx', names: readonly string[]): string[] {
 
 async function main(): Promise<void> {
   const catalog = buildCatalog()
-  const manifest: ArtManifest = { images: {}, decorations: {}, props: {}, parts: {}, music: [], sfx: [] }
+  const manifest: ArtManifest = { images: {}, decorations: {}, scenery: {}, props: {}, parts: {}, music: [], sfx: [] }
   const missing = new Map<string, string[]>()
 
   rmSync(OUTPUT, { recursive: true, force: true })
