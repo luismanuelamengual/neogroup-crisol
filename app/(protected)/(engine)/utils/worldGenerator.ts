@@ -34,9 +34,9 @@ import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
  *      corridors, branches and dead ends); a few border trails join the linked
  *      biomes; and some extra trails close loops (alternative routes).
  *   4. Points of interest: the starting camp, the bosses that open the camps,
- *      the rune sanctuaries, merchants, Tears of Oblivion and chests (in dead
- *      ends), the reliquaries of the weapons (in the deepest dead ends), the
- *      door of the Abyss and Crisol.
+ *      the rune sanctuaries, Tears of Oblivion and chests (in dead ends), the
+ *      merchants (right next to a camp), the reliquaries of the weapons (in the
+ *      deepest dead ends), the door of the Abyss and Crisol.
  *   5. Levels: from the entrance of each biome to its deepest point.
  *
  * An attempt that does not pass validateWorld is thrown away and the next seed
@@ -392,7 +392,8 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
   }
 
   // Mini boss camps: each one as far as possible from the camps placed before (even coverage).
-  const camps = () => nodes.filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS)
+  const isCamp = (node: WorldNode) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS
+  const camps = () => nodes.filter(isCamp)
 
   for (const definition of BIOMES) {
     for (let index = 1; index <= definition.minibossCamps; index++) {
@@ -457,16 +458,27 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       node.type = NodeType.CHEST
     }
 
+    // Merchants: right next to a camp of their biome, so once the camp is open they are reached without a fight.
+    // In the biome of the starting camp, next to the boss camp closest to it (the first one the party can open).
     if (definition.merchant) {
-      const fromCamps = hopDistances(
-        adjacency,
-        camps().map((node) => node.id)
-      )
-      const options = biomeNodes(definition).filter((node) => {
-        const distance = fromCamps.get(node.id) ?? 0
+      const freeBeside = (camp: WorldNode) =>
+        adjacency
+          .get(camp.id)!
+          .map((id) => byId.get(id)!)
+          .filter((node) => node.biome === definition.biome && isFree(node) && !isBorder(node))
+      let besideCamp = biomeNodes(definition).filter(isCamp).flatMap(freeBeside)
 
-        return isFree(node) && !isBorder(node) && distance >= 2 && distance <= 5
-      })
+      if (start.biome === definition.biome) {
+        const nearest = biomeNodes(definition)
+          .filter((node) => node.type === NodeType.CAMP_BOSS && freeBeside(node).length > 0)
+          .sort((a, b) => fromStart.get(a.id)! - fromStart.get(b.id)!)[0]
+
+        besideCamp = nearest ? freeBeside(nearest) : []
+      }
+
+      // A dead end beside the camp is preferred: the merchant does not become a free way through.
+      const deadEnds = besideCamp.filter(isLeaf)
+      const options = deadEnds.length > 0 ? deadEnds : besideCamp
 
       if (options.length === 0) {
         return null

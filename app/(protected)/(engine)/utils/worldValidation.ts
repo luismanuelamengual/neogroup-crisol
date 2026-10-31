@@ -197,6 +197,12 @@ export function validateWorld(world: World): string[] {
     merchants.every((node) => beforeGate.has(node.id)),
     'a merchant can not be reached before the Abyss'
   )
+  check(
+    merchants.every((node) =>
+      adjacency.get(node.id)!.some((id) => [NodeType.START, NodeType.CAMP_BOSS].includes(byId.get(id)!.type))
+    ),
+    'a merchant is not next to a camp'
+  )
   check(world.nodes.filter((node) => node.type === NodeType.TEAR).length === TOTAL_TEARS, 'not five Tears')
 
   // Levels.
