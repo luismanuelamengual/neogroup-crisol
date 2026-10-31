@@ -56,6 +56,12 @@ const OUTLINE = 0x0a0710
 const HOUSE_HEIGHT = 170
 const FOG = 'rgba(7, 4, 13, 0.95)'
 
+/** How the map is drawn. */
+export interface WorldRendererOptions {
+  /** Covers what the party has not seen yet (true by default; off to review the whole map). */
+  fog?: boolean
+}
+
 /**
  * The world map drawn with PixiJS: the ground made of tiles, the known
  * trails, the points, the fog and the hero, inside a viewport with drag,
@@ -87,7 +93,8 @@ export class WorldRenderer {
     private readonly app: Application,
     private readonly viewport: Viewport,
     private readonly world: World,
-    onTap: (nodeId: string | null) => void
+    onTap: (nodeId: string | null) => void,
+    private readonly options: WorldRendererOptions = {}
   ) {
     this.nodes = new Map(world.nodes.map((node) => [node.id, node]))
 
@@ -107,6 +114,7 @@ export class WorldRenderer {
     const fog = new Sprite(this.fogTexture)
 
     fog.scale.set(FOG_SCALE)
+    fog.visible = options.fog !== false
     this.drawHero()
     this.scenery = new WorldScenery(world.width, this.hero, paintShadow())
     this.scenery.setItems(placeScenery(world, this.tiles), paintSceneryTextures())
@@ -134,7 +142,8 @@ export class WorldRenderer {
   static async create(
     element: HTMLElement,
     world: World,
-    onTap: (nodeId: string | null) => void
+    onTap: (nodeId: string | null) => void,
+    options: WorldRendererOptions = {}
   ): Promise<WorldRenderer> {
     const app = new Application()
 
@@ -160,7 +169,7 @@ export class WorldRenderer {
     app.stage.addChild(viewport)
     viewport.drag().pinch().wheel({ smooth: 4 }).decelerate({ friction: 0.92 })
 
-    const renderer = new WorldRenderer(app, viewport, world, onTap)
+    const renderer = new WorldRenderer(app, viewport, world, onTap, options)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
@@ -526,6 +535,10 @@ export class WorldRenderer {
 
   /** Fog: a low resolution mask, cleared around each cleared point and half-cleared around the silhouettes. */
   private drawFog(view: MapView): void {
+    if (this.options.fog === false) {
+      return
+    }
+
     const context = this.fogCanvas.getContext('2d')!
 
     context.globalCompositeOperation = 'source-over'

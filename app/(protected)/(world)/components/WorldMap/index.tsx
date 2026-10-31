@@ -15,11 +15,13 @@ interface WorldMapProps {
   world: World
   view: MapView
   onTap: (nodeId: string | null) => void
+  /** Covers what the party has not seen yet (off only to review the whole map). */
+  fog?: boolean
   ref?: Ref<WorldMapHandle>
 }
 
 /** The PixiJS world map (see WorldRenderer), loaded only in the browser. */
-export default function WorldMap({ world, view, onTap, ref }: WorldMapProps) {
+export default function WorldMap({ world, view, onTap, fog = true, ref }: WorldMapProps) {
   const element = useRef<HTMLDivElement>(null)
   const renderer = useRef<WorldRenderer | null>(null)
   const viewRef = useRef(view)
@@ -35,7 +37,9 @@ export default function WorldMap({ world, view, onTap, ref }: WorldMapProps) {
 
     ;(async () => {
       const { WorldRenderer } = await import('@/app/(protected)/(world)/utils/worldRenderer')
-      const instance = await WorldRenderer.create(element.current!, world, (nodeId) => onTapRef.current(nodeId))
+      const instance = await WorldRenderer.create(element.current!, world, (nodeId) => onTapRef.current(nodeId), {
+        fog
+      })
 
       if (cancelled) {
         instance.destroy()
@@ -54,7 +58,7 @@ export default function WorldMap({ world, view, onTap, ref }: WorldMapProps) {
       created?.destroy()
       renderer.current = null
     }
-  }, [world])
+  }, [world, fog])
 
   useEffect(() => {
     viewRef.current = view
