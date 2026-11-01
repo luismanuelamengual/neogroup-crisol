@@ -24,9 +24,10 @@ interface Sketch {
 
 const OUTLINE = '#1a120c'
 
-export function paintSceneryTextures(): SceneryTextures {
+/** The provisional drawings, `resolution` times their size (the battle shows them bigger than the map). */
+export function paintSceneryTextures(resolution = 1): SceneryTextures {
   const random = createRandom(0x5ce7)
-  const textures = (sketches: Sketch[]) => sketches.map((sketch) => draw(sketch, random))
+  const textures = (sketches: Sketch[]) => sketches.map((sketch) => draw(sketch, random, resolution))
 
   return Object.fromEntries(
     Object.values(Biome).map((biome) => {
@@ -79,12 +80,13 @@ export function paintShadow(): Texture {
   return Texture.from(canvas)
 }
 
-function draw({ width, height, paint }: Sketch, random: Random): Texture {
+function draw({ width, height, paint }: Sketch, random: Random, resolution: number): Texture {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')!
 
-  canvas.width = width
-  canvas.height = height
+  canvas.width = width * resolution
+  canvas.height = height * resolution
+  context.scale(resolution, resolution)
   context.lineJoin = 'round'
   context.lineCap = 'round'
   paint(context, random)

@@ -61,8 +61,12 @@ type Mode = 'playing' | 'choosing' | 'skills' | 'items' | 'targeting' | 'ended'
 
 const SPEED_KEY = 'crisol.battleSpeed'
 
-/** The battle background of a point: its biome's (one of two, fixed per point), the castle or the forge of Crisol. */
-function backgroundOf(node: WorldNode, encounter: Encounter): string {
+/**
+ * The painted background of the battles in special places (the castle, the
+ * forge of Crisol); everywhere else the scenery builds the landscape of the
+ * biome in layers (see BattleScenery).
+ */
+function backgroundOf(node: WorldNode, encounter: Encounter): string | null {
   if (encounter.kind === EncounterKind.CRISOL) {
     return 'backgrounds/crisol'
   }
@@ -71,7 +75,7 @@ function backgroundOf(node: WorldNode, encounter: Encounter): string {
     return 'backgrounds/castle'
   }
 
-  return `backgrounds/${node.biome}-${(hashText(node.id) % 2) + 1}`
+  return null
 }
 
 /** The theme of a battle: the common one, the bosses', the Seals' and Crisol's. */

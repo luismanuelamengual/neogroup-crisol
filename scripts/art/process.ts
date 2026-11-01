@@ -41,6 +41,8 @@ const MAX_SIDE: Record<PieceKind, number> = {
   background: 1920,
   mapSheet: 0,
   propSheet: 0,
+  horizonSheet: 0,
+  landmarkSheet: 0,
   scenerySheet: 0,
   building: 320,
   tile: 256,
@@ -59,6 +61,9 @@ const SCENERY_SIDE = { tall: 328, low: 160, ground: 64 }
 const SCENERY_ROWS = { tall: 0.5, low: 0.75 }
 /** Props keep their sizes relative to each other (a tree taller than a rock): the whole sheet is reduced by this. */
 const PROPS_SCALE = 0.5
+/** Widest side of a band of the battle landscape and tallest side of a landmark (about twice what a phone shows). */
+const HORIZON_SIDE = 2048
+const LANDMARK_SIDE = 640
 
 function sourceOf(id: string): string | null {
   return EXTENSIONS.map((extension) => join(SOURCE, `${id}.${extension}`)).find((path) => existsSync(path)) ?? null
@@ -198,6 +203,43 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     return
   }
 
+  if (piece.kind === 'horizonSheet') {
+    const biome = piece.id.replace(/^battle\//, '').replace(/-horizon$/, '')
+    // The three biggest drawings are the bands (crumbs are left out), far to near from the top.
+    const bands = findParts(image, 0.004)
+      .sort((a, b) => b.width * b.height - a.width * a.height)
+      .slice(0, 3)
+      .sort((a, b) => a.y - b.y)
+    const ids: string[] = []
+
+    for (const [index, box] of bands.entries()) {
+      const id = `battle/${biome}/${['far', 'middle', 'near'][index]}`
+
+      manifest.images[id] = await writeWebp(image, box, id, HORIZON_SIDE)
+      ids.push(id)
+    }
+
+    manifest.battle[biome] = { bands: ids, landmarks: manifest.battle[biome]?.landmarks ?? [] }
+
+    return
+  }
+
+  if (piece.kind === 'landmarkSheet') {
+    const biome = piece.id.replace(/^battle\//, '').replace(/-landmarks$/, '')
+    const ids: string[] = []
+
+    for (const [index, box] of findParts(image, 0.004).entries()) {
+      const id = `battle/${biome}/landmarks/${index + 1}`
+
+      manifest.images[id] = await writeWebp(image, box, id, LANDMARK_SIDE)
+      ids.push(id)
+    }
+
+    manifest.battle[biome] = { bands: manifest.battle[biome]?.bands ?? [], landmarks: ids }
+
+    return
+  }
+
   if (piece.kind === 'heroPart' || piece.kind === 'weapon') {
     // One piece: everything drawn (a sword guard drawn apart from its blade stays with it).
     const box = opaqueBox(image) ?? whole
@@ -246,7 +288,16 @@ function copyAudio(kind: 'music' | 'sfx', names: readonly string[]): string[] {
 
 async function main(): Promise<void> {
   const catalog = buildCatalog()
-  const manifest: ArtManifest = { images: {}, decorations: {}, scenery: {}, props: {}, parts: {}, music: [], sfx: [] }
+  const manifest: ArtManifest = {
+    images: {},
+    decorations: {},
+    scenery: {},
+    props: {},
+    battle: {},
+    parts: {},
+    music: [],
+    sfx: []
+  }
   const missing = new Map<string, string[]>()
 
   rmSync(OUTPUT, { recursive: true, force: true })

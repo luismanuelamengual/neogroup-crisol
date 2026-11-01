@@ -32,6 +32,8 @@ export type PieceKind =
   | 'background'
   | 'mapSheet'
   | 'propSheet'
+  | 'horizonSheet'
+  | 'landmarkSheet'
   | 'scenerySheet'
   | 'building'
   | 'tile'
@@ -105,44 +107,90 @@ const HERO_BATCH: Record<CharacterId, Biome> = {
 }
 /** The bosses big enough to be animated by parts. */
 const BOSSES_BY_PARTS = ['morgrath', 'sahrak', 'vorneth', 'ignaroth', 'xalqui', 'colossus', 'vael', 'crisol']
-/** Two battle backgrounds per biome. */
-const BACKGROUNDS: Record<Biome, [string, string]> = {
-  [Biome.MEADOWS]: [
-    'praderas de trigo dorado sobre colinas onduladas bajo un cálido cielo de mañana, un camino de tierra, una atalaya de piedra en ruinas y un viejo molino a lo lejos, flores silvestres',
-    'las afueras de un tranquilo pueblo de granjas al atardecer, cercas de madera, fardos de heno y un pequeño puente de piedra sobre un arroyo'
-  ],
-  [Biome.FOREST]: [
-    'un bosque antiguo con troncos enormes cubiertos de musgo, raíces como murallas y haces de luz pálida entre las copas',
-    'un claro brumoso del bosque con un círculo de viejos menhires cubiertos de hiedra y hongos brillantes'
-  ],
-  [Biome.TROPICAL]: [
-    'una selva humeante con helechos gigantes, lianas colgantes y una cascada al fondo, flores exóticas magenta',
-    'ruinas de un templo escalonado de jade tragado por la selva, cabezas de serpiente talladas y estanques turquesa'
-  ],
-  [Biome.DESERT]: [
-    'dunas naranjas infinitas bajo un sol abrasador, cabezas de estatuas colosales medio enterradas y viejas piedras gastadas',
-    'un cañón de arenisca con antiguas puertas de tumbas talladas en los acantilados y estandartes rasgados colgando'
-  ],
-  [Biome.MOUNTAINS]: [
-    'un alto paso de montaña rocoso con picos grises dentados, un puente de cuerdas y cristales cian que crecen de la roca',
-    'el gran salón de una fortaleza enana abandonada tallada en la montaña, pilares gigantes y runas'
-  ],
-  [Biome.SNOW]: [
-    'una tundra helada en plena ventisca, pinos nevados, un lago congelado y glaciares azules a lo lejos',
-    'una caverna de hielo con carámbanos azules gigantes y cristales relucientes dentro de las paredes de hielo'
-  ],
-  [Biome.VOLCANIC]: [
-    'un páramo volcánico de basalto negro con ríos de lava brillante, ceniza que cae y un volcán en erupción al fondo',
-    'el interior de una cueva de magma con un lago de lava, púas de obsidiana y brasas flotantes'
-  ],
-  [Biome.WASTELANDS]: [
-    'un páramo gris al anochecer, árboles pelados y retorcidos, la silueta de una ciudad en ruinas y un cielo violeta dramático',
-    'un antiguo cementerio de campo de batalla con espadas rotas, lápidas torcidas y una suave niebla verde'
-  ],
-  [Biome.ABYSS]: [
-    'el borde del Abismo, una sima roja sin fondo con cadenas, islas de roca flotantes y un castillo negro a lo lejos',
-    'el patio del castillo negro del Abismo, púas de hierro, hornos que brillan en rojo y canales de metal fundido'
-  ]
+/**
+ * The landscape of the battles of each biome, in pieces for its parallax
+ * layers (see battleScenery.ts): the palette of the biome on the world map,
+ * three bands of land from far to near, and landmarks that stand between them
+ * (the game picks a landmark and mixes the bands with its own shapes, so each
+ * point of the map looks different).
+ */
+const BATTLE_LANDSCAPES: Record<
+  Biome,
+  { palette: string; far: string; middle: string; near: string; landmarks: string }
+> = {
+  [Biome.MEADOWS]: {
+    palette: 'verdes de pradera brillantes (#5fae3e, #7cc35a, #9edb74) y montañas lejanas azul verdoso suave (#8fb8c8)',
+    far: 'montañas suaves y redondeadas azul verdoso con algunas cimas',
+    middle: 'colinas verdes onduladas con algunos bosquecillos redondos y setos',
+    near: 'una loma baja de pasto verde con matas, flores silvestres y algún arbusto redondo',
+    landmarks:
+      '1 molino de viento de piedra con aspas de madera, 1 atalaya de piedra en ruinas, 1 castillo pequeño con torres de techo cónico rojo y banderas, 1 roble gigante solitario, 1 granero rojo, 1 puente de piedra en arco'
+  },
+  [Biome.FOREST]: {
+    palette: 'verdes de bosque profundos (#1f6b34, #2f7a3a, #4f9f52) y montañas lejanas verde azulado (#6a9a98)',
+    far: 'montañas boscosas azul verdosas',
+    middle: 'una línea de pinos y abetos oscuros de distintas alturas',
+    near: 'un borde de bosque bajo con helechos, arbustos densos y troncos caídos',
+    landmarks:
+      '1 árbol ancestral gigante con raíces enormes, 1 torre de vigía de madera, 1 círculo de menhires con hiedra, 1 cascada que cae de un risco con musgo, 1 cabaña de leñador con humo, 1 arco de piedra cubierto de raíces'
+  },
+  [Biome.TROPICAL]: {
+    palette: 'verdes de selva y turquesas (#13977c, #2faa6a, #8fe08a) con toques magenta (#ff4fb0)',
+    far: 'picos volcánicos verdes cubiertos de selva',
+    middle: 'una masa de copas de selva redondas y palmeras',
+    near: 'una franja baja de helechos gigantes, hojas anchas y flores magenta',
+    landmarks:
+      '1 cascada alta sobre un acantilado verde, 1 pirámide escalonada de jade cubierta de lianas, 1 tótem tallado, 1 árbol de selva gigante con lianas, 1 cabeza de serpiente de piedra, 1 choza sobre pilotes'
+  },
+  [Biome.DESERT]: {
+    palette: 'arenas doradas y naranjas (#d8a03c, #e6b25a, #f8d890) y mesetas rojizas (#e8b088)',
+    far: 'mesetas de arenisca de cima plana con capas de colores',
+    middle: 'dunas grandes y suaves',
+    near: 'una duna baja con piedras de arenisca y matas secas',
+    landmarks:
+      '1 pirámide, 1 arco natural de roca, 1 obelisco, 1 cabeza de estatua colosal medio enterrada, 1 oasis con palmeras, 1 esfinge erosionada'
+  },
+  [Biome.MOUNTAINS]: {
+    palette: 'grises azulados de roca (#6c7382, #8a92a4, #b4bac4), nieve blanca en las cimas y pinos verde oscuro',
+    far: 'picos altos y dentados con nieve en las cimas',
+    middle: 'montañas rocosas grises con pinos en las laderas',
+    near: 'un risco bajo de rocas grises con pasto de montaña',
+    landmarks:
+      '1 fortaleza enana tallada en la roca, 1 torre de piedra con un puente colgante, 1 cascada entre rocas, 1 estatua enana gigante, 1 entrada de mina con vagonetas, 1 cristal cian gigante'
+  },
+  [Biome.SNOW]: {
+    palette: 'blancos y celestes (#dfeaf6, #bccbe8, #8fa8c8), pinos verde oscuro con nieve y hielo turquesa (#4ac0e0)',
+    far: 'glaciares y picos nevados',
+    middle: 'un bosque de pinos nevados',
+    near: 'montículos de nieve suaves con rocas nevadas',
+    landmarks:
+      '1 aguja de hielo cristalina gigante, 1 castillo de hielo con torres celestes, 1 estatua de guerrero congelada, 1 esqueleto de mamut, 1 iglú grande, 1 faro de piedra nevado'
+  },
+  [Biome.VOLCANIC]: {
+    palette:
+      'rocas rojo oscuro y negras (#3a1a16, #5a2418, #8c3a20) y lava naranja y amarilla brillante (#ff8a1a, #ffd04a)',
+    far: 'volcanes cónicos en erupción con ríos de lava bajando por las laderas',
+    middle: 'riscos de basalto negro dentados con vetas de lava',
+    near: 'rocas bajas de obsidiana con grietas de lava brillante',
+    landmarks:
+      '1 cascada de lava que cae de un acantilado, 1 torre de forja en ruinas, 1 volcán pequeño humeante, 1 aguja de obsidiana gigante, 1 puente de piedra sobre la lava, 1 calavera de dragón de piedra'
+  },
+  [Biome.WASTELANDS]: {
+    palette: 'grises violáceos apagados (#5a4560, #6a5a70, #8f7f92) y verde tóxico brillante (#9aff70)',
+    far: 'mesetas grises erosionadas y la silueta de una ciudad en ruinas',
+    middle: 'riscos rotos con árboles muertos retorcidos',
+    near: 'una loma baja de tierra gris con pasto seco y lápidas',
+    landmarks:
+      '1 roca con forma de calavera, 1 torre en ruinas, 1 arco de piedra roto, 1 horca torcida, 1 máquina de asedio rota, 1 charco tóxico verde con huesos'
+  },
+  [Biome.ABYSS]: {
+    palette: 'violetas profundos casi negros (#2b0c3d, #3a1a56, #5a2a80) y brillos violeta y magenta (#c070ff)',
+    far: 'agujas muy altas de cristal violeta y roca negra',
+    middle: 'riscos negros dentados con cristales violetas brillantes',
+    near: 'rocas negras bajas con hongos y esporas violetas brillantes',
+    landmarks:
+      '1 grupo de islas de roca flotantes, 1 obelisco negro con runas violetas, 1 castillo negro con torres puntiagudas, 1 anillo alienígena flotante, 1 árbol alienígena con bulbos brillantes, 1 grieta roja sin fondo con cadenas'
+  }
 }
 /** The 16 decorations of each biome's map sheet. */
 const MAP_SHEETS: Record<Biome, string> = {
@@ -432,18 +480,32 @@ export function buildCatalog(): Piece[] {
     }
   }
 
-  for (const [biome, scenes] of Object.entries(BACKGROUNDS)) {
-    scenes.forEach((scene, index) =>
-      pieces.push({
-        id: `backgrounds/${biome}-${index + 1}`,
-        kind: 'background',
+  for (const [biome, landscape] of Object.entries(BATTLE_LANDSCAPES)) {
+    const palette = `Paleta del bioma: ${landscape.palette}.`
+
+    pieces.push(
+      {
+        id: `battle/${biome}-horizon`,
+        kind: 'horizonSheet',
         width: 2560,
-        height: 1440,
+        height: 2048,
         batch: biome,
         prompt: prompt(
-          `Fondo de batalla en vista lateral para un juego 2D, paisaje ancho 16:9: ${scene}. El 35% inferior es suelo plano y despejado para los combatientes, sin objetos encima. Profundidad atmosférica leve con colores claros y luminosos incluso a lo lejos, sin personajes, sin criaturas.`
+          `Tres franjas de paisaje de fondo para las capas parallax de un juego 2D de vista lateral, vistas de costado a la altura de los ojos, apiladas una debajo de la otra y separadas por anchas bandas vacías, sin que se toquen. Cada franja es una sola silueta continua que cruza la imagen de borde a borde, con la base recta y horizontal abajo, y termina a la misma altura en el borde izquierdo y en el derecho para poder repetirse. Franja de arriba, la más lejana, alta y simple: ${landscape.far}. Franja del medio: ${landscape.middle}. Franja de abajo, la más cercana, más baja y con más detalle: ${landscape.near}. Sin cielo, sin nubes, sin suelo delante, sin niebla, sin personajes, luz de día pareja desde arriba a la izquierda con un lado iluminado y otro en sombra. ${palette}`,
+          'Fondo liso y plano #00FF00 entre las franjas y encima de ellas.'
         )
-      })
+      },
+      {
+        id: `battle/${biome}-landmarks`,
+        kind: 'landmarkSheet',
+        width: 2048,
+        height: 2048,
+        batch: biome,
+        prompt: prompt(
+          `Hoja de sprites de 6 hitos del paisaje para el fondo de batalla de un juego 2D de vista lateral, vistos de costado a la altura de los ojos (no desde arriba), en una grilla de 3 por 2, cada uno parado sobre su base con mucho espacio vacío alrededor, sin que nada se toque: ${landscape.landmarks}. Formas grandes y simples que se lean bien como silueta a lo lejos, sin suelo debajo. ${palette}`,
+          'Fondo liso y plano #00FF00, sin sombras sobre el fondo.'
+        )
+      }
     )
   }
 

@@ -17,7 +17,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
-import { BIOME_GROUND } from '@/app/(protected)/(world)/utils/mapStyle'
+import { paintSceneryTextures, SceneryTextures } from '@/app/(protected)/(world)/utils/sceneryTextures'
 
 /** Texts the scene shows over the fighters (already translated). */
 export interface BattleLabels {
@@ -94,7 +94,6 @@ export class BattleRenderer {
   private readonly stage = new Container()
   /** Everything the camera sees (it zooms around the ground line; the stage itself shakes). */
   private readonly world = new Container()
-  private readonly background = new Graphics()
   private readonly fighters = new Container()
   private readonly effects = new Container()
   private readonly figures = new Map<string, Figure>()
@@ -115,7 +114,6 @@ export class BattleRenderer {
 
   private constructor(
     private readonly app: Application,
-    private readonly biome: BattleState['biome'],
     private readonly labels: BattleLabels,
     private readonly onTap: (combatantId: string) => void,
     /** The final art that exists for this battle (figures by art id, and the background). */
@@ -123,7 +121,7 @@ export class BattleRenderer {
     private readonly parts: ArtManifest['parts'],
     private readonly scenery: BattleScenery
   ) {
-    this.world.addChild(this.background, scenery.back, this.marker, this.fighters, this.effects, scenery.front)
+    this.world.addChild(scenery.back, this.marker, this.fighters, this.effects, scenery.front)
     this.stage.addChild(this.world)
     app.stage.addChild(this.stage)
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
@@ -134,14 +132,15 @@ export class BattleRenderer {
     battle: BattleState,
     labels: BattleLabels,
     onTap: (combatantId: string) => void,
-    wantedBackground: string,
+    /** A painted background for special places (null: the scenery builds the biome's landscape). */
+    background: string | null,
     /** Each point of the map has its own scenery, made from this (its id). */
     sceneSeed: string
   ): Promise<BattleRenderer> {
     const app = new Application()
-    const { images, parts, props, decorations } = await loadArtManifest()
-    // While only one of a biome's two backgrounds exists, every battle there uses it.
-    const backgroundId = images[wantedBackground] ? wantedBackground : wantedBackground.replace(/-\d$/, '-1')
+    const { images, parts, props, decorations, battle: landscapes } = await loadArtManifest()
+    const backgroundId = background && images[background] ? background : null
+    const landscape = landscapes[battle.biome] ?? { bands: [], landmarks: [] }
     const heroes = battle.combatants.filter((combatant) => combatant.side === 'hero')
     const figureIds = [
       ...heroes.map((hero) => figureArtId('hero', hero.characterId!, false)),
@@ -155,7 +154,9 @@ export class BattleRenderer {
       ? props[battle.biome]
       : (decorations[battle.biome] ?? []).filter((id) => images[id] && images[id].width < images[id].height * 1.45)
     const art = await loadTextures([
-      backgroundId,
+      ...(backgroundId ? [backgroundId] : []),
+      ...landscape.bands,
+      ...landscape.landmarks,
       ...propIds,
       ...figureIds,
       ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : [])),
@@ -173,6 +174,7 @@ export class BattleRenderer {
 
     const tallest = Math.max(1, ...propIds.map((id) => images[id].height))
     const fromSheet = !!props[battle.biome]?.length
+    const provisional = provisionalScenery()[battle.biome]
     const sceneryProps: SceneryProp[] = propIds
       .filter((id) => art.has(id))
       .map((id) => {
@@ -181,8 +183,32 @@ export class BattleRenderer {
 
         return { texture: art.get(id)!, height, framing: fromSheet && height >= 0.6 }
       })
-    const scenery = new BattleScenery(sceneSeed, battle.biome, art.get(backgroundId) ?? null, sceneryProps)
-    const renderer = new BattleRenderer(app, battle.biome, labels, onTap, art, parts, scenery)
+
+    // Until a biome has art of its own, the provisional drawings of its map scenery.
+    if (sceneryProps.length === 0) {
+      const tallestDrawing = Math.max(1, ...provisional.tall.map((texture) => texture.height))
+
+      sceneryProps.push(
+        ...provisional.tall.map((texture) => ({ texture, height: texture.height / tallestDrawing, framing: true })),
+        ...provisional.low.map((texture) => ({ texture, height: texture.height / tallestDrawing, framing: false }))
+      )
+    }
+
+    const scenery = new BattleScenery(
+      sceneSeed,
+      battle.biome,
+      backgroundId ? (art.get(backgroundId) ?? null) : null,
+      sceneryProps,
+      provisional.ground,
+      {
+        // Far, middle and near, each one only if it exists.
+        bands: ['far', 'middle', 'near'].map(
+          (band) => art.get(landscape.bands.find((id) => id.endsWith(`/${band}`)) ?? '') ?? null
+        ),
+        landmarks: landscape.landmarks.flatMap((id) => (art.has(id) ? [art.get(id)!] : []))
+      }
+    )
+    const renderer = new BattleRenderer(app, labels, onTap, art, parts, scenery)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
@@ -257,43 +283,6 @@ export class BattleRenderer {
     this.scenery.layout(this.width, this.height, this.groundY, this.scale)
     this.world.pivot.set(this.width / 2, this.groundY)
     this.world.position.set(this.width / 2, this.groundY)
-    this.background.clear()
-
-    if (this.scenery.painted) {
-      return
-    }
-
-    const ground = parseInt(BIOME_GROUND[this.biome].slice(1), 16)
-    const g = this.background
-    const horizon = this.groundY - 40 * this.scale
-
-    g.clear()
-    g.rect(0, 0, this.width, horizon).fill({ color: 0x6fcbff })
-    g.rect(0, horizon * 0.55, this.width, horizon * 0.45).fill({ color: mix(0xbfeaff, ground, 0.2) })
-
-    // A sun and a few puffy clouds, so a tall sky is not empty.
-    g.circle(this.width * 0.82, horizon * 0.2, 26 * this.scale).fill({ color: 0xfff2a8 })
-
-    for (let index = 0; index < 5; index++) {
-      const x = (((index * 37) % 97) / 97) * this.width
-      const y = (0.12 + ((index * 23) % 5) * 0.07) * horizon
-      const size = (18 + (index % 3) * 8) * this.scale
-
-      g.circle(x, y, size).fill({ color: 0xffffff, alpha: 0.9 })
-      g.circle(x + size * 0.9, y + size * 0.2, size * 0.75).fill({ color: 0xffffff, alpha: 0.9 })
-      g.circle(x - size * 0.9, y + size * 0.25, size * 0.65).fill({ color: 0xffffff, alpha: 0.9 })
-    }
-
-    // Far hills.
-    for (let index = 0; index < 7; index++) {
-      const x = (index / 6) * this.width
-      const radius = this.width * (0.12 + ((index * 37) % 5) * 0.02)
-
-      g.circle(x, horizon + radius * 0.35, radius).fill({ color: mix(0x6fcbff, ground, 0.6) })
-    }
-
-    g.rect(0, horizon, this.width, this.height - horizon).fill({ color: mix(ground, 0x000000, 0.1) })
-    g.rect(0, horizon, this.width, 6).fill({ color: mix(ground, 0xffffff, 0.25) })
   }
 
   /** Spot of a fighter: heroes on the left, enemies on the right, in staggered rows. */
@@ -1038,4 +1027,13 @@ function drawEnemy(combatant: Combatant): Container {
   container.addChild(g)
 
   return container
+}
+
+/** The provisional scenery drawings, painted at twice their size once for every battle. */
+let provisionalTextures: SceneryTextures | null = null
+
+function provisionalScenery(): SceneryTextures {
+  provisionalTextures ??= paintSceneryTextures(2)
+
+  return provisionalTextures
 }

@@ -64,89 +64,221 @@
    "width": 900,
    "height": 863
   },
-  "backgrounds/meadows-1": {
-   "width": 1920,
-   "height": 1080
-  },
-  "map/meadows/1": {
-   "width": 183,
+  "battle/meadows/far": {
+   "width": 1521,
    "height": 198
   },
-  "map/meadows/2": {
-   "width": 152,
-   "height": 202
-  },
-  "map/meadows/3": {
-   "width": 180,
-   "height": 197
-  },
-  "map/meadows/4": {
-   "width": 248,
-   "height": 200
-  },
-  "map/meadows/5": {
-   "width": 186,
+  "battle/meadows/middle": {
+   "width": 1521,
    "height": 191
   },
+  "battle/meadows/near": {
+   "width": 1521,
+   "height": 196
+  },
+  "battle/meadows/landmarks/1": {
+   "width": 443,
+   "height": 466
+  },
+  "battle/meadows/landmarks/2": {
+   "width": 441,
+   "height": 422
+  },
+  "battle/meadows/landmarks/3": {
+   "width": 467,
+   "height": 478
+  },
+  "battle/meadows/landmarks/4": {
+   "width": 447,
+   "height": 442
+  },
+  "battle/meadows/landmarks/5": {
+   "width": 463,
+   "height": 340
+  },
+  "battle/meadows/landmarks/6": {
+   "width": 489,
+   "height": 234
+  },
+  "map/meadows/1": {
+   "width": 256,
+   "height": 250
+  },
+  "map/meadows/2": {
+   "width": 223,
+   "height": 256
+  },
+  "map/meadows/3": {
+   "width": 256,
+   "height": 244
+  },
+  "map/meadows/4": {
+   "width": 238,
+   "height": 256
+  },
+  "map/meadows/5": {
+   "width": 246,
+   "height": 217
+  },
   "map/meadows/6": {
-   "width": 122,
-   "height": 155
+   "width": 245,
+   "height": 213
   },
   "map/meadows/7": {
-   "width": 120,
-   "height": 123
+   "width": 247,
+   "height": 198
   },
   "map/meadows/8": {
-   "width": 138,
-   "height": 118
+   "width": 256,
+   "height": 192
   },
   "map/meadows/9": {
-   "width": 135,
-   "height": 111
+   "width": 256,
+   "height": 175
   },
   "map/meadows/10": {
-   "width": 132,
-   "height": 111
+   "width": 247,
+   "height": 182
   },
   "map/meadows/11": {
-   "width": 144,
-   "height": 126
+   "width": 256,
+   "height": 233
   },
   "map/meadows/12": {
-   "width": 115,
-   "height": 77
+   "width": 255,
+   "height": 231
   },
   "map/meadows/13": {
-   "width": 239,
-   "height": 146
+   "width": 188,
+   "height": 256
   },
   "map/meadows/14": {
-   "width": 251,
-   "height": 154
+   "width": 201,
+   "height": 256
   },
   "map/meadows/15": {
-   "width": 249,
-   "height": 150
+   "width": 180,
+   "height": 256
   },
   "map/meadows/16": {
-   "width": 134,
-   "height": 203
+   "width": 256,
+   "height": 191
   },
-  "map/meadows/17": {
-   "width": 117,
-   "height": 148
+  "map/meadows/scenery/tall-1@2x": {
+   "width": 299,
+   "height": 310
   },
-  "map/meadows/18": {
-   "width": 93,
-   "height": 161
+  "map/meadows/scenery/tall-2@2x": {
+   "width": 256,
+   "height": 286
   },
-  "map/meadows/19": {
+  "map/meadows/scenery/tall-3@2x": {
+   "width": 254,
+   "height": 271
+  },
+  "map/meadows/scenery/tall-4@2x": {
+   "width": 283,
+   "height": 318
+  },
+  "map/meadows/scenery/tall-5@2x": {
+   "width": 255,
+   "height": 283
+  },
+  "map/meadows/scenery/tall-6@2x": {
+   "width": 230,
+   "height": 266
+  },
+  "map/meadows/scenery/tall-7@2x": {
+   "width": 157,
+   "height": 306
+  },
+  "map/meadows/scenery/tall-8@2x": {
+   "width": 143,
+   "height": 302
+  },
+  "map/meadows/scenery/low-1@2x": {
+   "width": 160,
+   "height": 110
+  },
+  "map/meadows/scenery/low-2@2x": {
+   "width": 160,
+   "height": 121
+  },
+  "map/meadows/scenery/low-3@2x": {
+   "width": 160,
+   "height": 132
+  },
+  "map/meadows/scenery/low-4@2x": {
+   "width": 160,
+   "height": 113
+  },
+  "map/meadows/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 49
+  },
+  "map/meadows/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 52
+  },
+  "map/meadows/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 41
+  },
+  "map/meadows/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 41
+  },
+  "props/meadows/1": {
    "width": 200,
-   "height": 127
+   "height": 194
   },
-  "map/meadows/20": {
-   "width": 182,
-   "height": 155
+  "props/meadows/2": {
+   "width": 175,
+   "height": 189
+  },
+  "props/meadows/3": {
+   "width": 115,
+   "height": 184
+  },
+  "props/meadows/4": {
+   "width": 113,
+   "height": 97
+  },
+  "props/meadows/5": {
+   "width": 105,
+   "height": 99
+  },
+  "props/meadows/6": {
+   "width": 205,
+   "height": 94
+  },
+  "props/meadows/7": {
+   "width": 137,
+   "height": 83
+  },
+  "props/meadows/8": {
+   "width": 178,
+   "height": 98
+  },
+  "props/meadows/9": {
+   "width": 142,
+   "height": 93
+  },
+  "props/meadows/10": {
+   "width": 141,
+   "height": 147
+  },
+  "props/meadows/11": {
+   "width": 140,
+   "height": 139
+  },
+  "props/meadows/12": {
+   "width": 174,
+   "height": 107
+  },
+  "props/meadows/13": {
+   "width": 150,
+   "height": 163
   }
  },
  "decorations": {
@@ -166,15 +298,69 @@
    "map/meadows/13",
    "map/meadows/14",
    "map/meadows/15",
-   "map/meadows/16",
-   "map/meadows/17",
-   "map/meadows/18",
-   "map/meadows/19",
-   "map/meadows/20"
+   "map/meadows/16"
   ]
  },
- "scenery": {},
- "props": {},
+ "scenery": {
+  "meadows": {
+   "tall": [
+    "map/meadows/scenery/tall-1@2x",
+    "map/meadows/scenery/tall-2@2x",
+    "map/meadows/scenery/tall-3@2x",
+    "map/meadows/scenery/tall-4@2x",
+    "map/meadows/scenery/tall-5@2x",
+    "map/meadows/scenery/tall-6@2x",
+    "map/meadows/scenery/tall-7@2x",
+    "map/meadows/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/meadows/scenery/low-1@2x",
+    "map/meadows/scenery/low-2@2x",
+    "map/meadows/scenery/low-3@2x",
+    "map/meadows/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/meadows/scenery/ground-1@2x",
+    "map/meadows/scenery/ground-2@2x",
+    "map/meadows/scenery/ground-3@2x",
+    "map/meadows/scenery/ground-4@2x"
+   ]
+  }
+ },
+ "props": {
+  "meadows": [
+   "props/meadows/1",
+   "props/meadows/2",
+   "props/meadows/3",
+   "props/meadows/4",
+   "props/meadows/5",
+   "props/meadows/6",
+   "props/meadows/7",
+   "props/meadows/8",
+   "props/meadows/9",
+   "props/meadows/10",
+   "props/meadows/11",
+   "props/meadows/12",
+   "props/meadows/13"
+  ]
+ },
+ "battle": {
+  "meadows": {
+   "bands": [
+    "battle/meadows/far",
+    "battle/meadows/middle",
+    "battle/meadows/near"
+   ],
+   "landmarks": [
+    "battle/meadows/landmarks/1",
+    "battle/meadows/landmarks/2",
+    "battle/meadows/landmarks/3",
+    "battle/meadows/landmarks/4",
+    "battle/meadows/landmarks/5",
+    "battle/meadows/landmarks/6"
+   ]
+  }
+ },
  "parts": {
   "heroes/kael/outfits/traveller/body": [
    {
