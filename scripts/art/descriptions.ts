@@ -1,228 +1,277 @@
 /**
- * What each creature looks like, for its prompt (see catalog.ts). English,
- * because that is what the image tools follow best.
+ * What each creature looks like, for its prompt (see catalog.ts). In Spanish,
+ * like every prompt of the catalog.
  */
 export const ENEMY_LOOKS: Record<string, string> = {
   // Meadows
   'thorn-boar':
-    'a big round wild boar with fluffy brown fur, a grumpy snout, two short curved tusks and a row of little wooden thorns along its back',
+    'un jabalí grande y redondo de pelaje marrón esponjoso, hocico gruñón, dos colmillos curvos cortos y una hilera de pequeñas espinas de madera sobre el lomo',
   'road-bandit':
-    'a wiry human highwayman in a patched hood and leather jerkin, twin short daggers, a scarf over his mouth',
-  'wheat-spirit': 'a floating spirit woven from golden wheat stalks, a hollow face of straw and glowing amber eyes',
-  'hedge-sprite': 'a tiny winged fairy made of leaves and hedge twigs, holding a thorny wand that glows green',
-  'field-rat': 'an oversized field rat with scruffy grey fur, big buck teeth and a long scaly tail',
-  scarecrow: 'a living scarecrow of sackcloth and straw on a wooden pole, a stitched grin and a rusty sickle',
-  'meadow-wasp': 'a dog-sized wasp with yellow and black stripes, translucent wings and a big pointy stinger',
-  'bandit-archer': 'a lean human bandit archer in a green hood and leather bracers, drawing a short bow',
-  'giant-toad': 'a huge warty brown toad with a wide mouth, bulging eyes and poison glands on its back',
+    'un salteador de caminos humano y fibroso con capucha remendada y jubón de cuero, dos dagas cortas y un pañuelo sobre la boca',
+  'wheat-spirit':
+    'un espíritu flotante tejido con tallos de trigo dorado, una cara hueca de paja y ojos ámbar brillantes',
+  'hedge-sprite':
+    'un hada diminuta con alas, hecha de hojas y ramitas de seto, con una varita espinosa que brilla en verde',
+  'field-rat':
+    'una rata de campo enorme de pelaje gris desaliñado, grandes dientes de conejo y una cola larga y escamosa',
+  scarecrow: 'un espantapájaros vivo de arpillera y paja sobre un palo de madera, una sonrisa cosida y una hoz oxidada',
+  'meadow-wasp':
+    'una avispa del tamaño de un perro con rayas amarillas y negras, alas translúcidas y un aguijón grande y puntiagudo',
+  'bandit-archer': 'un arquero bandido humano y delgado con capucha verde y brazales de cuero, tensando un arco corto',
+  'giant-toad': 'un sapo marrón enorme y verrugoso, de boca ancha, ojos saltones y glándulas de veneno en el lomo',
   // Forests
-  'shadow-wolf': 'a black wolf made half of smoke, glowing violet eyes and wisps of shadow trailing from its fur',
-  'rotten-ent': 'a hunched walking tree of old gnarled wood covered in fungus and moss, hollow glowing eyes',
+  'shadow-wolf':
+    'un lobo negro hecho a medias de humo, ojos violetas brillantes y jirones de sombra que salen de su pelaje',
+  'rotten-ent':
+    'un árbol caminante encorvado de madera vieja y retorcida, cubierto de hongos y musgo, con ojos huecos brillantes',
   'weaver-spider':
-    'a giant purple forest spider with fuzzy legs, eight shining eyes and a thread of silk trailing behind it',
-  'thorn-dryad': 'a slender dryad woman with bark skin, thorny vines for hair and a staff of living wood',
-  'bog-wight': 'a lanky swamp ghoul draped in swamp weed, a lantern of green witch-fire in its long hand',
-  'moss-bear': 'a massive brown bear with moss and small ferns growing on its back and shoulders',
-  'forest-goblin': 'a small green goblin in a leaf cloak with a crude spear and a mischievous grin',
-  'cursed-stag': 'a gaunt black stag with huge antlers wreathed in dark mist and glowing red eyes',
-  'creeping-vine': 'a writhing mass of thick thorny vines rising from the ground with a toothy flower at its top',
+    'una araña gigante violeta del bosque con patas peluditas, ocho ojos brillantes y un hilo de seda que cuelga detrás',
+  'thorn-dryad': 'una dríada esbelta con piel de corteza, enredaderas espinosas por cabello y un báculo de madera viva',
+  'bog-wight':
+    'un espectro del pantano larguirucho cubierto de algas, con un farol de fuego verde de bruja en su mano larga',
+  'moss-bear': 'un oso marrón enorme con musgo y pequeños helechos creciéndole en el lomo y los hombros',
+  'forest-goblin': 'un pequeño goblin verde con capa de hojas, una lanza tosca y una sonrisa traviesa',
+  'cursed-stag': 'un ciervo negro y flaco con astas enormes envueltas en niebla oscura y ojos rojos brillantes',
+  'creeping-vine':
+    'una masa retorcida de enredaderas gruesas y espinosas que sale del suelo con una flor dentada en la punta',
   // Tropical
-  'jade-viper': 'a long emerald-green viper with jade scales, a hooded head and two little fangs',
-  'fungal-shaman': 'a squat mushroom-man with a wide spotted magenta cap, wooden beads and a glowing spore staff',
-  'toxic-frog': 'a bright poison dart frog the size of a dog, neon blue and yellow skin glistening with venom',
-  'jungle-panther': 'a sleek black panther with faint jade rosettes on its fur and glowing yellow eyes',
-  'giant-mosquito': 'a giant mosquito with a long needle proboscis, round red abdomen and buzzing wings',
-  'carnivorous-plant': 'a huge carnivorous plant with a gaping toothy pod for a head and grasping vine tendrils',
-  'lizard-warrior': 'a muscular lizardfolk warrior with green scales, a bone spear and a feathered war shield',
-  'mangrove-croc': 'a huge swamp crocodile with mossy armored scales and rows of jagged teeth',
+  'jade-viper': 'una víbora larga verde esmeralda con escamas de jade, cabeza con capuchón y dos colmillitos',
+  'fungal-shaman':
+    'un hombre-hongo bajito con un sombrero magenta ancho y con lunares, cuentas de madera y un báculo de esporas brillante',
+  'toxic-frog': 'una rana dardo venenosa del tamaño de un perro, piel azul neón y amarilla que brilla de veneno',
+  'jungle-panther': 'una pantera negra y elegante con rosetas de jade tenues en el pelaje y ojos amarillos brillantes',
+  'giant-mosquito': 'un mosquito gigante con una trompa larga como una aguja, abdomen rojo y redondo y alas zumbantes',
+  'carnivorous-plant':
+    'una planta carnívora enorme con una vaina dentada abierta por cabeza y zarcillos de enredadera que agarran',
+  'lizard-warrior':
+    'un guerrero hombre-lagarto musculoso de escamas verdes, con lanza de hueso y escudo de guerra con plumas',
+  'mangrove-croc':
+    'un cocodrilo de pantano enorme con escamas acorazadas cubiertas de musgo e hileras de dientes dentados',
   'tribal-witch':
-    'an old jungle witch in feathers and painted wooden masks, a staff topped with a glowing gourd and glowing tattoos',
+    'una vieja bruja de la selva con plumas y máscaras de madera pintada, un báculo coronado por una calabaza brillante y tatuajes brillantes',
   // Deserts
-  'giant-scorpion': 'a giant desert scorpion with a sand-colored carapace, huge pincers and a curved venom tail',
-  'wandering-mummy': 'a shambling mummy in loose unravelling bandages, glowing blue eyes and gold amulets',
-  'sand-worm': 'a colossal sand worm bursting from the dunes with a round mouth of spiral teeth',
-  'dune-raider': 'a desert raider in flowing sand-colored robes and a face veil, with a curved scimitar',
-  'sun-priest': 'a robed desert priest with a golden sun mask and a staff crowned with a glowing sun disk',
-  'desert-djinn': 'a blue-skinned djinn whose lower body is a swirling sandstorm, golden bracers and burning eyes',
-  vulture: 'a huge bald vulture with ragged dark feathers, a hooked beak and a bare red neck',
-  'tomb-guardian': 'a tall jackal-headed stone statue warrior with a golden halberd, cracks glowing with blue light',
-  'scarab-swarm': 'a swarm of hundreds of black-and-gold scarab beetles forming a vaguely humanoid shape',
+  'giant-scorpion':
+    'un escorpión gigante del desierto con caparazón color arena, pinzas enormes y una cola curva con veneno',
+  'wandering-mummy':
+    'una momia que arrastra los pies, con vendas sueltas que se desenrollan, ojos azules brillantes y amuletos de oro',
+  'sand-worm': 'un gusano de arena colosal que sale de las dunas, con una boca redonda de dientes en espiral',
+  'dune-raider': 'un saqueador del desierto con túnicas sueltas color arena y velo en la cara, con una cimitarra curva',
+  'sun-priest':
+    'un sacerdote del desierto con túnica, máscara de sol dorada y un báculo coronado por un disco solar brillante',
+  'desert-djinn':
+    'un djinn de piel azul cuya mitad inferior es una tormenta de arena en remolino, brazaletes de oro y ojos ardientes',
+  vulture: 'un buitre calvo enorme de plumas oscuras desordenadas, pico ganchudo y cuello rojo pelado',
+  'tomb-guardian':
+    'una estatua guerrera alta de piedra con cabeza de chacal y alabarda dorada, con grietas que brillan con luz azul',
+  'scarab-swarm': 'un enjambre de cientos de escarabajos negros y dorados que forman una figura vagamente humana',
   // Mountains
-  'rock-golem': 'a heavy golem of grey boulders held together by glowing runes, with huge stone fists',
-  harpy: 'a harpy with a pale woman face, brown feathered wings for arms and sharp taloned feet',
-  'renegade-dwarf': 'a stocky dwarf warrior with a braided red beard, dented iron armor and a war hammer',
-  'mountain-troll': 'a towering grey mountain troll with rocky skin, a broken tree trunk as a club',
-  'storm-eagle': 'a giant eagle with storm-grey feathers crackling with blue lightning',
-  'crystal-sprite': 'a small floating sprite made of cyan crystal shards that refract light',
-  'dwarf-runepriest': 'an old dwarf priest with a white braided beard, rune-carved stone tablets and a glowing hammer',
-  'cave-bat': 'a giant cave bat with leathery wings, huge ears and tiny fangs',
-  'stone-basilisk': 'a heavy six-legged lizard with stone-grey scales and petrifying glowing eyes',
+  'rock-golem': 'un gólem pesado de rocas grises unidas por runas brillantes, con enormes puños de piedra',
+  harpy: 'una arpía con cara pálida de mujer, alas de plumas marrones en lugar de brazos y patas con garras afiladas',
+  'renegade-dwarf':
+    'un guerrero enano robusto con barba roja trenzada, armadura de hierro abollada y un martillo de guerra',
+  'mountain-troll': 'un trol de montaña gris altísimo con piel de roca y un tronco de árbol partido como garrote',
+  'storm-eagle': 'un águila gigante de plumas gris tormenta que chisporrotean con rayos azules',
+  'crystal-sprite': 'un pequeño duende flotante hecho de esquirlas de cristal cian que refractan la luz',
+  'dwarf-runepriest':
+    'un viejo sacerdote enano con barba blanca trenzada, tablillas de piedra talladas con runas y un martillo brillante',
+  'cave-bat': 'un murciélago gigante de caverna con alas de cuero, orejas enormes y colmillitos',
+  'stone-basilisk': 'un lagarto pesado de seis patas con escamas gris piedra y ojos brillantes que petrifican',
   // Snow
-  yeti: 'a hulking white-furred yeti with long arms, blue skin on its face and icicles in its fur',
-  'frost-wolf': 'a white wolf with frost-blue eyes and ice crystals forming on its mane',
-  'ice-wisp': 'a floating wisp of pale blue cold light with a crown of ice shards',
-  'snow-troll': 'a huge troll with frost-bitten pale skin, a fur loincloth and an ice-crusted club',
-  'ice-wraith': 'a ghostly wraith of freezing mist with a hooded shadowy face, glowing eyes and icy claws',
-  'frost-giant': 'a giant with blue skin, a long white beard of icicles and heavy armor of frozen steel',
-  'polar-bear': 'a massive polar bear with thick white fur and frost on its claws',
-  'snow-harpy': 'a harpy with white feathered wings, pale blue skin and icy talons',
-  'frozen-shaman': 'a shaman in thick white furs and a carved wooden reindeer mask, holding a staff of blue ice',
+  yeti: 'un yeti corpulento de pelaje blanco con brazos largos, piel azul en la cara y carámbanos en el pelaje',
+  'frost-wolf': 'un lobo blanco con ojos azul escarcha y cristales de hielo formándose en la melena',
+  'ice-wisp': 'un fuego fatuo flotante de luz fría azul pálido con una corona de esquirlas de hielo',
+  'snow-troll': 'un trol enorme de piel pálida quemada por el frío, taparrabos de piel y un garrote cubierto de hielo',
+  'ice-wraith':
+    'un espectro fantasmal de niebla helada con cara oscura bajo una capucha, ojos brillantes y garras de hielo',
+  'frost-giant':
+    'un gigante de piel azul con una larga barba blanca de carámbanos y una pesada armadura de acero congelado',
+  'polar-bear': 'un oso polar enorme de pelaje blanco y espeso con escarcha en las garras',
+  'snow-harpy': 'una arpía con alas de plumas blancas, piel azul pálido y garras heladas',
+  'frozen-shaman':
+    'un chamán con gruesas pieles blancas y una máscara tallada de reno en madera, con un báculo de hielo azul',
   // Volcanic
-  salamander: 'a long red fire salamander with glowing orange patterns and flames along its back',
-  'magma-elemental': 'a humanoid of molten magma with a cracked basalt crust and fire for eyes',
-  'young-dragon': 'a young red dragon the size of a horse, small wings, smoke rising from its nostrils',
-  'fire-imp': 'a small red imp with bat wings, a mischievous grin and a fireball in its hand',
-  'lava-golem': 'a heavy golem of black obsidian rock with rivers of glowing lava in its cracks',
-  'ash-wraith': 'a wraith of grey ash and drifting embers with a burning hollow face',
-  hellhound: 'a black hound with burning red eyes, a flaming mane and smoking jaws',
-  'obsidian-knight': 'a knight in black obsidian plate armor with glowing orange seams and a heavy tower shield',
-  'flame-priest': 'a fanatic priest in red robes with a horned brass mask and a censer of burning coals',
+  salamander: 'una salamandra de fuego roja y larga con dibujos naranjas brillantes y llamas a lo largo del lomo',
+  'magma-elemental': 'un humanoide de magma fundido con una costra de basalto agrietada y fuego en lugar de ojos',
+  'young-dragon':
+    'un dragón rojo joven del tamaño de un caballo, alas pequeñas y humo que le sale de las fosas nasales',
+  'fire-imp': 'un diablillo rojo pequeño con alas de murciélago, sonrisa traviesa y una bola de fuego en la mano',
+  'lava-golem': 'un gólem pesado de roca de obsidiana negra con ríos de lava brillante en sus grietas',
+  'ash-wraith': 'un espectro de ceniza gris y brasas flotantes con una cara hueca en llamas',
+  hellhound: 'un sabueso negro con ojos rojos ardientes, melena en llamas y fauces humeantes',
+  'obsidian-knight':
+    'un caballero con armadura de placas de obsidiana negra con juntas naranjas brillantes y un pesado escudo torre',
+  'flame-priest': 'un sacerdote fanático con túnica roja, máscara de latón con cuernos y un incensario de brasas',
   // Wastelands
-  ghoul: 'a hunched grey ghoul with long claws, sunken eyes and torn rags',
-  'bone-knight': 'an undead skeleton knight in rusted plate armor with a notched longsword',
-  devourer: 'a lean eyeless creature of smooth black skin with an enormous grinning mouth of pointy teeth',
-  banshee: 'a floating pale woman spirit with long white hair, a flowing gown and a wailing mouth',
-  'plague-rat': 'a chubby sickly rat with patchy fur, green spots and a puff of green toxic gas around it',
-  'grave-priest': 'a necromancer priest in black and purple robes with a skull lantern',
-  'hollow-archer': 'a skeletal archer with an empty helmet and a black longbow',
-  'flesh-golem': 'a towering patchwork golem of stitched cloth and leather, iron bolts and chains',
-  'carrion-crow': 'a giant black crow with tattered feathers, red eyes and a sharp beak',
+  ghoul: 'un necrófago gris encorvado con garras largas, ojos hundidos y harapos rotos',
+  'bone-knight': 'un caballero esqueleto no muerto con armadura de placas oxidada y una espada larga mellada',
+  devourer: 'una criatura flaca y sin ojos de piel negra y lisa con una boca enorme y sonriente de dientes puntiagudos',
+  banshee: 'un espíritu flotante de mujer pálida con largo cabello blanco, vestido ondulante y boca que se lamenta',
+  'plague-rat':
+    'una rata regordeta y enfermiza con pelaje ralo, manchas verdes y una nube de gas tóxico verde alrededor',
+  'grave-priest': 'un sacerdote nigromante con túnica negra y violeta y un farol con forma de calavera',
+  'hollow-archer': 'un arquero esquelético con un yelmo vacío y un arco largo negro',
+  'flesh-golem': 'un gólem de retazos altísimo hecho de tela y cuero cosidos, pernos de hierro y cadenas',
+  'carrion-crow': 'un cuervo negro gigante de plumas raídas, ojos rojos y pico afilado',
   // Abyss
-  'crucible-horror': 'a mass of molten metal and slag with several arms and glowing red mouths',
-  'castle-warden': 'a giant armored jailer in black iron with a cage-shaped helmet and a huge key mace',
-  'abyss-eye': 'a floating giant eyeball with tentacles and a red glowing iris surrounded by dark smoke',
-  'abyssal-knight': 'a knight in jagged black armor wreathed in purple flames, with a cursed greatsword',
-  'chaos-spawn': 'a twisted demon with mismatched limbs, horns and too many eyes',
-  'void-weaver': 'a spider-like void creature with a starry black body and threads of violet light',
-  'crucible-priest': 'a priest of the forge in molten-red robes, a mask of melted iron and a hammer-shaped staff',
-  'shadow-stalker': 'a tall thin shadow creature with long blade fingers and white glowing eyes',
-  'molten-horror': 'a hulking beast of cooling lava with a gaping furnace for a chest',
+  'crucible-horror': 'una masa de metal fundido y escoria con varios brazos y bocas rojas brillantes',
+  'castle-warden':
+    'un carcelero gigante acorazado en hierro negro con yelmo en forma de jaula y una enorme maza con forma de llave',
+  'abyss-eye': 'un globo ocular gigante flotante con tentáculos y un iris rojo brillante rodeado de humo oscuro',
+  'abyssal-knight': 'un caballero con armadura negra dentada envuelta en llamas violetas, con un mandoble maldito',
+  'chaos-spawn': 'un demonio retorcido con extremidades disparejas, cuernos y demasiados ojos',
+  'void-weaver': 'una criatura del vacío parecida a una araña, con cuerpo negro estrellado e hilos de luz violeta',
+  'crucible-priest':
+    'un sacerdote de la forja con túnica rojo fundido, máscara de hierro derretido y un báculo con forma de martillo',
+  'shadow-stalker': 'una criatura de sombra alta y delgada con dedos largos como cuchillas y ojos blancos brillantes',
+  'molten-horror': 'una bestia corpulenta de lava que se enfría, con un horno abierto en lugar de pecho',
   // Bosses: mini bosses
-  'boar-matriarch': 'a colossal thorn boar matriarch with massive tusks, a crown of thorny branches and battle scars',
-  'bandit-chief': 'a scarred human bandit chief in a fur-trimmed coat with a heavy saber and a red sash',
-  'alpha-wolf': 'Grey Fang, a huge grey alpha wolf with a scarred muzzle, one blind eye and a shadowy mane',
-  'elder-treant': 'an ancient towering treant with a long beard of moss, a face in its bark and branches like antlers',
-  'spider-queen': 'a gigantic spider queen with a woman-shaped upper body of purple chitin and a crown of eyes',
-  'mire-witch': 'a hunched swamp witch with green skin, a cauldron on her back and a staff of twisted roots',
-  'jaguar-king': 'a giant golden jaguar with a feathered headdress and gold armor plates',
-  'swamp-hydra': 'a three-headed swamp hydra with mossy green scales and venomous jaws',
-  'dune-wyrm': 'a colossal armored sand wyrm with sandstone plates and a crest of spikes',
-  'mummy-pharaoh': 'a mummified pharaoh with a golden death mask, a tall crown and a sceptre with a glowing scarab',
-  'sand-titan': 'a giant made of flowing sand with an ancient stone mask for a face',
-  'crystal-wyrm': 'a serpentine dragon whose body is made of cyan crystal shards that glow from within',
-  'dwarf-warlord': 'a dwarf warlord in massive rune-forged plate armor with a double-headed war axe and a banner',
-  'thunder-roc': 'an enormous roc bird with golden feathers crackling with lightning and a storm around it',
-  'winter-witch': 'a tall pale witch with a crown of icicles, a white fur cloak and a staff of blue ice',
-  'ice-troll-king': 'a huge troll king with frost-blue skin, an ice crown and a club of frozen stone',
-  'fire-drake': 'a winged red fire drake with flaming wings and molten scales',
-  'magma-behemoth': 'a gigantic quadruped behemoth of basalt and flowing magma with volcanic spikes on its back',
-  lich: 'a skeletal lich sorcerer in tattered royal robes with a crown and a staff topped with a green soul gem',
-  'bone-dragon': 'a skeletal dragon made of huge bones with purple ghost fire inside its ribcage',
-  'abyssal-champion': 'a towering demon champion in spiked black armor with a burning crimson greatsword',
-  'crucible-maw': 'a huge forge monster that is mostly a mouth full of molten teeth, with chains and furnace vents',
+  'boar-matriarch':
+    'una matriarca jabalí espinada colosal con colmillos enormes, una corona de ramas espinosas y cicatrices de batalla',
+  'bandit-chief': 'un jefe bandido humano con cicatrices, abrigo con ribete de piel, un sable pesado y una faja roja',
+  'alpha-wolf': 'Colmillo Gris, un enorme lobo alfa gris con el hocico marcado, un ojo ciego y una melena sombría',
+  'elder-treant':
+    'un ent antiquísimo y altísimo con una larga barba de musgo, una cara en la corteza y ramas como astas',
+  'spider-queen': 'una reina araña gigantesca con torso de mujer de quitina violeta y una corona de ojos',
+  'mire-witch':
+    'una bruja del pantano encorvada de piel verde, con un caldero a la espalda y un báculo de raíces retorcidas',
+  'jaguar-king': 'un jaguar dorado gigante con un tocado de plumas y placas de armadura de oro',
+  'swamp-hydra': 'una hidra de pantano de tres cabezas con escamas verdes cubiertas de musgo y fauces venenosas',
+  'dune-wyrm': 'un wyrm de arena colosal y acorazado con placas de arenisca y una cresta de púas',
+  'mummy-pharaoh':
+    'un faraón momificado con máscara funeraria dorada, una corona alta y un cetro con un escarabajo brillante',
+  'sand-titan': 'un gigante hecho de arena que fluye con una antigua máscara de piedra por cara',
+  'crystal-wyrm': 'un dragón serpentino cuyo cuerpo está hecho de esquirlas de cristal cian que brillan desde adentro',
+  'dwarf-warlord':
+    'un señor de la guerra enano con una enorme armadura de placas forjada con runas, un hacha de doble filo y un estandarte',
+  'thunder-roc': 'un ave roc enorme de plumas doradas que chisporrotean con rayos y una tormenta a su alrededor',
+  'winter-witch': 'una bruja alta y pálida con una corona de carámbanos, capa de piel blanca y un báculo de hielo azul',
+  'ice-troll-king': 'un rey trol enorme de piel azul escarcha, corona de hielo y un garrote de piedra congelada',
+  'fire-drake': 'un draco de fuego rojo con alas en llamas y escamas fundidas',
+  'magma-behemoth': 'un behemot cuadrúpedo gigantesco de basalto y magma que fluye, con púas volcánicas en el lomo',
+  lich: 'un liche hechicero esquelético con túnicas reales raídas, corona y un báculo coronado por una gema de alma verde',
+  'bone-dragon': 'un dragón esquelético hecho de huesos enormes con fuego fantasmal violeta dentro de la caja torácica',
+  'abyssal-champion': 'un campeón demonio altísimo con armadura negra con púas y un mandoble carmesí en llamas',
+  'crucible-maw':
+    'un monstruo de forja enorme que es casi todo boca llena de dientes fundidos, con cadenas y chimeneas de horno',
   // Bosses: captors and Seals
   morgrath:
-    'Morgrath, the Moss Witch: a giant ancient witch covered in moss and mushrooms, antler crown, glowing green eyes',
-  sahrak: 'Sahrak, the Scorpion King: a huge scorpion centaur king with a golden crown and a venomous tail',
-  vorneth: 'Vorneth, the Frost Wyrm: a serpentine ice dragon with translucent blue scales and a frozen breath aura',
-  ignaroth: 'Ignaroth, Lord of Ash: a towering fire lord of ash and embers with burning horns and a molten crown',
-  xalqui: 'Xalqui, the Jade Serpent: a gigantic feathered serpent with jade scales and golden temple ornaments',
-  colossus: 'The Basalt Colossus: an enormous humanoid giant of black basalt columns with glowing runes in its chest',
-  vael: 'Vael, the Hollow Knight: a tall knight with empty black armor, no body inside, and a ghostly greatsword',
+    'Morgrath, la Bruja del Musgo: una bruja antigua gigante cubierta de musgo y hongos, corona de astas y ojos verdes brillantes',
+  sahrak: 'Sahrak, el Rey Escorpión: un enorme rey centauro escorpión con corona dorada y cola venenosa',
+  vorneth:
+    'Vorneth, el Wyrm de Escarcha: un dragón de hielo serpentino con escamas azules translúcidas y un aura de aliento helado',
+  ignaroth:
+    'Ignaroth, Señor de la Ceniza: un señor del fuego altísimo de ceniza y brasas con cuernos ardientes y corona fundida',
+  xalqui:
+    'Xalqui, la Serpiente de Jade: una serpiente emplumada gigantesca con escamas de jade y ornamentos dorados de templo',
+  colossus:
+    'El Coloso de Basalto: un gigante humanoide enorme de columnas de basalto negro con runas brillantes en el pecho',
+  vael: 'Vael, el Caballero Hueco: un caballero alto con armadura negra vacía, sin cuerpo adentro, y un mandoble fantasmal',
   crisol:
-    'Crisol: a living forge god, a colossal furnace of molten metal with a crown of anvils, chains and a glowing heart',
+    'Crisol: un dios forja viviente, un horno colosal de metal fundido con corona de yunques, cadenas y un corazón brillante',
   // Bosses: sanctuary guardians
-  'old-scarecrow': 'a giant ancient scarecrow with a pumpkin-like burlap head, glowing eyes and crows on its arms',
-  'moss-golem': 'a large golem of mossy stones and roots with a glowing green crystal heart',
-  'temple-serpent': 'a giant temple serpent with turquoise scales and golden ceremonial ornaments',
-  sphinx: 'a sphinx with a lion body, eagle wings and a calm golden human face wearing a pharaoh headdress',
-  'rune-golem': 'a massive golem of carved granite blocks covered in glowing blue lightning runes',
-  'ember-sentinel': 'a huge armored sentinel statue of bronze and obsidian with ember fire in its visor',
-  phoenix: 'a majestic phoenix with flaming orange and gold feathers and a long fiery tail',
-  'frost-sentinel': 'a giant armored statue of blue ice and steel with a frozen halberd',
-  'death-knight': 'a death knight in black plate armor riding nothing, with a skull helm and a soul-draining runeblade',
-  'wraith-lord': 'a towering hooded wraith lord with a crown of black iron and ghostly chains',
-  'void-sentinel': 'a massive faceless sentinel of black stone and violet void light',
-  'crucible-herald': 'the Herald of Crisol: a winged herald in molten-red armor with a trumpet-shaped forge staff',
+  'old-scarecrow':
+    'un espantapájaros antiguo gigante con cabeza de arpillera como calabaza, ojos brillantes y cuervos en los brazos',
+  'moss-golem': 'un gólem grande de piedras con musgo y raíces, con un corazón de cristal verde brillante',
+  'temple-serpent': 'una serpiente de templo gigante con escamas turquesa y ornamentos ceremoniales dorados',
+  sphinx: 'una esfinge con cuerpo de león, alas de águila y una serena cara humana dorada con tocado de faraón',
+  'rune-golem': 'un gólem enorme de bloques de granito tallado cubierto de runas de rayo azules brillantes',
+  'ember-sentinel': 'una enorme estatua centinela acorazada de bronce y obsidiana con fuego de brasas en el visor',
+  phoenix: 'un fénix majestuoso de plumas naranjas y doradas en llamas y una larga cola de fuego',
+  'frost-sentinel': 'una estatua acorazada gigante de hielo azul y acero con una alabarda congelada',
+  'death-knight':
+    'un caballero de la muerte con armadura de placas negra, sin montura, con yelmo de calavera y una espada rúnica que roba almas',
+  'wraith-lord': 'un señor espectral altísimo con capucha, corona de hierro negro y cadenas fantasmales',
+  'void-sentinel': 'un centinela enorme sin rostro de piedra negra y luz violeta del vacío',
+  'crucible-herald':
+    'el Heraldo del Crisol: un heraldo alado con armadura rojo fundido y un báculo de forja con forma de trompeta',
   // Reliquary wardens
   'cinder-stag':
-    'the Cinder Stag: a huge stag of charred black bark and glowing embers, its antlers burning with orange flames',
+    'el Ciervo de Ceniza: un ciervo enorme de corteza negra carbonizada y brasas brillantes, con astas que arden en llamas naranjas',
   'shell-colossus':
-    'the Shell Colossus: a towering turtle-like giant with a mossy jade shell covered in barnacles, standing upright on thick legs',
+    'el Coloso de Caparazón: un gigante altísimo parecido a una tortuga con caparazón de jade cubierto de musgo y percebes, de pie sobre patas gruesas',
   'glass-djinn':
-    'the Glass Djinn: a floating djinn made of clear blue glass with a whirlwind of sand and ice instead of legs',
+    'el Djinn de Cristal: un djinn flotante de cristal azul transparente con un torbellino de arena y hielo en lugar de piernas',
   'storm-harpy':
-    'the Storm Harpy: a large harpy with slate-gray feathers, sharp talons and wings crackling with blue lightning',
+    'la Arpía de la Tormenta: una arpía grande de plumas gris pizarra, garras afiladas y alas que chisporrotean con rayos azules',
   'granite-warden':
-    'the Granite Warden: a massive knight-shaped golem of gray granite blocks holding a stone tower shield, with amber runes',
+    'el Celador de Granito: un gólem enorme con forma de caballero de bloques de granito gris, con un escudo torre de piedra y runas ámbar',
   'frost-reaver':
-    'the Frost Reaver: a hulking pale raider in ice-crusted furs with frozen braids and two jagged ice cleavers',
+    'el Saqueador Gélido: un saqueador pálido y corpulento con pieles cubiertas de hielo, trenzas congeladas y dos cuchillas de hielo dentadas',
   'ashen-seraph':
-    'the Ashen Seraph: a six-winged angelic figure of ash and gold with a cracked halo and a flaming sword held downwards',
+    'el Serafín Ceniciento: una figura angelical de seis alas de ceniza y oro con un halo agrietado y una espada en llamas apuntando hacia abajo',
   'thorn-widow':
-    'the Thorn Widow: a giant black spider whose legs are thorny brambles and whose body is a withered violet flower',
+    'la Viuda de Espinas: una araña negra gigante cuyas patas son zarzas espinosas y cuyo cuerpo es una flor violeta marchita',
   'storm-revenant':
-    'the Storm Revenant: a ghostly armored knight made of storm clouds, its hollow helm full of lightning',
+    'el Aparecido de la Tormenta: un caballero acorazado fantasmal hecho de nubes de tormenta, con el yelmo hueco lleno de rayos',
   'prism-horror':
-    'the Prism Horror: a floating mass of crystal shards and many eyes that splits light into burning rainbow beams'
+    'el Horror Prismático: una masa flotante de esquirlas de cristal y muchos ojos que divide la luz en rayos de arcoíris ardientes'
 }
 
 /** The heroes' own bodies: what stays when they change clothes and weapons. */
 export const HERO_BODIES: Record<string, string> = {
-  kael: 'Kael, a young human swordsman in his twenties, slim and energetic, short spiky dark-brown hair, big determined amber eyes and a confident smile',
-  sera: 'Sera, a young human archer woman, agile and slim, long auburn braid, sharp green eyes',
-  brann: 'Brann, a huge human berserker, bald head with tribal tattoos, thick red beard, big muscular arms',
-  oren: 'Oren, an old human druid with a long grey beard braided with leaves, kind twinkling eyes',
-  ysolde: 'Ysolde, a young sorceress woman, long silver hair, violet eyes'
+  kael: 'Kael, un joven espadachín humano de veintitantos años, delgado y lleno de energía, pelo corto en punta castaño oscuro, grandes ojos ámbar decididos y una sonrisa confiada',
+  sera: 'Sera, una joven arquera humana, ágil y delgada, con una larga trenza castaño rojiza y ojos verdes penetrantes',
+  brann:
+    'Brann, un enorme berserker humano, cabeza rapada con tatuajes tribales, barba roja espesa y grandes brazos musculosos',
+  oren: 'Oren, un viejo druida humano con una larga barba gris trenzada con hojas y ojos amables y chispeantes',
+  ysolde: 'Ysolde, una joven hechicera de largo cabello plateado y ojos violetas'
 }
 
 /** What each hero wears; the first one is the outfit they start with. */
 export const HERO_OUTFITS: Record<string, Record<string, string>> = {
   kael: {
     traveller:
-      'light brown leather armor with shiny rounded steel pauldrons, brown trousers, sturdy leather boots, a long crimson scarf and a small round wooden shield with a steel rim strapped to the left forearm'
+      'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo izquierdo'
   },
-  sera: { ranger: 'a hooded forest-green cloak over light brown leather armor, leather bracers and soft boots' },
-  brann: { berserker: 'a fur mantle over the shoulders, an iron chest plate, bare arms, leather kilt and fur boots' },
-  oren: { grove: 'long robes of moss-green and brown bark with living vines, sandals' },
-  ysolde: { court: 'an elegant deep-blue robe with gold embroidery and a high collar, long sleeves, soft boots' }
+  sera: {
+    ranger:
+      'una capa con capucha verde bosque sobre una armadura ligera de cuero marrón claro, brazales de cuero y botas blandas'
+  },
+  brann: {
+    berserker:
+      'un manto de piel sobre los hombros, una coraza de hierro, brazos desnudos, falda de cuero y botas de piel'
+  },
+  oren: { grove: 'largas túnicas verde musgo y de corteza marrón con enredaderas vivas, y sandalias' },
+  ysolde: {
+    court: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
+  }
 }
 
 /** The weapons each hero can hold; the first one is the one they start with. */
 export const HERO_WEAPONS: Record<string, Record<string, string>> = {
   kael: {
-    sword: 'a long straight steel sword with a leather-wrapped grip and a simple cross guard',
+    sword: 'una espada larga y recta de acero con empuñadura forrada en cuero y una guarda en cruz sencilla',
     dawnbrand:
-      'Dawnclear, a slightly curved longsword whose blade glows orange-gold from within like a sunrise, with thin flames licking along its edge and a sun-shaped guard',
-    mace: "Ormund's Bastion, a heavy flanged steel mace with a long grip wrapped in blue leather and a small round shield-shaped pommel"
+      'Albaclara, una espada larga levemente curva cuya hoja brilla por dentro en naranja dorado como un amanecer, con finas llamas que recorren el filo y una guarda con forma de sol',
+    mace: 'Bastión de Ormund, una pesada maza de acero con aletas, empuñadura larga forrada en cuero azul y un pomo pequeño con forma de escudo redondo'
   },
   sera: {
-    bow: 'a tall recurve bow of pale wood with a taut string',
+    bow: 'un arco recurvo alto de madera clara con la cuerda tensa',
     crossbow:
-      'Winter Fang, a compact crossbow of dark wood and frosted steel, with icicle-like prongs on its limbs and a pale blue bolt loaded',
+      'Colmillo Invernal, una ballesta compacta de madera oscura y acero escarchado, con puntas como carámbanos en los brazos y un virote azul pálido cargado',
     'gale-bow':
-      'Gale Song, a slender bow of silver-white wood carved with wind spirals, with small feathers on its tips and faint sparks of lightning along the string'
+      'Canto del Vendaval, un arco esbelto de madera blanco plateada tallado con espirales de viento, con plumitas en las puntas y chispas tenues de rayo a lo largo de la cuerda'
   },
   brann: {
-    axe: 'a massive double-bladed battle axe with a long iron-banded haft',
-    maul: 'Quarry Heart, a huge two-handed maul whose head is a rough block of granite bound with iron bands, cracks glowing faint amber',
+    axe: 'un hacha de guerra enorme de doble filo con un mango largo reforzado con bandas de hierro',
+    maul: 'Corazón de Cantera, un mazo enorme a dos manos cuya cabeza es un bloque tosco de granito atado con bandas de hierro, con grietas que brillan en ámbar tenue',
     hatchets:
-      'one of the Red Sisters: a short single-bladed hatchet with a red-lacquered haft and a notched crimson steel blade'
+      'una de las Hermanas Rojas: una hachuela corta de un solo filo con mango laqueado en rojo y una hoja de acero carmesí mellada'
   },
   oren: {
     'root-sickle':
-      'Old Root, a one-handed sickle whose grip is a living gnarled root and whose curved wooden blade is edged with green-glowing bark, small roots trailing from the pommel',
+      'Raíz Antigua, una hoz de una mano cuya empuñadura es una raíz viva y retorcida y cuya hoja curva de madera tiene un filo de corteza que brilla en verde, con raicitas que cuelgan del pomo',
     scythe:
-      'Noon, a tall scythe of white wood and gold whose long curved blade glows with warm sunlight, a radiant sun disc where the blade meets the shaft',
+      'Mediodía, una guadaña alta de madera blanca y oro cuya larga hoja curva brilla con cálida luz de sol, con un disco solar radiante donde la hoja se une al mango',
     'thorn-sickle':
-      'Last Harvest, a long-handled sickle of black wood whose curved blade is made of a single huge thorn dripping green venom'
+      'Última Cosecha, una hoz de mango largo de madera negra cuya hoja curva es una única espina enorme que gotea veneno verde'
   },
   ysolde: {
-    tome: 'Trinity, a thick open grimoire floating beside her hand, bound in deep-blue leather with three glowing seals of fire, ice and lightning on its cover',
+    tome: 'Trinidad, un grimorio grueso y abierto que flota junto a su mano, encuadernado en cuero azul profundo con tres sellos brillantes de fuego, hielo y rayo en la tapa',
     codex:
-      'Thunder Voice, an open storm codex floating beside her hand, iron-bound with silver clasps, its pages fluttering and crackling with blue-white lightning',
+      'Voz del Trueno, un códice de tormenta abierto que flota junto a su mano, con refuerzos de hierro y broches de plata, y páginas que se agitan y chisporrotean con rayos blanco azulados',
     grimoire:
-      'Dusk Prism, an open book of dark crystal pages floating beside her hand, a prism set in its cover splitting the light into rainbow rays'
+      'Prisma del Ocaso, un libro abierto de páginas de cristal oscuro que flota junto a su mano, con un prisma engarzado en la tapa que divide la luz en rayos de arcoíris'
   }
 }
 
@@ -230,6 +279,8 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
 export const HERO_LOOKS: Record<string, string> = Object.fromEntries(
   Object.entries(HERO_BODIES).map(([id, body]) => [
     id,
-    [body, `wearing ${Object.values(HERO_OUTFITS[id])[0]}`, `holding ${Object.values(HERO_WEAPONS[id])[0]}`].join(', ')
+    [body, `que lleva ${Object.values(HERO_OUTFITS[id])[0]}`, `sosteniendo ${Object.values(HERO_WEAPONS[id])[0]}`].join(
+      ', '
+    )
   ])
 )

@@ -42,48 +42,52 @@ export interface Piece {
 }
 
 export const BASE_PROMPT =
-  'Bright, cheerful cartoon mobile game art for all ages, chunky rounded shapes, thick clean dark-brown outlines, soft cel shading with two gentle tones, vivid saturated colors, smooth clean surfaces without gritty texture, soft warm light, clear readable silhouette, no text, no watermark, no signature.'
+  'Arte de videojuego para móviles estilo caricatura, alegre y luminoso, para todas las edades, formas redondeadas y gruesas, contornos limpios y gruesos marrón oscuro, sombreado cel suave en dos tonos delicados, colores vivos y saturados, superficies lisas y limpias sin textura granulada, luz cálida y suave, silueta clara y legible, sin texto, sin marca de agua, sin firma.'
 /** How heroes are drawn: stylized cartoon, not chibi, so the puppet limbs stay long enough to animate. */
 const CARTOON_BODY =
-  'Stylized cartoon proportions: the head is about a quarter of the total height, big expressive eyes, simple friendly facial features, slightly oversized hands, feet and weapon.'
+  'Proporciones de caricatura estilizada: la cabeza mide alrededor de un cuarto de la altura total, ojos grandes y expresivos, rasgos faciales simples y amigables, manos, pies y arma un poco más grandes de lo normal.'
 /** How creatures are drawn: rounded and expressive, menacing at most, never gory. */
 const CARTOON_CREATURE =
-  'Cartoon proportions: a slightly oversized head, big expressive eyes, a simplified rounded body, menacing at most but never gory.'
-const CHROMA = 'Plain flat #00FF00 background, no ground shadow.'
-const FLAME = 'A small glowing amber flame (#FFB020) embedded in the chest or the weapon.'
+  'Proporciones de caricatura: cabeza un poco más grande de lo normal, ojos grandes y expresivos, cuerpo simplificado y redondeado, como mucho amenazante pero nunca sangriento.'
+const CHROMA = 'Fondo liso y plano #00FF00, sin sombra en el suelo.'
+const FLAME = 'Una pequeña llama ámbar brillante (#FFB020) incrustada en el pecho o en el arma.'
 /**
  * Ground textures of the world map: they repeat across the ground, so they
  * share a style of their own (no silhouettes, no rim light) and each one,
  * after the grass, is made with the grass attached as reference.
  */
 const TILE_PROMPT =
-  'Mature dark-fantasy mobile game art, hand-painted ground texture, high-contrast cel shading with two-tone shadows, saturated colors, subtle painterly texture, fine dark ink lines on the details, no text, no watermark, no signature.'
+  'Arte de videojuego para móviles de fantasía oscura madura, textura de suelo pintada a mano, sombreado cel de alto contraste con sombras en dos tonos, colores saturados, sutil textura pictórica, finas líneas de tinta oscura en los detalles, sin texto, sin marca de agua, sin firma.'
 const TILE_RULES =
-  'Seamless tileable square texture for the ground of a 2D game map, seen from straight above (pure top-down, no perspective, no horizon). The pattern fills the whole square evenly and continues across the four edges so copies placed side by side join without a seam. Soft even light from the top-left, no cast shadows of anything outside, no frame, no border, no vignette, no single big object: every detail is smaller than a tenth of the square.'
-const TILE_REFERENCE = 'Same style, scale of detail, lighting and saturation as the attached grass texture.'
+  'Textura cuadrada repetible sin costuras para el suelo del mapa de un juego 2D, vista desde arriba en vertical (cenital pura, sin perspectiva, sin horizonte). El patrón llena todo el cuadrado de forma pareja y continúa a través de los cuatro bordes, de modo que las copias puestas lado a lado se unan sin costura. Luz suave y pareja desde arriba a la izquierda, sin sombras proyectadas de nada exterior, sin marco, sin borde, sin viñeta, sin ningún objeto grande: cada detalle es más chico que un décimo del cuadrado.'
+const TILE_REFERENCE = 'Mismo estilo, escala de detalle, iluminación y saturación que la textura de pasto adjunta.'
 const TILES: Record<Terrain, string> = {
-  [Terrain.GRASS]: 'short lush green meadow grass with tiny tufts and a few small clover leaves',
-  [Terrain.MOSS]: 'dark green forest floor of thick moss with fallen needles and tiny ferns',
-  [Terrain.SNOW]: 'fresh packed snow, white with pale blue shadows and soft little drifts',
-  [Terrain.SAND]: 'warm golden desert sand with gentle wind ripples and scattered tiny pebbles',
-  [Terrain.ASH]: 'cold grey-violet volcanic ash with small cinders and a few faint glowing embers',
-  [Terrain.DIRT]: 'packed brown earth with small pebbles, cracks and a few roots',
-  [Terrain.ROCK]: 'rough grey bedrock with cracks, chips and patches of lichen',
-  [Terrain.ICE]: 'frozen lake ice, translucent pale blue with white cracks and trapped bubbles',
-  [Terrain.STONE]: 'big flat worn sandstone slabs fitted together with thin dark joints',
+  [Terrain.GRASS]: 'pasto corto y verde exuberante de pradera con matitas diminutas y algunas hojitas de trébol',
+  [Terrain.MOSS]: 'suelo de bosque verde oscuro de musgo espeso con agujas de pino caídas y helechos diminutos',
+  [Terrain.SNOW]: 'nieve fresca compactada, blanca con sombras azul pálido y pequeños montículos suaves',
+  [Terrain.SAND]: 'arena dorada y cálida del desierto con suaves ondas de viento y piedritas diminutas dispersas',
+  [Terrain.ASH]: 'ceniza volcánica fría gris violácea con pequeñas escorias y algunas brasas tenues brillantes',
+  [Terrain.DIRT]: 'tierra marrón compactada con piedritas, grietas y algunas raíces',
+  [Terrain.ROCK]: 'roca madre gris y áspera con grietas, astillas y manchas de liquen',
+  [Terrain.ICE]: 'hielo de lago congelado, azul pálido translúcido con grietas blancas y burbujas atrapadas',
+  [Terrain.STONE]: 'grandes losas planas y gastadas de arenisca encastradas con juntas finas y oscuras',
   [Terrain.COBBLESTONE]:
-    'a paved road of small rounded cobblestones in warm beige and brown tones, dark gaps between them and a little moss',
-  [Terrain.WATER]: 'clear blue lake water with small light ripples and glints, no shore',
-  [Terrain.LAVA]: 'bright molten flowing lava in yellow, orange and red swirls, a few thin dark crust streaks',
-  [Terrain.SCORCHED]: 'scorched dark red volcanic earth with cinders, small cracks and scattered glowing orange embers',
-  [Terrain.MAGMA]: 'cooled lava crust of black and deep red plates split by thin glowing yellow-orange cracks',
+    'un camino empedrado de adoquines pequeños y redondeados en tonos beige y marrones cálidos, huecos oscuros entre ellos y un poco de musgo',
+  [Terrain.WATER]: 'agua de lago azul y clara con pequeñas ondas de luz y destellos, sin orilla',
+  [Terrain.LAVA]:
+    'lava fundida brillante que fluye en remolinos amarillos, naranjas y rojos, con algunas vetas finas de costra oscura',
+  [Terrain.SCORCHED]:
+    'tierra volcánica rojo oscuro chamuscada con escorias, pequeñas grietas y brasas naranjas brillantes dispersas',
+  [Terrain.MAGMA]:
+    'costra de lava enfriada de placas negras y rojo profundo partidas por finas grietas brillantes amarillo anaranjadas',
   [Terrain.FIRESTONE]:
-    'big flat slabs of red and orange baked stone fitted together with dark joints and a few soot stains',
-  [Terrain.GLOOM]: 'dark violet almost black alien soil with tiny faint glowing purple specks',
+    'grandes losas planas de piedra cocida roja y naranja encastradas con juntas oscuras y algunas manchas de hollín',
+  [Terrain.GLOOM]: 'suelo alienígena violeta oscuro casi negro con diminutas motas violetas tenues y brillantes',
   [Terrain.MYCELIUM]:
-    'a carpet of alien purple and magenta fungal growth with thin glowing violet veins and tiny bulbs',
-  [Terrain.RUNESTONE]: 'black obsidian slabs fitted together with thin glowing violet joints and faint carved runes',
-  [Terrain.ICHOR]: 'glowing violet alien liquid with slow swirls of magenta and pale lilac light, no shore'
+    'una alfombra de hongos alienígenas violetas y magenta con finas venas violetas brillantes y bulbos diminutos',
+  [Terrain.RUNESTONE]:
+    'losas de obsidiana negra encastradas con finas juntas violetas brillantes y runas talladas tenues',
+  [Terrain.ICHOR]: 'líquido alienígena violeta brillante con lentos remolinos de luz magenta y lila pálido, sin orilla'
 }
 /** Where each hero joins: their pieces go with that biome's batch. */
 const HERO_BATCH: Record<CharacterId, Biome> = {
@@ -98,62 +102,62 @@ const BOSSES_BY_PARTS = ['morgrath', 'sahrak', 'vorneth', 'ignaroth', 'xalqui', 
 /** Two battle backgrounds per biome. */
 const BACKGROUNDS: Record<Biome, [string, string]> = {
   [Biome.MEADOWS]: [
-    'golden wheat meadows on rolling hills under a warm morning sky, a dirt road, a ruined stone watchtower and an old windmill far away, wildflowers',
-    'a quiet farm village edge at sunset, wooden fences, haystacks and a small stone bridge over a stream'
+    'praderas de trigo dorado sobre colinas onduladas bajo un cálido cielo de mañana, un camino de tierra, una atalaya de piedra en ruinas y un viejo molino a lo lejos, flores silvestres',
+    'las afueras de un tranquilo pueblo de granjas al atardecer, cercas de madera, fardos de heno y un pequeño puente de piedra sobre un arroyo'
   ],
   [Biome.FOREST]: [
-    'an ancient forest with huge mossy trunks, roots like walls, shafts of pale light through the canopy',
-    'a misty forest clearing with a circle of old standing stones overgrown with ivy and glowing mushrooms'
+    'un bosque antiguo con troncos enormes cubiertos de musgo, raíces como murallas y haces de luz pálida entre las copas',
+    'un claro brumoso del bosque con un círculo de viejos menhires cubiertos de hiedra y hongos brillantes'
   ],
   [Biome.TROPICAL]: [
-    'a steaming jungle with giant ferns, hanging vines and a waterfall behind, exotic magenta flowers',
-    'ruins of a jade stepped temple swallowed by the jungle, carved serpent heads and turquoise pools'
+    'una selva humeante con helechos gigantes, lianas colgantes y una cascada al fondo, flores exóticas magenta',
+    'ruinas de un templo escalonado de jade tragado por la selva, cabezas de serpiente talladas y estanques turquesa'
   ],
   [Biome.DESERT]: [
-    'endless orange dunes under a white-hot sun, half-buried colossal statue heads and weathered old stones',
-    'a sandstone canyon with ancient tomb doors carved into the cliffs, hanging torn banners'
+    'dunas naranjas infinitas bajo un sol abrasador, cabezas de estatuas colosales medio enterradas y viejas piedras gastadas',
+    'un cañón de arenisca con antiguas puertas de tumbas talladas en los acantilados y estandartes rasgados colgando'
   ],
   [Biome.MOUNTAINS]: [
-    'a high rocky mountain pass with jagged grey peaks, a rope bridge and cyan crystals growing from the rock',
-    'the great hall of an abandoned dwarven fortress carved in the mountain, giant pillars and runes'
+    'un alto paso de montaña rocoso con picos grises dentados, un puente de cuerdas y cristales cian que crecen de la roca',
+    'el gran salón de una fortaleza enana abandonada tallada en la montaña, pilares gigantes y runas'
   ],
   [Biome.SNOW]: [
-    'a frozen tundra in a blizzard, snow-covered pines, a frozen lake and distant blue glaciers',
-    'an ice cavern with giant blue icicles and sparkling crystals inside the ice walls'
+    'una tundra helada en plena ventisca, pinos nevados, un lago congelado y glaciares azules a lo lejos',
+    'una caverna de hielo con carámbanos azules gigantes y cristales relucientes dentro de las paredes de hielo'
   ],
   [Biome.VOLCANIC]: [
-    'a volcanic wasteland of black basalt with rivers of glowing lava, ash falling and an erupting volcano behind',
-    'the inside of a magma cave with a lake of lava, obsidian spikes and floating embers'
+    'un páramo volcánico de basalto negro con ríos de lava brillante, ceniza que cae y un volcán en erupción al fondo',
+    'el interior de una cueva de magma con un lago de lava, púas de obsidiana y brasas flotantes'
   ],
   [Biome.WASTELANDS]: [
-    'a grey wasteland at dusk, twisted bare trees, a ruined city skyline and a dramatic purple sky',
-    'an ancient battlefield graveyard with broken swords, crooked tombstones and a soft green mist'
+    'un páramo gris al anochecer, árboles pelados y retorcidos, la silueta de una ciudad en ruinas y un cielo violeta dramático',
+    'un antiguo cementerio de campo de batalla con espadas rotas, lápidas torcidas y una suave niebla verde'
   ],
   [Biome.ABYSS]: [
-    'the edge of the Abyss, a bottomless red chasm with chains, floating rock islands and a black castle far away',
-    'the black castle courtyard of the Abyss, iron spikes, furnaces glowing red and molten metal channels'
+    'el borde del Abismo, una sima roja sin fondo con cadenas, islas de roca flotantes y un castillo negro a lo lejos',
+    'el patio del castillo negro del Abismo, púas de hierro, hornos que brillan en rojo y canales de metal fundido'
   ]
 }
 /** The 16 decorations of each biome's map sheet. */
 const MAP_SHEETS: Record<Biome, string> = {
   [Biome.MEADOWS]:
-    '4 leafy oak trees, 2 haystacks, 2 wooden fences, 2 grey boulders, 2 wheat field patches, 1 small windmill, 1 stone well, 1 wooden signpost, 1 broken cart',
+    '4 robles frondosos, 2 fardos de heno, 2 cercas de madera, 2 rocas grises, 2 parcelas de trigo, 1 molino pequeño, 1 pozo de piedra, 1 cartel de madera, 1 carreta rota',
   [Biome.FOREST]:
-    '6 tall dark pine and oak trees, 2 giant mushrooms, 2 mossy rocks, 2 fallen logs, 2 bushes, 1 standing stone, 1 hollow stump',
+    '6 pinos y robles altos y oscuros, 2 hongos gigantes, 2 rocas con musgo, 2 troncos caídos, 2 arbustos, 1 menhir, 1 tocón hueco',
   [Biome.TROPICAL]:
-    '5 palm and jungle trees, 3 giant ferns, 2 magenta flower bushes, 2 mossy rocks, 2 small jade ruins, 1 swamp pool, 1 totem',
+    '5 palmeras y árboles de selva, 3 helechos gigantes, 2 arbustos de flores magenta, 2 rocas con musgo, 2 pequeñas ruinas de jade, 1 charca de pantano, 1 tótem',
   [Biome.DESERT]:
-    '3 cacti, 3 dune ridges, 2 sandstone rocks, 2 bleached skulls, 2 broken pillars, 1 palm oasis, 1 half-buried statue head, 1 tent, 1 obelisk',
+    '3 cactus, 3 crestas de duna, 2 rocas de arenisca, 2 calaveras blanqueadas, 2 pilares rotos, 1 oasis con palmeras, 1 cabeza de estatua medio enterrada, 1 tienda, 1 obelisco',
   [Biome.MOUNTAINS]:
-    '4 rocky peaks, 3 pine trees, 3 grey boulders, 2 cyan crystal clusters, 2 rope bridges, 1 mine entrance, 1 dwarven statue',
+    '4 picos rocosos, 3 pinos, 3 rocas grises, 2 grupos de cristales cian, 2 puentes de cuerdas, 1 entrada de mina, 1 estatua enana',
   [Biome.SNOW]:
-    '4 snowy pine trees, 3 ice spikes, 2 snow-covered rocks, 2 frozen ponds, 2 snowdrifts, 1 frozen statue, 1 igloo-like ruin, 1 mammoth skeleton',
+    '4 pinos nevados, 3 púas de hielo, 2 rocas nevadas, 2 estanques congelados, 2 montículos de nieve, 1 estatua congelada, 1 ruina con forma de iglú, 1 esqueleto de mamut',
   [Biome.VOLCANIC]:
-    '3 small erupting volcanoes, 3 red rock spires with lava veins, 3 lava pools, 2 glowing magma rocks, 2 burning trees, 2 fire geysers, 1 ruined forge',
+    '3 volcanes pequeños en erupción, 3 agujas de roca roja con vetas de lava, 3 charcos de lava, 2 rocas de magma brillantes, 2 árboles en llamas, 2 géiseres de fuego, 1 forja en ruinas',
   [Biome.WASTELANDS]:
-    '4 dead twisted trees, 3 tombstones, 2 broken walls, 2 bone piles, 2 broken siege machines, 1 ruined tower, 1 crooked gibbet, 1 green toxic pool',
+    '4 árboles muertos y retorcidos, 3 lápidas, 2 muros rotos, 2 pilas de huesos, 2 máquinas de asedio rotas, 1 torre en ruinas, 1 horca torcida, 1 charco tóxico verde',
   [Biome.ABYSS]:
-    '3 alien trees with glowing violet bulbs, 3 black obelisks with glowing purple runes, 3 violet crystal shards, 2 glowing ichor pools, 2 giant alien fungi, 1 floating alien ring, 1 broken alien machine'
+    '3 árboles alienígenas con bulbos violetas brillantes, 3 obeliscos negros con runas violetas brillantes, 3 esquirlas de cristal violeta, 2 charcos de icor brillante, 2 hongos alienígenas gigantes, 1 anillo alienígena flotante, 1 máquina alienígena rota'
 }
 /** Battle scenery of each biome: props scattered in front of and behind the fighters (see battleScenery.ts). */
 /**
@@ -163,141 +167,150 @@ const MAP_SHEETS: Record<Biome, string> = {
  */
 const SCENERY_SHEETS: Record<Biome, [string, string, string]> = {
   [Biome.MEADOWS]: [
-    '6 round leafy oak and beech trees of different sizes and greens, 2 slim poplar trees',
-    '2 round green bushes, 1 bush with pink flowers, 1 grey boulder',
-    '2 grass tufts, 1 patch of yellow wildflowers, 1 cluster of small pebbles'
+    '6 robles y hayas redondos y frondosos de distintos tamaños y verdes, 2 álamos delgados',
+    '2 arbustos verdes redondos, 1 arbusto con flores rosas, 1 roca gris',
+    '2 matas de pasto, 1 mancha de flores silvestres amarillas, 1 grupo de piedritas'
   ],
   [Biome.FOREST]: [
-    '5 tall dark pine trees of different heights, 3 big dark oak trees',
-    '2 dense dark bushes, 1 mossy rock, 1 fern',
-    '1 grass tuft, 1 red-capped mushroom, 1 purple mushroom, 1 cluster of mossy pebbles'
+    '5 pinos altos y oscuros de distintas alturas, 3 robles grandes y oscuros',
+    '2 arbustos densos y oscuros, 1 roca con musgo, 1 helecho',
+    '1 mata de pasto, 1 hongo de sombrero rojo, 1 hongo violeta, 1 grupo de piedritas con musgo'
   ],
   [Biome.TROPICAL]: [
-    '5 palm trees leaning different ways, 3 broad jungle trees',
-    '2 giant ferns, 1 bush with magenta flowers, 1 mossy rock',
-    '1 bright grass tuft, 1 patch of magenta flowers, 1 patch of orange flowers, 1 small fern'
+    '5 palmeras inclinadas hacia distintos lados, 3 árboles de selva anchos',
+    '2 helechos gigantes, 1 arbusto con flores magenta, 1 roca con musgo',
+    '1 mata de pasto brillante, 1 mancha de flores magenta, 1 mancha de flores naranjas, 1 helecho pequeño'
   ],
   [Biome.DESERT]: [
-    '5 tall saguaro cacti of different shapes, 3 bare twisted dead trees',
-    '2 orange sandstone rocks, 1 round barrel cactus, 1 dry shrub',
-    '1 dry grass tuft, 1 cluster of sandstone pebbles, 1 small bleached bone, 1 small cactus sprout'
+    '5 cactus saguaro altos de distintas formas, 3 árboles muertos pelados y retorcidos',
+    '2 rocas de arenisca naranja, 1 cactus barril redondo, 1 arbusto seco',
+    '1 mata de pasto seco, 1 grupo de piedritas de arenisca, 1 huesito blanqueado, 1 brote de cactus pequeño'
   ],
   [Biome.MOUNTAINS]: [
-    '6 mountain pine trees of different heights, 2 tall grey rock spires',
-    '3 grey boulders of different shapes, 1 low mountain shrub',
-    '1 mountain grass tuft, 1 cluster of grey pebbles, 1 small edelweiss patch, 1 small flat stone'
+    '6 pinos de montaña de distintas alturas, 2 agujas de roca gris altas',
+    '3 rocas grises de distintas formas, 1 arbusto bajo de montaña',
+    '1 mata de pasto de montaña, 1 grupo de piedritas grises, 1 manchita de edelweiss, 1 piedra plana pequeña'
   ],
   [Biome.SNOW]: [
-    '6 snow-covered pine trees of different heights, 2 tall ice spikes',
-    '2 snow-covered rocks, 1 snowy bush, 1 small ice crystal cluster',
-    '1 cluster of icy pebbles, 1 small snowdrift, 1 frozen grass tuft, 1 small icicle shard'
+    '6 pinos nevados de distintas alturas, 2 púas de hielo altas',
+    '2 rocas nevadas, 1 arbusto nevado, 1 grupo pequeño de cristales de hielo',
+    '1 grupo de piedritas heladas, 1 montículo de nieve pequeño, 1 mata de pasto congelado, 1 trocito de carámbano'
   ],
   [Biome.VOLCANIC]: [
-    '3 charred dead trees with flames burning on their branches, 3 red rock spires with glowing lava veins, 2 fire geysers erupting from a rock cone',
-    '2 dark red rocks with glowing orange lava cracks, 1 burning bush of flames, 1 cluster of orange and yellow sulfur crystals',
-    '1 cluster of glowing ember pebbles, 1 small flickering flame, 1 cluster of red pebbles, 1 small yellow sulfur crust'
+    '3 árboles muertos carbonizados con llamas que arden en sus ramas, 3 agujas de roca roja con vetas de lava brillante, 2 géiseres de fuego que brotan de un cono de roca',
+    '2 rocas rojo oscuro con grietas de lava naranja brillante, 1 arbusto ardiente de llamas, 1 grupo de cristales de azufre naranjas y amarillos',
+    '1 grupo de piedritas de brasa brillantes, 1 llamita titilante, 1 grupo de piedritas rojas, 1 costrita de azufre amarillo'
   ],
   [Biome.WASTELANDS]: [
-    '6 twisted grey dead trees, 2 broken stone pillars',
-    '2 grey rocks, 1 dry thorny bush, 1 broken sword stuck in the ground',
-    '1 dry grass tuft, 1 cluster of grey pebbles, 1 small skull, 1 small bone pile'
+    '6 árboles muertos grises y retorcidos, 2 pilares de piedra rotos',
+    '2 rocas grises, 1 arbusto espinoso seco, 1 espada rota clavada en el suelo',
+    '1 mata de pasto seco, 1 grupo de piedritas grises, 1 calaverita, 1 pilita de huesos'
   ],
   [Biome.ABYSS]: [
-    '3 twisted alien trees with glowing violet bulbs, 2 giant alien mushrooms with glowing spots, 2 black obelisks with glowing purple runes, 1 tall violet crystal spire',
-    '1 alien pod plant with a glowing violet bulb, 1 cluster of tentacle sprouts, 1 small rune stone artifact, 1 violet crystal cluster',
-    '1 cluster of glowing violet spores, 1 cluster of tiny alien mushrooms, 1 curled alien tendril, 1 cluster of black pebbles with violet glints'
+    '3 árboles alienígenas retorcidos con bulbos violetas brillantes, 2 hongos alienígenas gigantes con lunares brillantes, 2 obeliscos negros con runas violetas brillantes, 1 aguja alta de cristal violeta',
+    '1 planta alienígena de vainas con un bulbo violeta brillante, 1 grupo de brotes de tentáculos, 1 pequeño artefacto de piedra rúnica, 1 grupo de cristales violetas',
+    '1 grupo de esporas violetas brillantes, 1 grupo de hongos alienígenas diminutos, 1 zarcillo alienígena enroscado, 1 grupo de piedritas negras con destellos violetas'
   ]
 }
 const PROP_SHEETS: Record<Biome, string> = {
   [Biome.MEADOWS]:
-    '2 leafy oak trees, 1 young birch, 2 haystacks, 1 wooden fence section, 2 grey boulders, 1 wildflower bush, 1 wooden signpost, 1 broken cart wheel, 1 tree stump, 1 scarecrow',
+    '2 robles frondosos, 1 abedul joven, 2 fardos de heno, 1 tramo de cerca de madera, 2 rocas grises, 1 arbusto de flores silvestres, 1 cartel de madera, 1 rueda de carreta rota, 1 tocón, 1 espantapájaros',
   [Biome.FOREST]:
-    '2 huge mossy oak trunks, 1 tall pine, 2 mossy rocks, 1 fallen log, 2 fern bushes, 1 cluster of glowing mushrooms, 1 hollow stump, 1 rune standing stone, 1 thorny bramble',
+    '2 troncos de roble enormes con musgo, 1 pino alto, 2 rocas con musgo, 1 tronco caído, 2 matas de helechos, 1 grupo de hongos brillantes, 1 tocón hueco, 1 menhir rúnico, 1 zarza espinosa',
   [Biome.TROPICAL]:
-    '2 palm trees, 1 jungle tree with hanging vines, 2 giant ferns, 1 magenta flower bush, 2 mossy rocks, 1 broken jade statue, 1 carved totem, 1 bamboo cluster, 1 fallen log',
+    '2 palmeras, 1 árbol de selva con lianas colgantes, 2 helechos gigantes, 1 arbusto de flores magenta, 2 rocas con musgo, 1 estatua de jade rota, 1 tótem tallado, 1 grupo de bambú, 1 tronco caído',
   [Biome.DESERT]:
-    '2 tall saguaro cacti, 1 dead acacia tree, 2 sandstone rocks, 1 bleached ox skull, 1 broken pillar, 1 half-buried statue head, 1 dry thorn bush, 1 clay pots pile, 1 small obelisk, 1 tattered banner pole',
+    '2 cactus saguaro altos, 1 acacia muerta, 2 rocas de arenisca, 1 cráneo de buey blanqueado, 1 pilar roto, 1 cabeza de estatua medio enterrada, 1 arbusto espinoso seco, 1 pila de vasijas de barro, 1 obelisco pequeño, 1 asta con un estandarte raído',
   [Biome.MOUNTAINS]:
-    '2 windswept pine trees, 3 grey boulders, 1 cyan crystal cluster, 1 stone cairn, 1 broken dwarven pillar, 1 mine cart, 1 dead shrub, 1 rune stone, 1 rocky outcrop',
+    '2 pinos azotados por el viento, 3 rocas grises, 1 grupo de cristales cian, 1 mojón de piedras, 1 pilar enano roto, 1 vagoneta de mina, 1 arbusto muerto, 1 piedra rúnica, 1 afloramiento rocoso',
   [Biome.SNOW]:
-    '2 snowy pine trees, 1 bare frozen tree, 2 ice spikes, 2 snow-covered rocks, 1 frozen warrior statue, 1 mammoth tusk, 1 snowdrift, 1 wooden totem with frost, 1 broken sled',
+    '2 pinos nevados, 1 árbol pelado congelado, 2 púas de hielo, 2 rocas nevadas, 1 estatua de guerrero congelada, 1 colmillo de mamut, 1 montículo de nieve, 1 tótem de madera escarchado, 1 trineo roto',
   [Biome.VOLCANIC]:
-    '2 dead burnt trees, 2 basalt spires, 2 obsidian rocks, 1 smoking vent, 1 cracked rock glowing with lava, 1 broken anvil, 1 charred skeleton, 1 ash-covered shrub, 1 iron brazier',
+    '2 árboles muertos quemados, 2 agujas de basalto, 2 rocas de obsidiana, 1 fumarola humeante, 1 roca agrietada que brilla con lava, 1 yunque roto, 1 esqueleto carbonizado, 1 arbusto cubierto de ceniza, 1 brasero de hierro',
   [Biome.WASTELANDS]:
-    '2 dead twisted trees, 2 tombstones, 1 broken stone wall, 1 bone pile, 1 crooked gibbet, 1 broken siege wheel, 1 rusty sword stuck in the ground, 1 dead shrub, 1 cracked statue, 1 old well',
+    '2 árboles muertos y retorcidos, 2 lápidas, 1 muro de piedra roto, 1 pila de huesos, 1 horca torcida, 1 rueda de asedio rota, 1 espada oxidada clavada en el suelo, 1 arbusto muerto, 1 estatua agrietada, 1 pozo viejo',
   [Biome.ABYSS]:
-    '2 jagged black rock spires, 2 violet crystal shards, 1 chained pillar, 1 iron spike fence, 1 skull pile, 1 broken black statue, 1 burning brazier, 1 cracked obsidian rock, 1 hanging cage on a pole'
+    '2 agujas de roca negra dentadas, 2 esquirlas de cristal violeta, 1 pilar encadenado, 1 cerca de púas de hierro, 1 pila de calaveras, 1 estatua negra rota, 1 brasero encendido, 1 roca de obsidiana agrietada, 1 jaula colgando de un poste'
 }
 /** The building beside each merchant on the world map. */
 const MERCHANT_HOUSES: [string, string][] = [
-  ['peddler', 'a small cozy wooden cottage with a red tiled roof, crates and sacks of goods at its side'],
+  [
+    'peddler',
+    'una pequeña y acogedora cabaña de madera con techo de tejas rojas, cajones y bolsas de mercadería a su lado'
+  ],
   [
     'alchemist',
-    'a purple alchemist tent with golden trim, a small flag on top and colorful potion bottles at its door'
+    'una tienda de alquimista violeta con ribetes dorados, una banderita arriba y frascos de pociones de colores en la entrada'
   ],
-  ['smith', 'a stone blacksmith forge house with a dark slate roof, a smoking chimney, glowing windows and an anvil'],
-  ['scholar', 'a slim stone scholar tower with a pointed blue roof, a glowing window and books piled at its door'],
-  ['threshold', 'a black merchant tent with red trim and a red lantern, ominous, at the edge of the Abyss']
+  [
+    'smith',
+    'una casa-forja de herrero de piedra con techo de pizarra oscura, una chimenea humeante, ventanas iluminadas y un yunque'
+  ],
+  [
+    'scholar',
+    'una torre de erudito de piedra delgada con techo azul en punta, una ventana iluminada y libros apilados en la puerta'
+  ],
+  ['threshold', 'una tienda de mercader negra con ribetes rojos y un farol rojo, ominosa, al borde del Abismo']
 ]
 const SPECIAL_SHEETS: [string, string][] = [
   [
     'map/special-1',
-    'a camp with a bonfire and tents, the same camp unlit and abandoned, a rune sanctuary shrine with a glowing stone, a closed treasure chest, an open treasure chest, a peddler cart, an alchemist tent, a blacksmith forge, a scholar tower, a threshold merchant black tent, a boss lair cave, a skull-marked boss arena, a glowing teardrop altar, a signpost, a stone bridge, a wooden bridge'
+    'un campamento con fogata y tiendas, el mismo campamento apagado y abandonado, un santuario rúnico con una piedra brillante, un cofre del tesoro cerrado, un cofre del tesoro abierto, una carreta de buhonero, una tienda de alquimista, una forja de herrero, una torre de erudito, una tienda negra del mercader del umbral, una cueva guarida de jefe, una arena de jefe marcada con una calavera, un altar de lágrima brillante, un cartel, un puente de piedra, un puente de madera'
   ],
   [
     'map/special-2',
-    'a jade serpent seal temple, a basalt colossus seal monolith, a hollow knight seal throne, the giant sealed gate of the Abyss with three seal sockets, the same gate open, the black castle of the Abyss, a lava bridge, an ice bridge, a moss witch hut, a scorpion king pit, a frost wyrm ice nest, an ash lord volcano throne, a ruined chapel, a lighthouse of amber flame, a starting glade with a big glowing tree, a crossroads shrine'
+    'un templo del sello de la serpiente de jade, un monolito del sello del coloso de basalto, un trono del sello del caballero hueco, la puerta gigante sellada del Abismo con tres huecos para sellos, la misma puerta abierta, el castillo negro del Abismo, un puente de lava, un puente de hielo, una choza de la bruja del musgo, un foso del rey escorpión, un nido de hielo del wyrm de escarcha, un trono volcánico del señor de la ceniza, una capilla en ruinas, un faro de llama ámbar, un claro inicial con un gran árbol brillante, un santuario de encrucijada'
   ]
 ]
 /** Skill icons: one per damage type, plus the support kinds. */
 const SKILL_ICONS: [string, string][] = [
-  ['slash', 'a curved sword slash'],
-  ['pierce', 'an arrow piercing through'],
-  ['blunt', 'a heavy hammer impact with cracks'],
-  ['fire', 'a roaring flame'],
-  ['ice', 'a sharp ice crystal'],
-  ['lightning', 'a forked lightning bolt'],
-  ['earth', 'a rising rock spike'],
-  ['light', 'a radiant holy star'],
-  ['darkness', 'a swirling black and violet void'],
-  ['heal', 'a green leaf with a glowing drop of sap'],
-  ['buff', 'an upward golden arrow over a shield'],
-  ['debuff', 'a cracked shield with a downward purple arrow'],
-  ['revive', 'a phoenix feather glowing amber']
+  ['slash', 'un tajo curvo de espada'],
+  ['pierce', 'una flecha que atraviesa'],
+  ['blunt', 'el impacto de un martillo pesado con grietas'],
+  ['fire', 'una llama rugiente'],
+  ['ice', 'un cristal de hielo afilado'],
+  ['lightning', 'un rayo bifurcado'],
+  ['earth', 'una púa de roca que surge del suelo'],
+  ['light', 'una estrella sagrada radiante'],
+  ['darkness', 'un vacío negro y violeta en remolino'],
+  ['heal', 'una hoja verde con una gota de savia brillante'],
+  ['buff', 'una flecha dorada hacia arriba sobre un escudo'],
+  ['debuff', 'un escudo agrietado con una flecha violeta hacia abajo'],
+  ['revive', 'una pluma de fénix que brilla en ámbar']
 ]
 /** Rune icons: one per family (the frame of the game shows the rank). */
 const RUNE_ICONS: Record<string, string> = {
-  leech: 'a blood-red fang dripping into a cup',
-  ember: 'a glowing ember coal',
-  wellspring: 'a spring of blue water rising',
-  edge: 'a razor-sharp blade edge glinting',
-  ward: 'a round warding shield of light',
-  frost: 'a frozen snowflake crystal',
-  vigor: 'a beating green heart with leaves',
-  haste: 'a winged sandal',
-  venom: 'a dripping green venom drop with a skull',
-  fury: 'a roaring red beast eye',
-  storm: 'a storm cloud with lightning',
-  hunter: 'a target eye with an arrow'
+  leech: 'un colmillo rojo sangre que gotea en una copa',
+  ember: 'un carbón encendido brillante',
+  wellspring: 'un manantial de agua azul que brota',
+  edge: 'el filo de una hoja afilada que destella',
+  ward: 'un escudo protector redondo de luz',
+  frost: 'un cristal de copo de nieve congelado',
+  vigor: 'un corazón verde que late, con hojas',
+  haste: 'una sandalia alada',
+  venom: 'una gota de veneno verde con una calavera',
+  fury: 'el ojo rojo de una bestia rugiente',
+  storm: 'una nube de tormenta con rayos',
+  hunter: 'una diana con una flecha'
 }
 const ITEM_ICONS: Record<string, string> = {
-  'health-potion': 'a small round red potion bottle',
-  'focus-potion': 'a small round blue potion bottle',
-  antidote: 'a green vial with a leaf stopper',
-  'fire-bomb': 'a round black bomb with a burning fuse and orange flames painted',
-  'greater-health-potion': 'a large ornate red potion flask with gold',
-  'greater-focus-potion': 'a large ornate blue potion flask with silver',
-  'revive-potion': 'an amber potion with a phoenix feather inside',
-  'frost-bomb': 'a round pale blue glass bomb with frost',
-  elixir: 'a golden elixir flask glowing with rainbow light',
-  'rough-stone': 'a rough grey smithing stone',
-  'tempered-stone': 'a polished blue-grey smithing stone with veins of steel',
-  'arcane-stone': 'a violet smithing stone with glowing runes',
-  'abyssal-stone': 'a black-red smithing stone pulsing with molten light',
-  echo: 'a translucent amber wisp shaped like a rune',
-  tear: 'a single glowing silver teardrop of oblivion',
-  flask: 'an amber glass flask (the Amber Flask) with a warm flame inside',
-  gold: 'a small pile of gold coins'
+  'health-potion': 'un frasquito redondo de poción roja',
+  'focus-potion': 'un frasquito redondo de poción azul',
+  antidote: 'un vial verde con un tapón de hoja',
+  'fire-bomb': 'una bomba negra redonda con la mecha encendida y llamas naranjas pintadas',
+  'greater-health-potion': 'un frasco grande y ornamentado de poción roja con oro',
+  'greater-focus-potion': 'un frasco grande y ornamentado de poción azul con plata',
+  'revive-potion': 'una poción ámbar con una pluma de fénix adentro',
+  'frost-bomb': 'una bomba redonda de vidrio azul pálido con escarcha',
+  elixir: 'un frasco de elixir dorado que brilla con luz de arcoíris',
+  'rough-stone': 'una piedra de herrería gris y tosca',
+  'tempered-stone': 'una piedra de herrería gris azulada pulida con vetas de acero',
+  'arcane-stone': 'una piedra de herrería violeta con runas brillantes',
+  'abyssal-stone': 'una piedra de herrería negra y roja que late con luz fundida',
+  echo: 'un fuego fatuo ámbar translúcido con forma de runa',
+  tear: 'una única lágrima plateada brillante del olvido',
+  flask: 'un frasco de vidrio ámbar (el Frasco de Ámbar) con una llama cálida adentro',
+  gold: 'una pilita de monedas de oro'
 }
 
 function prompt(...parts: string[]): string {
@@ -314,10 +327,11 @@ export function buildCatalog(): Piece[] {
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
     const name = `${id[0].toUpperCase()}${id.slice(1)}`
-    const reference = `Using the attached full image of ${name} as the exact reference (same style, colors and proportions)`
-    const profile = 'seen from the front at a three-quarter angle, facing the camera and turned slightly to the right'
+    const reference = `Usando la imagen completa adjunta de ${name} como referencia exacta (mismo estilo, colores y proporciones)`
+    const profile =
+      'visto de frente en un ángulo de tres cuartos, mirando a la cámara y girado levemente hacia la derecha'
     const limb = (what: string, upper: string, lower: string) =>
-      `only ${name}'s ${what}, in two separate pieces side by side with wide empty space between them, not touching: on the left ${upper}; on the right ${lower}. Both pieces perfectly straight and vertical, top joint up, ${profile}, with rounded ends at the joints so they overlap when assembled`
+      `solo ${what} de ${name}, en dos piezas separadas una al lado de la otra con mucho espacio vacío entre ellas, sin tocarse: a la izquierda ${upper}; a la derecha ${lower}. Ambas piezas perfectamente rectas y verticales, con la articulación de arriba hacia arriba, ${profile}, con los extremos redondeados en las articulaciones para que se superpongan al armarlas`
 
     pieces.push(
       {
@@ -327,7 +341,7 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          `Full-body character seen from the front at a three-quarter angle: the chest, belly and face point toward the camera, turned slightly to the right, both eyes visible. Not seen from behind: the back is never visible. Combat stance with feet apart, the weapon held forward in the right hand across the front of the body and fully visible; the left arm (with the shield if the outfit has one, its front facing out) is the closest to the camera. ${CARTOON_BODY} ${look}. ${FLAME}`,
+          `Personaje de cuerpo entero visto de frente en un ángulo de tres cuartos: el pecho, la panza y la cara apuntan hacia la cámara, girados levemente hacia la derecha, con los dos ojos visibles. No visto de espaldas: la espalda nunca se ve. Postura de combate con los pies separados, el arma sostenida hacia adelante con la mano derecha, cruzando por delante del cuerpo y completamente visible; el brazo izquierdo (con el escudo si el equipo tiene uno, con su frente hacia afuera) es el más cercano a la cámara. ${CARTOON_BODY} ${look}. ${FLAME}`,
           CHROMA
         )
       },
@@ -338,22 +352,22 @@ export function buildCatalog(): Piece[] {
           width: 1024,
           height: kind === 'heroPart' ? 1536 : 1024,
           batch,
-          prompt: prompt(`${reference}, ${what}. The outfit: ${clothes}. No weapon.`, CHROMA)
+          prompt: prompt(`${reference}, ${what}. El equipo: ${clothes}. Sin arma.`, CHROMA)
         })
 
         return [
           part(
             'body',
             'heroPart',
-            `the whole body of ${name} in the same pose and view, from head to feet, with everything except the right arm (the arm that holds the weapon): the right arm is left out completely and the right shoulder ends clean and rounded where the arm attaches, so a separate arm can be laid over it. The head, torso, legs and the left arm (with the shield if the outfit has one) are all there. ${HERO_BODIES[id]}`
+            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, con todo excepto el brazo derecho (el brazo que sostiene el arma): el brazo derecho queda afuera por completo y el hombro derecho termina limpio y redondeado donde se une el brazo, para poder apoyar encima un brazo separado. La cabeza, el torso, las piernas y el brazo izquierdo (con el escudo si el equipo tiene uno) están todos. ${HERO_BODIES[id]}`
           ),
           part(
             'arm',
             'heroLimb',
             limb(
-              'right arm (the arm that holds the weapon)',
-              'the upper arm from the shoulder (with its shoulder guard) to the elbow',
-              'the forearm from the elbow to the hand, closed in a hollow fist as if gripping a handle'
+              'el brazo derecho (el brazo que sostiene el arma)',
+              'el brazo desde el hombro (con su hombrera) hasta el codo',
+              'el antebrazo desde el codo hasta la mano, cerrada en un puño hueco como si agarrara un mango'
             )
           )
         ]
@@ -365,7 +379,7 @@ export function buildCatalog(): Piece[] {
         height: 512,
         batch,
         prompt: prompt(
-          `${reference}, only the weapon: ${description}. Alone, full length, perfectly horizontal, pointing right with the handle on the left, seen from the side, no hand.`,
+          `${reference}, solo el arma: ${description}. Sola, de largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado, sin mano.`,
           CHROMA
         )
       })),
@@ -376,8 +390,8 @@ export function buildCatalog(): Piece[] {
         height: 512,
         batch,
         prompt: prompt(
-          `Bust portrait, three-quarter view facing right, of ${look}.`,
-          'Soft bright gradient background.'
+          `Retrato de busto, en vista de tres cuartos mirando a la derecha, de ${look}.`,
+          'Fondo degradado suave y luminoso.'
         )
       }
     )
@@ -394,7 +408,7 @@ export function buildCatalog(): Piece[] {
       height: boss ? 1536 : 1024,
       batch: enemy.biome,
       prompt: prompt(
-        `Full-body ${boss ? 'boss monster, imposing and larger than life' : 'monster'}, side view facing left, ready to fight, cartoonish and expressive rather than scary. ${CARTOON_CREATURE} ${look}.`,
+        `${boss ? 'Monstruo jefe' : 'Monstruo'} de cuerpo entero${boss ? ', imponente y descomunal' : ''}, vista de costado mirando a la izquierda, listo para pelear, caricaturesco y expresivo más que aterrador. ${CARTOON_CREATURE} ${look}.`,
         CHROMA
       )
     })
@@ -407,8 +421,8 @@ export function buildCatalog(): Piece[] {
         height: 2048,
         batch: enemy.biome,
         prompt: prompt(
-          `Using the attached full image of this creature as the exact reference (same colors, style and scale), a cutout puppet parts sheet for 2D animation: ${look}. Do not draw the full creature anywhere, do not repeat any part, do not add anything that is not in the reference. Each piece isolated in a clean grid with wide empty space around it, nothing touching: head with jaw, torso, each limb in two straight pieces, tail or wings if it has them. Side view facing left, rounded ends at the joints so pieces can overlap when assembled.`,
-          'Plain flat #00FF00 background.'
+          `Usando la imagen completa adjunta de esta criatura como referencia exacta (mismos colores, estilo y escala), una hoja de piezas recortables de títere para animación 2D: ${look}. No dibujes la criatura completa en ningún lado, no repitas ninguna pieza, no agregues nada que no esté en la referencia. Cada pieza aislada en una grilla limpia con mucho espacio vacío alrededor, sin que nada se toque: cabeza con mandíbula, torso, cada extremidad en dos piezas rectas, cola o alas si las tiene. Vista de costado mirando a la izquierda, con los extremos redondeados en las articulaciones para que las piezas se superpongan al armarlas.`,
+          'Fondo liso y plano #00FF00.'
         )
       })
     }
@@ -423,7 +437,7 @@ export function buildCatalog(): Piece[] {
         height: 1440,
         batch: biome,
         prompt: prompt(
-          `Side-view battle background for a 2D game, wide 16:9 landscape: ${scene}. The bottom 35% is flat open ground for the fighters, with no objects on it. Light atmospheric depth with clear, bright colors even in the distance, no characters, no creatures.`
+          `Fondo de batalla en vista lateral para un juego 2D, paisaje ancho 16:9: ${scene}. El 35% inferior es suelo plano y despejado para los combatientes, sin objetos encima. Profundidad atmosférica leve con colores claros y luminosos incluso a lo lejos, sin personajes, sin criaturas.`
         )
       })
     )
@@ -437,7 +451,7 @@ export function buildCatalog(): Piece[] {
       height: 1440,
       batch: Biome.ABYSS,
       prompt: prompt(
-        'Side-view battle background for a 2D game, wide 16:9: the throne hall of the black castle of the Abyss, giant iron pillars, red banners, furnaces burning in the walls. The bottom 35% is flat open floor for the fighters. No characters.'
+        'Fondo de batalla en vista lateral para un juego 2D, ancho 16:9: el salón del trono del castillo negro del Abismo, pilares de hierro gigantes, estandartes rojos y hornos ardiendo en las paredes. El 35% inferior es piso plano y despejado para los combatientes. Sin personajes.'
       )
     },
     {
@@ -447,7 +461,7 @@ export function buildCatalog(): Piece[] {
       height: 1440,
       batch: Biome.ABYSS,
       prompt: prompt(
-        'Side-view battle background for a 2D game, wide 16:9: the heart of a living forge, a vast cavern of molten metal falls, giant anvils and chains, an incandescent red-gold light. The bottom 35% is a flat platform of black iron for the fighters. No characters.'
+        'Fondo de batalla en vista lateral para un juego 2D, ancho 16:9: el corazón de una forja viviente, una vasta caverna de cascadas de metal fundido, yunques y cadenas gigantes y una luz incandescente rojo dorada. El 35% inferior es una plataforma plana de hierro negro para los combatientes. Sin personajes.'
       )
     }
   )
@@ -460,8 +474,8 @@ export function buildCatalog(): Piece[] {
       height: 2048,
       batch: biome,
       prompt: prompt(
-        `Sprite sheet of 16 separate map decorations in a 4 by 4 grid, top-down three-quarter view, each one centered in its cell with empty space around it: ${contents}. Same scale for all.`,
-        'Plain flat #00FF00 background, no shadows on the background.'
+        `Hoja de sprites de 16 decoraciones de mapa separadas en una grilla de 4 por 4, vista cenital de tres cuartos, cada una centrada en su celda con espacio vacío alrededor: ${contents}. Misma escala para todas.`,
+        'Fondo liso y plano #00FF00, sin sombras sobre el fondo.'
       )
     })
   }
@@ -474,8 +488,8 @@ export function buildCatalog(): Piece[] {
       height: 2048,
       batch: biome,
       prompt: prompt(
-        `Sprite sheet of 16 separate map scenery pieces in a 4 by 4 grid, top-down three-quarter view (seen from above at an angle, like a classic 2D RPG map), each one standing on its base at the bottom of its cell with empty space around it, nothing touching. Rows 1 and 2: ${tall}. Row 3: ${low}. Row 4: ${ground}. Same scale for all (a tree much taller than a bush, a tuft much smaller than a rock).`,
-        'Plain flat #00FF00 background, no shadows, no ground under the pieces.'
+        `Hoja de sprites de 16 piezas de escenografía de mapa separadas en una grilla de 4 por 4, vista cenital de tres cuartos (vista desde arriba en ángulo, como el mapa de un RPG 2D clásico), cada una parada sobre su base en la parte de abajo de su celda con espacio vacío alrededor, sin que nada se toque. Filas 1 y 2: ${tall}. Fila 3: ${low}. Fila 4: ${ground}. Misma escala para todas (un árbol mucho más alto que un arbusto, una mata mucho más chica que una roca).`,
+        'Fondo liso y plano #00FF00, sin sombras, sin suelo debajo de las piezas.'
       )
     })
   }
@@ -488,8 +502,8 @@ export function buildCatalog(): Piece[] {
       height: 2048,
       batch: biome,
       prompt: prompt(
-        `Sprite sheet of 12 separate battle scenery props for a side-view 2D game, seen from the side at eye level (not from above), each one standing on its base with wide empty space around it, nothing touching: ${contents}. All at the same scale as each other (a tree much taller than a rock), no ground under them.`,
-        'Plain flat #00FF00 background, no shadows on the background.'
+        `Hoja de sprites de 12 elementos de escenografía de batalla separados para un juego 2D de vista lateral, vistos de costado a la altura de los ojos (no desde arriba), cada uno parado sobre su base con mucho espacio vacío alrededor, sin que nada se toque: ${contents}. Todos en la misma escala entre sí (un árbol mucho más alto que una roca), sin suelo debajo.`,
+        'Fondo liso y plano #00FF00, sin sombras sobre el fondo.'
       )
     })
   }
@@ -502,7 +516,7 @@ export function buildCatalog(): Piece[] {
       height: 1024,
       batch: 'map',
       prompt: prompt(
-        `A single building for a 2D game world map, top-down three-quarter view (seen from above at an angle, like a classic 2D RPG map), standing on its base in the middle with empty space around it, no ground under it: ${what}.`,
+        `Un único edificio para el mapa del mundo de un juego 2D, vista cenital de tres cuartos (visto desde arriba en ángulo, como el mapa de un RPG 2D clásico), parado sobre su base en el centro con espacio vacío alrededor, sin suelo debajo: ${what}.`,
         CHROMA
       )
     })
@@ -516,8 +530,8 @@ export function buildCatalog(): Piece[] {
       height: 2048,
       batch: 'map',
       prompt: prompt(
-        `Sprite sheet of 16 separate special map buildings and landmarks in a 4 by 4 grid, top-down three-quarter view, each one centered in its cell, in this order: ${contents}. Same scale for all.`,
-        'Plain flat #00FF00 background.'
+        `Hoja de sprites de 16 edificios especiales y lugares emblemáticos de mapa separados en una grilla de 4 por 4, vista cenital de tres cuartos, cada uno centrado en su celda, en este orden: ${contents}. Misma escala para todos.`,
+        'Fondo liso y plano #00FF00.'
       )
     })
   }
@@ -530,7 +544,7 @@ export function buildCatalog(): Piece[] {
     batch: 'tiles',
     prompt: [
       TILE_PROMPT,
-      'Seamless tileable square texture of the vertical face of a cliff in a 2D game map, seen straight from the front (no perspective, no top, no ground): packed brown earth and grey rock in vertical streaks and layers, a few hanging roots and cracks. The pattern fills the whole square evenly and continues across the four edges. Soft even light from the top, no frame, no border, no vignette.',
+      'Textura cuadrada repetible sin costuras de la pared vertical de un acantilado en el mapa de un juego 2D, vista de frente (sin perspectiva, sin parte de arriba, sin suelo): tierra marrón compactada y roca gris en vetas y capas verticales, algunas raíces colgantes y grietas. El patrón llena todo el cuadrado de forma pareja y continúa a través de los cuatro bordes. Luz suave y pareja desde arriba, sin marco, sin borde, sin viñeta.',
       TILE_REFERENCE
     ].join(' ')
   })
@@ -545,7 +559,7 @@ export function buildCatalog(): Piece[] {
       prompt: [
         TILE_PROMPT,
         TILE_RULES,
-        `The ground: ${TILES[terrain]}.`,
+        `El suelo: ${TILES[terrain]}.`,
         ...(terrain === Terrain.GRASS ? [] : [TILE_REFERENCE])
       ].join(' ')
     })
@@ -559,7 +573,7 @@ export function buildCatalog(): Piece[] {
       height: 512,
       batch: 'ui',
       prompt: prompt(
-        `Game icon, centered, filling 80% of the square: ${what}. Chunky rounded shape, thick outline, glossy toy-like look, reads well at 48 px.`,
+        `Ícono de juego, centrado, que ocupa el 80% del cuadrado: ${what}. Forma redondeada y gruesa, contorno grueso, aspecto brillante de juguete, se lee bien a 48 px.`,
         CHROMA
       )
     })
@@ -569,7 +583,7 @@ export function buildCatalog(): Piece[] {
   }
 
   for (const family of RUNE_FAMILIES) {
-    icon(`icons/runes/${family}`, `a carved rune stone showing ${RUNE_ICONS[family]}`)
+    icon(`icons/runes/${family}`, `una piedra rúnica tallada que muestra ${RUNE_ICONS[family]}`)
   }
 
   for (const [id, what] of Object.entries(ITEM_ICONS)) {
