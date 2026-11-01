@@ -11,7 +11,7 @@ type Keys = [number, number][]
 type Part = ArtManifest['parts'][string][number]
 
 const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
-  // Up over the head, then down onto the target.
+  // The blade up in front of the face, then a slash forward and down.
   attack: {
     body: [
       [0, 0],
@@ -21,20 +21,14 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
     ],
     arm: [
       [0, 0],
-      [0.45, -2.6],
-      [0.65, -0.5],
-      [1, 0]
-    ],
-    forearm: [
-      [0, 0],
-      [0.45, 1.0],
-      [0.65, 1.2],
+      [0.45, -0.9],
+      [0.65, 0.5],
       [1, 0]
     ],
     weapon: [
       [0, 0],
-      [0.45, 0.3],
-      [0.65, 0.8],
+      [0.45, -0.1],
+      [0.65, 0.7],
       [1, 0]
     ]
   },
@@ -47,14 +41,8 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
     ],
     arm: [
       [0, 0],
-      [0.4, -1.1],
-      [0.75, -1.1],
-      [1, 0]
-    ],
-    forearm: [
-      [0, 0],
-      [0.4, 0.4],
-      [0.75, 0.4],
+      [0.4, -0.6],
+      [0.75, -0.6],
       [1, 0]
     ]
   },

@@ -4,21 +4,17 @@
    "width": 720,
    "height": 644
   },
-  "heroes/kael/outfits/traveller/head": {
-   "width": 476,
-   "height": 512
+  "heroes/kael/outfits/traveller/body": {
+   "width": 616,
+   "height": 720
   },
-  "heroes/kael/outfits/traveller/torso": {
-   "width": 372,
-   "height": 512
+  "heroes/kael/outfits/traveller/arm": {
+   "width": 248,
+   "height": 258
   },
-  "heroes/kael/outfits/traveller/right-arm/1": {
-   "width": 221,
-   "height": 512
-  },
-  "heroes/kael/outfits/traveller/right-arm/2": {
-   "width": 187,
-   "height": 512
+  "heroes/kael/weapons/sword": {
+   "width": 782,
+   "height": 245
   },
   "enemies/thorn-boar": {
    "width": 512,
@@ -136,38 +132,31 @@
  "scenery": {},
  "props": {},
  "parts": {
-  "heroes/kael/outfits/traveller/head": [
+  "heroes/kael/outfits/traveller/body": [
    {
-    "id": "heroes/kael/outfits/traveller/head",
-    "x": 442,
-    "y": 37,
-    "width": 551,
-    "height": 593
+    "id": "heroes/kael/outfits/traveller/body",
+    "x": 9,
+    "y": 8,
+    "width": 986,
+    "height": 1152
    }
   ],
-  "heroes/kael/outfits/traveller/torso": [
+  "heroes/kael/outfits/traveller/arm": [
    {
-    "id": "heroes/kael/outfits/traveller/torso",
-    "x": 448,
-    "y": 187,
-    "width": 397,
-    "height": 546
+    "id": "heroes/kael/outfits/traveller/arm",
+    "x": 12,
+    "y": 9,
+    "width": 248,
+    "height": 258
    }
   ],
-  "heroes/kael/outfits/traveller/right-arm": [
+  "heroes/kael/weapons/sword": [
    {
-    "id": "heroes/kael/outfits/traveller/right-arm/1",
-    "x": 203,
-    "y": 42,
-    "width": 288,
-    "height": 668
-   },
-   {
-    "id": "heroes/kael/outfits/traveller/right-arm/2",
-    "x": 941,
-    "y": 103,
-    "width": 225,
-    "height": 617
+    "id": "heroes/kael/weapons/sword",
+    "x": 22,
+    "y": 0,
+    "width": 782,
+    "height": 245
    }
   ]
  },

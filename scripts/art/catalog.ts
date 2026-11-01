@@ -5,7 +5,14 @@ import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
-import { ENEMY_LOOKS, HERO_BODIES, HERO_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
+import {
+  ENEMY_LOOKS,
+  HERO_BODIES,
+  HERO_LOOKS,
+  HERO_OUTFITS,
+  HERO_WEAPON_HAND,
+  HERO_WEAPONS
+} from '@/scripts/art/descriptions'
 
 /**
  * Every piece of art of the game: its file (under art/source/ as generated,
@@ -17,7 +24,6 @@ import { ENEMY_LOOKS, HERO_BODIES, HERO_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from
 export type PieceKind =
   | 'hero'
   | 'heroPart'
-  | 'heroLimb'
   | 'weapon'
   | 'portrait'
   | 'enemy'
@@ -327,11 +333,13 @@ export function buildCatalog(): Piece[] {
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
     const name = `${id[0].toUpperCase()}${id.slice(1)}`
+    // The side of the weapon arm and of the other one (the shield's), in Spanish.
+    const [hand, other] =
+      (HERO_WEAPON_HAND[id] ?? 'right') === 'left' ? ['izquierda', 'derecha'] : ['derecha', 'izquierda']
+    const [arm, otherArm] = [hand, other].map((side) => side.replace(/a$/, 'o'))
     const reference = `Usando la imagen completa adjunta de ${name} como referencia exacta (mismo estilo, colores y proporciones)`
     const profile =
       'visto de frente en un ángulo de tres cuartos, mirando a la cámara y girado levemente hacia la derecha'
-    const limb = (what: string, upper: string, lower: string) =>
-      `solo ${what} de ${name}, en dos piezas separadas una al lado de la otra con mucho espacio vacío entre ellas, sin tocarse: a la izquierda ${upper}; a la derecha ${lower}. Ambas piezas perfectamente rectas y verticales, con la articulación de arriba hacia arriba, ${profile}, con los extremos redondeados en las articulaciones para que se superpongan al armarlas`
 
     pieces.push(
       {
@@ -341,7 +349,7 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          `Personaje de cuerpo entero visto de frente en un ángulo de tres cuartos: el pecho, la panza y la cara apuntan hacia la cámara, girados levemente hacia la derecha, con los dos ojos visibles. No visto de espaldas: la espalda nunca se ve. Postura de combate con los pies separados, el arma sostenida hacia adelante con la mano derecha, cruzando por delante del cuerpo y completamente visible; el brazo izquierdo (con el escudo si el equipo tiene uno, con su frente hacia afuera) es el más cercano a la cámara. ${CARTOON_BODY} ${look}. ${FLAME}`,
+          `Personaje de cuerpo entero visto de frente en un ángulo de tres cuartos: el pecho, la panza y la cara apuntan hacia la cámara, girados levemente hacia la derecha, con los dos ojos visibles. No visto de espaldas: la espalda nunca se ve. Postura de combate con los pies separados, el arma sostenida hacia adelante con la mano ${hand}, cruzando por delante del cuerpo y completamente visible; el escudo, si el equipo tiene uno, va en el brazo ${otherArm} con su frente hacia afuera; el brazo izquierdo es el más cercano a la cámara. ${CARTOON_BODY} ${look}. ${FLAME}`,
           CHROMA
         )
       },
@@ -350,7 +358,7 @@ export function buildCatalog(): Piece[] {
           id: `heroes/${id}/outfits/${outfit}/${file}`,
           kind,
           width: 1024,
-          height: kind === 'heroPart' ? 1536 : 1024,
+          height: file === 'body' ? 1536 : 1024,
           batch,
           prompt: prompt(`${reference}, ${what}. El equipo: ${clothes}. Sin arma.`, CHROMA)
         })
@@ -359,16 +367,12 @@ export function buildCatalog(): Piece[] {
           part(
             'body',
             'heroPart',
-            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, con todo excepto el brazo derecho (el brazo que sostiene el arma): el brazo derecho queda afuera por completo y el hombro derecho termina limpio y redondeado donde se une el brazo, para poder apoyar encima un brazo separado. La cabeza, el torso, las piernas y el brazo izquierdo (con el escudo si el equipo tiene uno) están todos. ${HERO_BODIES[id]}`
+            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, con todo excepto el brazo ${arm} (el brazo que sostiene el arma): el brazo ${arm} queda afuera por completo y el hombro ${arm} termina limpio y redondeado donde se une el brazo, para poder apoyar encima un brazo separado. La cabeza, el torso, las piernas y el brazo ${otherArm} (con el escudo si el equipo tiene uno) están todos. ${HERO_BODIES[id]}`
           ),
           part(
             'arm',
-            'heroLimb',
-            limb(
-              'el brazo derecho (el brazo que sostiene el arma)',
-              'el brazo desde el hombro (con su hombrera) hasta el codo',
-              'el antebrazo desde el codo hasta la mano, cerrada en un puño hueco como si agarrara un mango'
-            )
+            'heroPart',
+            `solo el brazo ${arm} de ${name} (el brazo que sostiene el arma), entero y en una sola pieza: desde el hombro (con su hombrera) hasta la muñeca, sin la mano (la mano va con el arma), con el codo flexionado como en la imagen completa, ${profile}, con el extremo del hombro redondeado para que se superponga con el cuerpo al armarlo`
           )
         ]
       }),
@@ -379,7 +383,7 @@ export function buildCatalog(): Piece[] {
         height: 512,
         batch,
         prompt: prompt(
-          `${reference}, solo el arma: ${description}. Sola, de largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado, sin mano.`,
+          `${reference}, solo el arma: ${description}, agarrada por el puño de ${name} (solo el puño, cortado en la muñeca, sin brazo). De largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado.`,
           CHROMA
         )
       })),

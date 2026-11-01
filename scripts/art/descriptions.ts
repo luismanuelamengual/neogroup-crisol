@@ -221,7 +221,7 @@ export const HERO_BODIES: Record<string, string> = {
 export const HERO_OUTFITS: Record<string, Record<string, string>> = {
   kael: {
     traveller:
-      'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo izquierdo'
+      'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo derecho'
   },
   sera: {
     ranger:
@@ -235,6 +235,11 @@ export const HERO_OUTFITS: Record<string, Record<string, string>> = {
   ysolde: {
     court: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
   }
+}
+
+/** The hand each hero holds the weapon with (the shield, if any, goes on the other arm); right unless listed. */
+export const HERO_WEAPON_HAND: Record<string, 'left' | 'right'> = {
+  kael: 'left'
 }
 
 /** The weapons each hero can hold; the first one is the one they start with. */

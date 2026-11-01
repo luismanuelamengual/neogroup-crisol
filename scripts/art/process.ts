@@ -33,7 +33,6 @@ const EXTENSIONS = ['png', 'webp', 'jpg', 'jpeg']
 const MAX_SIDE: Record<PieceKind, number> = {
   hero: 720,
   heroPart: 720,
-  heroLimb: 512,
   weapon: 1024,
   portrait: 256,
   enemy: 512,
@@ -112,43 +111,6 @@ async function writeWebp(
     .toFile(path)
 
   return { width, height }
-}
-
-/** Upper and lower segment of a limb overlap by this share when they come joined and have to be cut. */
-const LIMB_OVERLAP = 0.05
-
-/**
- * A limb's two segments (upper arm and forearm, thigh and shin): the two
- * largest pieces from left to right, or the only piece cut in half when it
- * came whole.
- */
-async function writeLimb(image: RawImage, piece: Piece, manifest: ArtManifest): Promise<ArtManifest['parts'][string]> {
-  const found = findParts(image, 0.002)
-    .sort((a, b) => b.width * b.height - a.width * a.height)
-    .slice(0, 2)
-    .sort((a, b) => a.x - b.x)
-  const segments: (Box | Part)[] =
-    found.length === 2
-      ? found
-      : found.flatMap((whole) => {
-          const cut = Math.round(whole.height * (0.5 - LIMB_OVERLAP))
-          const rest = Math.round(whole.height * (0.5 + LIMB_OVERLAP))
-
-          return [
-            { x: whole.x, y: whole.y, width: whole.width, height: rest },
-            { x: whole.x, y: whole.y + cut, width: whole.width, height: whole.height - cut }
-          ]
-        })
-  const parts: ArtManifest['parts'][string] = []
-
-  for (const [index, box] of segments.entries()) {
-    const id = `${piece.id}/${index + 1}`
-
-    manifest.images[id] = await writeWebp(image, box, id, MAX_SIDE.heroLimb)
-    parts.push({ id, x: box.x, y: box.y, width: box.width, height: box.height })
-  }
-
-  return parts
 }
 
 async function processPiece(piece: Piece, path: string, manifest: ArtManifest): Promise<void> {
@@ -232,12 +194,6 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     }
 
     manifest.props[biome] = ids
-
-    return
-  }
-
-  if (piece.kind === 'heroLimb') {
-    manifest.parts[piece.id] = await writeLimb(image, piece, manifest)
 
     return
   }
