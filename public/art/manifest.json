@@ -18,7 +18,51 @@
   },
   "enemies/thorn-boar": {
    "width": 512,
-   "height": 321
+   "height": 341
+  },
+  "enemies/road-bandit": {
+   "width": 415,
+   "height": 512
+  },
+  "enemies/wheat-spirit": {
+   "width": 455,
+   "height": 512
+  },
+  "enemies/hedge-sprite": {
+   "width": 440,
+   "height": 512
+  },
+  "enemies/field-rat": {
+   "width": 512,
+   "height": 455
+  },
+  "enemies/scarecrow": {
+   "width": 467,
+   "height": 512
+  },
+  "enemies/meadow-wasp": {
+   "width": 512,
+   "height": 367
+  },
+  "enemies/bandit-archer": {
+   "width": 512,
+   "height": 478
+  },
+  "enemies/giant-toad": {
+   "width": 512,
+   "height": 319
+  },
+  "bosses/boar-matriarch": {
+   "width": 900,
+   "height": 761
+  },
+  "bosses/bandit-chief": {
+   "width": 900,
+   "height": 831
+  },
+  "bosses/old-scarecrow": {
+   "width": 900,
+   "height": 863
   },
   "backgrounds/meadows-1": {
    "width": 1920,

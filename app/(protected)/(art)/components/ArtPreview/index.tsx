@@ -1,9 +1,10 @@
 'use client'
 
 import './index.scss'
-import { Application, Container, Sprite, Text } from 'pixi.js'
+import { Application, Container, Graphics, Sprite, Text } from 'pixi.js'
 import { useEffect, useRef, useState } from 'react'
 import { RIGS } from '@/app/(protected)/(art)/data/rigs'
+import { SHADOW_ALPHA, shadowOf } from '@/app/(protected)/(art)/data/shadows'
 import { loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
 import { RigFigure, RigMove, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 
@@ -45,6 +46,18 @@ export default function ArtPreview() {
       const shelf = new Container()
       let x = 40
 
+      // The shadow as in battle (data/shadows), scaled from the battle height to this one.
+      const shadow = (id: string, at: number) => {
+        const { x, y, radiusX, radiusY } = shadowOf(id)
+        const scale = HEIGHT / (id.startsWith('heroes/') ? 138 : 120)
+
+        shelf.addChild(
+          new Graphics()
+            .ellipse(at + x * scale, HEIGHT + 110 + y * scale, radiusX * scale, radiusY * scale)
+            .fill({ color: 0x000000, alpha: SHADOW_ALPHA })
+        )
+      }
+
       const label = (text: string, at: number) => {
         const caption = new Text({ text, style: { fill: 0xffffff, fontSize: 14 } })
 
@@ -57,6 +70,7 @@ export default function ArtPreview() {
 
         if (puppet) {
           puppet.view.position.set(x + 110, HEIGHT + 110)
+          shadow(id, x + 110)
           shelf.addChild(puppet.view)
           puppets.current.push(puppet)
           label(`${id} (puppet)`, x)
@@ -70,9 +84,11 @@ export default function ArtPreview() {
         if (texture) {
           const sprite = new Sprite(texture)
 
-          sprite.anchor.set(0, 1)
+          // Same anchor as in battle, so the shadow falls in the same place.
+          sprite.anchor.set(0.5, 0.97)
           sprite.scale.set(HEIGHT / texture.height)
-          sprite.position.set(x, HEIGHT + 110)
+          sprite.position.set(x + sprite.width / 2, HEIGHT + 110)
+          shadow(id, x + sprite.width / 2)
           shelf.addChild(sprite)
           label(id, x)
           x += sprite.width + 40

@@ -1,5 +1,6 @@
 import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 import { HERO_LOADOUTS, heroRig, Rig, RIGS } from '@/app/(protected)/(art)/data/rigs'
+import { SHADOW_ALPHA, shadowOf } from '@/app/(protected)/(art)/data/shadows'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
@@ -42,6 +43,8 @@ interface Figure {
   /** The puppet, when the figure is put together from a parts sheet. */
   rig: RigFigure | null
   size: number
+  /** Its shadow (data/shadows), in pixels of a fighter of size 1: the rings at its feet follow it. */
+  shadow: ReturnType<typeof shadowOf>
   health: number
   maxHealth: number
   bars: number
@@ -354,9 +357,9 @@ export class BattleRenderer {
     const puppet = rigOf(combatant, artId, this.parts)
     const rig = puppet ? RigFigure.create(puppet, this.parts, this.art, artHeight(combatant.side)) : null
     const body = rig
-      ? drawRig(rig)
+      ? drawRig(rig, artId)
       : texture
-        ? drawArt(texture, combatant.side)
+        ? drawArt(texture, combatant.side, artId)
         : combatant.side === 'hero'
           ? drawHero(combatant.characterId!)
           : drawEnemy(combatant)
@@ -405,6 +408,7 @@ export class BattleRenderer {
       side: combatant.side,
       rig,
       size,
+      shadow: shadowOf(artId),
       health: combatant.health,
       maxHealth: combatant.stats.maxHealth,
       bars: combatant.bars,
@@ -827,10 +831,16 @@ export class BattleRenderer {
 
     if (marked && marked.root.visible) {
       const pulse = 1 + Math.sin(this.elapsed * 5) * 0.08
-      const width = 46 * marked.size * this.scale * pulse
+      const { x, y, radiusX, radiusY } = marked.shadow
+      const scale = marked.size * this.scale
 
       this.marker
-        .ellipse(marked.root.position.x, marked.root.position.y + 4, width, width * 0.3)
+        .ellipse(
+          marked.root.position.x + x * scale,
+          marked.root.position.y + (y + 4) * scale,
+          radiusX * 1.15 * scale * pulse,
+          radiusY * 1.4 * scale * pulse
+        )
         .stroke({ width: 4, color: marked.side === 'hero' ? 0xffc233 : 0xff4d8d })
     }
 
@@ -844,12 +854,18 @@ export class BattleRenderer {
 
       const color = target.side === 'enemy' ? 0xff4d8d : 0x84f06b
       const { x, y } = target.root.position
-      const width = 42 * target.size * this.scale
+      const shadow = target.shadow
+      const scale = target.size * this.scale
       const top = y - (FIGURE_HEIGHT * target.size + 34) * this.scale - Math.abs(Math.sin(this.elapsed * 4)) * 10
       const arrow = 11 * this.scale
 
       this.marker
-        .ellipse(x, y + 4, width, width * 0.3)
+        .ellipse(
+          x + shadow.x * scale,
+          y + (shadow.y + 4) * scale,
+          shadow.radiusX * 1.05 * scale,
+          shadow.radiusY * 1.26 * scale
+        )
         .fill({ color, alpha: 0.18 + Math.sin(this.elapsed * 5) * 0.08 })
         .stroke({ width: 3, color, alpha: 0.9 })
       this.marker
@@ -883,27 +899,30 @@ function artHeight(side: Combatant['side']): number {
   return FIGURE_HEIGHT * (side === 'hero' ? 1.15 : 1)
 }
 
-function drawShadow(): Graphics {
-  return new Graphics().ellipse(0, 0, 40, 10).fill({ color: 0x000000, alpha: 0.35 })
+/** The shadow at the feet, with the adjustment of each figure (see data/shadows). */
+function drawShadow(artId: string): Graphics {
+  const { x, y, radiusX, radiusY } = shadowOf(artId)
+
+  return new Graphics().ellipse(x, y, radiusX, radiusY).fill({ color: 0x000000, alpha: SHADOW_ALPHA })
 }
 
 /** A fighter with its final art: the figure standing on its spot, with a shadow at its feet. */
-function drawArt(texture: Texture, side: Combatant['side']): Container {
+function drawArt(texture: Texture, side: Combatant['side'], artId: string): Container {
   const container = new Container()
   const sprite = new Sprite(texture)
 
   sprite.anchor.set(0.5, 0.97)
   sprite.scale.set(artHeight(side) / texture.height)
-  container.addChild(drawShadow(), sprite)
+  container.addChild(drawShadow(artId), sprite)
 
   return container
 }
 
 /** A fighter put together from its parts sheet (it animates itself). */
-function drawRig(rig: RigFigure): Container {
+function drawRig(rig: RigFigure, artId: string): Container {
   const container = new Container()
 
-  container.addChild(drawShadow(), rig.view)
+  container.addChild(drawShadow(artId), rig.view)
 
   return container
 }
