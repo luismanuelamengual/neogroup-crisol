@@ -1,92 +1,27 @@
 .party-panel {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  padding: 4px;
+  min-width: 0;
 
   .party {
     display: flex;
-    flex: 0 1 auto;
+    flex-wrap: wrap;
+    align-items: stretch;
     gap: 10px;
-    min-width: 0;
+
+    @media (max-width: 599px) {
+      gap: 8px;
+    }
     margin: 0;
     padding: 4px;
-    overflow-x: auto;
     list-style: none;
 
-    li {
-      position: relative;
+    > li {
       display: flex;
-      flex: 1 0 96px;
-      flex-direction: column;
-      gap: 4px;
-      max-width: 160px;
-      padding: 6px 9px;
-      border: var(--frame-border);
-      border-radius: var(--frame-radius);
-      background: var(--frame-background);
-      box-shadow:
-        0 0 0 2px #12103a,
-        0 0 0 3px #12103a;
-
-      &.fallen {
-        filter: grayscale(0.8);
-        opacity: 0.6;
-      }
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .name {
-      color: var(--color-gold);
-    }
-
-    .level {
-      color: var(--color-text-secondary);
-    }
-
-    .health-bar {
-      height: 7px;
-      overflow: hidden;
-      border: 1px solid #12103a;
-      background: var(--bar-track);
-
-      .fill {
-        height: 100%;
-        background: var(--bar-health);
-        transition: width 0.4s ease;
-
-        &.low {
-          animation: health-low 1s ease-in-out infinite alternate;
-        }
-      }
-    }
-
-    .health {
-      color: var(--color-text-secondary);
-      font-size: 0.72rem;
-      font-weight: 700;
     }
   }
 
-  .open-party,
+  .hero,
   .flask {
     position: relative;
-    display: flex;
-    flex: 0 0 auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    width: 64px;
-    min-height: 64px;
     border: var(--frame-border);
     border-radius: var(--frame-radius);
     background: var(--frame-background);
@@ -94,25 +29,120 @@
       0 0 0 2px #12103a,
       0 0 0 3px #12103a,
       0 6px 14px rgba(0, 0, 0, 0.5);
-    color: var(--color-gold);
-    font-family: var(--font-display);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
 
     &:hover,
     &:focus-visible {
       box-shadow: var(--frame-glow);
     }
+  }
 
-    &.Mui-disabled {
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 96px;
+    padding: 6px 8px 8px;
+    color: inherit;
+    text-align: left;
+
+    // Three plaques in a row on a phone, next to the inventory and the bestiary.
+    @media (max-width: 599px) {
+      width: 76px;
+      padding: 5px 6px 7px;
+
+      .header {
+        font-size: 0.68rem;
+      }
+    }
+
+    // The three that fight: lit like embers.
+    &.active {
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(255, 154, 42, 0.35) 0%, transparent 70%), var(--frame-background);
+      box-shadow:
+        0 0 0 2px #12103a,
+        0 0 0 3px #12103a,
+        0 0 12px rgba(255, 154, 42, 0.55);
+    }
+
+    // Those in reserve: a dimmer frame.
+    &.reserve {
+      border-color: var(--color-gold-dark);
+      opacity: 0.78;
+
+      .name {
+        color: var(--color-text-secondary);
+      }
+    }
+
+    &.fallen {
       filter: grayscale(0.8);
       opacity: 0.6;
     }
+
+    &.Mui-disabled {
+      cursor: default;
+    }
   }
 
-  .open-party .badge {
+  .header {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 1px;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-gold);
+    text-overflow: ellipsis;
+  }
+
+  .level {
+    color: var(--color-text-secondary);
+  }
+
+  .bar {
+    display: block;
+    height: 6px;
+    overflow: hidden;
+    border: 1px solid #12103a;
+    background: var(--bar-track);
+
+    .fill {
+      display: block;
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+
+    &.health .fill {
+      background: var(--bar-health);
+
+      &.low {
+        animation: health-low 1s ease-in-out infinite alternate;
+      }
+    }
+
+    &.focus .fill {
+      background: var(--bar-focus);
+    }
+
+    &.xp {
+      height: 4px;
+
+      .fill {
+        background: var(--bar-xp);
+      }
+    }
+  }
+
+  .badge {
     position: absolute;
     top: -9px;
     right: -9px;
@@ -125,13 +155,41 @@
     font-family: var(--font-body);
     font-size: 0.75rem;
     font-weight: 800;
+    text-align: center;
     box-shadow: 0 0 8px rgba(229, 83, 61, 0.7);
+
+    &.echo {
+      top: -6px;
+      right: -6px;
+      min-width: 0;
+      width: 14px;
+      height: 14px;
+      padding: 0;
+      background: #b06cff;
+      box-shadow: 0 0 8px rgba(176, 108, 255, 0.8);
+    }
+  }
+
+  .flask-wrap {
+    display: flex;
   }
 
   .flask {
-    width: 70px;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 64px;
+    min-height: 64px;
     color: var(--color-ember);
+
+    @media (max-width: 599px) {
+      width: 58px;
+      min-height: 56px;
+    }
+    font-family: var(--font-display);
+    font-weight: 700;
 
     .charges {
       color: var(--color-gold-light);
@@ -143,6 +201,11 @@
       font-family: var(--font-body);
       font-size: 0.7rem;
       font-weight: 800;
+    }
+
+    &.Mui-disabled {
+      filter: grayscale(0.8);
+      opacity: 0.6;
     }
   }
 }

@@ -1,4 +1,5 @@
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
+import { LostXp } from '@/app/(protected)/(engine)/models/LostXp'
 
 /**
  * Whole state of a saved game: what `saves.data` holds. It only references
@@ -30,6 +31,12 @@ export interface GameState {
    * won and missing here has had none yet.
    */
   restsSinceCleared: Record<string, number>
+  /**
+   * Experience lost in the last defeat, waiting at the point where the party
+   * fell until that fight is won (null when there is none). A new defeat
+   * replaces it: what was waiting is lost for good.
+   */
+  lostXp: LostXp | null
   /** Charges left in the Amber Flask (its maximum and potency come from the bosses defeated). */
   flaskCharges: number
   /** Unlocked characters, in the order of the formation: the first three fight, the rest wait in reserve. */

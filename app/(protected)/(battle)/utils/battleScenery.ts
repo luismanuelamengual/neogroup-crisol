@@ -187,11 +187,13 @@ export class BattleScenery {
     }
 
     this.drawHaze()
+    // What stands behind the floor goes before it, so the floor's edge covers its feet.
     this.drawGroundPatches(random, scale)
-    this.drawFloor(random, scale)
-    this.drawGroundFeatures(random, scale)
+    this.drawGroundFeatures(random, scale, 'behind')
     this.drawProps(random, scale)
     this.drawScatter(random, scale)
+    this.drawFloor(random, scale)
+    this.drawGroundFeatures(random, scale, 'across')
     this.drawForeground(random, scale)
     this.drawParticles(random, scale)
     this.drawLight(random)
@@ -641,21 +643,20 @@ export class BattleScenery {
   }
 
   /** What lies on the ground of the biome: a trail, stones, ripples of sand, cracks, lava, snow, runes, puddles. */
-  private drawGroundFeatures(random: Random, scale: number): void {
-    const features = this.plan.groundFeatures
-    let feature: GroundFeature = features[0]
+  private drawGroundFeatures(random: Random, scale: number, layer: 'behind' | 'across'): void {
+    // Stones, puddles, ripples and snow lie behind the floor (drawn before it); cracks, lava and runes also cross it.
+    const crosses = (feature: GroundFeature) => feature === 'cracks' || feature === 'lava' || feature === 'runes'
+    const features = this.plan.groundFeatures.filter((feature) => crosses(feature) === (layer === 'across'))
     const depth = this.groundY - this.horizonY
-    // Stones, puddles, ripples and snow lie behind the floor; cracks, lava and runes also cross it.
     const spot = (from = 0.15) => {
-      const across = feature === 'cracks' || feature === 'lava' || feature === 'runes'
-      const end = across ? this.height : this.floorY
+      const end = layer === 'across' ? this.height : this.floorY
       const y = this.horizonY + depth * from + (end - this.horizonY - depth * from) * random()
 
       return { x: -this.width * 0.05 + random() * this.width * 1.1, y, size: this.sizeAt(y) * scale }
     }
     const outline = mix(this.look.groundDark, 0x000000, 0.4)
 
-    for (feature of features) {
+    for (const feature of features) {
       switch (feature) {
         case 'stones': {
           for (let index = 0, count = 3 + Math.floor(random() * 5); index < count; index++) {

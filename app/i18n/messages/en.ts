@@ -233,6 +233,8 @@ export const en: Messages = {
     title: 'Aurenya',
     level: 'Level {level}',
     levelShort: 'Lv. {level}',
+    xp: 'XP {xp} of {next}',
+    xpLabel: 'Experience: {xp} of {next}. {count} to level {level}.',
     backToMenu: 'Back to menu',
     menu: 'Menu',
     gold: 'Gold',
@@ -274,6 +276,7 @@ export const en: Messages = {
       combat: 'Fight',
       cleared: 'Cleared trail',
       respawned: 'The enemies came back',
+      lostXp: '{xp} lost experience waits here',
       miniboss: '{biome} mini boss',
       sanctuary: 'Rune sanctuary',
       sanctuaryTaken: 'Sanctuary (rune taken)',
@@ -309,6 +312,10 @@ export const en: Messages = {
       teleportTitle: 'Travel to another camp',
       shop: 'Shop'
     },
+    potions: {
+      blocked: 'Potions can only be drunk at a point without enemies.',
+      chooseHero: 'Who drinks it?'
+    },
     flask: {
       name: 'Amber Flask',
       drink: 'Drink',
@@ -317,6 +324,7 @@ export const en: Messages = {
       full: 'The party already has full health.'
     },
     rewards: {
+      title: 'Reward!',
       camp: 'Camp won: {name}!',
       character: '{name} joins the party at level {level}!',
       flaskCharge: 'The Amber Flask now has {max} charges',
@@ -328,8 +336,7 @@ export const en: Messages = {
       weapon: '{name} got {weapon}!',
       gold: '+{amount} gold',
       abyssOpen: 'The three Seals fell: the Door of the Abyss opened',
-      crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.',
-      defeat: 'Your party fell. You wake up at {camp}.'
+      crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.'
     },
     runeTiers: {
       lesser: 'lesser',
@@ -388,8 +395,12 @@ export const en: Messages = {
     retreated: 'You retreated',
     retreatText: 'You go back to the previous point without losing experience.',
     xpGained: '+{xp} experience',
+    xpRecovered: '+{xp} experience recovered',
+    xpLeftBehind: 'What you lost stays here: defeat these enemies to get it back.',
+    xpForfeited: 'The experience you left at your previous fall ({xp}) is lost.',
     goldGained: '+{gold} gold',
     levelUp: '{name} reaches level {level}',
+    levelUpShort: 'Level {level}!',
     continue: 'Continue',
     elite: 'Elite {name}'
   },
@@ -696,19 +707,14 @@ export const en: Messages = {
       'Each hero goes into battle with its weapon attack and up to {count} skills. Change them any time out of a fight.',
     spareSkills: 'Other skills it knows',
     unequipSkill: 'Remove {skill}',
-    title: 'Party',
-    open: 'Party',
-    heroes: 'Heroes',
     inventory: 'Inventory',
     bestiary: 'Bestiary',
-    formation: 'Formation',
     formationHint: 'The first three fight; the rest wait in reserve and enter together when the three fall.',
     active: 'Active',
     reserve: 'Reserve',
-    moveUp: 'Move up',
-    moveDown: 'Move down',
+    moveUp: 'Move earlier in the formation',
+    moveDown: 'Move later in the formation',
     pointsBadge: 'Points to spend',
-    campOnly: 'The weapons are upgraded, and the runes and the echoes changed, at a camp.',
     swapOnly: 'The weapons are swapped at any cleared point.',
     attributes: 'Attributes',
     attributePoints: { one: '{count} attribute point', other: '{count} attribute points' },
@@ -725,7 +731,6 @@ export const en: Messages = {
     weapon: 'Weapon',
     weapons: 'Weapons',
     weaponHeld: 'In hand',
-    weaponMissing: 'Waiting in a reliquary: {biome}',
     weaponAttack: '{skill} · {type} · {target}',
     weaponStyle: 'Style: {traits}',
     weaponBalanced: 'Style: balanced',
@@ -754,12 +759,9 @@ export const en: Messages = {
     cost: { one: '{count} Echo', other: '{count} Echoes' },
     have: 'you have {count}',
     empty: 'Nothing here yet.',
-    consumables: 'Potions and bombs',
-    stones: 'Smithing stones',
     owned: '× {count}',
     bestiaryHint: 'Defeat more of each species to learn more about it.',
     kills: { one: '{count} defeated', other: '{count} defeated' },
-    unknown: '???',
     nextUnlock: 'Next at {count}',
     weakTo: 'Weak to {types}',
     resists: 'Resists {types}',
@@ -769,7 +771,25 @@ export const en: Messages = {
     archetype: 'Type: {archetype}',
     statsLine: 'Health {health} · Attack {attack} · Defense {defense} · Speed {speed} (level {level})',
     skillsLine: 'Skills: {skills}',
-    dropsLine: 'Drops: {items}'
+    dropsLine: 'Drops: {items}',
+    health: 'Health',
+    focus: 'Focus',
+    experience: 'Experience',
+    tabs: {
+      attributes: 'Attributes',
+      weapons: 'Weapons',
+      skills: 'Skills',
+      runes: 'Runes',
+      echoes: 'Echoes'
+    },
+    openHero: 'See {name}',
+    previousHero: 'Previous hero',
+    nextHero: 'Next hero',
+    formationPlace: 'Place {place} of {total}',
+    echoesBadge: 'There are Echoes to assign',
+    upgradeCampOnly: 'Weapons are upgraded at a camp.',
+    runesCampOnly: 'Runes are equipped and removed at a camp.',
+    echoesCampOnly: 'Echoes are equipped and removed at a camp.'
   },
   attributes: {
     maxHealth: 'Health',
@@ -1025,6 +1045,42 @@ export const en: Messages = {
     'tempered-stone': { name: 'Tempered Stone', text: 'Upgrades a weapon from +6 to +10.' },
     'arcane-stone': { name: 'Arcane Stone', text: 'Upgrades a weapon from +11 to +15.' },
     'abyssal-stone': { name: 'Abyssal Stone', text: 'Upgrades a weapon from +16 to +20.' }
+  },
+  inventory: {
+    tabs: {
+      all: 'All',
+      potions: 'Potions',
+      bombs: 'Bombs',
+      stones: 'Stones',
+      runes: 'Runes',
+      special: 'Special'
+    },
+    empty: {
+      all: 'The inventory is empty.',
+      potions: 'You carry no potions.',
+      bombs: 'You carry no bombs.',
+      stones: 'You carry no smithing stones.',
+      runes: 'You have no runes yet: each sanctuary keeps one.',
+      special: 'You have no special items.'
+    },
+    drink: 'Drink',
+    use: 'Use',
+    nobody: 'Nobody in the party needs it now.',
+    battleOnly: 'Used during a battle.',
+    stoneUse: "Used to upgrade weapons at a camp, from each hero's page.",
+    runeTier: 'Tier: {tier}',
+    runeUse: "Equipped from a hero's page, at a camp.",
+    tear: {
+      name: 'Tear of Oblivion',
+      text: 'Gives back every skill point of a hero, to learn its tree again.',
+      chooseHero: 'Who forgets?',
+      nobody: 'No hero has learned skills of its tree yet.'
+    }
+  },
+  bestiary: {
+    discovered: 'Discovered {count} of {total}',
+    empty: 'You have not defeated any enemy yet.',
+    nothingYet: 'Defeat more of this species to learn its weaknesses.'
   },
   shop: {
     gold: '{gold} gold',

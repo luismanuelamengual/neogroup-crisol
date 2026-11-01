@@ -1,0 +1,41 @@
+.xp-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .track {
+    height: 5px;
+    overflow: hidden;
+    border: 1px solid #12103a;
+    border-radius: 3px;
+    background: var(--bar-track);
+  }
+
+  .fill {
+    height: 100%;
+    background: var(--bar-xp);
+    transition: width 0.5s ease;
+  }
+
+  .amount {
+    color: var(--color-gold-light);
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  &.instant .fill {
+    transition: none;
+  }
+
+  &.compact {
+    .track {
+      height: 4px;
+    }
+
+    .amount {
+      font-size: 0.6rem;
+    }
+  }
+}

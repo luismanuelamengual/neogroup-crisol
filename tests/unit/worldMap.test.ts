@@ -16,10 +16,14 @@ import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 import {
   arriveAt,
+  canDrinkPotion,
+  canDrinkPotions,
   canStartNextCycle,
   drinkFlask,
+  drinkPotion,
   getEncounter,
   getFlask,
+  getFocus,
   getMissingOwner,
   getReachableNodeIds,
   getRevealedNodeIds,
@@ -154,6 +158,18 @@ describe('fights', () => {
     expect(isGameState(migrated)).toBe(true)
     expect(restTimes(migrated, RESPAWN_RESTS - 1).respawnedNodeIds).toEqual([])
     expect(restTimes(migrated, RESPAWN_RESTS).respawnedNodeIds).toEqual([combat])
+  })
+
+  it('has no lost experience waiting in a game saved before it could wait somewhere', () => {
+    const { lostXp, ...old } = start
+    const migrated = migrateGameState(old, 9) as GameState
+
+    expect(lostXp).toBeNull()
+    expect(isGameState(old)).toBe(false)
+    expect(migrated.lostXp).toBeNull()
+    expect(isGameState(migrated)).toBe(true)
+    expect(isGameState({ ...start, lostXp: { nodeId: combat, xp: { kael: 12 } } })).toBe(true)
+    expect(isGameState({ ...start, lostXp: { nodeId: combat, xp: { nobody: 12 } } })).toBe(false)
   })
 
   it('wakes up at the last rest after a defeat, with full health', () => {
@@ -324,6 +340,41 @@ describe('camp bosses and the Amber Flask', () => {
     expect(drunk.flaskCharges).toBe(0)
     expect(() => drinkFlask(index, drunk)).toThrow()
     expect(rest(index, drunk).flaskCharges).toBe(1)
+  })
+
+  it('drinks health and focus potions on the map, one hero at a time, only where there are no enemies', () => {
+    const initial = createInitialGameState('test')
+    const kael = initial.characters[0]
+    const maxHealth = getMaxHealth(kael)
+    const { maxFocus } = getFocus(kael)
+    const hurt: GameState = {
+      ...initial,
+      inventory: { 'health-potion': 1, 'focus-potion': 2, antidote: 1 },
+      characters: [{ ...kael, health: 10, focus: 0 }]
+    }
+
+    expect(canDrinkPotions(hurt)).toBe(true)
+    expect(canDrinkPotion(hurt, 'antidote', kael.id)).toBe(false)
+
+    const healed = drinkPotion(hurt, 'health-potion', kael.id)
+
+    expect(healed.characters[0].health).toBe(Math.min(maxHealth, 10 + Math.round(maxHealth * 0.35)))
+    expect(healed.inventory['health-potion']).toBe(0)
+    expect(() => drinkPotion(healed, 'health-potion', kael.id)).toThrow()
+
+    const focused = drinkPotion(healed, 'focus-potion', kael.id)
+
+    expect(focused.characters[0].focus).toBe(Math.round(maxFocus * 0.5))
+    expect(focused.characters[0].health).toBe(healed.characters[0].health)
+    expect(focused.inventory['focus-potion']).toBe(1)
+
+    // Not for the fallen, nor when already full, nor at a point with enemies.
+    expect(canDrinkPotion({ ...hurt, characters: [{ ...kael, health: 0 }] }, 'health-potion', kael.id)).toBe(false)
+    expect(canDrinkPotion({ ...hurt, characters: [{ ...kael, focus: maxFocus }] }, 'focus-potion', kael.id)).toBe(false)
+    const elsewhere = { ...hurt, positionNodeId: neighborsOf(world.startNodeId)[0] }
+
+    expect(canDrinkPotions(elsewhere)).toBe(false)
+    expect(() => drinkPotion(elsewhere, 'focus-potion', kael.id)).toThrow()
   })
 
   it('teleports only between open camps', () => {

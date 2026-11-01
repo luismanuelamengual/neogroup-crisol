@@ -2,6 +2,7 @@
 
 import './index.scss'
 import AllInclusiveIcon from '@mui/icons-material/AllInclusive'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import CloseIcon from '@mui/icons-material/Close'
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk'
 import ExploreIcon from '@mui/icons-material/Explore'
@@ -15,6 +16,8 @@ interface PointPanelProps {
   name: string
   /** Line under the name: what waits there (kind and level), or its state. */
   detail: string | null
+  /** Experience lost in the last defeat that waits at the point (0 when none). */
+  lostXp?: number
   /**
    * Where the point is: the party stands on it, there is a route to it, there
    * is none yet, or it is shut for the party (its detail says why).
@@ -39,6 +42,7 @@ interface PointPanelProps {
 export default function PointPanel({
   name,
   detail,
+  lostXp = 0,
   reach,
   steps,
   openCamp,
@@ -61,6 +65,12 @@ export default function PointPanel({
         <div className="titles">
           <span className="name">{name}</span>
           {detail && <span className="detail">{detail}</span>}
+          {lostXp > 0 && (
+            <span className="lost-xp">
+              <AutoAwesomeIcon fontSize="inherit" />
+              {t('world.points.lostXp', { xp: lostXp })}
+            </span>
+          )}
         </div>
         <IconButton size="small" onClick={onClose} aria-label={t('common.close')}>
           <CloseIcon fontSize="small" />

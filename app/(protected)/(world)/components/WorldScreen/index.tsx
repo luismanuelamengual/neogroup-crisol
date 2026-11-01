@@ -7,18 +7,20 @@ import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
-import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
-import { canSwapWeapons } from '@/app/(protected)/(engine)/utils/heroes'
+import { applyBattleResult, getLostXpAt, totalLostXp } from '@/app/(protected)/(engine)/utils/battleResult'
+import { canSwapWeapons, spendTear } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
   arriveAt,
   canStartNextCycle,
   countDefeatedSeals,
   drinkFlask,
+  drinkPotion,
   getEncounter,
   getFlask,
   getMissingOwner,
@@ -32,13 +34,17 @@ import {
   teleport,
   WorldIndex
 } from '@/app/(protected)/(engine)/utils/worldMap'
-import PartyScreen from '@/app/(protected)/(party)/components/PartyScreen'
+import BestiaryScreen from '@/app/(protected)/(party)/components/BestiaryScreen'
+import HeroScreen from '@/app/(protected)/(party)/components/HeroScreen'
+import InventoryScreen from '@/app/(protected)/(party)/components/InventoryScreen'
 import ShopDialog from '@/app/(protected)/(party)/components/ShopDialog'
 import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
 import MapHud from '@/app/(protected)/(world)/components/MapHud'
+import MapMenu from '@/app/(protected)/(world)/components/MapMenu'
 import NextCycleDialog from '@/app/(protected)/(world)/components/NextCycleDialog'
 import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
 import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
+import RewardsDialog from '@/app/(protected)/(world)/components/RewardsDialog'
 import TeleportDialog from '@/app/(protected)/(world)/components/TeleportDialog'
 import WorldMap, { WorldMapHandle } from '@/app/(protected)/(world)/components/WorldMap'
 import { useGameSession } from '@/app/(protected)/(world)/hooks/useGameSession'
@@ -65,7 +71,7 @@ interface PendingEncounter {
  */
 export default function WorldScreen() {
   const t = useT()
-  const { showSuccessMessage, showWarningMessage } = useNotifications()
+  const { showSuccessMessage } = useNotifications()
   const { status, update, upload } = useGameSession()
   const save = useGameStore((store) => store.save)
   const sync = useGameStore((store) => store.sync)
@@ -74,8 +80,13 @@ export default function WorldScreen() {
   const [walking, setWalking] = useState(false)
   const [pending, setPending] = useState<PendingEncounter | null>(null)
   const [teleporting, setTeleporting] = useState(false)
-  const [partyOpen, setPartyOpen] = useState(false)
+  /** The hero whose page is open. */
+  const [heroId, setHeroId] = useState<CharacterId | null>(null)
+  const [inventoryOpen, setInventoryOpen] = useState(false)
+  const [bestiaryOpen, setBestiaryOpen] = useState(false)
   const [shopOpen, setShopOpen] = useState(false)
+  /** What the point just won gives, shown in the middle of the screen until the player closes it. */
+  const [pointRewards, setPointRewards] = useState<string[]>([])
   const [confirmingCycle, setConfirmingCycle] = useState(false)
   const map = useRef<WorldMapHandle>(null)
   const state = save?.state ?? null
@@ -144,74 +155,75 @@ export default function WorldScreen() {
             openCamps,
             positionNodeId: state.positionNodeId,
             selectedNodeId,
-            route
+            route,
+            lostXpNodeId: state.lostXp?.nodeId ?? null
           }
         : null,
     [cleared, openCamps, reachable, respawned, revealed, route, selectedNodeId, state]
   )
+  /** What a reward says, the sound it makes and how long its message stays on the map. */
+  const describeReward = useCallback(
+    (reward: Reward): { text: string; sfx?: Parameters<typeof playSfx>[0]; duration?: number } => {
+      switch (reward.type) {
+        case 'camp':
+          return { text: t('world.rewards.camp', { name: campName(t, index!.nodes.get(reward.nodeId)!) }) }
+        case 'character':
+          return {
+            text: t('world.rewards.character', {
+              name: t(`characters.${reward.characterId}.name` as MessageKey),
+              level: reward.level
+            })
+          }
+        case 'flaskCharge':
+          return { text: t('world.rewards.flaskCharge', { max: reward.maxCharges }) }
+        case 'flaskPotency':
+          return { text: t('world.rewards.flaskPotency', { potency: reward.potency }) }
+        case 'rune':
+          return {
+            text: t('world.rewards.rune', {
+              name: runeName(t, getRune(reward.runeIndex)),
+              tier: t(`world.runeTiers.${reward.tier}`)
+            }),
+            sfx: 'rune'
+          }
+        case 'item':
+          return { text: t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }) }
+        case 'echoes':
+          return { text: t('world.rewards.echoes', { count: reward.count }) }
+        case 'tear':
+          return { text: t('world.rewards.tear') }
+        case 'weapon':
+          return {
+            text: t('world.rewards.weapon', {
+              name: t(`characters.${reward.characterId}.name` as MessageKey),
+              weapon: t(`weapons.${reward.weaponId}.name` as MessageKey)
+            }),
+            sfx: 'rune',
+            duration: 8000
+          }
+        case 'gold':
+          return { text: t('world.rewards.gold', { amount: reward.amount }), sfx: 'chest' }
+        case 'abyssOpen':
+          return { text: t('world.rewards.abyssOpen'), duration: 8000 }
+        case 'crisolDefeated':
+          return { text: t('world.rewards.crisol'), duration: 10000 }
+      }
+    },
+    [index, t]
+  )
   const showRewards = useCallback(
     (rewards: Reward[]) => {
       for (const reward of rewards) {
-        switch (reward.type) {
-          case 'camp':
-            showSuccessMessage(t('world.rewards.camp', { name: campName(t, index!.nodes.get(reward.nodeId)!) }))
-            break
-          case 'character':
-            showSuccessMessage(
-              t('world.rewards.character', {
-                name: t(`characters.${reward.characterId}.name` as MessageKey),
-                level: reward.level
-              })
-            )
-            break
-          case 'flaskCharge':
-            showSuccessMessage(t('world.rewards.flaskCharge', { max: reward.maxCharges }))
-            break
-          case 'flaskPotency':
-            showSuccessMessage(t('world.rewards.flaskPotency', { potency: reward.potency }))
-            break
-          case 'rune':
-            playSfx('rune')
-            showSuccessMessage(
-              t('world.rewards.rune', {
-                name: runeName(t, getRune(reward.runeIndex)),
-                tier: t(`world.runeTiers.${reward.tier}`)
-              })
-            )
-            break
-          case 'item':
-            showSuccessMessage(t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }))
-            break
-          case 'echoes':
-            showSuccessMessage(t('world.rewards.echoes', { count: reward.count }))
-            break
-          case 'tear':
-            showSuccessMessage(t('world.rewards.tear'))
-            break
-          case 'weapon':
-            playSfx('rune')
-            showSuccessMessage(
-              t('world.rewards.weapon', {
-                name: t(`characters.${reward.characterId}.name` as MessageKey),
-                weapon: t(`weapons.${reward.weaponId}.name` as MessageKey)
-              }),
-              8000
-            )
-            break
-          case 'gold':
-            playSfx('chest')
-            showSuccessMessage(t('world.rewards.gold', { amount: reward.amount }))
-            break
-          case 'abyssOpen':
-            showSuccessMessage(t('world.rewards.abyssOpen'), 8000)
-            break
-          case 'crisolDefeated':
-            showSuccessMessage(t('world.rewards.crisol'), 10000)
-            break
+        const { text, sfx, duration } = describeReward(reward)
+
+        if (sfx) {
+          playSfx(sfx)
         }
+
+        showSuccessMessage(text, duration)
       }
     },
-    [index, showSuccessMessage, t]
+    [describeReward, showSuccessMessage]
   )
   const go = useCallback(async () => {
     if (!index || !state || !route || walking) {
@@ -308,23 +320,24 @@ export default function WorldScreen() {
 
     setPending(null)
     update(result.state)
-    showRewards(result.rewards)
+
+    // The battle's own spoils (experience, levels, gold, loot and Echoes) are already on the result panel;
+    // what the point gives gets a window of its own, in the middle of the screen.
+    if (result.pointRewards.length > 0) {
+      for (const sfx of new Set(result.pointRewards.map((reward) => describeReward(reward).sfx))) {
+        if (sfx) {
+          playSfx(sfx)
+        }
+      }
+
+      setPointRewards(result.pointRewards.map((reward) => describeReward(reward).text))
+    }
 
     if (result.levelUps.length > 0) {
       playSfx('level-up')
     }
 
-    for (const levelUp of result.levelUps) {
-      showSuccessMessage(
-        t('battle.levelUp', { name: t(`characters.${levelUp.characterId}.name` as MessageKey), level: levelUp.level })
-      )
-    }
-
     if (battle.outcome === 'defeat') {
-      showWarningMessage(
-        t('world.rewards.defeat', { camp: campName(t, index.nodes.get(result.state.positionNodeId)!) }),
-        6000
-      )
       map.current?.centerOn(result.state.positionNodeId)
     }
 
@@ -363,6 +376,16 @@ export default function WorldScreen() {
     playSfx('flask')
   }
 
+  const handleDrinkPotion = (itemId: string, characterId: CharacterId) => {
+    update(drinkPotion(state, itemId, characterId))
+    playSfx('heal')
+  }
+
+  const handleSpendTear = (characterId: CharacterId) => {
+    update(spendTear(state, characterId))
+    playSfx('rune')
+  }
+
   const otherCamps = state.openCampIds
     .filter((id) => id !== state.positionNodeId)
     .map((id) => {
@@ -387,6 +410,7 @@ export default function WorldScreen() {
           <PointPanel
             name={nameOf(selected.id)}
             detail={detailOf(selected.id)}
+            lostXp={totalLostXp(getLostXpAt(state, selected.id))}
             reach={
               selected.id === state.positionNodeId
                 ? 'here'
@@ -410,14 +434,21 @@ export default function WorldScreen() {
             onClose={() => setSelectedNodeId(null)}
           />
         )}
-        <PartyPanel
-          characters={state.characters}
-          flask={flask}
-          disabled={busy}
-          echoes={state.echoes}
-          onDrink={handleDrink}
-          onOpenParty={() => setPartyOpen(true)}
-        />
+        <div className="dock">
+          <PartyPanel
+            characters={state.characters}
+            flask={flask}
+            disabled={busy}
+            echoes={state.echoes}
+            onDrink={handleDrink}
+            onOpenHero={setHeroId}
+          />
+          <MapMenu
+            disabled={busy}
+            onInventory={() => setInventoryOpen(true)}
+            onBestiary={() => setBestiaryOpen(true)}
+          />
+        </div>
       </div>
       {pending && (
         <BattleScreen
@@ -428,16 +459,25 @@ export default function WorldScreen() {
           onFinish={handleBattleEnd}
         />
       )}
-      {partyOpen && (
-        <PartyScreen
-          open
+      {heroId && (
+        <HeroScreen
           state={state}
+          characterId={heroId}
           atCamp={isAtOpenCamp(state)}
           canSwap={canSwapWeapons(state)}
           onChange={update}
-          onClose={() => setPartyOpen(false)}
+          onClose={() => setHeroId(null)}
         />
       )}
+      {inventoryOpen && (
+        <InventoryScreen
+          state={state}
+          onDrinkPotion={handleDrinkPotion}
+          onSpendTear={handleSpendTear}
+          onClose={() => setInventoryOpen(false)}
+        />
+      )}
+      {bestiaryOpen && <BestiaryScreen kills={state.kills} onClose={() => setBestiaryOpen(false)} />}
       {merchantHere && (
         <ShopDialog
           open={shopOpen}
@@ -454,6 +494,7 @@ export default function WorldScreen() {
         onCancel={() => setConfirmingCycle(false)}
         onConfirm={handleNextCycle}
       />
+      <RewardsDialog rewards={pointRewards} onClose={() => setPointRewards([])} />
       <TeleportDialog
         open={teleporting}
         camps={otherCamps}

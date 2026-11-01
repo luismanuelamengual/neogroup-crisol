@@ -1,9 +1,18 @@
-.party-screen {
+.game-screen {
   .MuiDialog-paper {
     border: 0;
     border-radius: 0;
     background: radial-gradient(900px 500px at 50% 0%, rgba(122, 42, 12, 0.35) 0%, transparent 65%), var(--color-night);
     box-shadow: none;
+    // The title, the header and the tabs stay; only the content scrolls.
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header,
+  .views {
+    flex: 0 0 auto;
   }
 
   header {
@@ -34,11 +43,25 @@
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
-    padding: 10px 16px 4px;
+    // Room for the glow of the selected tab, which the scroll would cut.
+    padding: 10px 16px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    @media (max-width: 599px) {
+      gap: 8px;
+    }
 
     button {
-      flex: 1;
-      padding: 9px 6px;
+      flex: 1 0 auto;
+      padding: 9px 12px;
+
+      @media (max-width: 599px) {
+        padding: 8px 10px;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+      }
+
       border: var(--frame-border);
       border-radius: var(--frame-radius);
       background: var(--frame-background);
@@ -51,7 +74,13 @@
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
+      white-space: nowrap;
       cursor: pointer;
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
 
       &.selected {
         background: linear-gradient(180deg, #8a3a10 0%, #4a1a06 100%);
@@ -64,12 +93,14 @@
 
   .content {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 22px;
     width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 20px 16px calc(28px + var(--safe-bottom));
+    min-height: 0;
+    overflow-y: auto;
+    // A centered column of 720px at most, with the scroll on the whole width.
+    padding: 20px max(16px, calc((100% - 688px) / 2)) calc(28px + var(--safe-bottom));
   }
 
   // Shared look of the sections of the party screen: ornate windows.
@@ -126,76 +157,20 @@
       line-height: 1.35;
     }
   }
+}
 
-  .formation li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 3px 8px;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    cursor: pointer;
-
-    &.selected {
-      border-color: var(--color-gold);
-      background: linear-gradient(90deg, rgba(122, 42, 12, 0.85) 0%, rgba(122, 42, 12, 0.2) 100%);
-      box-shadow: 0 0 10px rgba(255, 138, 42, 0.3);
-
-      .name::before {
-        content: '';
-        display: inline-block;
-        width: 7px;
-        height: 7px;
-        margin-right: 8px;
-        background: var(--color-gold);
-        box-shadow: 0 0 6px var(--color-ember);
-        transform: translateY(-2px) rotate(45deg);
-      }
-    }
-
-    .name {
-      flex: 1;
-      color: var(--color-gold-light);
-      font-family: var(--font-display);
-      font-weight: 700;
-    }
-
-    .level {
-      color: var(--color-text-secondary);
-      font-size: 0.85rem;
-      font-weight: 800;
-    }
-
-    .badge {
-      min-width: 20px;
-      padding: 0 6px;
-      border: 1px solid var(--color-gold);
-      border-radius: 999px;
-      background: var(--color-magenta-dark);
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-align: center;
-    }
-
-    .role {
-      color: var(--color-lime);
-      font-family: var(--font-display);
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-
-      &.reserve {
-        color: var(--color-text-secondary);
-      }
-    }
-
-    .MuiIconButton-root {
-      color: var(--color-gold);
-
-      &.Mui-disabled {
-        color: #4a3a28;
-      }
-    }
-  }
+.game-screen .views .tab-badge {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  background: var(--color-magenta-dark);
+  color: #fff3e0;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-shadow: none;
 }

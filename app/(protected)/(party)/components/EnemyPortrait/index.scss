@@ -1,0 +1,14 @@
+.enemy-portrait {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  justify-content: center;
+
+  img,
+  svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5));
+  }
+}

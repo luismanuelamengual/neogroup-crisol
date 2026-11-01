@@ -237,6 +237,8 @@ export const es = {
     title: 'Aurenya',
     level: 'Nivel {level}',
     levelShort: 'Nv. {level}',
+    xp: 'XP {xp} de {next}',
+    xpLabel: 'Experiencia: {xp} de {next}. Faltan {count} para el nivel {level}.',
     backToMenu: 'Volver al menú',
     menu: 'Menú',
     gold: 'Oro',
@@ -278,6 +280,7 @@ export const es = {
       combat: 'Combate',
       cleared: 'Camino despejado',
       respawned: 'Los enemigos volvieron',
+      lostXp: '{xp} de experiencia perdida te espera aquí',
       miniboss: 'Minijefe de {biome}',
       sanctuary: 'Santuario de runa',
       sanctuaryTaken: 'Santuario (runa obtenida)',
@@ -314,6 +317,10 @@ export const es = {
       teleportTitle: 'Viajar a otro campamento',
       shop: 'Tienda'
     },
+    potions: {
+      blocked: 'Solo podés tomar pociones en un punto sin enemigos.',
+      chooseHero: '¿Quién la toma?'
+    },
     flask: {
       name: 'Frasco de Ámbar',
       drink: 'Beber',
@@ -322,6 +329,7 @@ export const es = {
       full: 'El grupo ya tiene la vida llena.'
     },
     rewards: {
+      title: '¡Recompensa!',
       camp: '¡Campamento ganado: {name}!',
       character: '¡{name} se une al grupo en el nivel {level}!',
       flaskCharge: 'El Frasco de Ámbar ahora tiene {max} cargas',
@@ -333,8 +341,7 @@ export const es = {
       weapon: '¡{name} obtuvo {weapon}!',
       gold: '+{amount} de oro',
       abyssOpen: 'Los tres Sellos cayeron: la Puerta del Abismo se abrió',
-      crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.',
-      defeat: 'Tu grupo cayó. Despertás en {camp}.'
+      crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.'
     },
     runeTiers: {
       lesser: 'menor',
@@ -394,8 +401,12 @@ export const es = {
     retreated: 'Te retiraste',
     retreatText: 'Volvés al punto anterior sin perder experiencia.',
     xpGained: '+{xp} de experiencia',
+    xpRecovered: '+{xp} de experiencia recuperada',
+    xpLeftBehind: 'Lo que perdiste quedó en este lugar: vencé a estos enemigos para recuperarlo.',
+    xpForfeited: 'La experiencia que habías dejado en tu caída anterior ({xp}) se perdió.',
     goldGained: '+{gold} de oro',
     levelUp: '{name} sube al nivel {level}',
+    levelUpShort: '¡Nivel {level}!',
     continue: 'Continuar',
     elite: '{name} de élite'
   },
@@ -702,19 +713,14 @@ export const es = {
       'Cada héroe va a la batalla con el ataque de su arma y hasta {count} habilidades. Cambialas cuando quieras fuera de la pelea.',
     spareSkills: 'Otras habilidades que conoce',
     unequipSkill: 'Quitar {skill}',
-    title: 'Grupo',
-    open: 'Grupo',
-    heroes: 'Héroes',
     inventory: 'Inventario',
     bestiary: 'Bestiario',
-    formation: 'Formación',
     formationHint: 'Los tres primeros pelean; el resto espera en reserva y entra junto cuando caen los tres.',
     active: 'Activo',
     reserve: 'Reserva',
-    moveUp: 'Subir',
-    moveDown: 'Bajar',
+    moveUp: 'Mover antes en la formación',
+    moveDown: 'Mover después en la formación',
     pointsBadge: 'Puntos para gastar',
-    campOnly: 'Las armas se mejoran, y las runas y los ecos se cambian, en un campamento.',
     swapOnly: 'Las armas se cambian en cualquier punto despejado.',
     attributes: 'Atributos',
     attributePoints: { one: '{count} punto de atributo', other: '{count} puntos de atributo' },
@@ -731,7 +737,6 @@ export const es = {
     weapon: 'Arma',
     weapons: 'Armas',
     weaponHeld: 'En mano',
-    weaponMissing: 'Te espera en un relicario: {biome}',
     weaponAttack: '{skill} · {type} · {target}',
     weaponStyle: 'Estilo: {traits}',
     weaponBalanced: 'Estilo: equilibrada',
@@ -760,12 +765,9 @@ export const es = {
     cost: { one: '{count} Eco', other: '{count} Ecos' },
     have: 'tenés {count}',
     empty: 'Todavía no hay nada.',
-    consumables: 'Pociones y bombas',
-    stones: 'Piedras de herrería',
     owned: '× {count}',
     bestiaryHint: 'Derrotá más de cada especie para saber más sobre ella.',
     kills: { one: '{count} derrotado', other: '{count} derrotados' },
-    unknown: '???',
     nextUnlock: 'Más a las {count}',
     weakTo: 'Débil a {types}',
     resists: 'Resiste {types}',
@@ -775,7 +777,25 @@ export const es = {
     archetype: 'Tipo: {archetype}',
     statsLine: 'Vida {health} · Ataque {attack} · Defensa {defense} · Velocidad {speed} (nivel {level})',
     skillsLine: 'Habilidades: {skills}',
-    dropsLine: 'Deja: {items}'
+    dropsLine: 'Deja: {items}',
+    health: 'Vida',
+    focus: 'Concentración',
+    experience: 'Experiencia',
+    tabs: {
+      attributes: 'Atributos',
+      weapons: 'Armas',
+      skills: 'Habilidades',
+      runes: 'Runas',
+      echoes: 'Ecos'
+    },
+    openHero: 'Ver a {name}',
+    previousHero: 'Héroe anterior',
+    nextHero: 'Héroe siguiente',
+    formationPlace: 'Puesto {place} de {total}',
+    echoesBadge: 'Hay Ecos para asignar',
+    upgradeCampOnly: 'Las armas se mejoran en un campamento.',
+    runesCampOnly: 'Las runas se equipan y se quitan en un campamento.',
+    echoesCampOnly: 'Los ecos se equipan y se quitan en un campamento.'
   },
   attributes: {
     maxHealth: 'Vida',
@@ -1037,6 +1057,42 @@ export const es = {
     'tempered-stone': { name: 'Piedra templada', text: 'Mejora un arma de +6 a +10.' },
     'arcane-stone': { name: 'Piedra arcana', text: 'Mejora un arma de +11 a +15.' },
     'abyssal-stone': { name: 'Piedra abisal', text: 'Mejora un arma de +16 a +20.' }
+  },
+  inventory: {
+    tabs: {
+      all: 'Todo',
+      potions: 'Pociones',
+      bombs: 'Bombas',
+      stones: 'Piedras',
+      runes: 'Runas',
+      special: 'Especiales'
+    },
+    empty: {
+      all: 'El inventario está vacío.',
+      potions: 'No llevás pociones.',
+      bombs: 'No llevás bombas.',
+      stones: 'No llevás piedras de herrería.',
+      runes: 'Todavía no tenés runas: cada santuario guarda una.',
+      special: 'No tenés objetos especiales.'
+    },
+    drink: 'Tomar',
+    use: 'Usar',
+    nobody: 'Nadie del grupo la necesita ahora.',
+    battleOnly: 'Se usa durante una batalla.',
+    stoneUse: 'Se usa para mejorar armas en un campamento, desde la página de cada héroe.',
+    runeTier: 'Runa {tier}',
+    runeUse: 'Se equipa desde la página de un héroe, en un campamento.',
+    tear: {
+      name: 'Lágrima del Olvido',
+      text: 'Devuelve todos los puntos de habilidad de un héroe, para aprender de nuevo su árbol.',
+      chooseHero: '¿Quién olvida?',
+      nobody: 'Ningún héroe aprendió habilidades de su árbol todavía.'
+    }
+  },
+  bestiary: {
+    discovered: 'Descubiertos {count} de {total}',
+    empty: 'Todavía no derrotaste a ningún enemigo.',
+    nothingYet: 'Derrotá más de esta especie para conocer sus debilidades.'
   },
   shop: {
     gold: '{gold} de oro',

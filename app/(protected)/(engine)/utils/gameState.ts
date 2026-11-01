@@ -8,7 +8,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 9
+export const SAVE_VERSION = 10
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -21,6 +21,7 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
     clearedNodeIds: [START_NODE_ID],
     respawnedNodeIds: [],
     restsSinceCleared: {},
+    lostXp: null,
     flaskCharges: FLASK_BASE_CHARGES,
     characters: [createCharacter(CharacterId.KAEL)],
     gold: 0,
@@ -149,6 +150,11 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
     state = { ...state, restsSinceCleared: {} }
   }
 
+  if (fromVersion < 10) {
+    // v10: the experience lost in a defeat waits where the party fell. Nothing is waiting yet.
+    state = { ...state, lostXp: null }
+  }
+
   return state
 }
 
@@ -165,6 +171,14 @@ export function isGameState(value: unknown): value is GameState {
     !!item && typeof item === 'object' && !Array.isArray(item) && Object.values(item).every(isCount)
   const isRuneIndex = (item: unknown) => Number.isInteger(item) && (item as number) >= 1 && (item as number) <= 60
   const characterIds = Object.values(CharacterId) as string[]
+  // Nothing waiting, or a point with what each character lost there.
+  const isLostXp = (item: unknown) =>
+    item === null ||
+    (!!item &&
+      typeof item === 'object' &&
+      typeof (item as Record<string, unknown>).nodeId === 'string' &&
+      isCountMap((item as Record<string, unknown>).xp) &&
+      Object.keys((item as Record<string, object>).xp).every((id) => characterIds.includes(id)))
   // The weapons of a character: its own, with an upgrade from 0 to the maximum.
   const isWeaponsOf = (id: unknown, item: unknown) =>
     isCountMap(item) &&
@@ -182,6 +196,7 @@ export function isGameState(value: unknown): value is GameState {
     isStringArray(state.clearedNodeIds) &&
     isStringArray(state.respawnedNodeIds) &&
     isCountMap(state.restsSinceCleared) &&
+    isLostXp(state.lostXp) &&
     isCount(state.flaskCharges) &&
     isCount(state.gold) &&
     isCount(state.tears) &&
@@ -200,6 +215,7 @@ export function isGameState(value: unknown): value is GameState {
         level,
         xp,
         health,
+        focus,
         attributes,
         talents,
         traded,
@@ -217,6 +233,7 @@ export function isGameState(value: unknown): value is GameState {
         (level as number) >= 1 &&
         isCount(xp) &&
         isCount(health) &&
+        (focus === undefined || isCount(focus)) &&
         isCountMap(attributes) &&
         isStringArray(talents) &&
         isCount(traded) &&

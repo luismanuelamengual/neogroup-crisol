@@ -13,6 +13,7 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MusicId } from '@/app/(protected)/(art)/data/audio'
 import { playMusic } from '@/app/(protected)/(art)/utils/sound'
+import XpChange from '@/app/(protected)/(battle)/components/XpChange'
 import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
 import { combatantName } from '@/app/(protected)/(battle)/utils/names'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
@@ -42,8 +43,15 @@ import {
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
+import {
+  experienceAfterBattle,
+  getLostXpAt,
+  totalLostXp,
+  xpLostInDefeat
+} from '@/app/(protected)/(engine)/utils/battleResult'
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
 import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
+import XpBar from '@/app/(protected)/(party)/components/XpBar'
 import { itemName } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -323,6 +331,13 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   }
 
   const actor = battle.actorId ? getCombatant(battle, battle.actorId) : null
+  /** The hero's progression outside the battle (its experience doesn't change while fighting). */
+  const characterOf = (hero: Combatant) => game.characters.find((character) => character.id === hero.characterId)
+  /** How the experience of a hero ends up after the battle, as the result will apply it. */
+  const experienceAfter = (character: GameState['characters'][number], hero: Combatant) =>
+    experienceAfterBattle(game, battle, character, !!hero.fought)
+  /** Experience lost in the last defeat that waits here: won back with a victory. */
+  const lostHere = totalLostXp(getLostXpAt(game, node.id))
   const heroes = battle.combatants.filter(
     (combatant) => combatant.side === 'hero' && (!combatant.reserve || combatant.fought)
   )
@@ -604,6 +619,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                 <div className="bar focus">
                   <div style={{ width: `${(hero.focus / hero.stats.maxFocus) * 100}%` }} />
                 </div>
+                {characterOf(hero) && <XpBar character={characterOf(hero)!} compact />}
                 {traitLabel(hero) && <span className="trait">{traitLabel(hero)}</span>}
               </div>
             </li>
@@ -625,7 +641,9 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
             {battle.outcome === 'victory' ? (
               <>
                 <p>{t('battle.xpGained', { xp: battle.xp })}</p>
+                {lostHere > 0 && <p className="recovered">{t('battle.xpRecovered', { xp: lostHere })}</p>}
                 <p>{t('battle.goldGained', { gold: battle.gold })}</p>
+                {battle.echoes > 0 && <p>{t('world.rewards.echoes', { count: battle.echoes })}</p>}
                 {Object.keys(battle.loot).length > 0 && (
                   <p>
                     {t('battle.lootTitle')}:{' '}
@@ -636,8 +654,33 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                 )}
               </>
             ) : (
-              <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>
+              <>
+                <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>
+                {battle.outcome === 'defeat' && xpLostInDefeat(game) && (
+                  <p className="recovered">{t('battle.xpLeftBehind')}</p>
+                )}
+                {battle.outcome === 'defeat' && game.lostXp && (
+                  <p className="forfeited">{t('battle.xpForfeited', { xp: totalLostXp(game.lostXp.xp) })}</p>
+                )}
+              </>
             )}
+            <ul className="experience">
+              {heroes.map((hero, position) => {
+                const before = characterOf(hero)
+
+                return (
+                  before && (
+                    <XpChange
+                      key={hero.id}
+                      name={combatantName(t, hero)}
+                      before={before}
+                      after={experienceAfter(before, hero)}
+                      delay={400 + position * 150}
+                    />
+                  )
+                )
+              })}
+            </ul>
             <GameButton fullWidth onClick={() => onFinish(battle)}>
               {t('battle.continue')}
             </GameButton>

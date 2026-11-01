@@ -231,7 +231,7 @@ export function createBattle(setup: BattleSetup): BattleStep {
       level: character.level,
       stats,
       health: Math.min(character.health, stats.maxHealth),
-      focus: Math.round(stats.maxFocus / 2),
+      focus: Math.min(stats.maxFocus, character.focus ?? Math.round(stats.maxFocus / 2)),
       initiative: Math.min(INITIATIVE_FULL - 1, roll(state) * 30 + bonuses.initiative),
       statuses: [],
       skills: getCharacterSkills(character),

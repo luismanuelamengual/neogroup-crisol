@@ -26,6 +26,8 @@ export interface MapView {
   selectedNodeId: string | null
   /** Route to the selected point, highlighted. */
   route: string[] | null
+  /** Point where the experience lost in the last defeat waits (see GameState.lostXp). */
+  lostXpNodeId?: string | null
 }
 
 /** World pixels per pixel of the fog mask. */
@@ -52,6 +54,9 @@ const OUT_OF_REACH_SHADE = 0.4
 const OUT_OF_REACH_ALPHA = 0.55
 const LOCK = 0x8a8195
 const OUTLINE = 0x0a0710
+/** The lost experience waiting at a point: a glowing orb floating over it, with sparks around. */
+const LOST_XP = 0x4fc3ff
+const LOST_XP_CORE = 0xe6f8ff
 /** Height of the building of each merchant, standing on its point in place of its marker (the door just behind the hero). */
 const HOUSE_HEIGHT = 170
 const FOG = 'rgba(7, 4, 13, 0.95)'
@@ -77,6 +82,7 @@ export class WorldRenderer {
   private readonly markers = new Graphics()
   private readonly outOfReach = new Graphics()
   private readonly beacons = new Graphics()
+  private readonly lostXp = new Graphics()
   private readonly selection = new Graphics()
   private readonly hero = new Container()
   private readonly fogCanvas: HTMLCanvasElement
@@ -131,6 +137,7 @@ export class WorldRenderer {
       this.scenery.standing,
       fog,
       this.beacons,
+      this.lostXp,
       this.selection
     )
 
@@ -606,10 +613,68 @@ export class WorldRenderer {
       this.beacons
         .circle(node.x, node.y, ring + wave * radius * 1.4)
         .stroke({ width: 5, color: BEACON, alpha: (1 - wave) * 0.6 })
-      this.beacons
-        .poly([node.x - 22, top - 24, node.x + 22, top - 24, node.x, top])
-        .fill({ color: BEACON })
-        .stroke({ width: 5, color: OUTLINE })
+
+      // Where the lost experience waits, its orb floats in place of the arrow.
+      if (id !== this.view.lostXpNodeId) {
+        this.beacons
+          .poly([node.x - 22, top - 24, node.x + 22, top - 24, node.x, top])
+          .fill({ color: BEACON })
+          .stroke({ width: 5, color: OUTLINE })
+      }
+    }
+  }
+
+  /**
+   * The experience lost in the last defeat, where it waits: a glowing orb
+   * bobbing over the point with sparks circling it, over the fog so it is seen
+   * from far (the party walked there, so the point is always known).
+   */
+  private drawLostXp(): void {
+    this.lostXp.clear()
+
+    const id = this.view?.lostXpNodeId
+    const node = id ? this.nodes.get(id) : null
+
+    if (!node) {
+      return
+    }
+
+    const glow = (Math.sin(this.elapsed * 2.5) + 1) / 2
+    const radius = markerOf(node, false, this.view!.openCamps.has(node.id)).radius
+    const x = node.x
+    const y = node.y - radius - 58 + Math.sin(this.elapsed * 2) * 8
+    const orb = 20
+
+    // A soft beam from the orb down to the point.
+    this.lostXp
+      .poly([x - orb * 0.6, y, x + orb * 0.6, y, x + radius * 0.8, node.y, x - radius * 0.8, node.y])
+      .fill({ color: LOST_XP, alpha: 0.12 + glow * 0.08 })
+
+    // The halo, the orb and its bright core.
+    for (const [extra, alpha] of [
+      [26, 0.12],
+      [16, 0.2],
+      [8, 0.32]
+    ]) {
+      this.lostXp.circle(x, y, orb + extra + glow * 6).fill({ color: LOST_XP, alpha })
+    }
+
+    this.lostXp.circle(x, y, orb).fill({ color: LOST_XP }).stroke({ width: 5, color: OUTLINE })
+    this.lostXp.circle(x - orb * 0.25, y - orb * 0.25, orb * 0.45).fill({ color: LOST_XP_CORE, alpha: 0.9 })
+
+    // Sparks circling it.
+    for (let spark = 0; spark < 4; spark++) {
+      const angle = this.elapsed * 1.6 + (spark * Math.PI) / 2
+      const sx = x + Math.cos(angle) * (orb + 22)
+      const sy = y + Math.sin(angle) * (orb + 12)
+      const size = 5 + ((spark + Math.floor(this.elapsed * 3)) % 2) * 2
+
+      this.lostXp
+        .poly([sx, sy - size * 1.6, sx + size * 0.5, sy, sx, sy + size * 1.6, sx - size * 0.5, sy])
+        .fill({ color: LOST_XP_CORE, alpha: 0.95 })
+      this.lostXp
+        .poly([sx - size * 1.6, sy, sx, sy + size * 0.5, sx + size * 1.6, sy, sx, sy - size * 0.5])
+        .fill({ color: LOST_XP_CORE, alpha: 0.95 })
     }
   }
 
@@ -624,6 +689,7 @@ export class WorldRenderer {
     this.scenery.update(visible, this.elapsed)
     this.hero.scale.set(1 + pulse * 0.04)
     this.drawBeacons(pulse)
+    this.drawLostXp()
     this.selection.clear()
 
     const selected = this.view?.selectedNodeId ? this.nodes.get(this.view.selectedNodeId) : null

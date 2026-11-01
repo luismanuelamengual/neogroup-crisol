@@ -14,12 +14,27 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-width: 640px;
-    margin: 0 auto;
     pointer-events: none;
 
-    > * {
+    > *,
+    > .dock > * {
       pointer-events: auto;
+    }
+
+    // The window of the point picked, in the middle above the dock.
+    > .point-panel {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    // The heroes and the Flask on the left, the inventory and the bestiary on the right.
+    > .dock {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
     }
   }
 }

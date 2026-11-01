@@ -61,9 +61,16 @@ import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
+/** The tabs of the page of a hero. */
+export type HeroTab = 'attributes' | 'weapons' | 'skills' | 'runes' | 'echoes'
+
+export const HERO_TABS: HeroTab[] = ['attributes', 'weapons', 'skills', 'runes', 'echoes']
+
 interface HeroSheetProps {
   state: GameState
   character: CharacterState
+  /** The part of the build shown. */
+  tab: HeroTab
   atCamp: boolean
   /** The party stands on a cleared point: the weapons can be swapped. */
   canSwap: boolean
@@ -81,8 +88,8 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
   'critDamage'
 ]
 
-/** The build of one hero: attributes, skill tree, weapon, runes and echoes. */
-export default function HeroSheet({ state, character, atCamp, canSwap, onChange }: HeroSheetProps) {
+/** One part of the build of a hero: attributes, weapons, skills (loadout and tree), runes or echoes. */
+export default function HeroSheet({ state, character, tab, atCamp, canSwap, onChange }: HeroSheetProps) {
   const t = useT()
   const id = character.id
   const name = t(`characters.${id}.name` as MessageKey)
@@ -98,185 +105,190 @@ export default function HeroSheet({ state, character, atCamp, canSwap, onChange 
 
   return (
     <div className="hero-sheet">
-      <section>
-        <h3>
-          {t('party.attributes')}
-          {attributePoints > 0 && <small>{t('party.attributePoints', { count: attributePoints })}</small>}
-        </h3>
-        <ul className="attributes">
-          {ATTRIBUTES.map((stat) => (
-            <li key={stat}>
-              <span className="label">{t(`attributes.${stat}`)}</span>
-              <span className="value">{formatStat(stat, stats[stat])}</span>
-              <IconButton
-                size="small"
-                disabled={attributePoints <= 0}
-                aria-label={t('party.spendPoint', { stat: t(`attributes.${stat}`) })}
-                onClick={() => onChange(spendAttributePoint(state, id, stat))}
-              >
-                <AddIcon fontSize="small" />
-              </IconButton>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h3>
-          {t('party.battleSkills')}
-          <small>
-            {character.skills.length}/{SKILL_SLOTS}
-          </small>
-        </h3>
-        <p className="lines">{t('party.battleSkillsHint', { count: SKILL_SLOTS })}</p>
-        <ul className="loadout">
-          {Array.from({ length: SKILL_SLOTS }, (_, index) => character.skills[index]).map((skillId, index) =>
-            skillId ? (
-              <li key={skillId} className="slot">
-                <span className="name">{skillName(t, skillId)}</span>
-                {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
+      {tab === 'attributes' && (
+        <section>
+          <h3>
+            {t('party.attributes')}
+            {attributePoints > 0 && <small>{t('party.attributePoints', { count: attributePoints })}</small>}
+          </h3>
+          <ul className="attributes">
+            {ATTRIBUTES.map((stat) => (
+              <li key={stat}>
+                <span className="label">{t(`attributes.${stat}`)}</span>
+                <span className="value">{formatStat(stat, stats[stat])}</span>
                 <IconButton
                   size="small"
-                  aria-label={t('party.unequipSkill', { skill: skillName(t, skillId) })}
-                  onClick={() => onChange(unequipSkill(state, id, skillId))}
+                  disabled={attributePoints <= 0}
+                  aria-label={t('party.spendPoint', { stat: t(`attributes.${stat}`) })}
+                  onClick={() => onChange(spendAttributePoint(state, id, stat))}
                 >
-                  <CloseIcon fontSize="small" />
+                  <AddIcon fontSize="small" />
                 </IconButton>
               </li>
-            ) : (
-              <li key={`empty-${index}`} className="slot empty">
-                {t('battle.emptySlot')}
-              </li>
-            )
-          )}
-        </ul>
-        {spare.length > 0 && (
-          <>
-            <h4 className="spare-title">{t('party.spareSkills')}</h4>
-            <div className="spare">
-              {spare.map((skillId) => (
-                <ButtonBase
-                  key={skillId}
-                  className="spare-skill"
-                  disabled={character.skills.length >= SKILL_SLOTS}
-                  onClick={() => onChange(equipSkill(state, id, skillId))}
-                >
-                  <AddIcon fontSize="inherit" />
-                  {skillName(t, skillId)}
-                  {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
-                </ButtonBase>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {tab === 'skills' && (
+        <>
+          <section>
+            <h3>
+              {t('party.battleSkills')}
+              <small>
+                {character.skills.length}/{SKILL_SLOTS}
+              </small>
+            </h3>
+            <p className="lines">{t('party.battleSkillsHint', { count: SKILL_SLOTS })}</p>
+            <ul className="loadout">
+              {Array.from({ length: SKILL_SLOTS }, (_, index) => character.skills[index]).map((skillId, index) =>
+                skillId ? (
+                  <li key={skillId} className="slot">
+                    <span className="name">{skillName(t, skillId)}</span>
+                    {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
+                    <IconButton
+                      size="small"
+                      aria-label={t('party.unequipSkill', { skill: skillName(t, skillId) })}
+                      onClick={() => onChange(unequipSkill(state, id, skillId))}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </li>
+                ) : (
+                  <li key={`empty-${index}`} className="slot empty">
+                    {t('battle.emptySlot')}
+                  </li>
+                )
+              )}
+            </ul>
+            {spare.length > 0 && (
+              <>
+                <h4 className="spare-title">{t('party.spareSkills')}</h4>
+                <div className="spare">
+                  {spare.map((skillId) => (
+                    <ButtonBase
+                      key={skillId}
+                      className="spare-skill"
+                      disabled={character.skills.length >= SKILL_SLOTS}
+                      onClick={() => onChange(equipSkill(state, id, skillId))}
+                    >
+                      <AddIcon fontSize="inherit" />
+                      {skillName(t, skillId)}
+                      {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
+                    </ButtonBase>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+
+          <section>
+            <h3>
+              {t('party.skills')}
+              <small>{t('party.skillPoints', { count: Math.max(0, skillPoints) })}</small>
+            </h3>
+            <div className="tree">
+              {[0, 1, 2].map((branch) => (
+                <div key={branch} className="branch">
+                  <h4>{t(`talents.branches.${id}.b${branch}` as MessageKey)}</h4>
+                  <ol>
+                    {tree
+                      .filter((talent) => talent.branch === branch)
+                      .map((talent) => {
+                        const bought = character.talents.includes(talent.id)
+                        const locked = !!talent.requires && !character.talents.includes(talent.requires)
+
+                        return (
+                          <li key={talent.id} className={classNames({ bought, locked })}>
+                            <span className="name">{talentName(t, talent)}</span>
+                            <p className="lines">{describeTalent(t, talent.id).join(' · ')}</p>
+                            {bought ? (
+                              <span className="state">{t('party.bought')}</span>
+                            ) : locked ? (
+                              <span className="state">{t('party.locked')}</span>
+                            ) : (
+                              <GameButton
+                                size="small"
+                                color="cyan"
+                                disabled={!canBuyTalent(character, talent.id)}
+                                onClick={() => onChange(buyTalent(state, id, talent.id))}
+                              >
+                                {t('party.buy', { cost: talent.cost })}
+                              </GameButton>
+                            )}
+                          </li>
+                        )
+                      })}
+                  </ol>
+                </div>
               ))}
             </div>
-          </>
-        )}
-      </section>
-
-      <section>
-        <h3>
-          {t('party.skills')}
-          <small>{t('party.skillPoints', { count: Math.max(0, skillPoints) })}</small>
-        </h3>
-        <div className="tree">
-          {[0, 1, 2].map((branch) => (
-            <div key={branch} className="branch">
-              <h4>{t(`talents.branches.${id}.b${branch}` as MessageKey)}</h4>
-              <ol>
-                {tree
-                  .filter((talent) => talent.branch === branch)
-                  .map((talent) => {
-                    const bought = character.talents.includes(talent.id)
-                    const locked = !!talent.requires && !character.talents.includes(talent.requires)
-
-                    return (
-                      <li key={talent.id} className={classNames({ bought, locked })}>
-                        <span className="name">{talentName(t, talent)}</span>
-                        <p className="lines">{describeTalent(t, talent.id).join(' · ')}</p>
-                        {bought ? (
-                          <span className="state">{t('party.bought')}</span>
-                        ) : locked ? (
-                          <span className="state">{t('party.locked')}</span>
-                        ) : (
-                          <GameButton
-                            size="small"
-                            color="cyan"
-                            disabled={!canBuyTalent(character, talent.id)}
-                            onClick={() => onChange(buyTalent(state, id, talent.id))}
-                          >
-                            {t('party.buy', { cost: talent.cost })}
-                          </GameButton>
-                        )}
-                      </li>
-                    )
-                  })}
-              </ol>
+            <div className="row">
+              <span className="lines">{t('party.tears', { count: state.tears })}</span>
+              <GameButton
+                size="small"
+                color="ghost"
+                disabled={state.tears <= 0 || character.talents.length === 0}
+                onClick={() => onChange(spendTear(state, id))}
+              >
+                {t('party.spendTear')}
+              </GameButton>
             </div>
-          ))}
-        </div>
-        <div className="row">
-          <span className="lines">{t('party.tears', { count: state.tears })}</span>
-          <GameButton
-            size="small"
-            color="ghost"
-            disabled={state.tears <= 0 || character.talents.length === 0}
-            onClick={() => onChange(spendTear(state, id))}
-          >
-            {t('party.spendTear')}
-          </GameButton>
-        </div>
-        {isTreeComplete(character) && (
-          <div className="row">
-            <span className="lines">{t('party.tradeHint')}</span>
-            <GameButton
-              size="small"
-              color="magenta"
-              disabled={skillPoints <= 0}
-              onClick={() => onChange(tradeSkillPoint(state, id))}
-            >
-              {t('party.trade', { count: TRADE_ECHOES })}
-            </GameButton>
-          </div>
-        )}
-      </section>
+            {isTreeComplete(character) && (
+              <div className="row">
+                <span className="lines">{t('party.tradeHint')}</span>
+                <GameButton
+                  size="small"
+                  color="magenta"
+                  disabled={skillPoints <= 0}
+                  onClick={() => onChange(tradeSkillPoint(state, id))}
+                >
+                  {t('party.trade', { count: TRADE_ECHOES })}
+                </GameButton>
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
-      {!atCamp && <p className="camp-only">{t('party.campOnly')}</p>}
+      {tab === 'weapons' && (
+        <section>
+          <h3>{t('party.weapons')}</h3>
+          {!canSwap && <p className="lines">{t('party.swapOnly')}</p>}
+          {!atCamp && <p className="lines">{t('party.upgradeCampOnly')}</p>}
+          <ul className="cards weapons">
+            {getCharacterWeapons(id)
+              .filter((weapon) => weapon.id in character.weapons)
+              .map((weapon) => {
+                const held = weapon.id === character.weaponId
+                const level = getWeaponLevel(character, weapon.id)
+                const attack = getSkill(weapon.attack)
+                const nextUpgrade = level < MAX_WEAPON_LEVEL ? getUpgradeCost(level + 1) : null
+                const nextEffect = weapon.effects[Math.floor(level / 5)]
+                const traits = describeBonuses(t, weapon.traits)
 
-      <section>
-        <h3>{t('party.weapons')}</h3>
-        {!canSwap && <p className="lines">{t('party.swapOnly')}</p>}
-        <ul className="cards weapons">
-          {getCharacterWeapons(id).map((weapon) => {
-            const owned = weapon.id in character.weapons
-            const held = weapon.id === character.weaponId
-            const level = getWeaponLevel(character, weapon.id)
-            const attack = getSkill(weapon.attack)
-            const nextUpgrade = owned && level < MAX_WEAPON_LEVEL ? getUpgradeCost(level + 1) : null
-            const nextEffect = weapon.effects[Math.floor(level / 5)]
-            const traits = describeBonuses(t, weapon.traits)
-
-            return (
-              <li key={weapon.id} className={classNames({ worn: held, missing: !owned })}>
-                <div className="titles">
-                  <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
-                  <span className="tag">{held ? t('party.weaponHeld') : owned ? `+${level}` : t('party.unknown')}</span>
-                </div>
-                <p className="lines kind">
-                  {t(`weapons.${weapon.id}.kind` as MessageKey)}
-                  {owned && held && ` · +${level}`}
-                </p>
-                <p className="lines">
-                  {t('party.weaponAttack', {
-                    skill: skillName(t, attack.id),
-                    type: t(`damageTypes.${attack.damageType}`),
-                    target: t(`targets.${attack.target}`)
-                  })}
-                </p>
-                <p className="lines">
-                  {traits.length > 0
-                    ? t('party.weaponStyle', { traits: traits.join(' · ') })
-                    : t('party.weaponBalanced')}
-                </p>
-                {owned ? (
-                  <>
+                return (
+                  <li key={weapon.id} className={classNames({ worn: held })}>
+                    <div className="titles">
+                      <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
+                      <span className="tag">{held ? t('party.weaponHeld') : `+${level}`}</span>
+                    </div>
+                    <p className="lines kind">
+                      {t(`weapons.${weapon.id}.kind` as MessageKey)}
+                      {held && ` · +${level}`}
+                    </p>
+                    <p className="lines">
+                      {t('party.weaponAttack', {
+                        skill: skillName(t, attack.id),
+                        type: t(`damageTypes.${attack.damageType}`),
+                        target: t(`targets.${attack.target}`)
+                      })}
+                    </p>
+                    <p className="lines">
+                      {traits.length > 0
+                        ? t('party.weaponStyle', { traits: traits.join(' · ') })
+                        : t('party.weaponBalanced')}
+                    </p>
                     <p className="lines">
                       {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * level).slice(1) })}
                     </p>
@@ -322,110 +334,111 @@ export default function HeroSheet({ state, character, atCamp, canSwap, onChange 
                         </GameButton>
                       )}
                     </div>
-                  </>
-                ) : (
-                  <p className="lines">
-                    {t('party.weaponMissing', { biome: t(`world.biomes.${weapon.biome}` as MessageKey) })}
-                  </p>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      </section>
+                  </li>
+                )
+              })}
+          </ul>
+        </section>
+      )}
 
-      <section>
-        <h3>
-          {t('party.runes')}
-          <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
-        </h3>
-        {state.runes.length === 0 ? (
-          <p className="lines">{t('party.noRunes')}</p>
-        ) : (
-          <ul className="cards">
-            {[...state.runes]
-              .sort((a, b) => a - b)
-              .map((index) => {
+      {tab === 'runes' && (
+        <section>
+          <h3>
+            {t('party.runes')}
+            <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
+          </h3>
+          {!atCamp && state.runes.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
+          {state.runes.length === 0 ? (
+            <p className="lines">{t('party.noRunes')}</p>
+          ) : (
+            <ul className="cards">
+              {[...state.runes]
+                .sort((a, b) => a - b)
+                .map((index) => {
+                  const rune = getRune(index)
+                  const worn = character.runes.includes(index)
+                  const wearer = owner(index)
+
+                  return (
+                    <li key={index} className={classNames({ worn })}>
+                      <div className="titles">
+                        <span className="name">{runeName(t, rune)}</span>
+                        <span className="tag">
+                          {isRuneMastered(state, index)
+                            ? t('party.mastered')
+                            : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
+                        </span>
+                      </div>
+                      <p className="lines">{describeRune(t, rune).join(' · ')}</p>
+                      {wearer && !worn && (
+                        <p className="lines">
+                          {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
+                        </p>
+                      )}
+                      <GameButton
+                        size="small"
+                        color={worn ? 'ghost' : 'cyan'}
+                        disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
+                        onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
+                      >
+                        {t(worn ? 'party.unequip' : 'party.equip')}
+                      </GameButton>
+                    </li>
+                  )
+                })}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {tab === 'echoes' && (
+        <section>
+          <h3>
+            {t('party.echoes')}
+            <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
+          </h3>
+          {state.echoes > 0 && (
+            <div className="row">
+              <span className="lines">
+                {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
+              </span>
+              <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
+                {t('party.assign', { name })}
+              </GameButton>
+            </div>
+          )}
+          <p className="lines">{t('party.echoesHint')}</p>
+          {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
+          {mastered.length === 0 ? (
+            <p className="lines">{t('party.noEchoes')}</p>
+          ) : (
+            <ul className="cards">
+              {mastered.map((index) => {
                 const rune = getRune(index)
-                const worn = character.runes.includes(index)
-                const wearer = owner(index)
+                const worn = character.echoes.includes(index)
 
                 return (
                   <li key={index} className={classNames({ worn })}>
                     <div className="titles">
                       <span className="name">{runeName(t, rune)}</span>
-                      <span className="tag">
-                        {isRuneMastered(state, index)
-                          ? t('party.mastered')
-                          : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
-                      </span>
+                      <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
                     </div>
-                    <p className="lines">{describeRune(t, rune).join(' · ')}</p>
-                    {wearer && !worn && (
-                      <p className="lines">
-                        {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
-                      </p>
-                    )}
+                    <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
                     <GameButton
                       size="small"
-                      color={worn ? 'ghost' : 'cyan'}
-                      disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
-                      onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
+                      color={worn ? 'ghost' : 'magenta'}
+                      disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
+                      onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
                     >
                       {t(worn ? 'party.unequip' : 'party.equip')}
                     </GameButton>
                   </li>
                 )
               })}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h3>
-          {t('party.echoes')}
-          <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
-        </h3>
-        {state.echoes > 0 && (
-          <div className="row">
-            <span className="lines">
-              {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
-            </span>
-            <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
-              {t('party.assign', { name })}
-            </GameButton>
-          </div>
-        )}
-        <p className="lines">{t('party.echoesHint')}</p>
-        {mastered.length === 0 ? (
-          <p className="lines">{t('party.noEchoes')}</p>
-        ) : (
-          <ul className="cards">
-            {mastered.map((index) => {
-              const rune = getRune(index)
-              const worn = character.echoes.includes(index)
-
-              return (
-                <li key={index} className={classNames({ worn })}>
-                  <div className="titles">
-                    <span className="name">{runeName(t, rune)}</span>
-                    <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
-                  </div>
-                  <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
-                  <GameButton
-                    size="small"
-                    color={worn ? 'ghost' : 'magenta'}
-                    disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
-                    onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
-                  >
-                    {t(worn ? 'party.unequip' : 'party.equip')}
-                  </GameButton>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   )
 }

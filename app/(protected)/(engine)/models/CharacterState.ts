@@ -10,6 +10,8 @@ export interface CharacterState {
   xp: number
   /** Current health (0 when fallen; the maximum depends on the build). */
   health: number
+  /** Concentración kept between battles: it only comes back with weapon attacks and potions, and resting (or a defeat) empties it (half the maximum when missing). */
+  focus?: number
   /** Attribute points spent on each attribute (one point per level). */
   attributes: Partial<Record<keyof CombatStats, number>>
   /** Nodes of its skill tree bought (one skill point per level). */

@@ -1,0 +1,56 @@
+.map-menu {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 4px;
+
+  .MuiButtonBase-root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 72px;
+    min-height: 64px;
+    border: var(--frame-border);
+    border-radius: var(--frame-radius);
+    background: var(--frame-background);
+    box-shadow:
+      0 0 0 2px #12103a,
+      0 0 0 3px #12103a,
+      0 6px 14px rgba(0, 0, 0, 0.5);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    &:hover,
+    &:focus-visible {
+      box-shadow: var(--frame-glow);
+    }
+
+    &.Mui-disabled {
+      filter: grayscale(0.8);
+      opacity: 0.6;
+    }
+  }
+
+  .bestiary {
+    color: var(--color-cyan);
+  }
+
+  // On a narrow screen they stack, to leave the heroes more room.
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 10px;
+
+    .MuiButtonBase-root {
+      width: 60px;
+      min-height: 52px;
+      font-size: 0.56rem;
+    }
+  }
+}

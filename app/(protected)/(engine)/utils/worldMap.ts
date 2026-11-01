@@ -13,12 +13,13 @@ import {
   FLASK_MAX_CHARGES,
   FLASK_MAX_POTENCY
 } from '@/app/(protected)/(engine)/data/flask'
-import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
+import { BIOME_POTIONS, BIOME_STONE, getItem } from '@/app/(protected)/(engine)/data/items'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { SEALS_TO_OPEN_ABYSS, START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { Flask } from '@/app/(protected)/(engine)/models/Flask'
@@ -28,7 +29,7 @@ import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency } from '@/app/(protected)/(engine)/utils/graph'
-import { addItems, createCharacter, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
+import { addItems, createCharacter, getCharacterStats, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
  * Rules of the world map: fog, routes, what happens at each point, resting,
@@ -426,7 +427,7 @@ export function winEncounter(
 
 /**
  * The whole party fell: it wakes up at the last camp where it rested, as if
- * it had rested there (full health, flask refilled, and it counts as a rest
+ * it had rested there (full health, no focus, flask refilled, and it counts as a rest
  * for the common enemies to come back).
  */
 export function loseEncounter(index: WorldIndex, state: GameState): GameState {
@@ -449,7 +450,7 @@ export function isAtOpenCamp(state: GameState): boolean {
 }
 
 /**
- * Rest at the camp where the party stands: full health, the flask refilled,
+ * Rest at the camp where the party stands: full health, focus emptied, the flask refilled,
  * this camp becomes the respawn point and every common fight already won
  * counts one more rest; on the RESPAWN_RESTS-th its enemies come back (bosses
  * and guardians never do within a cycle).
@@ -482,7 +483,7 @@ export function rest(index: WorldIndex, state: GameState): GameState {
     flaskCharges: getFlask(index, state).maxCharges,
     respawnedNodeIds: [...respawned],
     restsSinceCleared,
-    characters: state.characters.map((character) => ({ ...character, health: getMaxHealth(character) }))
+    characters: state.characters.map((character) => ({ ...character, health: getMaxHealth(character), focus: 0 }))
   }
 }
 
@@ -532,6 +533,79 @@ export function drinkFlask(index: WorldIndex, state: GameState): GameState {
         ...character,
         health: Math.min(maxHealth, character.health + Math.ceil((maxHealth * flask.potency) / 100))
       }
+    })
+  }
+}
+
+/** Potions the party can drink on the map, one hero at a time: the health and focus ones. */
+export const MAP_POTIONS = ['health-potion', 'greater-health-potion', 'focus-potion', 'greater-focus-potion']
+
+/** Potions are drunk on the map only at a point without enemies (cleared, and none came back after resting). */
+export function canDrinkPotions(state: GameState): boolean {
+  return isCleared(state, state.positionNodeId) && !state.respawnedNodeIds.includes(state.positionNodeId)
+}
+
+/** Current and maximum focus of a character on the map (half the maximum when it was never kept, as in battle). */
+export function getFocus(character: CharacterState): { focus: number; maxFocus: number } {
+  const { maxFocus } = getCharacterStats(character)
+
+  return { focus: Math.min(maxFocus, character.focus ?? Math.round(maxFocus / 2)), maxFocus }
+}
+
+/** Whether a potion would do something for that character now (the fallen need a revival, not a potion). */
+export function canDrinkPotion(state: GameState, itemId: string, characterId: CharacterId): boolean {
+  const character = state.characters.find((candidate) => candidate.id === characterId)
+
+  if (!character || !MAP_POTIONS.includes(itemId) || (state.inventory[itemId] ?? 0) <= 0 || character.health <= 0) {
+    return false
+  }
+
+  const item = getItem(itemId)
+
+  if (item.heal && character.health < getMaxHealth(character)) {
+    return true
+  }
+
+  if (item.focus) {
+    const { focus, maxFocus } = getFocus(character)
+
+    return focus < maxFocus
+  }
+
+  return false
+}
+
+/** A hero drinks a health or focus potion on the map: it heals or restores the same share as in battle. */
+export function drinkPotion(state: GameState, itemId: string, characterId: CharacterId): GameState {
+  if (!canDrinkPotions(state) || !canDrinkPotion(state, itemId, characterId)) {
+    throw new Error(`The potion ${itemId} cannot be drunk now`)
+  }
+
+  const item = getItem(itemId)
+
+  return {
+    ...state,
+    inventory: { ...state.inventory, [itemId]: state.inventory[itemId] - 1 },
+    characters: state.characters.map((character) => {
+      if (character.id !== characterId) {
+        return character
+      }
+
+      const changed = { ...character }
+
+      if (item.heal) {
+        const maxHealth = getMaxHealth(character)
+
+        changed.health = Math.min(maxHealth, character.health + Math.round(maxHealth * item.heal))
+      }
+
+      if (item.focus) {
+        const { focus, maxFocus } = getFocus(character)
+
+        changed.focus = Math.min(maxFocus, focus + Math.round(maxFocus * item.focus))
+      }
+
+      return changed
     })
   }
 }

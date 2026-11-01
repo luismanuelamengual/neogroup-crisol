@@ -115,6 +115,74 @@ describe('battle results on the map', () => {
     expect(result.state.characters[0]).toMatchObject({ xp: 5, health: 120 })
   })
 
+  it('leaves the experience lost in a defeat at the point, and gives it back on a victory there', () => {
+    const { state } = createBattle({
+      heroes: start.characters,
+      phases,
+      seed: 1,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    })
+    const game = { ...fighting.state, characters: [{ ...fighting.state.characters[0], xp: 10 }] }
+    const defeat = applyBattleResult(index, game, { ...state, outcome: 'defeat' }, world.startNodeId)
+
+    expect(defeat.state.lostXp).toEqual({ nodeId: combatId, xp: { [CharacterId.KAEL]: 5 } })
+
+    const back = arriveAt(index, defeat.state, combatId).state
+    const battle = battleWith(10)
+    const victory = applyBattleResult(index, back, battle, world.startNodeId)
+
+    expect(victory.recoveredXp).toBe(5)
+
+    const { level, xp } = gainExperience(back.characters[0], 5 + battle.xp)
+
+    expect(victory.state.characters[0]).toMatchObject({ level, xp })
+    expect(victory.state.lostXp).toBeNull()
+  })
+
+  it('keeps the lost experience waiting after a victory elsewhere or a retreat', () => {
+    const { state } = createBattle({
+      heroes: start.characters,
+      phases,
+      seed: 1,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    })
+    const lostXp = { nodeId: 'somewhere-else', xp: { [CharacterId.KAEL]: 7 } }
+    const victory = applyBattleResult(index, { ...fighting.state, lostXp }, battleWith(10), world.startNodeId)
+    const retreat = applyBattleResult(
+      index,
+      { ...fighting.state, lostXp: { ...lostXp, nodeId: combatId } },
+      { ...state, outcome: 'retreat' },
+      world.startNodeId
+    )
+
+    expect(victory.recoveredXp).toBe(0)
+    expect(victory.state.lostXp).toEqual(lostXp)
+    expect(retreat.state.lostXp).toEqual({ ...lostXp, nodeId: combatId })
+  })
+
+  it('loses for good what was waiting when the party falls again', () => {
+    const { state } = createBattle({
+      heroes: start.characters,
+      phases,
+      seed: 1,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    })
+    const earlier = { nodeId: 'somewhere-else', xp: { [CharacterId.KAEL]: 7 } }
+    const withXp = { ...fighting.state, lostXp: earlier, characters: [{ ...fighting.state.characters[0], xp: 20 }] }
+    const withoutXp = { ...withXp, characters: [{ ...withXp.characters[0], xp: 0 }] }
+
+    expect(applyBattleResult(index, withXp, { ...state, outcome: 'defeat' }, world.startNodeId).state.lostXp).toEqual({
+      nodeId: combatId,
+      xp: { [CharacterId.KAEL]: 10 }
+    })
+    expect(
+      applyBattleResult(index, withoutXp, { ...state, outcome: 'defeat' }, world.startNodeId).state.lostXp
+    ).toBeNull()
+  })
+
   it('goes back on a retreat without losing experience', () => {
     const { state } = createBattle({
       heroes: start.characters,

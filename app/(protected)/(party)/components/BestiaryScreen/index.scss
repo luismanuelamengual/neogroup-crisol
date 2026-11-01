@@ -1,0 +1,97 @@
+.bestiary-screen {
+  .hint,
+  .empty {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+    padding: 10px 6px 8px;
+    border: var(--frame-border);
+    border-radius: var(--frame-radius);
+    background:
+      radial-gradient(circle at 50% 38%, rgba(122, 127, 220, 0.55) 0%, transparent 62%), var(--frame-background);
+    box-shadow:
+      0 0 0 2px #12103a,
+      0 0 0 3px #12103a;
+    color: var(--color-text);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      box-shadow: var(--frame-glow);
+    }
+
+    .name {
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .kills {
+      color: var(--color-text-secondary);
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+  }
+}
+
+.bestiary-entry {
+  .portrait {
+    display: flex;
+    justify-content: center;
+    padding: 20px 24px 0;
+  }
+
+  .title {
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    text-align: center;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 24px 22px;
+
+    .meta {
+      margin: 0 0 4px;
+      color: var(--color-text-secondary);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .lines {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .note {
+      margin: 6px 0 0;
+      color: var(--color-gold);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+  }
+}
