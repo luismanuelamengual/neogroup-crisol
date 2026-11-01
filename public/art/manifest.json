@@ -76,6 +76,10 @@
    "width": 1521,
    "height": 196
   },
+  "battle/meadows/floor": {
+   "width": 1774,
+   "height": 786
+  },
   "battle/meadows/landmarks/1": {
    "width": 443,
    "height": 466
@@ -358,7 +362,8 @@
     "battle/meadows/landmarks/4",
     "battle/meadows/landmarks/5",
     "battle/meadows/landmarks/6"
-   ]
+   ],
+   "floor": "battle/meadows/floor"
   }
  },
  "parts": {

@@ -157,6 +157,7 @@ export class BattleRenderer {
       ...(backgroundId ? [backgroundId] : []),
       ...landscape.bands,
       ...landscape.landmarks,
+      ...(landscape.floor ? [landscape.floor] : []),
       ...propIds,
       ...figureIds,
       ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : [])),
@@ -205,7 +206,8 @@ export class BattleRenderer {
         bands: ['far', 'middle', 'near'].map(
           (band) => art.get(landscape.bands.find((id) => id.endsWith(`/${band}`)) ?? '') ?? null
         ),
-        landmarks: landscape.landmarks.flatMap((id) => (art.has(id) ? [art.get(id)!] : []))
+        landmarks: landscape.landmarks.flatMap((id) => (art.has(id) ? [art.get(id)!] : [])),
+        floor: landscape.floor ? (art.get(landscape.floor) ?? null) : null
       }
     )
     const renderer = new BattleRenderer(app, labels, onTap, art, parts, scenery)

@@ -43,6 +43,7 @@ const MAX_SIDE: Record<PieceKind, number> = {
   propSheet: 0,
   horizonSheet: 0,
   landmarkSheet: 0,
+  floorStrip: 0,
   scenerySheet: 0,
   building: 320,
   tile: 256,
@@ -219,7 +220,31 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
       ids.push(id)
     }
 
-    manifest.battle[biome] = { bands: ids, landmarks: manifest.battle[biome]?.landmarks ?? [] }
+    manifest.battle[biome] = {
+      ...manifest.battle[biome],
+      landmarks: manifest.battle[biome]?.landmarks ?? [],
+      bands: ids
+    }
+
+    return
+  }
+
+  if (piece.kind === 'floorStrip') {
+    const biome = piece.id.replace(/^battle\//, '').replace(/-floor$/, '')
+    const id = `battle/${biome}/floor`
+
+    // Only the top corners are green (the floor reaches the bottom), so the check above misses it.
+    if (!hasChromaBackground(image)) {
+      removeChroma(image)
+    }
+
+    // The whole strip: its decorated edge on top (the green above it is gone) and the floor down to the bottom.
+    manifest.images[id] = await writeWebp(image, opaqueBox(image) ?? whole, id, HORIZON_SIDE)
+    manifest.battle[biome] = {
+      bands: manifest.battle[biome]?.bands ?? [],
+      landmarks: manifest.battle[biome]?.landmarks ?? [],
+      floor: id
+    }
 
     return
   }
@@ -235,7 +260,7 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
       ids.push(id)
     }
 
-    manifest.battle[biome] = { bands: manifest.battle[biome]?.bands ?? [], landmarks: ids }
+    manifest.battle[biome] = { ...manifest.battle[biome], bands: manifest.battle[biome]?.bands ?? [], landmarks: ids }
 
     return
   }

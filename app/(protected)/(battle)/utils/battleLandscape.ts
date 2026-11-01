@@ -30,7 +30,7 @@ export type LandmarkKind =
   | 'skullRock'
 
 /** Details drawn on the ground (besides the biome's scattered tufts, flowers and pebbles). */
-export type GroundFeature = 'path' | 'stones' | 'ripples' | 'cracks' | 'lava' | 'drifts' | 'runes' | 'puddles'
+export type GroundFeature = 'stones' | 'ripples' | 'cracks' | 'lava' | 'drifts' | 'runes' | 'puddles'
 
 export type CloudKind = 'puffy' | 'wisps' | 'smoke'
 
@@ -62,6 +62,8 @@ export interface BiomeLook {
   ground: number
   groundLight: number
   groundDark: number
+  /** The floor the fighters stand on: a trail crossing the field from side to side. */
+  floor: number
   /** Stone, wood and an accent (roofs, flags, runes) of the landmarks. */
   stone: number
   wood: number
@@ -85,11 +87,12 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x6cbf45,
     groundLight: 0x9edb74,
     groundDark: 0x3f8a2e,
+    floor: 0xd9a866,
     stone: 0xc8bca8,
     wood: 0x9a6a40,
     accent: 0xd7263d,
     landmarks: ['windmill', 'tower', 'castle', 'bigTree', null],
-    groundFeatures: ['path', 'stones', 'puddles'],
+    groundFeatures: ['stones', 'puddles'],
     clouds: 'puffy',
     grassy: true
   },
@@ -99,11 +102,12 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x3f8f3e,
     groundLight: 0x6cbf62,
     groundDark: 0x1f4f2a,
+    floor: 0xb08a5a,
     stone: 0x9aa494,
     wood: 0x6b4423,
     accent: 0xe0a030,
     landmarks: ['bigTree', 'tower', 'waterfall', null],
-    groundFeatures: ['path', 'stones', 'puddles'],
+    groundFeatures: ['stones', 'puddles'],
     clouds: 'puffy',
     grassy: true
   },
@@ -113,11 +117,12 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x52b85a,
     groundLight: 0x8fe08a,
     groundDark: 0x1f7a4a,
+    floor: 0xe0c48a,
     stone: 0xb8a888,
     wood: 0x7a5030,
     accent: 0xff4fb0,
     landmarks: ['waterfall', 'bigTree', 'obelisk', null],
-    groundFeatures: ['path', 'puddles', 'stones'],
+    groundFeatures: ['puddles', 'stones'],
     clouds: 'puffy',
     grassy: true
   },
@@ -127,6 +132,7 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0xe6b25a,
     groundLight: 0xf8d890,
     groundDark: 0xb07a32,
+    floor: 0xf0cc88,
     stone: 0xe0c08a,
     wood: 0x8a6a40,
     accent: 0x3a8ad0,
@@ -141,12 +147,13 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x8a929c,
     groundLight: 0xb4bac4,
     groundDark: 0x5c626e,
+    floor: 0xb59c78,
     stone: 0xb0b4bc,
     wood: 0x6b4a30,
     accent: 0x3a6ad0,
     snowCaps: true,
     landmarks: ['castle', 'tower', 'waterfall', null],
-    groundFeatures: ['path', 'stones', 'cracks'],
+    groundFeatures: ['stones', 'cracks'],
     clouds: 'puffy',
     grassy: false
   },
@@ -156,6 +163,7 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0xdfeaf6,
     groundLight: 0xffffff,
     groundDark: 0xa0b4d0,
+    floor: 0xb4c6e0,
     stone: 0xc8d4e4,
     wood: 0x6b4a30,
     accent: 0x4ac0e0,
@@ -171,6 +179,7 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x5a2418,
     groundLight: 0x8c3a20,
     groundDark: 0x2a0e0a,
+    floor: 0x4a2a24,
     stone: 0x5a4040,
     wood: 0x3a2018,
     accent: 0xff8a1a,
@@ -186,6 +195,7 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x6a5a6a,
     groundLight: 0x8f7f92,
     groundDark: 0x3a2e40,
+    floor: 0x8a7a70,
     stone: 0x9a8e9a,
     wood: 0x5a4a40,
     accent: 0x9aff70,
@@ -201,6 +211,7 @@ export const LOOKS: Record<Biome, BiomeLook> = {
     ground: 0x341048,
     groundLight: 0x5a2a80,
     groundDark: 0x14061e,
+    floor: 0x4a3a62,
     stone: 0x3a2a50,
     wood: 0x2a1a3a,
     accent: 0xc070ff,

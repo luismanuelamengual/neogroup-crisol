@@ -1,7 +1,8 @@
-import { BlurFilter, Container, Graphics, MeshPlane, Sprite, Texture } from 'pixi.js'
+import { BlurFilter, Container, Graphics, MeshPlane, Rectangle, Sprite, Texture } from 'pixi.js'
 import {
   BiomeLook,
   LandscapePlan,
+  GroundFeature,
   LOOKS,
   Mood,
   ParticleKind,
@@ -22,6 +23,8 @@ import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
 export interface LandscapeArt {
   bands: (Texture | null)[]
   landmarks: Texture[]
+  /** The floor the fighters stand on, with its decorated edge at the top. */
+  floor: Texture | null
 }
 
 /** A prop the scenery can place, with its height relative to the tallest one of its biome (0 to 1). */
@@ -120,10 +123,14 @@ export class BattleScenery {
   private readonly puffs: Puff[] = []
   private particles: Particle[] = []
   private readonly rays: Sprite[] = []
+  /** Views into textures the scenery does not own (freed on the next layout, keeping their pixels). */
+  private readonly views: Texture[] = []
   private readonly owned: Texture[] = []
   private width = 0
   private height = 0
   private groundY = 0
+  /** Where the floor the fighters stand on begins: just behind their back row (46 px behind the ground line). */
+  private floorY = 0
   private horizonY = 0
   private time = 0
 
@@ -135,7 +142,7 @@ export class BattleScenery {
     /** Small things scattered on the ground (tufts, flowers, pebbles, embers). */
     private readonly scatter: Texture[] = [],
     /** The final art of the biome's landscape, as far as it exists (the rest is drawn with shapes). */
-    private readonly art: LandscapeArt = { bands: [null, null, null], landmarks: [] }
+    private readonly art: LandscapeArt = { bands: [null, null, null], landmarks: [], floor: null }
   ) {
     this.look = LOOKS[biome]
     this.plan = planLandscape(seed, biome)
@@ -158,9 +165,11 @@ export class BattleScenery {
     this.width = width
     this.height = height
     this.groundY = groundY
+    this.floorY = groundY - 72 * scale
     this.back.removeChildren().forEach((child) => child.destroy({ children: true }))
     this.front.removeChildren().forEach((child) => child.destroy({ children: true }))
     this.owned.splice(0).forEach((texture) => texture.destroy(true))
+    this.views.splice(0).forEach((texture) => texture.destroy())
     this.placed.length = 0
     this.motions.length = 0
     this.puffs.length = 0
@@ -178,8 +187,9 @@ export class BattleScenery {
     }
 
     this.drawHaze()
-    this.drawGroundFeatures(random, scale)
     this.drawGroundPatches(random, scale)
+    this.drawFloor(random, scale)
+    this.drawGroundFeatures(random, scale)
     this.drawProps(random, scale)
     this.drawScatter(random, scale)
     this.drawForeground(random, scale)
@@ -489,25 +499,38 @@ export class BattleScenery {
     range.vents.forEach((vent) => this.smoke(range.graphics, vent.x, vent.y, band.height, scale))
   }
 
-  /**
-   * A painted band `height` pixels tall standing on the horizon, repeated from
-   * `left` to `right` with every other copy mirrored (so the copies always meet
-   * at the same edge); `flip` starts mirrored, so points differ.
-   */
+  /** A painted band `height` pixels tall standing on the horizon (see strip). */
   private band(texture: Texture, left: number, right: number, height: number, tint: number, flip: boolean): Container {
+    return this.strip(texture, left, right, height / texture.height, this.horizonY + height * 0.04, 1, tint, flip)
+  }
+
+  /**
+   * A painted strip at `scale`, its row `anchorY` (share of its height) at `y`,
+   * repeated from `left` to `right` with every other copy mirrored (so the
+   * copies always meet at the same edge); `flip` starts mirrored, so points differ.
+   */
+  private strip(
+    texture: Texture,
+    left: number,
+    right: number,
+    scale: number,
+    y: number,
+    anchorY: number,
+    tint: number,
+    flip: boolean
+  ): Container {
     const holder = new Container()
-    const scale = height / texture.height
     const width = texture.width * scale
-    // Starts at a different spot on each point (in [0, one copy)), so the same band never lines up the same.
-    const offset = (hashText(`${this.seed}:band:${texture.uid}`) % 1000) / 1000
+    // Starts at a different spot on each point (in [0, one copy)), so the same strip never lines up the same.
+    const offset = (hashText(`${this.seed}:strip:${texture.uid}`) % 1000) / 1000
 
     for (let x = left - width * offset, copy = flip ? 1 : 0; x < right; x += width, copy++) {
       const sprite = new Sprite(texture)
       const mirrored = copy % 2 === 1
 
-      sprite.anchor.set(mirrored ? 1 : 0, 1)
+      sprite.anchor.set(mirrored ? 1 : 0, anchorY)
       sprite.scale.set(mirrored ? -scale : scale, scale)
-      sprite.position.set(x, this.horizonY + height * 0.04)
+      sprite.position.set(x, y)
       sprite.tint = tint
       holder.addChild(sprite)
     }
@@ -619,23 +642,21 @@ export class BattleScenery {
 
   /** What lies on the ground of the biome: a trail, stones, ripples of sand, cracks, lava, snow, runes, puddles. */
   private drawGroundFeatures(random: Random, scale: number): void {
-    const features = this.painting
-      ? this.plan.groundFeatures.filter((feature) => feature !== 'path')
-      : this.plan.groundFeatures
+    const features = this.plan.groundFeatures
+    let feature: GroundFeature = features[0]
     const depth = this.groundY - this.horizonY
+    // Stones, puddles, ripples and snow lie behind the floor; cracks, lava and runes also cross it.
     const spot = (from = 0.15) => {
-      const y = this.horizonY + depth * from + (this.height - this.horizonY - depth * from) * random()
+      const across = feature === 'cracks' || feature === 'lava' || feature === 'runes'
+      const end = across ? this.height : this.floorY
+      const y = this.horizonY + depth * from + (end - this.horizonY - depth * from) * random()
 
       return { x: -this.width * 0.05 + random() * this.width * 1.1, y, size: this.sizeAt(y) * scale }
     }
     const outline = mix(this.look.groundDark, 0x000000, 0.4)
 
-    for (const feature of features) {
+    for (feature of features) {
       switch (feature) {
-        case 'path': {
-          this.drawPath(random, scale)
-          break
-        }
         case 'stones': {
           for (let index = 0, count = 3 + Math.floor(random() * 5); index < count; index++) {
             const { x, y, size } = spot()
@@ -789,33 +810,182 @@ export class BattleScenery {
     }
   }
 
-  /** A trail winding from in front of the camera to the horizon, each stretch moving with its own depth. */
-  private drawPath(random: Random, scale: number): void {
-    const color =
-      this.biome === Biome.MOUNTAINS || this.biome === Biome.SNOW
-        ? mix(this.look.stone, this.look.ground, 0.35)
-        : mix(0xd8b47a, this.look.ground, 0.2)
-    const rim = mix(color, 0x000000, 0.25)
-    const startX = this.width * (0.3 + random() * 0.4)
-    const endX = this.width * (0.15 + random() * 0.7)
-    const bend = (random() - 0.5) * this.width * 0.6
-    // Enough stretches that they always overlap, however tall the screen is.
-    const steps = Math.max(18, Math.ceil((this.height - this.horizonY) / (5 * scale)))
-    const rims: [Graphics, number, number][] = []
-    const fills: [Graphics, number, number][] = []
+  /**
+   * The floor the fighters stand on: a trail crossing the field from side to
+   * side, from just behind the back row to the bottom of the screen, with a
+   * decorated edge (grass and flowers, stones, a fence…) along its far side.
+   * It moves with the fighters. The painted floor of the biome replaces it when it exists.
+   */
+  private drawFloor(random: Random, scale: number): void {
+    const left = -this.width * SIDE_MARGIN
+    const right = this.width * (1 + SIDE_MARGIN)
+    const top = this.floorY
+    const tint = mix(0xffffff, this.mood.grade, this.mood.gradeAlpha * 0.5)
 
-    for (let step = steps; step >= 0; step--) {
-      const t = step / steps
-      const y = this.height + 20 * scale - (this.height + 20 * scale - this.horizonY) * Math.pow(t, 0.8)
-      const x = startX + (endX - startX) * t + bend * Math.sin(t * Math.PI)
-      const w = this.width * 0.22 * Math.pow(1 - t, 1.2) + 6 * scale
+    if (this.art.floor) {
+      // The painted edge takes the top quarter of the picture, about as tall as half a fighter.
+      const texture = this.art.floor
+      const ratio = (95 * scale) / (texture.height * 0.25)
+      const flip = random() < 0.5
+      const floor = this.strip(texture, left, right, ratio, top, 0.25, tint, flip)
+      const end = top + texture.height * 0.75 * ratio
 
-      rims.push([new Graphics().ellipse(0, 0, w + 3 * scale, w * 0.22 + 2 * scale).fill({ color: rim }), x, y])
-      fills.push([new Graphics().ellipse(0, 0, w, w * 0.22).fill({ color }), x, y])
+      // On tall screens it does not reach the bottom: its last rows stretch down the rest of the way.
+      if (end < this.height) {
+        const slice = new Texture({
+          source: texture.source,
+          frame: new Rectangle(texture.frame.x, texture.frame.y + texture.frame.height - 6, texture.frame.width, 6)
+        })
+        const rest = this.strip(slice, left, right, ratio, end - 1, 0, tint, flip)
+
+        this.views.push(slice)
+        rest.children.forEach((sprite) => (sprite.height = this.height + 10 * scale - end + 1))
+        floor.addChildAt(rest, 0)
+      }
+
+      this.place(floor, 0, 1)
+
+      return
     }
 
-    for (const [g, x, y] of [...rims, ...fills]) {
-      this.placeOnGround(g, x, y)
+    const color =
+      this.plan.shade > 0
+        ? mix(this.look.floor, 0xffffff, this.plan.shade * 0.08)
+        : mix(this.look.floor, 0x000000, -this.plan.shade * 0.08)
+    const rim = mix(color, 0x000000, 0.3)
+    const tilt = (random() - 0.5) * 16 * scale
+    const waves = [0, 1].map(() => ({ cycles: 2 + random() * 3, phase: random() * Math.PI * 2 }))
+    const edge = (x: number) => {
+      const t = (x - left) / (right - left)
+
+      return (
+        top +
+        tilt * (t - 0.5) +
+        Math.sin(t * waves[0].cycles * Math.PI * 2 + waves[0].phase) * 5 * scale +
+        Math.sin(t * waves[1].cycles * Math.PI * 4 + waves[1].phase) * 2 * scale
+      )
+    }
+    const ridge: number[] = []
+
+    for (let x = left; x <= right + 10 * scale; x += 10 * scale) {
+      ridge.push(x, edge(x))
+    }
+
+    const g = new Graphics()
+    const bottom = this.height + 20 * scale
+
+    g.poly([left, bottom, ...ridge, right, bottom]).fill({ color })
+
+    // Darker towards the camera, and worn spots and pebbles on the surface.
+    const shade = new Sprite(this.gradient([color, color, mix(color, this.look.groundDark, 0.5)], [0, 0.3, 1]))
+
+    shade.position.set(left, top)
+    shade.width = right - left
+    shade.height = bottom - top
+    g.addChild(shade)
+
+    const marks = new Graphics()
+
+    for (let index = 0, count = 14 + Math.floor(random() * 10); index < count; index++) {
+      const y = top + 14 * scale + random() * (this.height - top)
+      const size = this.sizeAt(y) * scale
+      const w = (14 + random() * 22) * size
+      const x = left + random() * (right - left)
+
+      marks.ellipse(x, y, w, w * 0.22).stroke({ width: 1.6 * size, color: rim, alpha: 0.35 })
+      marks
+        .ellipse(x - w * 0.1, y - w * 0.04, w * 0.6, w * 0.1)
+        .fill({ color: mix(color, 0xffffff, 0.25), alpha: 0.35 })
+    }
+
+    g.addChild(marks)
+
+    // The edge: a lip of the ground around (grass blades on grassy biomes), outlined.
+    const lip = new Graphics()
+    const lipColor = this.look.grassy
+      ? mix(this.look.ground, this.look.groundLight, 0.3)
+      : mix(this.look.ground, this.look.groundLight, 0.2)
+    const under = ridge.map((value, index) => (index % 2 ? value + 7 * scale : value))
+
+    lip
+      .poly([...ridge.map((value, index) => (index % 2 ? value - 4 * scale : value)), ...pairsReversed(under)])
+      .fill({ color: lipColor })
+    lip.poly(under, false).stroke({ width: 2.4 * scale, color: rim, alpha: 0.8, join: 'round' })
+
+    if (this.look.grassy) {
+      for (let x = left; x < right; x += (5 + random() * 6) * scale) {
+        const y = edge(x) - 2 * scale
+        const height = (10 + random() * 20) * scale
+        const lean = (random() - 0.5) * 8 * scale
+
+        lip.poly([x - 2.5 * scale, y, x + lean, y - height, x + 2.5 * scale, y]).fill({
+          color: random() < 0.5 ? lipColor : mix(lipColor, 0x000000, 0.18)
+        })
+      }
+    }
+
+    g.addChild(lip)
+    this.place(g, 0, 1)
+
+    // Along the edge: the biome's flowers, tufts and pebbles, some stones and now and then a fence.
+    const along = (count: number, place: (x: number, y: number) => void) => {
+      for (let index = 0; index < count; index++) {
+        const x = left + random() * (right - left)
+
+        place(x, edge(x) + 2 * scale)
+      }
+    }
+
+    if (this.scatter.length > 0) {
+      along(22 + Math.floor(random() * 14), (x, y) => {
+        const texture = this.scatter[Math.floor(random() * this.scatter.length)]
+        const sprite = new Sprite(texture)
+        const height = (20 + random() * 20) * scale
+
+        sprite.anchor.set(0.5, 0.85)
+        sprite.scale.set((height / texture.height) * (random() < 0.5 ? -1 : 1), height / texture.height)
+        sprite.y = y
+        this.place(sprite, x, 1)
+      })
+    }
+
+    along(this.look.grassy ? 2 + Math.floor(random() * 3) : 6 + Math.floor(random() * 5), (x, y) => {
+      const stone = new Graphics()
+      const w = (10 + random() * 14) * scale
+
+      stone
+        .ellipse(0, -w * 0.3, w, w * 0.62)
+        .fill({ color: this.look.stone })
+        .stroke({ width: 1.8 * scale, color: rim })
+      stone.ellipse(-w * 0.3, -w * 0.5, w * 0.4, w * 0.18).fill({ color: mix(this.look.stone, 0xffffff, 0.4) })
+      stone.y = y
+      this.place(stone, x, 1)
+    })
+
+    if ((this.biome === Biome.MEADOWS || this.biome === Biome.FOREST) && random() < 0.6) {
+      const fence = new Graphics()
+      const posts = 3 + Math.floor(random() * 3)
+      const gap = 34 * scale
+      const wood = this.look.wood
+      const outline = mix(wood, 0x000000, 0.55)
+      const x0 = this.width * (random() < 0.5 ? 0.02 + random() * 0.12 : 0.62 + random() * 0.2)
+
+      for (const rail of [-22, -12]) {
+        fence
+          .roundRect(0, rail * scale, gap * (posts - 1), 5 * scale, 2 * scale)
+          .fill({ color: wood })
+          .stroke({ width: 1.5 * scale, color: outline })
+      }
+
+      for (let post = 0; post < posts; post++) {
+        fence
+          .roundRect(post * gap - 3.5 * scale, -30 * scale, 7 * scale, 32 * scale, 2 * scale)
+          .fill({ color: mix(wood, 0xffffff, 0.08) })
+          .stroke({ width: 1.5 * scale, color: outline })
+      }
+
+      fence.y = edge(x0) + 2 * scale
+      this.place(fence, x0, 1)
     }
   }
 
@@ -896,9 +1066,10 @@ export class BattleScenery {
     }
 
     const depth = this.groundY - this.horizonY
-    const spots = Array.from({ length: 18 + Math.floor(random() * 16) }, () => ({
+    const spots = Array.from({ length: 10 + Math.floor(random() * 10) }, () => ({
       x: -this.width * 0.05 + random() * this.width * 1.1,
-      y: this.horizonY + depth * 0.12 + random() * (this.height - this.horizonY - depth * 0.12)
+      // Behind the floor, which stays clear for the fighters.
+      y: this.horizonY + depth * 0.12 + random() * (this.floorY - this.horizonY - depth * 0.12)
     })).sort((a, b) => a.y - b.y)
 
     for (const { x, y } of spots) {
@@ -1147,6 +1318,17 @@ function textures(): { soft: Texture; band: Texture; vignette: Texture } {
   }
 
   return shared
+}
+
+/** The [x, y] pairs of a flat list of points, in the opposite order. */
+function pairsReversed(points: number[]): number[] {
+  const result: number[] = []
+
+  for (let index = points.length - 2; index >= 0; index -= 2) {
+    result.push(points[index], points[index + 1])
+  }
+
+  return result
 }
 
 /** Perceived brightness of a color, from 0 (black) to 1 (white). */
