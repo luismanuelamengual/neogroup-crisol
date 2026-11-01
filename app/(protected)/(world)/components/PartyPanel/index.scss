@@ -23,11 +23,11 @@
       max-width: 160px;
       padding: 6px 9px;
       border: var(--frame-border);
-      border-radius: 3px;
+      border-radius: var(--frame-radius);
       background: var(--frame-background);
       box-shadow:
-        0 0 0 2px #0a0604,
-        0 0 0 3px #5a3c16;
+        0 0 0 2px #12103a,
+        0 0 0 3px #12103a;
 
       &.fallen {
         filter: grayscale(0.8);
@@ -55,7 +55,7 @@
     .health-bar {
       height: 7px;
       overflow: hidden;
-      border: 1px solid #5a3c16;
+      border: 1px solid #12103a;
       background: var(--bar-track);
 
       .fill {
@@ -88,11 +88,11 @@
     width: 64px;
     min-height: 64px;
     border: var(--frame-border);
-    border-radius: 3px;
+    border-radius: var(--frame-radius);
     background: var(--frame-background);
     box-shadow:
-      0 0 0 2px #0a0604,
-      0 0 0 3px #5a3c16,
+      0 0 0 2px #12103a,
+      0 0 0 3px #12103a,
       0 6px 14px rgba(0, 0, 0, 0.5);
     color: var(--color-gold);
     font-family: var(--font-display);

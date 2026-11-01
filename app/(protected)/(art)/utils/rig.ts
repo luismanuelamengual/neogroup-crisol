@@ -13,25 +13,19 @@ type Part = ArtManifest['parts'][string][number]
 const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
   // Up over the head, then down onto the target.
   attack: {
-    torso: [
+    body: [
       [0, 0],
-      [0.45, -0.08],
-      [0.65, 0.14],
+      [0.45, -0.04],
+      [0.65, 0.07],
       [1, 0]
     ],
-    head: [
-      [0, 0],
-      [0.45, -0.05],
-      [0.65, 0.08],
-      [1, 0]
-    ],
-    rightArm: [
+    arm: [
       [0, 0],
       [0.45, -2.6],
       [0.65, -0.5],
       [1, 0]
     ],
-    rightForearm: [
+    forearm: [
       [0, 0],
       [0.45, 1.0],
       [0.65, 1.2],
@@ -42,62 +36,37 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0.45, 0.3],
       [0.65, 0.8],
       [1, 0]
-    ],
-    rightThigh: [
-      [0, 0],
-      [0.65, -0.15],
-      [1, 0]
-    ],
-    leftThigh: [
-      [0, 0],
-      [0.65, 0.1],
-      [1, 0]
     ]
   },
   cast: {
-    torso: [
+    body: [
       [0, 0],
-      [0.4, -0.06],
-      [0.75, -0.06],
+      [0.4, -0.03],
+      [0.75, -0.03],
       [1, 0]
     ],
-    rightArm: [
+    arm: [
       [0, 0],
       [0.4, -1.1],
       [0.75, -1.1],
       [1, 0]
     ],
-    rightForearm: [
+    forearm: [
       [0, 0],
       [0.4, 0.4],
       [0.75, 0.4],
       [1, 0]
-    ],
-    head: [
-      [0, 0],
-      [0.4, -0.1],
-      [1, 0]
     ]
   },
   hit: {
-    torso: [
+    body: [
       [0, 0],
-      [0.25, -0.18],
+      [0.25, -0.09],
       [1, 0]
     ],
-    head: [
-      [0, 0],
-      [0.25, -0.28],
-      [1, 0]
-    ],
-    rightArm: [
+    arm: [
       [0, 0],
       [0.25, 0.35],
-      [1, 0]
-    ],
-    leftArm: [
-      [0, 0],
-      [0.25, 0.3],
       [1, 0]
     ]
   }
@@ -131,7 +100,7 @@ export function rigPartIds(rig: Rig, parts: ArtManifest['parts']): string[] {
   return rig.bones.map((bone) => partOf(rig, bone, parts)?.id).filter((id): id is string => Boolean(id))
 }
 
-/** Stage pixels per torso height before the figure is sized to its height. */
+/** Stage pixels per body height before the figure is sized to its height. */
 const UNIT = 300
 
 /**
@@ -242,10 +211,8 @@ export class RigFigure {
   private angle(role: BoneRole): number {
     const breath = Math.sin(this.time * 2.4)
     const idle: Partial<Record<BoneRole, number>> = {
-      torso: breath * 0.015,
-      head: Math.sin(this.time * 2.4 + 0.6) * 0.03,
-      rightArm: breath * 0.04,
-      leftArm: -breath * 0.03
+      body: breath * 0.01,
+      arm: breath * 0.04
     }
     const keys = this.move ? MOVES[this.move.kind][role] : undefined
     const move = keys && this.move ? sample(keys, this.move.elapsed / this.move.duration) : 0

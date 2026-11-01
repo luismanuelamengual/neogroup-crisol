@@ -41,57 +41,57 @@ const MORNING: Mood = {
 const MOODS: Record<Biome, Mood[]> = {
   [Biome.MEADOWS]: [
     MORNING,
-    { grade: 0xffb784, gradeAlpha: 0.35, haze: 0xffb070, light: 0xff9a50, lightAlpha: 0.45, particles: 'pollen' },
-    { grade: 0x5a6aa8, gradeAlpha: 0.6, haze: 0x34406e, light: 0x9fb4ff, lightAlpha: 0.2, particles: 'fireflies' }
+    { grade: 0xffb784, gradeAlpha: 0.21, haze: 0xffb070, light: 0xff9a50, lightAlpha: 0.45, particles: 'pollen' },
+    { grade: 0x5a6aa8, gradeAlpha: 0.36, haze: 0x34406e, light: 0x9fb4ff, lightAlpha: 0.2, particles: 'fireflies' }
   ],
   [Biome.FOREST]: [
     {
       grade: 0xd8ffd0,
-      gradeAlpha: 0.15,
+      gradeAlpha: 0.09,
       haze: 0xbfe0c0,
       light: 0xfff0b0,
       lightAlpha: 0.3,
       particles: 'leaves',
       rays: true
     },
-    { grade: 0xb8c8d0, gradeAlpha: 0.3, haze: 0xc8d6dc, light: 0xe0f0ff, lightAlpha: 0.15, particles: 'mist' },
-    { grade: 0x4a5a8a, gradeAlpha: 0.55, haze: 0x2a3a4a, light: 0xb0d0ff, lightAlpha: 0.15, particles: 'fireflies' }
+    { grade: 0xb8c8d0, gradeAlpha: 0.18, haze: 0xc8d6dc, light: 0xe0f0ff, lightAlpha: 0.15, particles: 'mist' },
+    { grade: 0x4a5a8a, gradeAlpha: 0.33, haze: 0x2a3a4a, light: 0xb0d0ff, lightAlpha: 0.15, particles: 'fireflies' }
   ],
   [Biome.TROPICAL]: [
     {
       grade: 0xfff4d0,
-      gradeAlpha: 0.15,
+      gradeAlpha: 0.09,
       haze: 0xe0f0d0,
       light: 0xfff0b0,
       lightAlpha: 0.3,
       particles: 'mist',
       rays: true
     },
-    { grade: 0xff9a7a, gradeAlpha: 0.35, haze: 0xd08070, light: 0xff8a50, lightAlpha: 0.35, particles: 'fireflies' }
+    { grade: 0xff9a7a, gradeAlpha: 0.21, haze: 0xd08070, light: 0xff8a50, lightAlpha: 0.35, particles: 'fireflies' }
   ],
   [Biome.DESERT]: [
-    { grade: 0xfff0d0, gradeAlpha: 0.2, haze: 0xffe8c0, light: 0xffffff, lightAlpha: 0.3, particles: 'dust' },
-    { grade: 0xff9a6a, gradeAlpha: 0.35, haze: 0xff9a60, light: 0xff7a40, lightAlpha: 0.45, particles: 'dust' },
-    { grade: 0x4a5a9a, gradeAlpha: 0.55, haze: 0x3a4a7a, light: 0xc0d0ff, lightAlpha: 0.2, particles: 'dust' }
+    { grade: 0xfff0d0, gradeAlpha: 0.12, haze: 0xffe8c0, light: 0xffffff, lightAlpha: 0.3, particles: 'dust' },
+    { grade: 0xff9a6a, gradeAlpha: 0.21, haze: 0xff9a60, light: 0xff7a40, lightAlpha: 0.45, particles: 'dust' },
+    { grade: 0x4a5a9a, gradeAlpha: 0.33, haze: 0x3a4a7a, light: 0xc0d0ff, lightAlpha: 0.2, particles: 'dust' }
   ],
   [Biome.MOUNTAINS]: [
-    { grade: 0xe8f0ff, gradeAlpha: 0.15, haze: 0xdde8f5, light: 0xffffff, lightAlpha: 0.25, particles: 'mist' },
-    { grade: 0x8090a8, gradeAlpha: 0.4, haze: 0xa0a8b8, light: 0xd0e0ff, lightAlpha: 0.1, particles: 'snow' }
+    { grade: 0xe8f0ff, gradeAlpha: 0.09, haze: 0xdde8f5, light: 0xffffff, lightAlpha: 0.25, particles: 'mist' },
+    { grade: 0x8090a8, gradeAlpha: 0.24, haze: 0xa0a8b8, light: 0xd0e0ff, lightAlpha: 0.1, particles: 'snow' }
   ],
   [Biome.SNOW]: [
-    { grade: 0xe0ecff, gradeAlpha: 0.2, haze: 0xf0f6ff, light: 0xffffff, lightAlpha: 0.25, particles: 'snow' },
-    { grade: 0x9ab0d8, gradeAlpha: 0.4, haze: 0xc8d8f0, light: 0xd0e0ff, lightAlpha: 0.15, particles: 'snow' },
-    { grade: 0x5070b0, gradeAlpha: 0.5, haze: 0x3a5080, light: 0x80ffd0, lightAlpha: 0.3, particles: 'snow' }
+    { grade: 0xe0ecff, gradeAlpha: 0.12, haze: 0xf0f6ff, light: 0xffffff, lightAlpha: 0.25, particles: 'snow' },
+    { grade: 0x9ab0d8, gradeAlpha: 0.24, haze: 0xc8d8f0, light: 0xd0e0ff, lightAlpha: 0.15, particles: 'snow' },
+    { grade: 0x5070b0, gradeAlpha: 0.3, haze: 0x3a5080, light: 0x80ffd0, lightAlpha: 0.3, particles: 'snow' }
   ],
   [Biome.VOLCANIC]: [
-    { grade: 0xff9070, gradeAlpha: 0.3, haze: 0xff6a3a, light: 0xff5a20, lightAlpha: 0.4, particles: 'embers' },
-    { grade: 0xa08070, gradeAlpha: 0.35, haze: 0x806050, light: 0xff7a40, lightAlpha: 0.25, particles: 'ash' }
+    { grade: 0xff9070, gradeAlpha: 0.18, haze: 0xff6a3a, light: 0xff5a20, lightAlpha: 0.4, particles: 'embers' },
+    { grade: 0xa08070, gradeAlpha: 0.21, haze: 0x806050, light: 0xff7a40, lightAlpha: 0.25, particles: 'ash' }
   ],
   [Biome.WASTELANDS]: [
-    { grade: 0xb0b8a0, gradeAlpha: 0.35, haze: 0xa8b098, light: 0xd0ffb0, lightAlpha: 0.15, particles: 'ash' },
+    { grade: 0xb0b8a0, gradeAlpha: 0.21, haze: 0xa8b098, light: 0xd0ffb0, lightAlpha: 0.15, particles: 'ash' },
     {
       grade: 0x90c080,
-      gradeAlpha: 0.35,
+      gradeAlpha: 0.21,
       haze: 0x8aa070,
       light: 0x9aff70,
       lightAlpha: 0.2,
@@ -100,10 +100,10 @@ const MOODS: Record<Biome, Mood[]> = {
     }
   ],
   [Biome.ABYSS]: [
-    { grade: 0xc06080, gradeAlpha: 0.35, haze: 0x601830, light: 0xff3040, lightAlpha: 0.35, particles: 'embers' },
+    { grade: 0xc06080, gradeAlpha: 0.21, haze: 0x601830, light: 0xff3040, lightAlpha: 0.35, particles: 'embers' },
     {
       grade: 0x6040a0,
-      gradeAlpha: 0.4,
+      gradeAlpha: 0.24,
       haze: 0x302050,
       light: 0xb070ff,
       lightAlpha: 0.3,

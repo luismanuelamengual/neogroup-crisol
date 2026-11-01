@@ -32,7 +32,7 @@ const EXTENSIONS = ['png', 'webp', 'jpg', 'jpeg']
 /** Largest side of each kind of piece in the game, in pixels (about twice what a phone shows). */
 const MAX_SIDE: Record<PieceKind, number> = {
   hero: 720,
-  heroPart: 512,
+  heroPart: 720,
   heroLimb: 512,
   weapon: 1024,
   portrait: 256,

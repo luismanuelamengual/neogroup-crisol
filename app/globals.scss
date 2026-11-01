@@ -8,43 +8,62 @@
  *   - desktop: min-width 901px
  */
 :root {
-  --font-display: 'Cinzel', Georgia, serif;
-  --font-title: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
-  --font-body: 'Alegreya Sans', 'Segoe UI', Roboto, Arial, sans-serif;
-  // Dark fantasy palette: the names are the roles of each color across the
+  --font-display: 'Lilita One', 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-title: 'Lilita One', 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif;
+  // Bright cartoon palette: the names are the roles of each color across the
   // app (gold: main action, cyan: focus and magic, magenta: danger and enemies,
   // lime: healing).
-  --color-gold: #e8b85a;
-  --color-gold-light: #ffe2a0;
-  --color-gold-dark: #8a5a1c;
-  --color-cyan: #74b4ff;
-  --color-cyan-dark: #1f4f9a;
-  --color-magenta: #e5533d;
-  --color-magenta-dark: #7a1c10;
-  --color-lime: #8fd46a;
-  --color-lime-dark: #3c6e22;
-  --color-ember: #ff8a2a;
-  --color-night: #0d0806;
-  --color-night-light: #1a110c;
-  --color-panel: #241711;
-  --color-panel-border: #7a5524;
-  --color-text: #f4e7cc;
-  --color-text-secondary: #b8a07a;
-  // Ornate frame shared by every panel, window and HUD piece: a bronze line, a
-  // dark gap and an outer bronze line, over dark leather.
-  --frame-border: 2px solid #a8793a;
-  --frame-background: linear-gradient(180deg, rgba(42, 28, 20, 0.96) 0%, rgba(20, 13, 9, 0.96) 100%);
+  --color-gold: #ffc93c;
+  --color-gold-light: #ffe89a;
+  --color-gold-dark: #c4791a;
+  --color-cyan: #4fc3ff;
+  --color-cyan-dark: #1a6fc4;
+  --color-magenta: #ff5a5a;
+  --color-magenta-dark: #b3202c;
+  --color-lime: #7ee05a;
+  --color-lime-dark: #3a9a2a;
+  --color-ember: #ff9a2a;
+  --color-night: #15124a;
+  --color-night-light: #211d63;
+  --color-panel: #2c2f86;
+  --color-panel-border: #f2b53a;
+  --color-text: #ffffff;
+  --color-text-secondary: #c9cff5;
+  // Chunky frame shared by every panel, window and HUD piece: a thick rounded
+  // gold border with a dark outline and a solid drop below, over royal blue.
+  --frame-radius: 16px;
+  --frame-border: 3px solid #f2b53a;
+  --frame-background: linear-gradient(180deg, rgba(62, 66, 160, 0.97) 0%, rgba(38, 42, 116, 0.97) 100%);
   --frame-shadow:
-    0 0 0 3px #0a0604, 0 0 0 4px #5a3c16, inset 0 0 18px rgba(0, 0, 0, 0.65), 0 10px 24px rgba(0, 0, 0, 0.5);
-  --frame-glow: 0 0 0 3px #0a0604, 0 0 0 4px var(--color-gold), 0 0 18px rgba(255, 138, 42, 0.55);
-  // Bars: health is blood red, focus is arcane blue.
-  --bar-track: #0a0604;
-  --bar-health: linear-gradient(180deg, #ff7a5c 0%, #d63a26 45%, #7a1408 100%);
-  --bar-focus: linear-gradient(180deg, #a6d0ff 0%, #3f7fd8 45%, #173a7a 100%);
+    0 0 0 3px #12103a, 0 6px 0 3px #12103a, inset 0 2px 0 rgba(255, 255, 255, 0.22), 0 12px 24px rgba(0, 0, 0, 0.35);
+  --frame-glow: 0 0 0 3px #12103a, 0 0 0 6px var(--color-gold-light), 0 0 18px rgba(255, 201, 60, 0.6);
+  // Bars: health is cherry red, focus is sky blue.
+  --bar-track: #12103a;
+  --bar-health: linear-gradient(180deg, #ff9a8a 0%, #ff4d4d 45%, #c4202c 100%);
+  --bar-focus: linear-gradient(180deg, #b8e8ff 0%, #4fc3ff 45%, #1a6fc4 100%);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+}
+
+// Fonts are self-hosted in public/fonts (SIL Open Font License) so they also
+// work offline inside the installed PWA.
+@font-face {
+  font-family: 'Lilita One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lilita-one.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url('/fonts/nunito.woff2') format('woff2');
 }
 
 * {
@@ -65,8 +84,8 @@ body {
 
 body {
   background:
-    radial-gradient(900px 600px at 50% 18%, rgba(122, 42, 12, 0.45) 0%, transparent 65%),
-    radial-gradient(1200px 500px at 50% 120%, rgba(255, 138, 42, 0.12) 0%, transparent 60%), var(--color-night);
+    radial-gradient(900px 600px at 50% 18%, rgba(79, 195, 255, 0.28) 0%, transparent 65%),
+    radial-gradient(1200px 500px at 50% 120%, rgba(255, 201, 60, 0.16) 0%, transparent 60%), var(--color-night);
   background-attachment: fixed;
 }
 
@@ -91,14 +110,14 @@ a {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-panel-border);
-  border-radius: 0;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-// Ornate corners: two gold diamonds on the top corners of a framed element
+// Corner studs: two round gold studs on the top corners of a framed element
 // (it must be positioned and leave its ::before and ::after free).
 .frame-corners {
   &::before,
@@ -111,8 +130,8 @@ a {
     width: 12px;
     height: 12px;
     background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 50%, var(--color-gold-dark) 100%);
-    box-shadow: 0 0 0 2px #0a0604;
-    transform: rotate(45deg);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px #12103a;
     pointer-events: none;
   }
 
@@ -131,15 +150,15 @@ a {
   color: var(--color-gold);
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.03em;
+  text-shadow: 0 3px 0 #12103a;
 
   &::before,
   &::after {
     content: '';
     flex: 1;
-    height: 1px;
+    height: 3px;
+    border-radius: 2px;
     background: linear-gradient(90deg, transparent, var(--color-gold-dark) 30%, var(--color-gold));
   }
 

@@ -42,7 +42,13 @@ export interface Piece {
 }
 
 export const BASE_PROMPT =
-  'Mature dark-fantasy mobile game art, bold clean black ink outlines, high-contrast cel shading with two-tone shadows, saturated colors, subtle painterly texture, strong rim light, clear readable silhouette, no text, no watermark, no signature.'
+  'Bright, cheerful cartoon mobile game art for all ages, chunky rounded shapes, thick clean dark-brown outlines, soft cel shading with two gentle tones, vivid saturated colors, smooth clean surfaces without gritty texture, soft warm light, clear readable silhouette, no text, no watermark, no signature.'
+/** How heroes are drawn: stylized cartoon, not chibi, so the puppet limbs stay long enough to animate. */
+const CARTOON_BODY =
+  'Stylized cartoon proportions: the head is about a quarter of the total height, big expressive eyes, simple friendly facial features, slightly oversized hands, feet and weapon.'
+/** How creatures are drawn: rounded and expressive, menacing at most, never gory. */
+const CARTOON_CREATURE =
+  'Cartoon proportions: a slightly oversized head, big expressive eyes, a simplified rounded body, menacing at most but never gory.'
 const CHROMA = 'Plain flat #00FF00 background, no ground shadow.'
 const FLAME = 'A small glowing amber flame (#FFB020) embedded in the chest or the weapon.'
 /**
@@ -96,7 +102,7 @@ const BACKGROUNDS: Record<Biome, [string, string]> = {
     'a quiet farm village edge at sunset, wooden fences, haystacks and a small stone bridge over a stream'
   ],
   [Biome.FOREST]: [
-    'a dark ancient forest with huge mossy trunks, roots like walls, shafts of pale light through the canopy',
+    'an ancient forest with huge mossy trunks, roots like walls, shafts of pale light through the canopy',
     'a misty forest clearing with a circle of old standing stones overgrown with ivy and glowing mushrooms'
   ],
   [Biome.TROPICAL]: [
@@ -104,7 +110,7 @@ const BACKGROUNDS: Record<Biome, [string, string]> = {
     'ruins of a jade stepped temple swallowed by the jungle, carved serpent heads and turquoise pools'
   ],
   [Biome.DESERT]: [
-    'endless orange dunes under a white-hot sun, half-buried colossal statue heads and bleached bones',
+    'endless orange dunes under a white-hot sun, half-buried colossal statue heads and weathered old stones',
     'a sandstone canyon with ancient tomb doors carved into the cliffs, hanging torn banners'
   ],
   [Biome.MOUNTAINS]: [
@@ -113,15 +119,15 @@ const BACKGROUNDS: Record<Biome, [string, string]> = {
   ],
   [Biome.SNOW]: [
     'a frozen tundra in a blizzard, snow-covered pines, a frozen lake and distant blue glaciers',
-    'an ice cavern with giant blue icicles and frozen creatures trapped inside the ice walls'
+    'an ice cavern with giant blue icicles and sparkling crystals inside the ice walls'
   ],
   [Biome.VOLCANIC]: [
     'a volcanic wasteland of black basalt with rivers of glowing lava, ash falling and an erupting volcano behind',
     'the inside of a magma cave with a lake of lava, obsidian spikes and floating embers'
   ],
   [Biome.WASTELANDS]: [
-    'a dead grey wasteland at dusk, twisted dead trees, a ruined city skyline and purple sickly sky',
-    'an ancient battlefield graveyard with broken swords, tombstones, skeletons and a sickly green fog'
+    'a grey wasteland at dusk, twisted bare trees, a ruined city skyline and a dramatic purple sky',
+    'an ancient battlefield graveyard with broken swords, crooked tombstones and a soft green mist'
   ],
   [Biome.ABYSS]: [
     'the edge of the Abyss, a bottomless red chasm with chains, floating rock islands and a black castle far away',
@@ -301,14 +307,15 @@ function prompt(...parts: string[]): string {
 export function buildCatalog(): Piece[] {
   const pieces: Piece[] = []
 
-  // Heroes are puppets in strict profile: every body part of every outfit is
-  // its own image (heroes/<id>/outfits/<outfit>/<part>), so outfits can be
-  // mixed part by part, and every weapon too (heroes/<id>/weapons/<weapon>).
+  // Heroes are puppets of three images: per outfit, the body without the arm
+  // that holds the weapon and that arm on its own
+  // (heroes/<id>/outfits/<outfit>/body and /arm), and each weapon
+  // (heroes/<id>/weapons/<weapon>). The whole figure is their reference.
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
     const name = `${id[0].toUpperCase()}${id.slice(1)}`
     const reference = `Using the attached full image of ${name} as the exact reference (same style, colors and proportions)`
-    const profile = 'in strict side profile facing right'
+    const profile = 'seen from the front at a three-quarter angle, facing the camera and turned slightly to the right'
     const limb = (what: string, upper: string, lower: string) =>
       `only ${name}'s ${what}, in two separate pieces side by side with wide empty space between them, not touching: on the left ${upper}; on the right ${lower}. Both pieces perfectly straight and vertical, top joint up, ${profile}, with rounded ends at the joints so they overlap when assembled`
 
@@ -320,7 +327,7 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          `Full-body character ${profile} (pure profile: we see the right side of the body, the left arm and left leg are behind it), standing in a combat stance with feet apart, the weapon held up and forward in the right hand. ${look}. ${FLAME}`,
+          `Full-body character seen from the front at a three-quarter angle: the chest, belly and face point toward the camera, turned slightly to the right, both eyes visible. Not seen from behind: the back is never visible. Combat stance with feet apart, the weapon held forward in the right hand across the front of the body and fully visible; the left arm (with the shield if the outfit has one, its front facing out) is the closest to the camera. ${CARTOON_BODY} ${look}. ${FLAME}`,
           CHROMA
         )
       },
@@ -329,49 +336,25 @@ export function buildCatalog(): Piece[] {
           id: `heroes/${id}/outfits/${outfit}/${file}`,
           kind,
           width: 1024,
-          height: 1024,
+          height: kind === 'heroPart' ? 1536 : 1024,
           batch,
-          prompt: prompt(`${reference}, ${what}. The outfit: ${clothes}. No full character, no weapon.`, CHROMA)
+          prompt: prompt(`${reference}, ${what}. The outfit: ${clothes}. No weapon.`, CHROMA)
         })
 
         return [
           part(
-            'head',
+            'body',
             'heroPart',
-            `only ${name}'s head, ${profile}, cut cleanly just under the jaw and the base of the skull, without the neck (the neck belongs to the torso), wearing this outfit's headgear if it has any. ${HERO_BODIES[id]}`
+            `the whole body of ${name} in the same pose and view, from head to feet, with everything except the right arm (the arm that holds the weapon): the right arm is left out completely and the right shoulder ends clean and rounded where the arm attaches, so a separate arm can be laid over it. The head, torso, legs and the left arm (with the shield if the outfit has one) are all there. ${HERO_BODIES[id]}`
           ),
           part(
-            'torso',
-            'heroPart',
-            `only ${name}'s torso from the top of the neck (just under the jaw) to the hips, the whole neck included, ${profile}, without head, arms or legs, with the scarf, cape or cloak of the outfit if it has one`
-          ),
-          part(
-            'right-arm',
+            'arm',
             'heroLimb',
             limb(
-              'right arm',
+              'right arm (the arm that holds the weapon)',
               'the upper arm from the shoulder (with its shoulder guard) to the elbow',
               'the forearm from the elbow to the hand, closed in a hollow fist as if gripping a handle'
             )
-          ),
-          part(
-            'left-arm',
-            'heroLimb',
-            limb(
-              'left arm',
-              'the upper arm from the shoulder (with its shoulder guard) to the elbow',
-              'the forearm from the elbow to the closed hand, with the shield or anything the outfit straps to it, seen from the inside'
-            )
-          ),
-          part(
-            'right-leg',
-            'heroLimb',
-            limb('right leg', 'the thigh from the hip to the knee', 'the shin from the knee to the foot with its boot')
-          ),
-          part(
-            'left-leg',
-            'heroLimb',
-            limb('left leg', 'the thigh from the hip to the knee', 'the shin from the knee to the foot with its boot')
           )
         ]
       }),
@@ -392,7 +375,10 @@ export function buildCatalog(): Piece[] {
         width: 512,
         height: 512,
         batch,
-        prompt: prompt(`Bust portrait, three-quarter view facing right, of ${look}.`, 'Dark vignette background.')
+        prompt: prompt(
+          `Bust portrait, three-quarter view facing right, of ${look}.`,
+          'Soft bright gradient background.'
+        )
       }
     )
   }
@@ -408,7 +394,7 @@ export function buildCatalog(): Piece[] {
       height: boss ? 1536 : 1024,
       batch: enemy.biome,
       prompt: prompt(
-        `Full-body ${boss ? 'boss monster, imposing and larger than life' : 'monster'}, side view facing left, aggressive stance. ${look}.`,
+        `Full-body ${boss ? 'boss monster, imposing and larger than life' : 'monster'}, side view facing left, ready to fight, cartoonish and expressive rather than scary. ${CARTOON_CREATURE} ${look}.`,
         CHROMA
       )
     })
@@ -437,7 +423,7 @@ export function buildCatalog(): Piece[] {
         height: 1440,
         batch: biome,
         prompt: prompt(
-          `Side-view battle background for a 2D game, wide 16:9 landscape: ${scene}. The bottom 35% is flat open ground for the fighters, with no objects on it. Soft depth haze in the distance, no characters, no creatures.`
+          `Side-view battle background for a 2D game, wide 16:9 landscape: ${scene}. The bottom 35% is flat open ground for the fighters, with no objects on it. Light atmospheric depth with clear, bright colors even in the distance, no characters, no creatures.`
         )
       })
     )
@@ -573,7 +559,7 @@ export function buildCatalog(): Piece[] {
       height: 512,
       batch: 'ui',
       prompt: prompt(
-        `Game icon, centered, filling 80% of the square: ${what}. Strong outline, reads well at 48 px.`,
+        `Game icon, centered, filling 80% of the square: ${what}. Chunky rounded shape, thick outline, glossy toy-like look, reads well at 48 px.`,
         CHROMA
       )
     })

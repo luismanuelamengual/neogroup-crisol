@@ -3,33 +3,31 @@
 .game-button.MuiButtonBase-root {
   --btn-light: var(--color-gold-light);
   --btn-bg: var(--color-gold);
-  --btn-dark: #9a6418;
-  --btn-text: #2a1404;
-  --btn-ring: #3a2208;
+  --btn-dark: #e08a12;
+  --btn-text: #4a2604;
+  --btn-ring: #12103a;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding: 11px 24px;
-  border: 1px solid var(--btn-ring);
-  border-radius: 3px;
+  border: 2px solid var(--btn-ring);
+  border-radius: 14px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 48%),
     linear-gradient(180deg, var(--btn-light) 0%, var(--btn-bg) 45%, var(--btn-dark) 100%);
   color: var(--btn-text);
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
-    0 0 0 2px #0a0604,
-    0 0 0 3px #5a3c16,
-    0 6px 14px rgba(0, 0, 0, 0.5);
+    inset 0 2px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.18),
+    0 4px 0 var(--btn-ring),
+    0 8px 14px rgba(0, 0, 0, 0.35);
   transform: translateY(0);
   transition:
     transform 80ms ease,
@@ -51,15 +49,14 @@
   &:focus-visible {
     filter: brightness(1.1);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.3),
-      0 0 0 2px #0a0604,
-      0 0 0 3px var(--color-gold),
-      0 0 16px rgba(255, 138, 42, 0.55);
+      inset 0 2px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.18),
+      0 4px 0 var(--btn-ring),
+      0 0 16px rgba(255, 201, 60, 0.6);
   }
 
   &:active {
-    transform: translateY(2px);
+    transform: translateY(3px);
     filter: brightness(0.95);
   }
 
@@ -98,41 +95,41 @@
   }
 
   &.color-cyan {
-    --btn-light: #b4d8ff;
-    --btn-bg: #4f8fe0;
-    --btn-dark: #1c3f80;
+    --btn-light: #b8e8ff;
+    --btn-bg: #4fc3ff;
+    --btn-dark: #1a6fc4;
     --btn-text: #fff;
-    --btn-ring: #06142e;
+    --btn-ring: #12103a;
 
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 2px 0 rgba(18, 16, 58, 0.55);
   }
 
   &.color-magenta {
-    --btn-light: #ff9a7a;
-    --btn-bg: #c8432a;
-    --btn-dark: #6e1a0c;
-    --btn-text: #fff3e0;
-    --btn-ring: #2a0804;
+    --btn-light: #ffa89a;
+    --btn-bg: #ff5a5a;
+    --btn-dark: #c4202c;
+    --btn-text: #fff;
+    --btn-ring: #12103a;
 
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 2px 0 rgba(18, 16, 58, 0.55);
   }
 
   &.color-lime {
-    --btn-light: #c4ef9e;
-    --btn-bg: #6aa844;
-    --btn-dark: #2c561a;
+    --btn-light: #c8f5a8;
+    --btn-bg: #7ee05a;
+    --btn-dark: #3a9a2a;
     --btn-text: #fff;
-    --btn-ring: #0e2006;
+    --btn-ring: #12103a;
 
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 2px 0 rgba(18, 16, 58, 0.55);
   }
 
   &.color-ghost {
-    --btn-light: #3a281c;
-    --btn-bg: #24180f;
-    --btn-dark: #140c07;
+    --btn-light: #4a4fb0;
+    --btn-bg: #2c2f86;
+    --btn-dark: #1f2266;
     --btn-text: var(--color-text);
-    --btn-ring: #a8793a;
+    --btn-ring: #12103a;
 
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
   }

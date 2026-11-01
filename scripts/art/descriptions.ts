@@ -4,39 +4,42 @@
  */
 export const ENEMY_LOOKS: Record<string, string> = {
   // Meadows
-  'thorn-boar': 'a large wild boar with brown bristly fur, long curved tusks and rows of wooden thorns along its spine',
+  'thorn-boar':
+    'a big round wild boar with fluffy brown fur, a grumpy snout, two short curved tusks and a row of little wooden thorns along its back',
   'road-bandit':
-    'a wiry human highwayman in a patched hood and leather jerkin, twin rusty daggers, a scarf over his mouth',
+    'a wiry human highwayman in a patched hood and leather jerkin, twin short daggers, a scarf over his mouth',
   'wheat-spirit': 'a floating spirit woven from golden wheat stalks, a hollow face of straw and glowing amber eyes',
   'hedge-sprite': 'a tiny winged fairy made of leaves and hedge twigs, holding a thorny wand that glows green',
-  'field-rat': 'an oversized field rat with mangy grey fur, yellow incisors and a long scaly tail',
+  'field-rat': 'an oversized field rat with scruffy grey fur, big buck teeth and a long scaly tail',
   scarecrow: 'a living scarecrow of sackcloth and straw on a wooden pole, a stitched grin and a rusty sickle',
-  'meadow-wasp': 'a dog-sized wasp with yellow and black stripes, translucent wings and a dripping stinger',
+  'meadow-wasp': 'a dog-sized wasp with yellow and black stripes, translucent wings and a big pointy stinger',
   'bandit-archer': 'a lean human bandit archer in a green hood and leather bracers, drawing a short bow',
   'giant-toad': 'a huge warty brown toad with a wide mouth, bulging eyes and poison glands on its back',
   // Forests
   'shadow-wolf': 'a black wolf made half of smoke, glowing violet eyes and wisps of shadow trailing from its fur',
-  'rotten-ent': 'a hunched walking tree of rotten wood covered in fungus and moss, hollow glowing eyes',
-  'weaver-spider': 'a giant purple forest spider with hairy legs, eight shining eyes and silk dripping from its jaws',
+  'rotten-ent': 'a hunched walking tree of old gnarled wood covered in fungus and moss, hollow glowing eyes',
+  'weaver-spider':
+    'a giant purple forest spider with fuzzy legs, eight shining eyes and a thread of silk trailing behind it',
   'thorn-dryad': 'a slender dryad woman with bark skin, thorny vines for hair and a staff of living wood',
-  'bog-wight': 'a gaunt drowned corpse covered in swamp weed, a lantern of green witch-fire in its bony hand',
+  'bog-wight': 'a lanky swamp ghoul draped in swamp weed, a lantern of green witch-fire in its long hand',
   'moss-bear': 'a massive brown bear with moss and small ferns growing on its back and shoulders',
   'forest-goblin': 'a small green goblin in a leaf cloak with a crude spear and a mischievous grin',
-  'cursed-stag': 'a gaunt black stag with huge antlers dripping dark ichor and blood-red eyes',
+  'cursed-stag': 'a gaunt black stag with huge antlers wreathed in dark mist and glowing red eyes',
   'creeping-vine': 'a writhing mass of thick thorny vines rising from the ground with a toothy flower at its top',
   // Tropical
-  'jade-viper': 'a long emerald-green viper with jade scales, a hooded head and dripping fangs',
-  'fungal-shaman': 'a squat mushroom-man with a wide spotted magenta cap, bone beads and a glowing spore staff',
-  'toxic-frog': 'a bright poison dart frog the size of a dog, neon blue and yellow skin oozing venom',
+  'jade-viper': 'a long emerald-green viper with jade scales, a hooded head and two little fangs',
+  'fungal-shaman': 'a squat mushroom-man with a wide spotted magenta cap, wooden beads and a glowing spore staff',
+  'toxic-frog': 'a bright poison dart frog the size of a dog, neon blue and yellow skin glistening with venom',
   'jungle-panther': 'a sleek black panther with faint jade rosettes on its fur and glowing yellow eyes',
-  'giant-mosquito': 'a giant mosquito with a long needle proboscis, red swollen abdomen and buzzing wings',
+  'giant-mosquito': 'a giant mosquito with a long needle proboscis, round red abdomen and buzzing wings',
   'carnivorous-plant': 'a huge carnivorous plant with a gaping toothy pod for a head and grasping vine tendrils',
   'lizard-warrior': 'a muscular lizardfolk warrior with green scales, a bone spear and a feathered war shield',
   'mangrove-croc': 'a huge swamp crocodile with mossy armored scales and rows of jagged teeth',
-  'tribal-witch': 'an old jungle witch in feathers and bone masks, a skull-topped staff and glowing tattoos',
+  'tribal-witch':
+    'an old jungle witch in feathers and painted wooden masks, a staff topped with a glowing gourd and glowing tattoos',
   // Deserts
   'giant-scorpion': 'a giant desert scorpion with a sand-colored carapace, huge pincers and a curved venom tail',
-  'wandering-mummy': 'a shambling mummy in rotting bandages, glowing blue eyes and gold amulets',
+  'wandering-mummy': 'a shambling mummy in loose unravelling bandages, glowing blue eyes and gold amulets',
   'sand-worm': 'a colossal sand worm bursting from the dunes with a round mouth of spiral teeth',
   'dune-raider': 'a desert raider in flowing sand-colored robes and a face veil, with a curved scimitar',
   'sun-priest': 'a robed desert priest with a golden sun mask and a staff crowned with a glowing sun disk',
@@ -52,18 +55,18 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'storm-eagle': 'a giant eagle with storm-grey feathers crackling with blue lightning',
   'crystal-sprite': 'a small floating sprite made of cyan crystal shards that refract light',
   'dwarf-runepriest': 'an old dwarf priest with a white braided beard, rune-carved stone tablets and a glowing hammer',
-  'cave-bat': 'a giant cave bat with leathery wings, huge ears and needle fangs',
+  'cave-bat': 'a giant cave bat with leathery wings, huge ears and tiny fangs',
   'stone-basilisk': 'a heavy six-legged lizard with stone-grey scales and petrifying glowing eyes',
   // Snow
   yeti: 'a hulking white-furred yeti with long arms, blue skin on its face and icicles in its fur',
   'frost-wolf': 'a white wolf with frost-blue eyes and ice crystals forming on its mane',
   'ice-wisp': 'a floating wisp of pale blue cold light with a crown of ice shards',
   'snow-troll': 'a huge troll with frost-bitten pale skin, a fur loincloth and an ice-crusted club',
-  'ice-wraith': 'a ghostly wraith of freezing mist with a hooded skull face and icy claws',
+  'ice-wraith': 'a ghostly wraith of freezing mist with a hooded shadowy face, glowing eyes and icy claws',
   'frost-giant': 'a giant with blue skin, a long white beard of icicles and heavy armor of frozen steel',
-  'polar-bear': 'a massive polar bear with scarred white fur and frost on its claws',
+  'polar-bear': 'a massive polar bear with thick white fur and frost on its claws',
   'snow-harpy': 'a harpy with white feathered wings, pale blue skin and icy talons',
-  'frozen-shaman': 'a shaman in thick white furs and a reindeer skull mask, holding a staff of blue ice',
+  'frozen-shaman': 'a shaman in thick white furs and a carved wooden reindeer mask, holding a staff of blue ice',
   // Volcanic
   salamander: 'a long red fire salamander with glowing orange patterns and flames along its back',
   'magma-elemental': 'a humanoid of molten magma with a cracked basalt crust and fire for eyes',
@@ -77,15 +80,15 @@ export const ENEMY_LOOKS: Record<string, string> = {
   // Wastelands
   ghoul: 'a hunched grey ghoul with long claws, sunken eyes and torn rags',
   'bone-knight': 'an undead skeleton knight in rusted plate armor with a notched longsword',
-  devourer: 'a lean eyeless creature of stretched black skin with an enormous mouth of needle teeth',
-  banshee: 'a floating pale woman spirit with long white hair, a torn gown and a screaming mouth',
-  'plague-rat': 'a bloated diseased rat with patchy fur, boils and green toxic drool',
+  devourer: 'a lean eyeless creature of smooth black skin with an enormous grinning mouth of pointy teeth',
+  banshee: 'a floating pale woman spirit with long white hair, a flowing gown and a wailing mouth',
+  'plague-rat': 'a chubby sickly rat with patchy fur, green spots and a puff of green toxic gas around it',
   'grave-priest': 'a necromancer priest in black and purple robes with a skull lantern',
   'hollow-archer': 'a skeletal archer with an empty helmet and a black longbow',
-  'flesh-golem': 'a towering patchwork golem of stitched flesh, iron bolts and chains',
-  'carrion-crow': 'a giant black crow with tattered feathers, red eyes and a bloody beak',
+  'flesh-golem': 'a towering patchwork golem of stitched cloth and leather, iron bolts and chains',
+  'carrion-crow': 'a giant black crow with tattered feathers, red eyes and a sharp beak',
   // Abyss
-  'crucible-horror': 'a mass of molten metal and fused bodies with several arms and glowing red mouths',
+  'crucible-horror': 'a mass of molten metal and slag with several arms and glowing red mouths',
   'castle-warden': 'a giant armored jailer in black iron with a cage-shaped helmet and a huge key mace',
   'abyss-eye': 'a floating giant eyeball with tentacles and a red glowing iris surrounded by dark smoke',
   'abyssal-knight': 'a knight in jagged black armor wreathed in purple flames, with a cursed greatsword',
@@ -102,7 +105,7 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'spider-queen': 'a gigantic spider queen with a woman-shaped upper body of purple chitin and a crown of eyes',
   'mire-witch': 'a hunched swamp witch with green skin, a cauldron on her back and a staff of twisted roots',
   'jaguar-king': 'a giant golden jaguar with a feathered headdress and gold armor plates',
-  'swamp-hydra': 'a three-headed swamp hydra with mossy green scales and dripping venomous jaws',
+  'swamp-hydra': 'a three-headed swamp hydra with mossy green scales and venomous jaws',
   'dune-wyrm': 'a colossal armored sand wyrm with sandstone plates and a crest of spikes',
   'mummy-pharaoh': 'a mummified pharaoh with a golden death mask, a tall crown and a sceptre with a glowing scarab',
   'sand-titan': 'a giant made of flowing sand with an ancient stone mask for a face',
@@ -113,7 +116,7 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'ice-troll-king': 'a huge troll king with frost-blue skin, an ice crown and a club of frozen stone',
   'fire-drake': 'a winged red fire drake with flaming wings and molten scales',
   'magma-behemoth': 'a gigantic quadruped behemoth of basalt and flowing magma with volcanic spikes on its back',
-  lich: 'a skeletal lich sorcerer in rotting royal robes with a crown and a staff topped with a green soul gem',
+  lich: 'a skeletal lich sorcerer in tattered royal robes with a crown and a staff topped with a green soul gem',
   'bone-dragon': 'a skeletal dragon made of huge bones with purple ghost fire inside its ribcage',
   'abyssal-champion': 'a towering demon champion in spiked black armor with a burning crimson greatsword',
   'crucible-maw': 'a huge forge monster that is mostly a mouth full of molten teeth, with chains and furnace vents',
@@ -166,10 +169,10 @@ export const ENEMY_LOOKS: Record<string, string> = {
 
 /** The heroes' own bodies: what stays when they change clothes and weapons. */
 export const HERO_BODIES: Record<string, string> = {
-  kael: 'Kael, a young human swordsman in his twenties, lean and athletic, short messy dark-brown hair, determined amber eyes, a faint scar on the cheek',
+  kael: 'Kael, a young human swordsman in his twenties, slim and energetic, short spiky dark-brown hair, big determined amber eyes and a confident smile',
   sera: 'Sera, a young human archer woman, agile and slim, long auburn braid, sharp green eyes',
-  brann: 'Brann, a huge human berserker, bald head with tribal tattoos, thick red beard, scarred muscular arms',
-  oren: 'Oren, an old human druid with a long grey beard braided with leaves, kind tired eyes',
+  brann: 'Brann, a huge human berserker, bald head with tribal tattoos, thick red beard, big muscular arms',
+  oren: 'Oren, an old human druid with a long grey beard braided with leaves, kind twinkling eyes',
   ysolde: 'Ysolde, a young sorceress woman, long silver hair, violet eyes'
 }
 
@@ -177,7 +180,7 @@ export const HERO_BODIES: Record<string, string> = {
 export const HERO_OUTFITS: Record<string, Record<string, string>> = {
   kael: {
     traveller:
-      'worn brown leather armor with dented steel pauldrons, brown trousers, leather boots, a tattered crimson scarf and a small round wooden shield with a steel rim strapped to the left forearm'
+      'light brown leather armor with shiny rounded steel pauldrons, brown trousers, sturdy leather boots, a long crimson scarf and a small round wooden shield with a steel rim strapped to the left forearm'
   },
   sera: { ranger: 'a hooded forest-green cloak over light brown leather armor, leather bracers and soft boots' },
   brann: { berserker: 'a fur mantle over the shoulders, an iron chest plate, bare arms, leather kilt and fur boots' },
@@ -204,7 +207,7 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
     axe: 'a massive double-bladed battle axe with a long iron-banded haft',
     maul: 'Quarry Heart, a huge two-handed maul whose head is a rough block of granite bound with iron bands, cracks glowing faint amber',
     hatchets:
-      'one of the Red Sisters: a short single-bladed hatchet with a red-lacquered haft and a notched, blood-red steel blade'
+      'one of the Red Sisters: a short single-bladed hatchet with a red-lacquered haft and a notched crimson steel blade'
   },
   oren: {
     'root-sickle':

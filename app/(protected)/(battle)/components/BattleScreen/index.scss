@@ -22,7 +22,7 @@
   // Glass: what the HUD is made of (the scene shows through, blurred).
   %glass {
     border: 1px solid rgba(232, 184, 90, 0.45);
-    background: linear-gradient(180deg, rgba(36, 23, 17, 0.72) 0%, rgba(13, 8, 6, 0.78) 100%);
+    background: linear-gradient(180deg, rgba(44, 47, 134, 0.72) 0%, rgba(21, 18, 74, 0.78) 100%);
     box-shadow:
       0 4px 14px rgba(0, 0, 0, 0.45),
       inset 0 1px 0 rgba(255, 226, 160, 0.12);
@@ -130,7 +130,7 @@
     gap: 8px;
     padding: 28px calc(10px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(10px + var(--safe-left));
     // A shade only behind the HUD, fading into the scene: no band.
-    background: linear-gradient(180deg, rgba(13, 8, 6, 0) 0%, rgba(13, 8, 6, 0.55) 30%, rgba(13, 8, 6, 0.8) 100%);
+    background: linear-gradient(180deg, rgba(21, 18, 74, 0) 0%, rgba(21, 18, 74, 0.55) 30%, rgba(21, 18, 74, 0.8) 100%);
     pointer-events: none;
 
     > * {
@@ -159,7 +159,7 @@
       align-self: flex-start;
       padding: 2px 12px;
       border-left: 3px solid var(--color-gold);
-      background: linear-gradient(90deg, rgba(13, 8, 6, 0.8) 0%, rgba(13, 8, 6, 0) 100%);
+      background: linear-gradient(90deg, rgba(21, 18, 74, 0.8) 0%, rgba(21, 18, 74, 0) 100%);
       color: var(--color-gold-light);
       font-family: var(--font-display);
       font-size: 0.8rem;
@@ -218,7 +218,7 @@
       height: 42px;
       padding: 0 14px 0 12px;
       border-left: 3px solid var(--tone);
-      border-radius: 4px;
+      border-radius: 10px;
       color: var(--color-text);
       font-family: var(--font-display);
       font-size: 0.9rem;
@@ -373,7 +373,7 @@
     &.empty {
       align-items: center;
       border-style: dashed;
-      background: rgba(13, 8, 6, 0.35);
+      background: rgba(21, 18, 74, 0.35);
       color: var(--color-text-secondary);
       font-size: 0.7rem;
       opacity: 0.55;
@@ -476,9 +476,9 @@
     padding: 8px;
     border: 2px solid var(--color-gold-light);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 28%, #ffe2a0 0%, #e8b85a 35%, #8a5a1c 100%);
+    background: radial-gradient(circle at 35% 28%, #ffe2a0 0%, #ffc93c 35%, #8a5a1c 100%);
     box-shadow:
-      0 0 0 3px rgba(13, 8, 6, 0.85),
+      0 0 0 3px rgba(21, 18, 74, 0.85),
       0 0 22px rgba(255, 138, 42, 0.55);
     color: #2a1608;
     text-align: center;
@@ -772,7 +772,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(13, 8, 6, 0.72);
+    background: rgba(21, 18, 74, 0.72);
 
     .panel {
       position: relative;
@@ -780,7 +780,7 @@
       max-width: 360px;
       padding: 22px 24px 24px;
       border: var(--frame-border);
-      border-radius: 4px;
+      border-radius: var(--frame-radius);
       background: var(--frame-background);
       box-shadow: var(--frame-shadow);
       text-align: center;

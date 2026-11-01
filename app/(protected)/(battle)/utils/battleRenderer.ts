@@ -56,7 +56,7 @@ const DAMAGE_COLORS: Partial<Record<DamageType, number>> = {
   [DamageType.LIGHT]: 0xfff7c2,
   [DamageType.DARKNESS]: 0xc084fc
 }
-const FONT = 'Cinzel, Georgia, serif'
+const FONT = "'Lilita One', Nunito, sans-serif"
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
 const FIGURE_HEIGHT = 120
 const OUTLINE = 0x0a0710
@@ -265,32 +265,32 @@ export class BattleRenderer {
     const horizon = this.groundY - 40 * this.scale
 
     g.clear()
-    g.rect(0, 0, this.width, horizon).fill({ color: 0x120a24 })
-    g.rect(0, horizon * 0.55, this.width, horizon * 0.45).fill({ color: mix(0x120a24, ground, 0.25) })
+    g.rect(0, 0, this.width, horizon).fill({ color: 0x6fcbff })
+    g.rect(0, horizon * 0.55, this.width, horizon * 0.45).fill({ color: mix(0xbfeaff, ground, 0.2) })
 
-    // Stars and a moon, so a tall sky is not empty.
-    for (let index = 0; index < 40; index++) {
-      const x = ((index * 73) % 101) / 100
-      const y = ((index * 37) % 89) / 89
+    // A sun and a few puffy clouds, so a tall sky is not empty.
+    g.circle(this.width * 0.82, horizon * 0.2, 26 * this.scale).fill({ color: 0xfff2a8 })
 
-      g.circle(x * this.width, y * horizon * 0.6, 1 + (index % 3) * 0.5).fill({
-        color: 0xffffff,
-        alpha: 0.25 + (index % 4) * 0.15
-      })
+    for (let index = 0; index < 5; index++) {
+      const x = (((index * 37) % 97) / 97) * this.width
+      const y = (0.12 + ((index * 23) % 5) * 0.07) * horizon
+      const size = (18 + (index % 3) * 8) * this.scale
+
+      g.circle(x, y, size).fill({ color: 0xffffff, alpha: 0.9 })
+      g.circle(x + size * 0.9, y + size * 0.2, size * 0.75).fill({ color: 0xffffff, alpha: 0.9 })
+      g.circle(x - size * 0.9, y + size * 0.25, size * 0.65).fill({ color: 0xffffff, alpha: 0.9 })
     }
-
-    g.circle(this.width * 0.82, horizon * 0.18, 22 * this.scale).fill({ color: 0xf5e6c8, alpha: 0.85 })
 
     // Far hills.
     for (let index = 0; index < 7; index++) {
       const x = (index / 6) * this.width
       const radius = this.width * (0.12 + ((index * 37) % 5) * 0.02)
 
-      g.circle(x, horizon + radius * 0.35, radius).fill({ color: mix(0x120a24, ground, 0.45) })
+      g.circle(x, horizon + radius * 0.35, radius).fill({ color: mix(0x6fcbff, ground, 0.6) })
     }
 
-    g.rect(0, horizon, this.width, this.height - horizon).fill({ color: mix(ground, 0x000000, 0.35) })
-    g.rect(0, horizon, this.width, 6).fill({ color: mix(ground, 0xffffff, 0.15) })
+    g.rect(0, horizon, this.width, this.height - horizon).fill({ color: mix(ground, 0x000000, 0.1) })
+    g.rect(0, horizon, this.width, 6).fill({ color: mix(ground, 0xffffff, 0.25) })
   }
 
   /** Spot of a fighter: heroes on the left, enemies on the right, in staggered rows. */

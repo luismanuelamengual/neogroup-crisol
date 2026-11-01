@@ -1,23 +1,23 @@
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 
 /**
- * Puppets: figures put together from separate images. A hero has one skeleton
- * and a "skin" per body part: every part of every outfit is its own image
- * (heroes/<id>/outfits/<outfit>/<part>), so a hero can wear the torso of one
- * outfit and the legs of another; weapons are images of their own too
- * (heroes/<id>/weapons/<weapon>). Arms and legs come in two segments (upper
- * and lower), so elbows and knees bend.
+ * Puppets: figures put together from separate images. A hero is three
+ * images: per outfit, the body without the arm that holds the weapon
+ * (heroes/<id>/outfits/<outfit>/body) and that arm on its own, in two
+ * segments so the elbow bends (heroes/<id>/outfits/<outfit>/arm), and each
+ * weapon (heroes/<id>/weapons/<weapon>). The body does not bend: it only
+ * leans and breathes; the arm and the weapon do the moves.
  *
  * Every image is generated on its own, at its own scale: each slot is sized
- * by one of its segments (`SIZES`, in torso heights), and joints are shares of
+ * by one of its segments (`SIZES`, in body heights), and joints are shares of
  * a segment's box (0..1, from its top-left corner): `pivot` is the joint on
  * the segment itself and `at` is where it sits on the parent's segment. Bones
- * are drawn in the order listed (back to front). Limbs are drawn hanging
+ * are drawn in the order listed (back to front). The arm is drawn hanging
  * straight down: rotation 0 hangs, positive turns clockwise.
  */
 
 /** The body parts, each one an image per outfit. */
-export const BODY_PARTS = ['head', 'torso', 'right-arm', 'left-arm', 'right-leg', 'left-leg'] as const
+export const BODY_PARTS = ['body', 'arm'] as const
 
 export type BodyPart = (typeof BODY_PARTS)[number]
 
@@ -25,25 +25,14 @@ export type BodyPart = (typeof BODY_PARTS)[number]
 export type Slot = BodyPart | 'weapon'
 
 /** What each bone does when the puppet moves. */
-export type BoneRole =
-  | 'torso'
-  | 'head'
-  | 'rightArm'
-  | 'rightForearm'
-  | 'weapon'
-  | 'leftArm'
-  | 'leftForearm'
-  | 'rightThigh'
-  | 'rightShin'
-  | 'leftThigh'
-  | 'leftShin'
+export type BoneRole = 'body' | 'arm' | 'forearm' | 'weapon'
 
 export interface RigBone {
   role: BoneRole
   slot: Slot
   /** 1 = the upper segment of a limb (or the only one), 2 = the lower. */
   segment: number
-  /** The root (torso) has none: its pivot is the hip. */
+  /** The root (body) has none: its pivot is between the feet. */
   parent?: BoneRole
   pivot: [number, number]
   at: [number, number]
@@ -53,7 +42,7 @@ export interface RigBone {
   far?: boolean
 }
 
-/** How big each slot is drawn: one of its segments, along one side, in torso heights. */
+/** How big each slot is drawn: one of its segments, along one side, in body heights. */
 export interface SlotSize {
   segment: number
   side: 'height' | 'width'
@@ -87,123 +76,56 @@ export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
   [CharacterId.YSOLDE]: { parts: outfit('court'), weapon: 'tome' }
 }
 
-/** Each weapon: where the hand holds it (share of its length from the handle end) and how long it is. */
 const WEAPONS: Record<string, { grip: number; length: number }> = {
-  sword: { grip: 0.12, length: 1.3 },
-  bow: { grip: 0.5, length: 1.6 },
-  axe: { grip: 0.3, length: 1.5 },
-  dawnbrand: { grip: 0.12, length: 1.35 },
-  mace: { grip: 0.15, length: 1.1 },
-  crossbow: { grip: 0.35, length: 1.1 },
-  'gale-bow': { grip: 0.5, length: 1.6 },
-  maul: { grip: 0.25, length: 1.6 },
-  hatchets: { grip: 0.2, length: 0.9 },
-  'root-sickle': { grip: 0.2, length: 0.9 },
-  scythe: { grip: 0.4, length: 2 },
-  'thorn-sickle': { grip: 0.35, length: 1.5 },
+  sword: { grip: 0.12, length: 0.55 },
+  bow: { grip: 0.5, length: 0.67 },
+  axe: { grip: 0.3, length: 0.63 },
+  dawnbrand: { grip: 0.12, length: 0.57 },
+  mace: { grip: 0.15, length: 0.46 },
+  crossbow: { grip: 0.35, length: 0.46 },
+  'gale-bow': { grip: 0.5, length: 0.67 },
+  maul: { grip: 0.25, length: 0.67 },
+  hatchets: { grip: 0.2, length: 0.38 },
+  'root-sickle': { grip: 0.2, length: 0.38 },
+  scythe: { grip: 0.4, length: 0.84 },
+  'thorn-sickle': { grip: 0.35, length: 0.63 },
   // The grimoires float beside the hand: it "holds" them by their spine.
-  tome: { grip: 0.5, length: 0.8 },
-  codex: { grip: 0.5, length: 0.8 },
-  grimoire: { grip: 0.5, length: 0.8 }
+  tome: { grip: 0.5, length: 0.34 },
+  codex: { grip: 0.5, length: 0.34 },
+  grimoire: { grip: 0.5, length: 0.34 }
 }
-/** Limbs are sized by their upper segment: the lower one may carry a shield. */
+/** The arm is sized by its upper segment (shoulder to elbow). */
 const SIZES: Record<BodyPart, SlotSize> = {
-  head: { segment: 1, side: 'height', length: 0.5 },
-  torso: { segment: 1, side: 'height', length: 1 },
-  'right-arm': { segment: 1, side: 'height', length: 0.5 },
-  'left-arm': { segment: 1, side: 'height', length: 0.5 },
-  'right-leg': { segment: 1, side: 'height', length: 0.55 },
-  'left-leg': { segment: 1, side: 'height', length: 0.55 }
+  body: { segment: 1, side: 'height', length: 1 },
+  arm: { segment: 1, side: 'height', length: 0.19 }
 }
+/**
+ * Where the arm hangs from on each hero's body image (share of its box from
+ * the top-left corner). Adjust a hero here when its arm does not sit on the
+ * shoulder (see the art preview).
+ */
+const DEFAULT_SHOULDER: [number, number] = [0.5, 0.3]
+const SHOULDERS: Partial<Record<CharacterId, [number, number]>> = {}
 
-/** The hero skeleton, in strict profile facing right. */
-function heroBones(grip: number): RigBone[] {
+/** The hero skeleton: the body, and the arm with the weapon in front of it. */
+function heroBones(grip: number, shoulder: [number, number]): RigBone[] {
   return [
-    // Left (far) side: behind the body.
-    {
-      role: 'leftThigh',
-      slot: 'left-leg',
-      segment: 1,
-      parent: 'torso',
-      pivot: [0.5, 0.08],
-      at: [0.55, 0.9],
-      rotation: 0.35,
-      far: true
-    },
-    {
-      role: 'leftShin',
-      slot: 'left-leg',
-      segment: 2,
-      parent: 'leftThigh',
-      pivot: [0.5, 0.06],
-      at: [0.5, 0.92],
-      rotation: 0.1,
-      far: true
-    },
-    {
-      role: 'leftArm',
-      slot: 'left-arm',
-      segment: 1,
-      parent: 'torso',
-      pivot: [0.5, 0.1],
-      at: [0.6, 0.14],
-      rotation: -0.6,
-      far: true
-    },
-    {
-      role: 'leftForearm',
-      slot: 'left-arm',
-      segment: 2,
-      parent: 'leftArm',
-      pivot: [0.5, 0.06],
-      at: [0.5, 0.92],
-      rotation: -1.0,
-      far: true
-    },
-    { role: 'torso', slot: 'torso', segment: 1, pivot: [0.5, 0.95], at: [0, 0] },
-    // Right (near) side: in front.
-    {
-      role: 'rightThigh',
-      slot: 'right-leg',
-      segment: 1,
-      parent: 'torso',
-      pivot: [0.5, 0.08],
-      at: [0.5, 0.9],
-      rotation: -0.35
-    },
-    {
-      role: 'rightShin',
-      slot: 'right-leg',
-      segment: 2,
-      parent: 'rightThigh',
-      pivot: [0.5, 0.06],
-      at: [0.5, 0.92],
-      rotation: 0.35
-    },
-    { role: 'head', slot: 'head', segment: 1, parent: 'torso', pivot: [0.45, 0.95], at: [0.55, 0.04] },
-    {
-      role: 'rightArm',
-      slot: 'right-arm',
-      segment: 1,
-      parent: 'torso',
-      pivot: [0.5, 0.1],
-      at: [0.45, 0.14],
-      rotation: -0.3
-    },
+    { role: 'body', slot: 'body', segment: 1, pivot: [0.5, 1], at: [0, 0] },
+    { role: 'arm', slot: 'arm', segment: 1, parent: 'body', pivot: [0.5, 0.1], at: shoulder, rotation: -0.3 },
     {
       role: 'weapon',
       slot: 'weapon',
       segment: 1,
-      parent: 'rightForearm',
+      parent: 'forearm',
       pivot: [grip, 0.5],
       at: [0.5, 0.88],
       rotation: 0.7
     },
     {
-      role: 'rightForearm',
-      slot: 'right-arm',
+      role: 'forearm',
+      slot: 'arm',
       segment: 2,
-      parent: 'rightArm',
+      parent: 'arm',
       pivot: [0.5, 0.06],
       at: [0.5, 0.92],
       rotation: -1.4
@@ -213,7 +135,7 @@ function heroBones(grip: number): RigBone[] {
 
 /** A hero's puppet as they are dressed and armed. */
 export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): Rig {
-  const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 1.4 }
+  const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 0.6 }
 
   return {
     images: {
@@ -223,7 +145,7 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
       weapon: `heroes/${id}/weapons/${loadout.weapon}`
     },
     sizes: { ...SIZES, weapon: { segment: 1, side: 'width', length: weapon.length } },
-    bones: heroBones(weapon.grip)
+    bones: heroBones(weapon.grip, SHOULDERS[id] ?? DEFAULT_SHOULDER)
   }
 }
 

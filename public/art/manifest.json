@@ -1,8 +1,8 @@
 {
  "images": {
   "heroes/kael/full": {
-   "width": 448,
-   "height": 689
+   "width": 720,
+   "height": 644
   },
   "heroes/kael/outfits/traveller/head": {
    "width": 476,
@@ -22,7 +22,7 @@
   },
   "enemies/thorn-boar": {
    "width": 512,
-   "height": 388
+   "height": 321
   },
   "backgrounds/meadows-1": {
    "width": 1920,
