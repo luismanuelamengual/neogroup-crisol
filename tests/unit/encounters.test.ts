@@ -100,7 +100,7 @@ describe('battle results on the map', () => {
     expect(result.rewards[0]).toEqual({ type: 'gold', amount: battle.gold })
   })
 
-  it('wakes the party at its last camp with half the experience of the level after a defeat', () => {
+  it('wakes the party at its last camp with no experience left in the level after a defeat', () => {
     const { state } = createBattle({
       heroes: start.characters,
       phases,
@@ -112,7 +112,7 @@ describe('battle results on the map', () => {
     const result = applyBattleResult(index, game, { ...state, outcome: 'defeat' }, world.startNodeId)
 
     expect(result.state.positionNodeId).toBe(world.startNodeId)
-    expect(result.state.characters[0]).toMatchObject({ xp: 5, health: 120 })
+    expect(result.state.characters[0]).toMatchObject({ level: 1, xp: 0, health: 120 })
   })
 
   it('leaves the experience lost in a defeat at the point, and gives it back on a victory there', () => {
@@ -126,15 +126,15 @@ describe('battle results on the map', () => {
     const game = { ...fighting.state, characters: [{ ...fighting.state.characters[0], xp: 10 }] }
     const defeat = applyBattleResult(index, game, { ...state, outcome: 'defeat' }, world.startNodeId)
 
-    expect(defeat.state.lostXp).toEqual({ nodeId: combatId, xp: { [CharacterId.KAEL]: 5 } })
+    expect(defeat.state.lostXp).toEqual({ nodeId: combatId, xp: { [CharacterId.KAEL]: 10 } })
 
     const back = arriveAt(index, defeat.state, combatId).state
     const battle = battleWith(10)
     const victory = applyBattleResult(index, back, battle, world.startNodeId)
 
-    expect(victory.recoveredXp).toBe(5)
+    expect(victory.recoveredXp).toBe(10)
 
-    const { level, xp } = gainExperience(back.characters[0], 5 + battle.xp)
+    const { level, xp } = gainExperience(back.characters[0], 10 + battle.xp)
 
     expect(victory.state.characters[0]).toMatchObject({ level, xp })
     expect(victory.state.lostXp).toBeNull()
@@ -176,7 +176,7 @@ describe('battle results on the map', () => {
 
     expect(applyBattleResult(index, withXp, { ...state, outcome: 'defeat' }, world.startNodeId).state.lostXp).toEqual({
       nodeId: combatId,
-      xp: { [CharacterId.KAEL]: 10 }
+      xp: { [CharacterId.KAEL]: 20 }
     })
     expect(
       applyBattleResult(index, withoutXp, { ...state, outcome: 'defeat' }, world.startNodeId).state.lostXp

@@ -396,7 +396,7 @@ export const en: Messages = {
     transform: 'It transforms!',
     victory: 'Victory!',
     defeat: 'Your party fell',
-    defeatText: 'You lose half the experience of your current level and wake up at the last camp where you rested.',
+    defeatText: 'You lose all the experience of your current level and wake up at the last camp where you rested.',
     retreated: 'You retreated',
     retreatText: 'You go back to the previous point without losing experience.',
     xpGained: '+{xp} experience',

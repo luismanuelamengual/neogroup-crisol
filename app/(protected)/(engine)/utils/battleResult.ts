@@ -8,8 +8,8 @@ import { addItems } from '@/app/(protected)/(engine)/utils/heroes'
 import { gainExperience, loseExperience } from '@/app/(protected)/(engine)/utils/progression'
 import { loseEncounter, retreat, winEncounter, WorldIndex } from '@/app/(protected)/(engine)/utils/worldMap'
 
-/** Share of the experience of the current level lost by the whole party on a defeat. */
-export const DEFEAT_XP_LOSS = 0.5
+/** Share of the experience of the current level lost by the whole party on a defeat: all of it (never a level). */
+export const DEFEAT_XP_LOSS = 1
 
 export interface LevelUp {
   characterId: CharacterId
@@ -107,7 +107,7 @@ function spendItems(state: GameState, battle: BattleState): GameState {
  *     each rune worn by an active hero, the point cleared with its rewards;
  *     the fallen come back with 1 health. If these are the enemies that
  *     defeated the party last, everybody gets back what it lost then.
- *   - defeat: everybody loses half the experience of its current level and
+ *   - defeat: everybody loses all the experience of its current level (never a level) and
  *     wakes up at the last camp where it rested. What it lost waits at this
  *     point (replacing what was waiting from an earlier defeat, now lost).
  *   - retreat (only possible with every hero alive): nobody loses experience

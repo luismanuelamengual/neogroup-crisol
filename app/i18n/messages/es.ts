@@ -401,8 +401,7 @@ export const es = {
     transform: '¡Se transforma!',
     victory: '¡Victoria!',
     defeat: 'Tu grupo cayó',
-    defeatText:
-      'Perdés la mitad de la experiencia de tu nivel actual y despertás en el último campamento donde descansaste.',
+    defeatText: 'Perdés toda la experiencia de tu nivel actual y despertás en el último campamento donde descansaste.',
     retreated: 'Te retiraste',
     retreatText: 'Volvés al punto anterior sin perder experiencia.',
     xpGained: '+{xp} de experiencia',
