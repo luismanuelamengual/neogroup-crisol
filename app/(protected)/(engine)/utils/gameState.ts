@@ -1,5 +1,6 @@
-import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
+import { getBaseStats, getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { FLASK_BASE_CHARGES } from '@/app/(protected)/(engine)/data/flask'
+import { getSkillTree, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import { getStartingWeapon, MAX_WEAPON_LEVEL, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -8,7 +9,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 10
+export const SAVE_VERSION = 11
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -123,12 +124,13 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
   }
 
   if (fromVersion < 7) {
-    // v7: up to six skills equipped for battle. The first six it knows are equipped.
+    // v7: up to six skills equipped for battle. The special it starts with is equipped (v11 rebuilds the trees,
+    // so the specials of the old ones do not matter).
     state = {
       ...state,
       characters: ((state.characters ?? []) as Omit<CharacterState, 'skills'>[]).map((character) => ({
         ...character,
-        skills: getKnownSkills(character).slice(0, SKILL_SLOTS)
+        skills: getCharacterDefinition(character.id).skills.slice(1, 2)
       }))
     }
   }
@@ -153,6 +155,22 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
   if (fromVersion < 10) {
     // v10: the experience lost in a defeat waits where the party fell. Nothing is waiting yet.
     state = { ...state, lostXp: null }
+  }
+
+  if (fromVersion < 11) {
+    // v11: skill trees of specials with levels, one per row, and no passives. Every skill point spent comes back
+    // to spend again; the specials it keeps are the one it starts with.
+    state = {
+      ...state,
+      characters: ((state.characters ?? []) as (CharacterState & { talents?: string[] })[]).map(
+        ({ talents: _talents, ...character }) => {
+          const reset = { ...character, skillLevels: { [getSkillTree(character.id).root]: 1 } }
+          const known = getKnownSkills(reset)
+
+          return { ...reset, skills: character.skills.filter((skill) => known.includes(skill)) }
+        }
+      )
+    }
   }
 
   return state
@@ -217,7 +235,7 @@ export function isGameState(value: unknown): value is GameState {
         health,
         focus,
         attributes,
-        talents,
+        skillLevels,
         traded,
         skills,
         weaponId,
@@ -235,7 +253,8 @@ export function isGameState(value: unknown): value is GameState {
         isCount(health) &&
         (focus === undefined || isCount(focus)) &&
         isCountMap(attributes) &&
-        isStringArray(talents) &&
+        isCountMap(skillLevels) &&
+        Object.values(skillLevels as Record<string, number>).every((level) => level >= 1 && level <= MAX_SKILL_LEVEL) &&
         isCount(traded) &&
         isStringArray(skills) &&
         (skills as string[]).length <= SKILL_SLOTS &&

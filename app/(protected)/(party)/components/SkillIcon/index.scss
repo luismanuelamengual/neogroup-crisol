@@ -1,0 +1,97 @@
+// Medallion of a special: its color says its damage type.
+.skill-icon {
+  --skill-color: #9aa3e8;
+  --skill-dark: #2a2f7a;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--skill-color);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--skill-color) 0%, var(--skill-dark) 70%);
+  box-shadow:
+    inset 0 -3px 6px rgba(0, 0, 0, 0.45),
+    0 0 0 2px #12103a;
+  color: #fff;
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+
+  svg {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  }
+
+  &.small {
+    width: 26px;
+    height: 26px;
+    border-width: 1.5px;
+    font-size: 0.9rem;
+  }
+
+  &.large {
+    width: 60px;
+    height: 60px;
+    border-width: 3px;
+    font-size: 1.9rem;
+  }
+
+  // Reaches every enemy or every ally: a second ring.
+  &.area {
+    box-shadow:
+      inset 0 -3px 6px rgba(0, 0, 0, 0.45),
+      0 0 0 2px #12103a,
+      0 0 0 4px var(--skill-color);
+  }
+
+  &.type-slash {
+    --skill-color: #c9d3e6;
+    --skill-dark: #3c4a66;
+  }
+
+  &.type-pierce {
+    --skill-color: #9be07a;
+    --skill-dark: #2c5e2a;
+  }
+
+  &.type-blunt {
+    --skill-color: #e0a86a;
+    --skill-dark: #6a3c18;
+  }
+
+  &.type-fire {
+    --skill-color: #ff8a3a;
+    --skill-dark: #8a1e10;
+  }
+
+  &.type-ice {
+    --skill-color: #8fe3ff;
+    --skill-dark: #1a5a8a;
+  }
+
+  &.type-lightning {
+    --skill-color: #ffe25a;
+    --skill-dark: #7a5a10;
+  }
+
+  &.type-earth {
+    --skill-color: #c8a46a;
+    --skill-dark: #4a3418;
+  }
+
+  &.type-light {
+    --skill-color: #fff2a8;
+    --skill-dark: #9a7a20;
+  }
+
+  &.type-darkness {
+    --skill-color: #b48aff;
+    --skill-dark: #2e1a5a;
+  }
+
+  &.kind-heal {
+    --skill-color: #8ef0a0;
+    --skill-dark: #1e6a3a;
+  }
+}

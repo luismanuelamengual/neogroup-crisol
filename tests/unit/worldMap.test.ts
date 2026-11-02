@@ -417,7 +417,7 @@ describe('New Game+', () => {
         ...createCharacter(CharacterId.KAEL, 60),
         weaponId: 'dawnbrand',
         weapons: { 'oath-sword': 12, dawnbrand: 3 },
-        talents: ['kael-sharpness'],
+        skillLevels: { 'kael-firm-cut': 2 },
         xp: 0,
         health: 1
       },

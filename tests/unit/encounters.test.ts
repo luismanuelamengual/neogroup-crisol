@@ -63,7 +63,7 @@ describe('experience', () => {
     const kael = createCharacter(CharacterId.KAEL)
     const grown = gainExperience(kael, xpToNextLevel(1) + xpToNextLevel(2) + 5)
 
-    expect(grown).toMatchObject({ level: 3, xp: 5, health: 144 })
+    expect(grown).toMatchObject({ level: 3, xp: 5, health: 151 })
   })
 
   it('loses a share of the experience of the level, never the level', () => {

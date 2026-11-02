@@ -126,10 +126,21 @@ export const ATTRIBUTE_POINT: Record<keyof CombatStats, number> = {
   critDamage: 0.02
 }
 
+/**
+ * Share of health, defense and power gained with the levels on top of the
+ * growth, by the square root of the levels gained (+12% at level 13, +27% at
+ * level 61): the skill trees have no passives, so the experience of a hero
+ * carries that strength.
+ */
+export const LEVEL_SHARE = 0.035
+const VETERAN_STATS: GrowingStat[] = ['maxHealth', 'defense', 'attack', 'special']
+
 /** Attributes of a character at a level, before its points, weapon, runes and tree (see utils/heroes.ts). */
 export function getBaseStats(id: CharacterId, level: number): CombatStats {
   const { base, growth } = getCharacterDefinition(id)
-  const grow = (stat: GrowingStat) => base[stat] + growth[stat] * (level - 1)
+  const veteran = 1 + LEVEL_SHARE * Math.sqrt(level - 1)
+  const grow = (stat: GrowingStat) =>
+    (base[stat] + growth[stat] * (level - 1)) * (VETERAN_STATS.includes(stat) ? veteran : 1)
 
   return {
     maxHealth: grow('maxHealth'),

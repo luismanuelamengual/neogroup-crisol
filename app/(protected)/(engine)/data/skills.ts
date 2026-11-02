@@ -5,8 +5,8 @@ import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 
 /**
  * Catalog of skills (names in i18n, skills.<id>). Each hero starts with its
- * weapon attack and one special; the rest are bought in its skill tree
- * (data/talents.ts).
+ * weapon attack and one special; the rest are learned in its skill tree
+ * (data/skillTrees.ts), where they also go up levels.
  */
 
 const ELEMENTS = [
@@ -360,6 +360,16 @@ const TREE_SKILLS: Skill[] = [
     stat: 'attack',
     damageType: DamageType.PIERCE,
     critBonus: 0.3
+  },
+  {
+    id: 'sera-hunters-mark',
+    cost: 14,
+    target: TargetType.ENEMY,
+    power: 1.1,
+    stat: 'attack',
+    damageType: DamageType.PIERCE,
+    critBonus: 0.15,
+    statuses: [st('ATTACK_DOWN', 0.6, 3)]
   },
   {
     id: 'sera-heartseeker',
@@ -743,6 +753,289 @@ const TREE_SKILLS: Skill[] = [
     stat: 'special',
     damageType: DamageType.LIGHTNING,
     statuses: [st('STUN', 0.3, 1)]
+  },
+  // Specials added to fill the skill trees (data/skillTrees.ts).
+  {
+    id: 'kael-riposte',
+    cost: 14,
+    target: TargetType.ENEMY,
+    power: 1.3,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    critBonus: 0.2
+  },
+  {
+    id: 'kael-oath',
+    cost: 16,
+    target: TargetType.SELF,
+    power: 0,
+    stat: 'attack',
+    damageType: DamageType.LIGHT,
+    statuses: [st('ATTACK_UP', 1, 3), st('DEFENSE_UP', 1, 3)]
+  },
+  {
+    id: 'kael-ember-slash',
+    cost: 20,
+    target: TargetType.ALL_ENEMIES,
+    power: 0.9,
+    stat: 'attack',
+    damageType: DamageType.FIRE,
+    statuses: [st('BURN', 0.35, 2)]
+  },
+  {
+    id: 'kael-sundering-blow',
+    cost: 22,
+    target: TargetType.ENEMY,
+    power: 1.6,
+    stat: 'attack',
+    damageType: DamageType.BLUNT,
+    statuses: [st('DEFENSE_DOWN', 0.7, 3)]
+  },
+  {
+    id: 'kael-dawn-strike',
+    cost: 28,
+    target: TargetType.ENEMY,
+    power: 2.2,
+    stat: 'attack',
+    damageType: DamageType.LIGHT,
+    statuses: [st('BLIND', 0.4, 2)]
+  },
+  {
+    id: 'kael-war-banner',
+    cost: 30,
+    target: TargetType.ALL_ALLIES,
+    power: 0,
+    stat: 'attack',
+    damageType: DamageType.LIGHT,
+    statuses: [st('ATTACK_UP', 1, 3)]
+  },
+  {
+    id: 'kael-crimson-edge',
+    cost: 38,
+    target: TargetType.ENEMY,
+    power: 2.4,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    critBonus: 0.1,
+    statuses: [st('BLEED', 0.6, 3)]
+  },
+  {
+    id: 'sera-quick-shot',
+    cost: 8,
+    target: TargetType.ENEMY,
+    power: 1.2,
+    stat: 'attack',
+    damageType: DamageType.PIERCE,
+    critBonus: 0.1
+  },
+  {
+    id: 'sera-poison-arrow',
+    cost: 12,
+    target: TargetType.ENEMY,
+    power: 1.0,
+    stat: 'attack',
+    damageType: DamageType.PIERCE,
+    statuses: [st('POISON', 0.7, 3)]
+  },
+  {
+    id: 'sera-shadow-step',
+    cost: 14,
+    target: TargetType.SELF,
+    power: 0,
+    stat: 'attack',
+    damageType: DamageType.DARKNESS,
+    statuses: [st('SPEED_UP', 1, 3), st('ATTACK_UP', 1, 2)]
+  },
+  {
+    id: 'sera-thunder-arrow',
+    cost: 22,
+    target: TargetType.ENEMY,
+    power: 1.8,
+    stat: 'attack',
+    damageType: DamageType.LIGHTNING,
+    statuses: [st('STUN', 0.3, 1)]
+  },
+  {
+    id: 'sera-rain-of-arrows',
+    cost: 30,
+    target: TargetType.ALL_ENEMIES,
+    power: 1.1,
+    stat: 'attack',
+    damageType: DamageType.PIERCE,
+    statuses: [st('BLEED', 0.3, 2)]
+  },
+  {
+    id: 'sera-eclipse-shot',
+    cost: 36,
+    target: TargetType.ENEMY,
+    power: 2.4,
+    stat: 'attack',
+    damageType: DamageType.DARKNESS,
+    statuses: [st('BLIND', 0.6, 2)]
+  },
+  {
+    id: 'sera-falcon-dive',
+    cost: 42,
+    target: TargetType.ENEMY,
+    power: 3.0,
+    stat: 'attack',
+    damageType: DamageType.PIERCE,
+    critBonus: 0.35
+  },
+  {
+    id: 'brann-headbutt',
+    cost: 10,
+    target: TargetType.ENEMY,
+    power: 1.4,
+    stat: 'attack',
+    damageType: DamageType.BLUNT,
+    statuses: [st('STUN', 0.25, 1)]
+  },
+  {
+    id: 'brann-bloodletting',
+    cost: 18,
+    target: TargetType.ENEMY,
+    power: 1.5,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    statuses: [st('BLEED', 0.6, 3)]
+  },
+  {
+    id: 'brann-war-stomp',
+    cost: 22,
+    target: TargetType.ALL_ENEMIES,
+    power: 0.9,
+    stat: 'attack',
+    damageType: DamageType.EARTH,
+    statuses: [st('SPEED_DOWN', 0.6, 2)]
+  },
+  {
+    id: 'brann-rallying-roar',
+    cost: 26,
+    target: TargetType.ALL_ALLIES,
+    power: 0,
+    stat: 'attack',
+    damageType: DamageType.BLUNT,
+    statuses: [st('ATTACK_UP', 1, 3)]
+  },
+  {
+    id: 'brann-fury-cleave',
+    cost: 26,
+    target: TargetType.ALL_ENEMIES,
+    power: 1.2,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    consumes: 'fury'
+  },
+  {
+    id: 'brann-magma-fist',
+    cost: 32,
+    target: TargetType.ENEMY,
+    power: 2.2,
+    stat: 'attack',
+    damageType: DamageType.FIRE,
+    statuses: [st('BURN', 0.5, 2)]
+  },
+  {
+    id: 'brann-titan-grip',
+    cost: 40,
+    target: TargetType.ENEMY,
+    power: 2.8,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    critBonus: 0.15,
+    consumes: 'fury'
+  },
+  {
+    id: 'oren-seed-shot',
+    cost: 10,
+    target: TargetType.ENEMY,
+    power: 1.2,
+    stat: 'special',
+    damageType: DamageType.EARTH,
+    statuses: [st('SPEED_DOWN', 0.4, 2)]
+  },
+  {
+    id: 'oren-sunbeam',
+    cost: 26,
+    target: TargetType.ALL_ENEMIES,
+    power: 1.0,
+    stat: 'special',
+    damageType: DamageType.LIGHT,
+    statuses: [st('BLIND', 0.35, 2)]
+  },
+  {
+    id: 'oren-verdant-aura',
+    cost: 30,
+    target: TargetType.ALL_ALLIES,
+    power: 0.6,
+    stat: 'special',
+    damageType: DamageType.EARTH,
+    heal: true,
+    statuses: [st('DEFENSE_UP', 1, 3)]
+  },
+  {
+    id: 'oren-hemlock',
+    cost: 34,
+    target: TargetType.ENEMY,
+    power: 2.0,
+    stat: 'special',
+    damageType: DamageType.DARKNESS,
+    statuses: [st('POISON', 0.7, 3), st('ATTACK_DOWN', 0.5, 3)]
+  },
+  {
+    id: 'ysolde-ember',
+    cost: 8,
+    target: TargetType.ENEMY,
+    power: 1.2,
+    stat: 'special',
+    damageType: DamageType.FIRE,
+    statuses: [st('BURN', 0.2, 2)]
+  },
+  {
+    id: 'ysolde-ice-shards',
+    cost: 16,
+    target: TargetType.ALL_ENEMIES,
+    power: 0.8,
+    stat: 'special',
+    damageType: DamageType.ICE,
+    statuses: [st('FREEZE', 0.1, 1)]
+  },
+  {
+    id: 'ysolde-static-field',
+    cost: 20,
+    target: TargetType.ALL_ENEMIES,
+    power: 0.7,
+    stat: 'special',
+    damageType: DamageType.LIGHTNING,
+    statuses: [st('SPEED_DOWN', 0.5, 2)]
+  },
+  {
+    id: 'ysolde-arcane-shield',
+    cost: 18,
+    target: TargetType.SELF,
+    power: 0,
+    stat: 'special',
+    damageType: DamageType.LIGHT,
+    statuses: [st('DEFENSE_UP', 1, 3), st('SPEED_UP', 1, 3)]
+  },
+  {
+    id: 'ysolde-fire-pillar',
+    cost: 36,
+    target: TargetType.ENEMY,
+    power: 2.6,
+    stat: 'special',
+    damageType: DamageType.FIRE,
+    statuses: [st('BURN', 0.6, 3)]
+  },
+  {
+    id: 'ysolde-glacial-spear',
+    cost: 38,
+    target: TargetType.ENEMY,
+    power: 2.6,
+    stat: 'special',
+    damageType: DamageType.ICE,
+    statuses: [st('FREEZE', 0.4, 1)]
   }
 ]
 const ENEMY_SKILLS: Skill[] = [

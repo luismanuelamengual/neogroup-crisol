@@ -10,7 +10,7 @@ export interface OnHitStatus {
   turns: number
 }
 
-/** A change to a special, bought in a skill tree. */
+/** A change to a special: what its levels in the skill tree add. */
 export interface SkillUpgrade {
   /** Extra share of power (0.25 = +25%). */
   power?: number
@@ -18,11 +18,13 @@ export interface SkillUpgrade {
   cost?: number
   /** Extra chance of its statuses, 0..1. */
   statusChance?: number
+  /** Extra turns of its lasting statuses (the ones of two turns or more). */
+  turns?: number
 }
 
 /**
- * Everything a hero gains on top of its attributes: the passives of its skill
- * tree, its weapon, its runes and its echoes. All of them add up.
+ * Everything a hero gains on top of its attributes: the levels of its
+ * specials, its weapon, its runes and its echoes. All of them add up.
  */
 export interface Bonuses {
   /** Share added to each attribute (0.08 = +8%; can be negative). */
@@ -85,7 +87,8 @@ export function addBonuses(total: Bonuses, part: BonusesPart): Bonuses {
     total.upgrades[skillId] = {
       power: (current.power ?? 0) + (upgrade.power ?? 0),
       cost: (current.cost ?? 0) + (upgrade.cost ?? 0),
-      statusChance: (current.statusChance ?? 0) + (upgrade.statusChance ?? 0)
+      statusChance: (current.statusChance ?? 0) + (upgrade.statusChance ?? 0),
+      turns: (current.turns ?? 0) + (upgrade.turns ?? 0)
     }
   }
 

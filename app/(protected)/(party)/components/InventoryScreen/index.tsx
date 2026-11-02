@@ -13,7 +13,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
-import { getMaxHealth, isRuneMastered } from '@/app/(protected)/(engine)/utils/heroes'
+import { canForgetSkills, getMaxHealth, isRuneMastered } from '@/app/(protected)/(engine)/utils/heroes'
 import { canDrinkPotion, canDrinkPotions, getFocus, MAP_POTIONS } from '@/app/(protected)/(engine)/utils/worldMap'
 import ItemIcon, { IconSubject } from '@/app/(protected)/(party)/components/ItemIcon'
 import { describeRune, itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
@@ -186,7 +186,7 @@ function EntryDialog({ entry, state, onDrinkPotion, onSpendTear, onClose }: Entr
     note = t('inventory.runeUse')
   } else {
     lines.push(t('inventory.tear.text'))
-    usage = { use: onSpendTear, can: (character) => character.talents.length > 0 }
+    usage = { use: onSpendTear, can: canForgetSkills }
   }
 
   const canUse = !!usage && state.characters.some((character) => usage!.can(character))

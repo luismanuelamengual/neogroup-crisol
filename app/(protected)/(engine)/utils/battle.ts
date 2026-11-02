@@ -409,7 +409,7 @@ export function nextTurn(battle: BattleState): BattleStep {
   return { state, events }
 }
 
-/** A skill as a fighter uses it: with the upgrades of its skill tree. */
+/** A skill as a fighter uses it: with the levels it has in its skill tree. */
 function skillOf(combatant: Combatant, skillId: string): Skill {
   const skill = getSkill(skillId)
   const upgrade = combatant.bonuses?.upgrades[skillId]
@@ -424,7 +424,8 @@ function skillOf(combatant: Combatant, skillId: string): Skill {
     cost: Math.max(0, skill.cost - (upgrade.cost ?? 0)),
     statuses: skill.statuses?.map((status) => ({
       ...status,
-      chance: Math.min(1, status.chance + (upgrade.statusChance ?? 0))
+      chance: Math.min(1, status.chance + (upgrade.statusChance ?? 0)),
+      turns: status.turns >= 2 ? status.turns + (upgrade.turns ?? 0) : status.turns
     }))
   }
 }

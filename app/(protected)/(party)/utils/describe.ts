@@ -1,14 +1,14 @@
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
-import { getTalent } from '@/app/(protected)/(engine)/data/talents'
-import { BonusesPart } from '@/app/(protected)/(engine)/models/Bonuses'
+import { getSkillLevelUpgrade } from '@/app/(protected)/(engine)/data/skillTrees'
+import { BonusesPart, SkillUpgrade } from '@/app/(protected)/(engine)/models/Bonuses'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Rune } from '@/app/(protected)/(engine)/models/Rune'
-import { Talent } from '@/app/(protected)/(engine)/models/Talent'
+import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import type { MessageKey } from '@/app/i18n/messages'
 import type { Translator } from '@/app/i18n/translate'
 
-/** Texts of the build: bonuses, talents, runes and attributes, written from the catalogs. */
+/** Texts of the build: bonuses, skills, runes and attributes, written from the catalogs. */
 
 /** A share as a signed percentage: 0.08 → "+8%". */
 export function formatShare(value: number): string {
@@ -102,23 +102,98 @@ export function describeBonuses(t: Translator, part: BonusesPart): string[] {
     if (upgrade.statusChance) {
       lines.push(t('bonuses.skillStatus', { skill, value: formatShare(upgrade.statusChance).slice(1) }))
     }
+
+    if (upgrade.turns) {
+      lines.push(t('bonuses.skillTurns', { skill, value: upgrade.turns }))
+    }
   }
 
   return lines
 }
 
-export function talentName(t: Translator, talent: Talent): string {
-  return talent.skillId ? skillName(t, talent.skillId) : t(`talents.${talent.id}` as MessageKey)
-}
+/**
+ * What a special does at a level of the skill tree (1 when not learned): its
+ * damage or healing, its statuses and the rest, one line each.
+ */
+export function describeSkill(t: Translator, skillId: string, level = 1): string[] {
+  const skill = getSkill(skillId)
+  const upgrade = level > 1 ? getSkillLevelUpgrade(skillId, level) : {}
+  const target = t(`targets.${skill.target}`)
+  const power = (skill.power * (1 + (upgrade.power ?? 0))).toFixed(2).replace(/\.?0+$/, '')
+  const lines: string[] = []
 
-export function describeTalent(t: Translator, talentId: string): string[] {
-  const talent = getTalent(talentId)
-
-  if (talent.skillId) {
-    return [t('bonuses.skill', { skill: skillName(t, talent.skillId), info: skillInfo(t, talent.skillId) })]
+  if (skill.revive) {
+    lines.push(t('skillEffects.revive'))
   }
 
-  return describeBonuses(t, talent.bonuses ?? {})
+  if (skill.power > 0) {
+    lines.push(
+      skill.heal
+        ? t('skillEffects.heal', { power, target })
+        : t('skillEffects.damage', { power, target, type: t(`damageTypes.${skill.damageType}`) })
+    )
+  } else if (skill.target !== TargetType.SELF) {
+    lines.push(t('skillEffects.buff', { target }))
+  }
+
+  if (skill.cure) {
+    lines.push(t('skillEffects.cure'))
+  }
+
+  for (const status of skill.statuses ?? []) {
+    const turns = status.turns >= 2 ? status.turns + (upgrade.turns ?? 0) : status.turns
+    const chance = Math.min(1, status.chance + (status.chance < 1 ? (upgrade.statusChance ?? 0) : 0))
+    const name = t(`statuses.${status.type}`)
+
+    lines.push(
+      status.onSelf || (skill.target === TargetType.SELF && chance >= 1)
+        ? t('skillEffects.statusSelf', { status: name, turns })
+        : t('skillEffects.status', { status: name, chance: `${Math.round(chance * 100)}%`, turns })
+    )
+  }
+
+  if (skill.critBonus) {
+    lines.push(t('skillEffects.crit', { value: formatShare(skill.critBonus).slice(1) }))
+  }
+
+  if (skill.consumes) {
+    lines.push(t(skill.consumes === 'fury' ? 'skillEffects.fury' : 'skillEffects.charges'))
+  }
+
+  return lines
+}
+
+/** Focus a special costs at a level of the skill tree. */
+export function skillCost(skillId: string, level = 1): number {
+  const skill = getSkill(skillId)
+
+  return Math.max(0, skill.cost - (level > 1 ? (getSkillLevelUpgrade(skillId, level).cost ?? 0) : 0))
+}
+
+/** What a level adds to a special, as a short list ("+12% power · −2 focus"). */
+export function describeLevelGain(t: Translator, skillId: string, level: number): string {
+  const now: SkillUpgrade = level > 1 ? getSkillLevelUpgrade(skillId, level - 1) : {}
+  const next = getSkillLevelUpgrade(skillId, level)
+  const parts: string[] = []
+  const gain = (key: keyof SkillUpgrade) => (next[key] ?? 0) - (now[key] ?? 0)
+
+  if (gain('power') > 0) {
+    parts.push(t('skillEffects.power', { value: formatShare(gain('power')).slice(1) }))
+  }
+
+  if (gain('statusChance') > 0) {
+    parts.push(t('skillEffects.chance', { value: formatShare(gain('statusChance')).slice(1) }))
+  }
+
+  if (gain('cost') > 0) {
+    parts.push(t('skillEffects.cost', { value: gain('cost') }))
+  }
+
+  if (gain('turns') > 0) {
+    parts.push(t('skillEffects.turns', { value: gain('turns') }))
+  }
+
+  return parts.join(' · ')
 }
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V']

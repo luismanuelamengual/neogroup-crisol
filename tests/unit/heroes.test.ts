@@ -3,7 +3,7 @@ import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { MAX_BASIC_POTIONS, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
-import { getTree, getTreeCost } from '@/app/(protected)/(engine)/data/talents'
+import { getSkillNode, getSkillTree, getTreeCost, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import {
   getCharacterWeapons,
   getUpgradeCost,
@@ -19,8 +19,7 @@ import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameSta
 import {
   addItems,
   assignEchoes,
-  buyTalent,
-  canBuyTalent,
+  canLearnSkill,
   createCharacter,
   equipEcho,
   equipRune,
@@ -31,8 +30,11 @@ import {
   getCharacterStats,
   getHeroBonuses,
   getKnownSkills,
+  getSkillLearnState,
   getSkillPoints,
   getWeaponLevel,
+  isTreeComplete,
+  learnSkill,
   moveInFormation,
   SKILL_SLOTS,
   spendAttributePoint,
@@ -73,21 +75,53 @@ describe('attribute and skill points', () => {
     expect(() => spendAttributePoint(game(1), KAEL, 'attack')).toThrow()
   })
 
-  it('buys talents in the order of their branch, and a special adds its skill', () => {
+  it('learns any special joined to a learned one, paying its cost, and leaves every way open', () => {
     const kael = kaelOf(game(10))
 
-    expect(canBuyTalent(kael, 'kael-sweep')).toBe(false)
     expect(getCharacterSkills(kael)).toEqual(['kael-strike', 'kael-firm-cut', 'kael-stance'])
+    expect(getSkillLearnState(kael, 'kael-whirlwind')).toBe('far')
+    expect(getSkillLearnState(kaelOf(game(1)), 'kael-guard')).toBe('points')
 
-    const state = buyTalent(buyTalent(game(10), KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')
+    const state = learnSkill(learnSkill(game(10), KAEL, 'kael-sweep'), KAEL, 'kael-guard')
+    const sweep = getSkillNode(KAEL, 'kael-sweep')!.cost
+    const guard = getSkillNode(KAEL, 'kael-guard')!.cost
 
-    expect(getCharacterSkills(kaelOf(state))).toContain('kael-sweep')
-    expect(getSkillPoints(kaelOf(state))).toBe(9 - 1 - 1)
-    expect(() => buyTalent(state, KAEL, 'kael-sweep')).toThrow()
+    expect(getCharacterSkills(kaelOf(state))).toEqual(expect.arrayContaining(['kael-sweep', 'kael-guard']))
+    expect(getSkillPoints(kaelOf(state))).toBe(9 - sweep - guard)
+    expect(canLearnSkill(kaelOf(state), 'kael-whirlwind')).toBe(true)
+    expect(canLearnSkill(kaelOf(state), 'kael-shield-bash')).toBe(true)
+    expect(() => learnSkill(state, KAEL, 'sera-volley')).toThrow()
+  })
+
+  it('takes each special up to level 5, paying as many points as the level', () => {
+    let state = learnSkill(game(30), KAEL, 'kael-firm-cut')
+
+    expect(kaelOf(state).skillLevels['kael-firm-cut']).toBe(2)
+    expect(getSkillPoints(kaelOf(state))).toBe(29 - 2)
+
+    state = learnSkill(
+      learnSkill(learnSkill(state, KAEL, 'kael-firm-cut'), KAEL, 'kael-firm-cut'),
+      KAEL,
+      'kael-firm-cut'
+    )
+
+    expect(kaelOf(state).skillLevels['kael-firm-cut']).toBe(MAX_SKILL_LEVEL)
+    expect(getSkillPoints(kaelOf(state))).toBe(29 - 2 - 3 - 4 - 5)
+    expect(getSkillLearnState(kaelOf(state), 'kael-firm-cut')).toBe('max')
+  })
+
+  it('makes the levels stronger, cheaper and longer lasting', () => {
+    const kael = { ...kaelOf(game(30)), skillLevels: { 'kael-firm-cut': 5, 'kael-guard': 4 } }
+    const bonuses = getHeroBonuses(kael)
+
+    expect(bonuses.upgrades['kael-firm-cut']).toEqual({ power: 1, cost: 4, statusChance: 0, turns: 0 })
+    expect(bonuses.upgrades['kael-guard']).toMatchObject({ power: 0, turns: 1 })
+    expect(getHeroBonuses(kaelOf(game(30))).upgrades).toEqual({})
   })
 
   it('takes up to six skills into battle, besides the weapon attack', () => {
-    const veteran = { ...createCharacter(KAEL, 60), talents: getTree(KAEL).map((talent) => talent.id), skills: [] }
+    const levels = Object.fromEntries(getSkillTree(KAEL).nodes.map((node) => [node.skillId, 1]))
+    const veteran = { ...createCharacter(KAEL, 60), skillLevels: levels, skills: [] }
     let state: GameState = { ...game(1), characters: [veteran] }
     const known = getKnownSkills(veteran)
 
@@ -111,49 +145,39 @@ describe('attribute and skill points', () => {
     ])
   })
 
-  it('puts a skill just bought in a free slot, and only then', () => {
-    const full = { ...game(10), characters: [{ ...kaelOf(game(10)), skills: ['kael-firm-cut'] }] }
-    const bought = buyTalent(buyTalent(full, KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')
+  it('puts a special just learned in a free slot, and only then', () => {
+    const learned = learnSkill(game(10), KAEL, 'kael-sweep')
 
-    expect(kaelOf(bought).skills).toEqual(['kael-firm-cut', 'kael-sweep'])
+    expect(kaelOf(learned).skills).toEqual(['kael-firm-cut', 'kael-sweep'])
+    expect(kaelOf(learnSkill(learned, KAEL, 'kael-sweep')).skills).toEqual(['kael-firm-cut', 'kael-sweep'])
 
-    const crowded = { ...full, characters: [{ ...kaelOf(full), skills: ['a', 'b', 'c', 'd', 'e', 'f'] }] }
+    const crowded = { ...game(10), characters: [{ ...kaelOf(game(10)), skills: ['a', 'b', 'c', 'd', 'e', 'f'] }] }
 
-    expect(kaelOf(buyTalent(buyTalent(crowded, KAEL, 'kael-sharpness'), KAEL, 'kael-sweep')).skills).toHaveLength(6)
+    expect(kaelOf(learnSkill(crowded, KAEL, 'kael-sweep')).skills).toHaveLength(6)
   })
 
   it('trades skill points for Echoes of the character only with the tree complete', () => {
-    expect(() => tradeSkillPoint(game(150), KAEL)).toThrow()
+    expect(() => tradeSkillPoint(game(600), KAEL)).toThrow()
 
-    const complete = {
-      ...game(150),
-      characters: [{ ...createCharacter(KAEL, 150), talents: getTree(KAEL).map((talent) => talent.id) }]
-    }
+    const levels = Object.fromEntries(getSkillTree(KAEL).nodes.map((node) => [node.skillId, MAX_SKILL_LEVEL]))
+    const complete = { ...game(600), characters: [{ ...createCharacter(KAEL, 600), skillLevels: levels }] }
     const traded = tradeSkillPoint(complete, KAEL)
 
-    expect(getSkillPoints(kaelOf(complete))).toBe(149 - getTreeCost(KAEL))
+    expect(isTreeComplete(kaelOf(complete))).toBe(true)
+    expect(getSkillPoints(kaelOf(complete))).toBe(599 - getTreeCost(KAEL))
     expect(kaelOf(traded).echoCapacity).toBe(2)
-    expect(getSkillPoints(kaelOf(traded))).toBe(149 - getTreeCost(KAEL) - 1)
+    expect(getSkillPoints(kaelOf(traded))).toBe(599 - getTreeCost(KAEL) - 1)
   })
 
   it('gives every skill point back with a Tear of Oblivion', () => {
-    const bought = buyTalent(game(10, { tears: 1 }), KAEL, 'kael-guard')
-    const wept = spendTear(bought, KAEL)
+    const learned = learnSkill(learnSkill(game(10, { tears: 1 }), KAEL, 'kael-guard'), KAEL, 'kael-firm-cut')
+    const wept = spendTear(learned, KAEL)
 
-    expect(kaelOf(wept).talents).toEqual([])
+    expect(kaelOf(wept).skillLevels).toEqual({ 'kael-firm-cut': 1 })
+    expect(kaelOf(wept).skills).toEqual(['kael-firm-cut'])
     expect(getSkillPoints(kaelOf(wept))).toBe(9)
     expect(wept.tears).toBe(0)
-    expect(() => spendTear(buyTalent(wept, KAEL, 'kael-guard'), KAEL)).toThrow()
-  })
-
-  it('applies the passives and upgrades of the tree', () => {
-    const state = buyTalent(game(10), KAEL, 'kael-sharpness')
-
-    expect(getCharacterStats(kaelOf(state)).attack).toBe(Math.round(getBaseStats(KAEL, 10).attack * 1.06))
-    expect(
-      getHeroBonuses({ ...kaelOf(state), talents: ['kael-sharpness', 'kael-sweep', 'kael-precision', 'kael-deep-cut'] })
-        .upgrades['kael-firm-cut']
-    ).toEqual({ power: 0.3, cost: 2, statusChance: 0 })
+    expect(() => spendTear(learnSkill(wept, KAEL, 'kael-guard'), KAEL)).toThrow()
   })
 })
 

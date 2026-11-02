@@ -1,0 +1,284 @@
+// The skill tree of a hero: rows of choices joined by branches.
+.skill-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+
+  .tree-hint {
+    margin: 0 0 10px;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  // The board: a grid of square cells, the links drawn under the diamonds.
+  .board {
+    position: relative;
+    width: min(100%, calc(var(--columns) * 62px));
+    margin: 4px auto 12px;
+    aspect-ratio: var(--columns) / var(--rows);
+  }
+
+  .links {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    line {
+      stroke: rgba(201, 207, 245, 0.25);
+      stroke-width: 2px;
+    }
+
+    .open {
+      stroke: rgba(79, 195, 255, 0.6);
+    }
+
+    .lit {
+      stroke: var(--color-gold);
+      stroke-width: 3px;
+      filter: drop-shadow(0 0 3px rgba(255, 201, 60, 0.8));
+    }
+  }
+
+  .node {
+    position: absolute;
+    top: calc((var(--y) + 0.5) / var(--rows) * 100%);
+    left: calc((var(--x) + 0.5) / var(--columns) * 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% / var(--columns) * 0.86);
+    aspect-ratio: 1;
+    border-radius: 8px;
+    transform: translate(-50%, -50%);
+
+    // The diamond: a square turned a quarter, thin enough to leave the links between two of them.
+    .diamond {
+      position: absolute;
+      inset: 16%;
+      border: 2px solid rgba(201, 207, 245, 0.35);
+      background: linear-gradient(135deg, #2a2766 0%, #12103a 100%);
+      box-shadow:
+        inset 0 0 8px rgba(0, 0, 0, 0.7),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+      transform: rotate(45deg);
+      transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+    }
+
+    .price {
+      position: relative;
+      color: rgba(201, 207, 245, 0.45);
+      font-family: var(--font-display);
+      font-size: clamp(0.8rem, 3.6vw, 1.1rem);
+      font-weight: 800;
+    }
+
+    .emblem {
+      position: relative;
+      width: 54%;
+      height: 54%;
+      font-size: clamp(0.8rem, 3.4vw, 1.15rem);
+    }
+
+    .level {
+      position: absolute;
+      right: 10%;
+      bottom: 10%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 3px;
+      border: 1px solid #12103a;
+      border-radius: 999px;
+      background: var(--color-gold);
+      color: #3a2208;
+      font-size: 0.58rem;
+      font-weight: 900;
+    }
+
+    // Joined to a learned special, but short of points: its price in red.
+    &.points .diamond {
+      border-color: rgba(255, 90, 90, 0.6);
+    }
+
+    &.points .price {
+      color: var(--color-magenta);
+    }
+
+    // It can be learned now.
+    &.ready:not(.learned) {
+      .diamond {
+        border-color: var(--color-cyan);
+        animation: skill-tree-ready 1.6s ease-in-out infinite;
+      }
+
+      .price {
+        color: var(--color-gold-light);
+      }
+    }
+
+    &.learned .diamond {
+      border-color: var(--color-gold);
+      background: linear-gradient(135deg, #5a4a1a 0%, #2a1c08 100%);
+      box-shadow:
+        inset 0 0 8px rgba(0, 0, 0, 0.6),
+        0 0 10px rgba(255, 201, 60, 0.45);
+    }
+
+    &.max .diamond {
+      border-color: var(--color-gold-light);
+      box-shadow:
+        inset 0 0 8px rgba(0, 0, 0, 0.6),
+        0 0 16px rgba(255, 201, 60, 0.8);
+    }
+
+    // Taken into battle: a gem on its top corner.
+    &.equipped::after {
+      position: absolute;
+      top: 6%;
+      left: 50%;
+      width: 8px;
+      height: 8px;
+      border: 2px solid #12103a;
+      background: var(--color-cyan);
+      content: '';
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    &.selected .diamond {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 3px;
+    }
+  }
+
+  .pips {
+    display: inline-flex;
+    gap: 3px;
+  }
+
+  .pip {
+    width: 7px;
+    height: 7px;
+    border: 1px solid rgba(255, 201, 60, 0.5);
+    background: rgba(18, 16, 58, 0.8);
+    transform: rotate(45deg);
+
+    &.on {
+      border-color: var(--color-gold-light);
+      background: var(--color-gold);
+      box-shadow: 0 0 4px rgba(255, 201, 60, 0.8);
+    }
+  }
+
+  // The card of the special picked, under the board.
+  .skill-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 6px 0 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-gold-dark);
+    border-radius: 12px;
+    background: rgba(18, 16, 58, 0.85);
+    box-shadow:
+      inset 0 0 12px rgba(0, 0, 0, 0.6),
+      0 4px 14px rgba(0, 0, 0, 0.35);
+
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .titles {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .name {
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .meta {
+      color: var(--color-text-secondary);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .cost {
+      align-self: flex-start;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(63, 127, 216, 0.35);
+      color: #cfe3ff;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .effects {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin: 0;
+      padding: 0 0 0 14px;
+      color: var(--color-text);
+      font-size: 0.8rem;
+      list-style: '◆  ';
+
+      li::marker {
+        color: var(--color-gold);
+        font-size: 0.6rem;
+      }
+    }
+
+    .next {
+      margin: 0;
+      color: var(--color-cyan);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .reason {
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: 0.72rem;
+      font-weight: 700;
+
+      &.closed {
+        color: var(--color-magenta);
+      }
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+@keyframes skill-tree-ready {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 195, 255, 0.7);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgba(79, 195, 255, 0);
+  }
+}

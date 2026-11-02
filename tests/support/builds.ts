@@ -1,10 +1,18 @@
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
-import { getTree } from '@/app/(protected)/(engine)/data/talents'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
+import { getSkillTree } from '@/app/(protected)/(engine)/data/skillTrees'
 import { getStartingWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
-import { canBuyTalent, createCharacter, getMaxHealth, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
+import {
+  canLearnSkill,
+  createCharacter,
+  getMaxHealth,
+  getNextSkillCost,
+  getSkillLevel,
+  SKILL_SLOTS
+} from '@/app/(protected)/(engine)/utils/heroes'
 
 /** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
 const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
@@ -12,7 +20,8 @@ const CASTERS = [CharacterId.OREN, CharacterId.YSOLDE]
 
 /**
  * A character at a level built the way a player would: its attribute points
- * spent, its skill points on the cheapest talents first, and its weapon at a
+ * spent, its skill points on the cheapest step of its tree each time (a new
+ * special or a level, the ones that hurt first), and its weapon at a
  * level (about +1 every three levels in the first biomes).
  */
 export function buildCharacter(id: CharacterId, level: number, weapon = Math.min(5, Math.floor(level / 3))) {
@@ -26,21 +35,24 @@ export function buildCharacter(id: CharacterId, level: number, weapon = Math.min
   }
 
   for (;;) {
-    const next = getTree(id)
-      .filter((talent) => canBuyTalent(character, talent.id))
-      .sort((a, b) => a.cost - b.cost)[0]
+    // The cheapest step, the specials that hurt first: a new special joined to the ones it knows, or a level.
+    const weight = (skill: string) => getNextSkillCost(character, skill) + (getSkill(skill).power > 0 ? 0 : 3)
+    const next = getSkillTree(id)
+      .nodes.map((node) => node.skillId)
+      .filter((skill) => canLearnSkill(character, skill))
+      .sort((a, b) => weight(a) - weight(b))[0]
 
     if (!next) {
       break
     }
 
-    const skillId = next.skillId
+    const fresh = getSkillLevel(character, next) === 0
 
     character = {
       ...character,
-      talents: [...character.talents, next.id],
-      // As in the game: a new skill goes to a free slot.
-      skills: skillId && character.skills.length < SKILL_SLOTS ? [...character.skills, skillId] : character.skills
+      skillLevels: { ...character.skillLevels, [next]: getSkillLevel(character, next) + 1 },
+      // As in the game: a new special goes to a free slot.
+      skills: fresh && character.skills.length < SKILL_SLOTS ? [...character.skills, next] : character.skills
     }
   }
 

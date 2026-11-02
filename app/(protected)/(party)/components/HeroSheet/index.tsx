@@ -8,7 +8,6 @@ import IconButton from '@mui/material/IconButton'
 import classNames from 'classnames'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
-import { getTree } from '@/app/(protected)/(engine)/data/talents'
 import {
   getCharacterWeapons,
   getUpgradeCost,
@@ -20,9 +19,8 @@ import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import {
   assignEchoes,
-  buyTalent,
-  canBuyTalent,
   canEquipEcho,
+  canForgetSkills,
   canUpgradeWeapon,
   equipEcho,
   equipRune,
@@ -32,6 +30,7 @@ import {
   getCharacterStats,
   getEchoLoad,
   getKnownSkills,
+  getSkillLevel,
   getSkillPoints,
   getWeaponLevel,
   isRuneMastered,
@@ -46,16 +45,17 @@ import {
   unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
+import SkillIcon from '@/app/(protected)/(party)/components/SkillIcon'
+import SkillTree from '@/app/(protected)/(party)/components/SkillTree'
 import {
   describeBonuses,
   describeRune,
-  describeTalent,
   formatShare,
   formatStat,
   itemName,
   runeName,
-  skillName,
-  talentName
+  skillCost,
+  skillName
 } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -96,12 +96,11 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
   const stats = getCharacterStats(character)
   const attributePoints = getAttributePoints(character)
   const skillPoints = getSkillPoints(character)
-  const tree = getTree(id)
   const owner = (index: number) => state.characters.find((other) => other.runes.includes(index))
   const mastered = state.runes.filter((index) => isRuneMastered(state, index)).sort((a, b) => a - b)
   const echoLoad = getEchoLoad(character)
   const spare = getKnownSkills(character).filter((skill) => !character.skills.includes(skill))
-  const costOf = (skillId: string) => getSkill(skillId).cost
+  const costOf = (skillId: string) => skillCost(skillId, Math.max(1, getSkillLevel(character, skillId)))
 
   return (
     <div className="hero-sheet">
@@ -144,6 +143,10 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
               {Array.from({ length: SKILL_SLOTS }, (_, index) => character.skills[index]).map((skillId, index) =>
                 skillId ? (
                   <li key={skillId} className="slot">
+                    <span className="badge">
+                      <SkillIcon skillId={skillId} size="small" />
+                      <span className="level">{getSkillLevel(character, skillId)}</span>
+                    </span>
                     <span className="name">{skillName(t, skillId)}</span>
                     {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
                     <IconButton
@@ -172,7 +175,7 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
                       disabled={character.skills.length >= SKILL_SLOTS}
                       onClick={() => onChange(equipSkill(state, id, skillId))}
                     >
-                      <AddIcon fontSize="inherit" />
+                      <SkillIcon skillId={skillId} size="small" />
                       {skillName(t, skillId)}
                       {costOf(skillId) > 0 && <span className="cost">{costOf(skillId)}</span>}
                     </ButtonBase>
@@ -187,48 +190,13 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
               {t('party.skills')}
               <small>{t('party.skillPoints', { count: Math.max(0, skillPoints) })}</small>
             </h3>
-            <div className="tree">
-              {[0, 1, 2].map((branch) => (
-                <div key={branch} className="branch">
-                  <h4>{t(`talents.branches.${id}.b${branch}` as MessageKey)}</h4>
-                  <ol>
-                    {tree
-                      .filter((talent) => talent.branch === branch)
-                      .map((talent) => {
-                        const bought = character.talents.includes(talent.id)
-                        const locked = !!talent.requires && !character.talents.includes(talent.requires)
-
-                        return (
-                          <li key={talent.id} className={classNames({ bought, locked })}>
-                            <span className="name">{talentName(t, talent)}</span>
-                            <p className="lines">{describeTalent(t, talent.id).join(' · ')}</p>
-                            {bought ? (
-                              <span className="state">{t('party.bought')}</span>
-                            ) : locked ? (
-                              <span className="state">{t('party.locked')}</span>
-                            ) : (
-                              <GameButton
-                                size="small"
-                                color="cyan"
-                                disabled={!canBuyTalent(character, talent.id)}
-                                onClick={() => onChange(buyTalent(state, id, talent.id))}
-                              >
-                                {t('party.buy', { cost: talent.cost })}
-                              </GameButton>
-                            )}
-                          </li>
-                        )
-                      })}
-                  </ol>
-                </div>
-              ))}
-            </div>
+            <SkillTree state={state} character={character} onChange={onChange} />
             <div className="row">
               <span className="lines">{t('party.tears', { count: state.tears })}</span>
               <GameButton
                 size="small"
                 color="ghost"
-                disabled={state.tears <= 0 || character.talents.length === 0}
+                disabled={state.tears <= 0 || !canForgetSkills(character)}
                 onClick={() => onChange(spendTear(state, id))}
               >
                 {t('party.spendTear')}

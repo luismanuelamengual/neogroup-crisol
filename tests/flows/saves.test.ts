@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getTree } from '@/app/(protected)/(engine)/data/talents'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { isGameState } from '@/app/(protected)/(engine)/utils/gameState'
-import { createCharacter, getKnownSkills } from '@/app/(protected)/(engine)/utils/heroes'
+import { createCharacter, getSkillPoints } from '@/app/(protected)/(engine)/utils/heroes'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { getSaveSummary, loadGame, saveGame, startNewGame } from '@/app/(protected)/(saves)/services/saves'
 import { createUser, resetDatabase } from '@/tests/setup/database'
@@ -77,7 +76,7 @@ describe('saved games', () => {
 
     expect(isGameState(loaded.state)).toBe(true)
     expect(loaded.state).toMatchObject({ gameId: 'legacy', respawnedNodeIds: [], flaskCharges: 1, echoes: 1 })
-    expect(loaded.state.characters).toEqual([{ ...createCharacter(CharacterId.KAEL, 2), xp: 5, health: 132 }])
+    expect(loaded.state.characters).toEqual([{ ...createCharacter(CharacterId.KAEL, 2), xp: 5, health: 137 }])
   })
 
   it('gives the upgrade of the only weapon of a v4 game to the weapon each character starts with', async () => {
@@ -123,24 +122,28 @@ describe('saved games', () => {
     ])
   })
 
-  it('equips the first six skills each character knows in a v6 game', async () => {
+  it('gives back every skill point of the old trees in a v10 game', async () => {
     await startNewGame(userId)
 
     const stored = await Save.where('userId', userId).first()
-    const { skills, ...kael } = {
+    const { skillLevels: _skillLevels, ...kael } = {
       ...createCharacter(CharacterId.KAEL, 60),
-      talents: getTree(CharacterId.KAEL).map((talent) => talent.id)
+      talents: ['kael-sharpness', 'kael-sweep', 'kael-guard'],
+      skills: ['kael-firm-cut', 'kael-sweep', 'kael-guard']
     }
 
-    expect(skills).toEqual(['kael-firm-cut'])
-    stored!.saveVersion = 6
+    stored!.saveVersion = 10
     stored!.data = { ...(stored!.data as object), characters: [kael] }
     await stored!.save()
 
     const loaded = await loadGame(userId)
+    const character = loaded.state.characters[0]
 
     expect(isGameState(loaded.state)).toBe(true)
-    expect(loaded.state.characters[0].skills).toEqual(getKnownSkills(loaded.state.characters[0]).slice(0, 6))
+    expect(character).not.toHaveProperty('talents')
+    expect(character.skillLevels).toEqual({ 'kael-firm-cut': 1 })
+    expect(character.skills).toEqual(['kael-firm-cut'])
+    expect(getSkillPoints(character)).toBe(59)
   })
 
   it('takes Kael’s change of stance out of the skill slots of a v7 game', async () => {

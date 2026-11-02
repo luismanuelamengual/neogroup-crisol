@@ -14,8 +14,8 @@ export interface CharacterState {
   focus?: number
   /** Attribute points spent on each attribute (one point per level). */
   attributes: Partial<Record<keyof CombatStats, number>>
-  /** Nodes of its skill tree bought (one skill point per level). */
-  talents: string[]
+  /** Specials of its skill tree learned, with their level (1..5): its root and at most one per row (one skill point per level of the character). */
+  skillLevels: Record<string, number>
   /** Skill points traded for Echoes once its tree was complete. */
   traded: number
   /** The skills it takes into battle (up to six, besides its weapon attack), in the order they are shown. */

@@ -3,7 +3,7 @@
  * Balance check of the world: plays a sample of the encounters of each biome
  * many times with the party a player has there (the heroes rescued by then)
  * at the level of the enemies, and at two and four levels more (built as a
- * player would: points, talents and weapon), and prints the share of victories.
+ * player would: points, skill tree and weapon), and prints the share of victories.
  *
  * In New Game+ (CYCLE=1, 2...) the whole party fights, as veterans: weapon
  * at its best, three strong runes each and echoes (tests/support/builds.ts).

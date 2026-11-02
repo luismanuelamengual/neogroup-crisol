@@ -9,7 +9,7 @@ import {
   GUARDIAN_SPECIES
 } from '@/app/(protected)/(engine)/data/enemies'
 import { getSkill, SKILLS } from '@/app/(protected)/(engine)/data/skills'
-import { getTree } from '@/app/(protected)/(engine)/data/talents'
+import { getSkillTree } from '@/app/(protected)/(engine)/data/skillTrees'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
@@ -54,27 +54,35 @@ describe('bestiary content', () => {
 })
 
 describe('skill trees', () => {
-  it('has three branches of fifteen nodes for each hero, with known skills and names', () => {
+  it('gives each hero a web of its own specials, of its own shape, all reachable from its starting one', () => {
+    const seen = new Set<string>()
+    const shapes = new Set<string>()
+
     for (const character of CHARACTERS) {
-      const tree = getTree(character.id)
+      const tree = getSkillTree(character.id)
 
-      expect(tree).toHaveLength(45)
+      expect(tree.root).toBe(character.skills[1])
+      expect(tree.nodes.length).toBeGreaterThanOrEqual(20)
+      expect(new Set(tree.nodes.map((node) => `${node.x},${node.y}`)).size).toBe(tree.nodes.length)
+      shapes.add(
+        tree.nodes
+          .map((node) => `${node.x},${node.y}`)
+          .sort()
+          .join(' ')
+      )
 
-      for (const branch of [0, 1, 2]) {
-        expect(
-          tree.filter((talent) => talent.branch === branch),
-          `${character.id} ${branch}`
-        ).toHaveLength(15)
-      }
-
-      for (const talent of tree) {
-        if (talent.skillId) {
-          getSkill(talent.skillId)
-        } else {
-          expect(section('en', 'talents')[talent.id], talent.id).toBeTypeOf('string')
-        }
+      for (const node of tree.nodes) {
+        expect(seen.has(node.skillId), node.skillId).toBe(false)
+        seen.add(node.skillId)
+        expect(node.skillId.startsWith(character.id), node.skillId).toBe(true)
+        expect(getSkill(node.skillId).stance).toBeFalsy()
+        expect(node.cost > 0, node.skillId).toBe(node.skillId !== tree.root)
+        expect(section('es', 'skills')[node.skillId], node.skillId).toBeTypeOf('string')
+        expect(section('en', 'skills')[node.skillId], node.skillId).toBeTypeOf('string')
       }
     }
+
+    expect(shapes.size).toBe(CHARACTERS.length)
   })
 })
 

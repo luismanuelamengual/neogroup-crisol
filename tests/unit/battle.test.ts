@@ -21,15 +21,18 @@ import { createCharacter, getKnownSkills } from '@/app/(protected)/(engine)/util
 import { simulateBattle, winRate } from '@/tests/support/battleSimulator'
 import { buildCharacter } from '@/tests/support/builds'
 
-/** A character with talents bought and every skill it knows equipped. */
-function withTalents(character: CharacterState, talents: string[]): CharacterState {
-  const bought = { ...character, talents }
+/** A character with specials of its tree learned (at level 1, besides the levels given) and every one it knows equipped. */
+function withSkills(character: CharacterState, skills: string[], levels: Record<string, number> = {}): CharacterState {
+  const learned = {
+    ...character,
+    skillLevels: { ...character.skillLevels, ...Object.fromEntries(skills.map((skill) => [skill, 1])), ...levels }
+  }
 
-  return { ...bought, skills: getKnownSkills(bought) }
+  return { ...learned, skills: getKnownSkills(learned) }
 }
 
-/** Kael at level 5 with Sweep and Flame Edge bought. */
-const kael = withTalents(createCharacter(CharacterId.KAEL, 5), ['kael-sharpness', 'kael-sweep', 'kael-flame-edge'])
+/** Kael at level 5 with Sweep and Flame Edge learned. */
+const kael = withSkills(createCharacter(CharacterId.KAEL, 5), ['kael-sweep', 'kael-flame-edge'])
 
 function battle(phases: EnemySpawn[][], heroes = [kael], canRetreat = true): BattleState {
   return createBattle({ heroes, phases, seed: 42, biome: Biome.MEADOWS, canRetreat }).state
@@ -129,7 +132,7 @@ describe('damage', () => {
 
     expect(flame.events).toContainEqual(expect.objectContaining({ type: 'damage', targetId: 'e1-1', weak: true }))
 
-    const brann = withTalents(createCharacter(CharacterId.BRANN, 5), ['brann-earthsplitter'])
+    const brann = withSkills(createCharacter(CharacterId.BRANN, 5), ['brann-earthsplitter'])
     const quake = performAction(turnOf(battle([[{ speciesId: 'sand-worm', level: 5 }]], [brann]), 'h-brann'), {
       type: 'skill',
       skillId: 'brann-earthsplitter',
@@ -466,13 +469,16 @@ describe('items, bonuses and loot', () => {
     expect((guarded(0.5) as { amount: number }).amount).toBeLessThan((guarded(0) as { amount: number }).amount)
   })
 
-  it('makes the upgrades of the tree change the specials', () => {
-    const upgraded = withTalents(kael, [...kael.talents, 'kael-precision', 'kael-deep-cut'])
-    const cut = (hero: typeof kael) =>
-      getUsableSkills(turnOf(field([hero]), 'h-kael'), 'h-kael').find((skill) => skill.id === 'kael-firm-cut')!
+  it('makes the levels of the tree change the specials', () => {
+    const upgraded = withSkills(kael, [], { 'kael-firm-cut': 5, 'kael-flame-edge': 4 })
+    const skill = (hero: typeof kael, id: string) =>
+      getUsableSkills(turnOf(field([hero]), 'h-kael'), 'h-kael').find((candidate) => candidate.id === id)!
 
-    expect(cut(upgraded).cost).toBe(cut(kael).cost - 2)
-    expect(cut(upgraded).power).toBeCloseTo(cut(kael).power * 1.3)
+    expect(skill(upgraded, 'kael-firm-cut').cost).toBe(skill(kael, 'kael-firm-cut').cost - 4)
+    expect(skill(upgraded, 'kael-firm-cut').power).toBeCloseTo(skill(kael, 'kael-firm-cut').power * 2)
+    expect(skill(upgraded, 'kael-flame-edge').statuses).toEqual([
+      { type: StatusType.BURN, chance: expect.closeTo(0.45), turns: 3 }
+    ])
   })
 
   it('drops stones from a boss', () => {
@@ -569,7 +575,7 @@ describe('the mechanics of each hero', () => {
   })
 
   it('charges Ysolde with the elements she casts, and spends them all at once', () => {
-    const ysolde = withTalents(createCharacter(CharacterId.YSOLDE, 20), ['ysolde-combustion'])
+    const ysolde = withSkills(createCharacter(CharacterId.YSOLDE, 20), ['ysolde-combustion'])
     const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 30 }]], [ysolde]), 'h-ysolde')
     const { state: charged } = performAction(state, { type: 'skill', skillId: 'ysolde-fireball', targetIds: ['e1-1'] })
 
@@ -585,7 +591,7 @@ describe('the mechanics of each hero', () => {
   })
 
   it('lets Oren bring a fallen hero back', () => {
-    const oren = withTalents(createCharacter(CharacterId.OREN, 30), ['oren-rebirth'])
+    const oren = withSkills(createCharacter(CharacterId.OREN, 30), ['oren-rebirth'])
     const start = battle(boar, [kael, oren])
     const fallen: BattleState = {
       ...start,

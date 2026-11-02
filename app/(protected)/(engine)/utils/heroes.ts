@@ -2,7 +2,15 @@ import { ATTRIBUTE_POINT, getBaseStats, getCharacterDefinition } from '@/app/(pr
 import { maxCarried } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
-import { getTalent, getTree } from '@/app/(protected)/(engine)/data/talents'
+import {
+  getLevelCost,
+  getLinkedSkills,
+  getSkillLevelUpgrade,
+  getSkillNode,
+  getSkillTree,
+  getSpentOnSkill,
+  MAX_SKILL_LEVEL
+} from '@/app/(protected)/(engine)/data/skillTrees'
 import {
   getStartingWeapon,
   getUpgradeCost,
@@ -40,9 +48,9 @@ export function createCharacter(id: CharacterId, level = 1): CharacterState {
     xp: 0,
     health: 0,
     attributes: {},
-    talents: [],
+    skillLevels: { [getSkillTree(id).root]: 1 },
     traded: 0,
-    skills: getKnownSkills({ id, talents: [] }),
+    skills: [getSkillTree(id).root],
     weaponId: getStartingWeapon(id).id,
     weapons: { [getStartingWeapon(id).id]: 0 },
     runes: [],
@@ -53,15 +61,13 @@ export function createCharacter(id: CharacterId, level = 1): CharacterState {
   return { ...character, health: getMaxHealth(character) }
 }
 
-/** The passives of its tree, the effects of its weapon, its runes (with their attribute shifts) and its echoes. */
+/** The levels of its specials, the effects of its weapon, its runes (with their attribute shifts) and its echoes. */
 export function getHeroBonuses(character: CharacterState): Bonuses {
   const bonuses = emptyBonuses()
 
-  for (const id of character.talents) {
-    const talent = getTalent(id)
-
-    if (talent.bonuses) {
-      addBonuses(bonuses, talent.bonuses)
+  for (const [skillId, level] of Object.entries(character.skillLevels)) {
+    if (level > 1) {
+      addBonuses(bonuses, { upgrades: { [skillId]: getSkillLevelUpgrade(skillId, level) } })
     }
   }
 
@@ -116,15 +122,58 @@ export function getWeaponLevel(character: CharacterState, weaponId = character.w
 
 /**
  * The skills a character knows besides its weapon attack and its secondary
- * actions: the ones it starts with and the specials bought in its tree.
+ * actions: the specials of its tree it learned (its root from the start), in
+ * the order of the tree.
  */
-export function getKnownSkills(character: Pick<CharacterState, 'id' | 'talents'>): string[] {
-  const [, ...starting] = getCharacterDefinition(character.id).skills
-  const bought = getTree(character.id)
-    .filter((talent) => talent.skillId && character.talents.includes(talent.id))
-    .map((talent) => talent.skillId!)
+export function getKnownSkills(character: Pick<CharacterState, 'id' | 'skillLevels'>): string[] {
+  return getSkillTree(character.id)
+    .nodes.map((node) => node.skillId)
+    .filter((skill) => (character.skillLevels[skill] ?? 0) > 0)
+}
 
-  return [...starting, ...bought].filter((skill) => !getSkill(skill).stance)
+/** The level of a special for a character (0 when it did not learn it). */
+export function getSkillLevel(character: Pick<CharacterState, 'skillLevels'>, skillId: string): number {
+  return character.skillLevels[skillId] ?? 0
+}
+
+/** Skill points it costs a character to learn a special or take it to its next level. */
+export function getNextSkillCost(character: Pick<CharacterState, 'id' | 'skillLevels'>, skillId: string): number {
+  const level = getSkillLevel(character, skillId)
+
+  return level === 0 ? (getSkillNode(character.id, skillId)?.cost ?? 0) : getLevelCost(level + 1)
+}
+
+/** Why a special can or cannot be learned or go up a level now. */
+export type SkillLearnState =
+  /** It can be learned or go up a level now. */
+  | 'ready'
+  /** Not enough skill points. */
+  | 'points'
+  /** None of the specials joined to it was learned yet. */
+  | 'far'
+  /** It is at its best. */
+  | 'max'
+
+export function getSkillLearnState(character: CharacterState, skillId: string): SkillLearnState {
+  const level = getSkillLevel(character, skillId)
+
+  if (!getSkillNode(character.id, skillId)) {
+    throw new Error(`${skillId} is not in the tree of ${character.id}`)
+  }
+
+  if (level >= MAX_SKILL_LEVEL) {
+    return 'max'
+  }
+
+  if (level === 0 && !getLinkedSkills(character.id, skillId).some((linked) => getSkillLevel(character, linked) > 0)) {
+    return 'far'
+  }
+
+  return getSkillPoints(character) >= getNextSkillCost(character, skillId) ? 'ready' : 'points'
+}
+
+export function canLearnSkill(character: CharacterState, skillId: string): boolean {
+  return getSkillLearnState(character, skillId) === 'ready'
 }
 
 /** Its secondary actions: always at hand, outside the six slots (Kael's change of stance). */
@@ -171,26 +220,21 @@ export function getAttributePoints(character: CharacterState): number {
   return character.level - 1 - spent
 }
 
-export function getSkillPoints(character: CharacterState): number {
-  const spent = character.talents.reduce((sum, id) => sum + getTalent(id).cost, 0)
-
-  return character.level - 1 - spent - character.traded
-}
-
-export function isTreeComplete(character: CharacterState): boolean {
-  return character.talents.length === getTree(character.id).length
-}
-
-/** Whether a talent can be bought now: not bought, the one it requires bought and enough points. */
-export function canBuyTalent(character: CharacterState, talentId: string): boolean {
-  const talent = getTalent(talentId)
-
-  return (
-    talent.characterId === character.id &&
-    !character.talents.includes(talentId) &&
-    (!talent.requires || character.talents.includes(talent.requires)) &&
-    getSkillPoints(character) >= talent.cost
+/** Skill points spent on the tree of a character. */
+export function getSpentSkillPoints(character: Pick<CharacterState, 'id' | 'skillLevels'>): number {
+  return Object.entries(character.skillLevels).reduce(
+    (sum, [skillId, level]) => sum + getSpentOnSkill(character.id, skillId, level),
+    0
   )
+}
+
+export function getSkillPoints(character: CharacterState): number {
+  return character.level - 1 - getSpentSkillPoints(character) - character.traded
+}
+
+/** Whether the tree of a character is at its best: every special learned and at level 5. */
+export function isTreeComplete(character: CharacterState): boolean {
+  return getSkillTree(character.id).nodes.every((node) => getSkillLevel(character, node.skillId) >= MAX_SKILL_LEVEL)
 }
 
 export function isRuneMastered(state: GameState, index: number): boolean {
@@ -255,22 +299,25 @@ export function spendAttributePoint(state: GameState, id: CharacterId, stat: key
   })
 }
 
-export function buyTalent(state: GameState, id: CharacterId, talentId: string): GameState {
-  if (!canBuyTalent(getCharacter(state, id), talentId)) {
-    throw new Error(`${id} cannot buy ${talentId}`)
+/** Learns a special of the tree joined to one already learned, or takes it one level up, paying skill points. */
+export function learnSkill(state: GameState, id: CharacterId, skillId: string): GameState {
+  if (!canLearnSkill(getCharacter(state, id), skillId)) {
+    throw new Error(`${id} cannot learn ${skillId}`)
   }
 
-  const skillId = getTalent(talentId).skillId
+  return withCharacter(state, id, (character) => {
+    const level = getSkillLevel(character, skillId)
 
-  return withCharacter(state, id, (character) => ({
-    ...character,
-    talents: [...character.talents, talentId],
-    // A new skill goes to a free slot, if there is one.
-    skills:
-      skillId && character.skills.length < SKILL_SLOTS && !character.skills.includes(skillId)
-        ? [...character.skills, skillId]
-        : character.skills
-  }))
+    return {
+      ...character,
+      skillLevels: { ...character.skillLevels, [skillId]: level + 1 },
+      // A special just learned goes to a free slot, if there is one.
+      skills:
+        level === 0 && character.skills.length < SKILL_SLOTS && !character.skills.includes(skillId)
+          ? [...character.skills, skillId]
+          : character.skills
+    }
+  })
 }
 
 /** Trades a free skill point for Echoes of that character (only with its tree complete). */
@@ -288,18 +335,23 @@ export function tradeSkillPoint(state: GameState, id: CharacterId): GameState {
   }))
 }
 
-/** A Tear of Oblivion gives back every skill point of a character, to spend them again. */
+/** Whether a Tear of Oblivion would give something back to a character: any skill point spent. */
+export function canForgetSkills(character: CharacterState): boolean {
+  return getSpentSkillPoints(character) > 0
+}
+
+/** A Tear of Oblivion gives back every skill point of a character, to spend them again on another way through its tree. */
 export function spendTear(state: GameState, id: CharacterId): GameState {
-  if (state.tears <= 0 || getCharacter(state, id).talents.length === 0) {
+  if (state.tears <= 0 || !canForgetSkills(getCharacter(state, id))) {
     throw new Error('Cannot use a tear')
   }
 
   return {
     ...withCharacter(state, id, (character) => {
-      const reset = { ...character, talents: [] }
+      const reset = { ...character, skillLevels: { [getSkillTree(id).root]: 1 } }
       const known = getKnownSkills(reset)
 
-      // The skills bought leave their slots.
+      // The specials forgotten leave their slots.
       return { ...reset, skills: character.skills.filter((skill) => known.includes(skill)) }
     }),
     tears: state.tears - 1
