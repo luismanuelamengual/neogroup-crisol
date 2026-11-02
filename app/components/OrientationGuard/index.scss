@@ -1,0 +1,73 @@
+// Hidden everywhere except on touch devices (phones and tablets) held upright.
+// Being pure CSS it applies on the first paint, before React hydrates.
+.orientation-guard {
+  display: none;
+}
+
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  .orientation-guard {
+    position: fixed;
+    inset: 0;
+    // Above MUI dialogs (1300) and the toasts (9999).
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: calc(24px + var(--safe-top)) calc(24px + var(--safe-right)) calc(24px + var(--safe-bottom))
+      calc(24px + var(--safe-left));
+    text-align: center;
+    color: var(--color-text);
+    background: radial-gradient(circle at 50% 35%, var(--color-night-light) 0%, var(--color-night) 75%);
+    touch-action: none;
+
+    .orientation-guard-icon {
+      width: 96px;
+      height: 96px;
+      color: var(--color-gold);
+      filter: drop-shadow(0 4px 0 #12103a);
+      animation: orientation-guard-rotate 2.4s ease-in-out infinite;
+    }
+
+    .orientation-guard-title {
+      margin: 8px 0 0;
+      font-family: var(--font-title);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--color-gold-light);
+    }
+
+    .orientation-guard-text {
+      max-width: 22rem;
+      margin: 0 0 8px;
+      font-family: var(--font-body);
+      line-height: 1.5;
+      color: var(--color-text-secondary);
+    }
+  }
+}
+
+// The phone turns on its side, waits and comes back.
+@keyframes orientation-guard-rotate {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+
+  50%,
+  80% {
+    transform: rotate(-90deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orientation-guard .orientation-guard-icon {
+    animation: none;
+    transform: rotate(-90deg);
+  }
+}

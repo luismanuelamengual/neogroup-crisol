@@ -217,6 +217,7 @@ La app Android es una TWA (generada con PWABuilder o Bubblewrap) que abre este s
 
 - `/privacy` (política de privacidad) y `/delete-account` (cómo borrar la cuenta): públicas con o sin sesión (`OPEN_PATHS` en `auth.config.ts`). El email de contacto sale de `CONTACT_EMAIL` (por defecto `support@crisol.app`, ver `app/utils/legal.ts`).
 - Borrado de cuenta desde Mi perfil (`POST /api/deleteAccount`, `services/accounts.ts`): se borran el usuario, sus tokens y su partida guardada.
+- **Orientación horizontal**: el manifiesto pide `orientation: landscape`, así que la TWA (Bubblewrap y PWABuilder lo copian a `twa-manifest.json` → `screenOrientation` de la actividad) y la PWA instalada abren siempre en horizontal. Si la TWA ya estaba generada, cambiar `"orientation": "landscape"` en su `twa-manifest.json` y regenerarla. En el navegador del celular, mientras el dispositivo está vertical el juego queda tapado por un aviso de "Girá el teléfono" (`app/components/OrientationGuard`), con un botón de pantalla completa en horizontal donde el navegador lo permite (Chrome y Firefox para Android; en iPhone hay que girarlo a mano). La landing y las páginas legales siguen funcionando en vertical.
 - `/.well-known/assetlinks.json`: se arma con `ANDROID_PACKAGE_NAME` y `ANDROID_SHA256_CERT_FINGERPRINTS` (SHA-256 separados por coma, de Play Console → Integridad de la app → Firma de apps).
 
 ## Testing

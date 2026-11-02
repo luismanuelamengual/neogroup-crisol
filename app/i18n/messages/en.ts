@@ -40,6 +40,11 @@ export const en: Messages = {
     offlineTitle: 'No signal',
     offlineText: 'Crisol needs the internet for this screen. Check your connection and try again.'
   },
+  orientation: {
+    title: 'Rotate your phone',
+    text: 'Crisol is played in landscape. Turn your phone sideways to keep playing.',
+    lock: 'Play in landscape'
+  },
   landing: {
     tagline: 'Aurenya is fading. Rescue the bearers of the Flame and descend into the Abyss to face Crisol.',
     playFree: 'Play for free',

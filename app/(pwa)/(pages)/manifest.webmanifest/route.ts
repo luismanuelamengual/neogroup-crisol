@@ -19,8 +19,9 @@ export async function GET(): Promise<NextResponse> {
     start_url: '/',
     scope: '/',
     display: 'standalone',
-    // The map and the battles work in both orientations: let the player rotate freely.
-    orientation: 'any',
+    // The game is played in landscape (either side): the installed PWA and the
+    // Google Play app (Bubblewrap/PWABuilder copy it into the TWA) open that way.
+    orientation: 'landscape',
     theme_color: PWA_CONFIG.themeColor,
     background_color: PWA_CONFIG.backgroundColor,
     categories: ['games', 'entertainment'],

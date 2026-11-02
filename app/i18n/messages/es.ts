@@ -43,6 +43,11 @@ export const es = {
     offlineTitle: 'Sin señal',
     offlineText: 'Crisol necesita internet para esta pantalla. Revisá tu conexión y volvé a intentarlo.'
   },
+  orientation: {
+    title: 'Girá el teléfono',
+    text: 'Crisol se juega en horizontal. Poné el teléfono de costado para seguir.',
+    lock: 'Jugar en horizontal'
+  },
   landing: {
     tagline: 'Aurenya se apaga. Rescatá a los portadores de la Llama y bajá al Abismo a enfrentar a Crisol.',
     playFree: 'Jugar gratis',
