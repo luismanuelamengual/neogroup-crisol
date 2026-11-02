@@ -16,6 +16,10 @@
    "width": 782,
    "height": 245
   },
+  "heroes/kael/portrait": {
+   "width": 256,
+   "height": 256
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 341
