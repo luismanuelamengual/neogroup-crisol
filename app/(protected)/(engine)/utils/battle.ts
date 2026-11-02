@@ -22,7 +22,7 @@ import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
-import { Item, ItemTarget } from '@/app/(protected)/(engine)/models/Item'
+import { Item, ItemTarget, StoneId } from '@/app/(protected)/(engine)/models/Item'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
@@ -929,8 +929,16 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
 
   if (species.strength > 1) {
     add(BIOME_STONE[state.biome], BOSS_STONES * species.bars)
-  } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteStone : DROP_CHANCE.stone)) {
-    add(BIOME_STONE[state.biome])
+  } else {
+    const stoneId = BIOME_STONE[state.biome]
+    const rough = stoneId === StoneId.ROUGH
+    const chance = enemy.elite
+      ? DROP_CHANCE[rough ? 'eliteRoughStone' : 'eliteStone']
+      : DROP_CHANCE[rough ? 'roughStone' : 'stone']
+
+    if (roll(state) < chance) {
+      add(stoneId)
+    }
   }
 
   if (

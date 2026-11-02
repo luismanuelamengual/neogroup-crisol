@@ -35,7 +35,7 @@ import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
  *      biomes; and some extra trails close loops (alternative routes).
  *   4. Points of interest: the starting camp, the bosses that open the camps,
  *      the rune sanctuaries, Tears of Oblivion and chests (in dead ends), the
- *      merchants (right next to a camp), the reliquaries of the weapons (in the
+ *      merchants (in a dead end right off a camp), the reliquaries of the weapons (in the
  *      deepest dead ends), the door of the Abyss and Crisol.
  *   5. Levels: from the entrance of each biome to its deepest point.
  *
@@ -412,11 +412,21 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
   }
 
-  // The camp of each merchant: once it is open the merchant is reached without a fight.
+  // Merchants: in a dead end right off a camp, so once the camp is open they are reached without a fight. They are
+  // placed before the sanctuaries and chests so those do not take the dead ends.
   const merchantCamps = chooseMerchantCamps(nodes, adjacency, fromStart, start.biome)
 
   if (!merchantCamps) {
     return null
+  }
+
+  for (const definition of BIOMES) {
+    if (definition.merchant) {
+      Object.assign(deadEndsBeside(merchantCamps.get(definition.biome)!, nodes, adjacency)[0], {
+        type: NodeType.MERCHANT,
+        merchant: definition.merchant
+      })
+    }
   }
 
   // Sanctuaries, Tears and chests: in dead ends, never on the way through.
@@ -463,33 +473,6 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
 
     for (const node of shuffle(random, deadEnds()).slice(0, definition.chests)) {
       node.type = NodeType.CHEST
-    }
-
-    // Merchants: right next to the camp chosen for them (see chooseMerchantCamps).
-    if (definition.merchant) {
-      const freeBeside = (camp: WorldNode) =>
-        adjacency
-          .get(camp.id)!
-          .map((id) => byId.get(id)!)
-          .filter((node) => node.biome === definition.biome && isFree(node) && !isBorder(node))
-      let besideCamp = freeBeside(merchantCamps.get(definition.biome)!)
-
-      if (besideCamp.length === 0) {
-        besideCamp = biomeNodes(definition).filter(isCamp).flatMap(freeBeside)
-      }
-
-      // A dead end beside the camp is preferred: the merchant does not become a free way through.
-      const deadEnds = besideCamp.filter(isLeaf)
-      const options = deadEnds.length > 0 ? deadEnds : besideCamp
-
-      if (options.length === 0) {
-        return null
-      }
-
-      Object.assign(options[Math.floor(random() * options.length)], {
-        type: NodeType.MERCHANT,
-        merchant: definition.merchant
-      })
     }
   }
 
@@ -602,8 +585,9 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
 }
 
 /**
- * The camp next to which each merchant waits. In the biome of the starting camp,
- * the boss camp closest to it (the first one the party can open); in the other
+ * The camp next to which each merchant waits, among the camps with a free dead
+ * end hanging off them. In the biome of the starting camp, the boss camp closest
+ * to it (the first one the party can open); in the other
  * biomes, the camps that keep the merchants as far apart from each other as
  * possible (the combination with the largest minimum distance between them).
  */
@@ -613,17 +597,7 @@ function chooseMerchantCamps(
   fromStart: Map<string, number>,
   startBiome: Biome
 ): Map<Biome, WorldNode> | null {
-  const byId = new Map(nodes.map((node) => [node.id, node]))
-  const hasRoom = (camp: WorldNode) =>
-    adjacency.get(camp.id)!.some((id) => {
-      const node = byId.get(id)!
-
-      return (
-        node.type === NodeType.COMBAT &&
-        node.biome === camp.biome &&
-        adjacency.get(id)!.every((other) => byId.get(other)!.biome === node.biome)
-      )
-    })
+  const hasRoom = (camp: WorldNode) => deadEndsBeside(camp, nodes, adjacency).length > 0
   const choices = BIOMES.filter((definition) => definition.merchant).map((definition) => {
     const camps = nodes.filter(
       (node) =>
@@ -667,6 +641,17 @@ function chooseMerchantCamps(
   search([], Infinity)
 
   return new Map(best.map((camp) => [camp.biome, camp]))
+}
+
+/** Free dead ends of the same biome hanging right off a camp (their only trail goes to it). */
+function deadEndsBeside(camp: WorldNode, nodes: WorldNode[], adjacency: Adjacency): WorldNode[] {
+  return adjacency
+    .get(camp.id)!
+    .map((id) => nodes.find((node) => node.id === id)!)
+    .filter(
+      (node) => node.type === NodeType.COMBAT && node.biome === camp.biome && adjacency.get(node.id)!.length === 1
+    )
+    .sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }))
 }
 
 function maxBy<T>(items: T[], score: (item: T) => number): T {

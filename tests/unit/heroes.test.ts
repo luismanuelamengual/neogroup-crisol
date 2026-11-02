@@ -183,10 +183,10 @@ describe('attribute and skill points', () => {
 
 describe('weapons', () => {
   it('costs more and better stones every five levels', () => {
-    expect(getUpgradeCost(1)).toEqual({ stoneId: StoneId.ROUGH, stones: 1, gold: 60 })
-    expect(getUpgradeCost(5)).toMatchObject({ stoneId: StoneId.ROUGH, stones: 5 })
-    expect(getUpgradeCost(6)).toMatchObject({ stoneId: StoneId.TEMPERED, stones: 1 })
-    expect(getUpgradeCost(20)).toMatchObject({ stoneId: StoneId.ABYSSAL, stones: 5 })
+    expect(getUpgradeCost(1)).toEqual({ stoneId: StoneId.ROUGH, stones: 2, gold: 60 })
+    expect(getUpgradeCost(5)).toMatchObject({ stoneId: StoneId.ROUGH, stones: 10 })
+    expect(getUpgradeCost(6)).toMatchObject({ stoneId: StoneId.TEMPERED, stones: 2 })
+    expect(getUpgradeCost(20)).toMatchObject({ stoneId: StoneId.ABYSSAL, stones: 10 })
   })
 
   it('upgrades at a camp paying stones and gold, with an effect every five levels', () => {

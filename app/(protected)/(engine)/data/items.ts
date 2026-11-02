@@ -147,6 +147,9 @@ export const BIOME_POTIONS: Record<Biome, string[]> = {
 export const DROP_CHANCE = {
   stone: 0.06,
   eliteStone: 0.3,
+  /** Rough stones (the first biomes) drop less: the early upgrades take time. */
+  roughStone: 0.025,
+  eliteRoughStone: 0.12,
   potion: 0.04,
   elitePotion: 0.15,
   echo: 0.005

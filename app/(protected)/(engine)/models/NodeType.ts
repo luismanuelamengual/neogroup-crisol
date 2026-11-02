@@ -8,7 +8,7 @@ export enum NodeType {
   CAMP_BOSS = 'campBoss',
   /** A rune guarded by a mini boss or by an elite fight. */
   SANCTUARY = 'sanctuary',
-  /** A safe point with a merchant, right next to a camp (no fight between them). */
+  /** A safe point with a merchant, in a dead end right off a camp (no fight between them). */
   MERCHANT = 'merchant',
   /** A Tear of Oblivion (resets the skill points of a character), behind an elite fight. */
   TEAR = 'tear',

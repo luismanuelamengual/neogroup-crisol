@@ -42,9 +42,11 @@ export const WEAPON_POWER_PER_LEVEL = 0.02
 /** The stone each block of five upgrades needs. */
 const STONES = [StoneId.ROUGH, StoneId.TEMPERED, StoneId.ARCANE, StoneId.ABYSSAL]
 const GOLD_PER_LEVEL = 60
+/** Stones each level of a block of five needs (+1 to +5: 2, 4, 6, 8 and 10). */
+const STONES_PER_STEP = 2
 const { FIRE, ICE, LIGHTNING, EARTH, LIGHT } = DamageType
 
-/** What upgrading a weapon to a level costs: stones of a quality (1 to 5 of them) and gold. */
+/** What upgrading a weapon to a level costs: stones of a quality (2 to 10 of them) and gold. */
 export function getUpgradeCost(level: number): { stoneId: StoneId; stones: number; gold: number } {
   if (level < 1 || level > MAX_WEAPON_LEVEL) {
     throw new Error(`No weapon upgrade to +${level}`)
@@ -52,7 +54,7 @@ export function getUpgradeCost(level: number): { stoneId: StoneId; stones: numbe
 
   return {
     stoneId: STONES[Math.floor((level - 1) / 5)],
-    stones: ((level - 1) % 5) + 1,
+    stones: (((level - 1) % 5) + 1) * STONES_PER_STEP,
     gold: GOLD_PER_LEVEL * level
   }
 }
