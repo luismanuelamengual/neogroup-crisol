@@ -18,7 +18,7 @@ export interface BiomeDefinition {
   anchors: [number, number][]
   /** The captor boss of the biome and the character it holds. */
   captor?: { bossId: string; captive: CharacterId }
-  /** The Seal of the biome (one of the three that close the Abyss). */
+  /** The Seal of the biome (one of the two that close the Abyss). */
   sealId?: string
   /** Camps opened by a mini boss. */
   minibossCamps: number
@@ -35,7 +35,7 @@ export interface BiomeDefinition {
 export const WORLD_WIDTH = 16_000
 export const WORLD_HEIGHT = 12_000
 
-/** The biomes, from the starting one to the final zone. */
+/** The biomes, from the easiest (the starting one) to the hardest (the final zone). */
 export const BIOMES: BiomeDefinition[] = [
   {
     biome: Biome.MEADOWS,
@@ -46,7 +46,7 @@ export const BIOMES: BiomeDefinition[] = [
       [8000, 7600],
       [8000, 9600]
     ],
-    minibossCamps: 2,
+    minibossCamps: 3,
     sanctuaries: 4,
     runeTier: RuneTier.LESSER,
     merchant: MerchantId.PEDDLER,
@@ -80,7 +80,7 @@ export const BIOMES: BiomeDefinition[] = [
       [12600, 10200],
       [11000, 10800]
     ],
-    sealId: 'xalqui',
+    captor: { bossId: 'xalqui', captive: CharacterId.BRANN },
     minibossCamps: 3,
     sanctuaries: 6,
     runeTier: RuneTier.GREATER,
@@ -90,32 +90,15 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#18c3a4'
   },
   {
-    biome: Biome.DESERT,
+    biome: Biome.MOUNTAINS,
     levelMin: 14,
     levelMax: 22,
-    nodes: 120,
-    anchors: [
-      [13000, 6600],
-      [10800, 5600]
-    ],
-    captor: { bossId: 'sahrak', captive: CharacterId.BRANN },
-    minibossCamps: 3,
-    sanctuaries: 6,
-    runeTier: RuneTier.GREATER,
-    tear: true,
-    chests: 2,
-    color: '#e8c25a'
-  },
-  {
-    biome: Biome.MOUNTAINS,
-    levelMin: 18,
-    levelMax: 26,
     nodes: 120,
     anchors: [
       [3200, 5800],
       [5400, 5000]
     ],
-    sealId: 'colossus',
+    captor: { bossId: 'colossus', captive: CharacterId.OREN },
     minibossCamps: 3,
     sanctuaries: 7,
     runeTier: RuneTier.GREATER,
@@ -125,16 +108,51 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#9a8f86'
   },
   {
-    biome: Biome.SNOW,
+    biome: Biome.DESERT,
+    levelMin: 18,
+    levelMax: 26,
+    nodes: 120,
+    anchors: [
+      [13000, 6600],
+      [10800, 5600]
+    ],
+    captor: { bossId: 'sahrak', captive: CharacterId.YSOLDE },
+    minibossCamps: 3,
+    sanctuaries: 6,
+    runeTier: RuneTier.GREATER,
+    tear: true,
+    chests: 2,
+    color: '#e8c25a'
+  },
+  {
+    biome: Biome.WASTELANDS,
     levelMin: 22,
     levelMax: 30,
+    nodes: 120,
+    anchors: [
+      [8000, 4000],
+      [6400, 2600],
+      [9600, 2600]
+    ],
+    minibossCamps: 2,
+    sanctuaries: 9,
+    runeTier: RuneTier.ANCESTRAL,
+    merchant: MerchantId.THRESHOLD,
+    tear: true,
+    chests: 2,
+    color: '#8a6f5a'
+  },
+  {
+    biome: Biome.SNOW,
+    levelMin: 26,
+    levelMax: 34,
     nodes: 110,
     anchors: [
       [2600, 2400],
       [4400, 2000]
     ],
-    captor: { bossId: 'vorneth', captive: CharacterId.OREN },
-    minibossCamps: 2,
+    sealId: 'vorneth',
+    minibossCamps: 3,
     sanctuaries: 7,
     runeTier: RuneTier.ANCESTRAL,
     merchant: MerchantId.SCHOLAR,
@@ -144,39 +162,20 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.VOLCANIC,
-    levelMin: 26,
-    levelMax: 34,
+    levelMin: 30,
+    levelMax: 38,
     nodes: 110,
     anchors: [
       [13400, 2400],
       [11600, 2200]
     ],
-    captor: { bossId: 'ignaroth', captive: CharacterId.YSOLDE },
+    sealId: 'ignaroth',
     minibossCamps: 2,
     sanctuaries: 8,
     runeTier: RuneTier.ANCESTRAL,
     tear: true,
     chests: 2,
     color: '#ff5a2c'
-  },
-  {
-    biome: Biome.WASTELANDS,
-    levelMin: 32,
-    levelMax: 40,
-    nodes: 120,
-    anchors: [
-      [8000, 4000],
-      [6400, 2600],
-      [9600, 2600]
-    ],
-    sealId: 'vael',
-    minibossCamps: 2,
-    sanctuaries: 9,
-    runeTier: RuneTier.ANCESTRAL,
-    merchant: MerchantId.THRESHOLD,
-    tear: true,
-    chests: 2,
-    color: '#8a6f5a'
   },
   {
     biome: Biome.ABYSS,
@@ -196,7 +195,8 @@ export const BIOMES: BiomeDefinition[] = [
 /**
  * Biomes joined by trails (always through very few border points: passes,
  * bridges). Any other pair of neighboring regions is closed (cliffs, rivers).
- * The Abyss is only reached through the Wastelands, by the door of the Abyss.
+ * Snow and the volcanic lands (the two Seals) and the Abyss are only reached
+ * through the Wastelands; the Abyss, by the door of the Abyss.
  */
 export const BIOME_LINKS: [Biome, Biome][] = [
   [Biome.MEADOWS, Biome.FOREST],
@@ -205,10 +205,10 @@ export const BIOME_LINKS: [Biome, Biome][] = [
   [Biome.MEADOWS, Biome.MOUNTAINS],
   [Biome.FOREST, Biome.MOUNTAINS],
   [Biome.TROPICAL, Biome.DESERT],
-  [Biome.MOUNTAINS, Biome.SNOW],
-  [Biome.DESERT, Biome.VOLCANIC],
-  [Biome.SNOW, Biome.WASTELANDS],
-  [Biome.VOLCANIC, Biome.WASTELANDS],
+  [Biome.MOUNTAINS, Biome.WASTELANDS],
+  [Biome.DESERT, Biome.WASTELANDS],
+  [Biome.WASTELANDS, Biome.SNOW],
+  [Biome.WASTELANDS, Biome.VOLCANIC],
   [Biome.WASTELANDS, Biome.ABYSS]
 ]
 

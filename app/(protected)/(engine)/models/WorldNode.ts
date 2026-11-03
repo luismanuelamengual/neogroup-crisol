@@ -15,8 +15,9 @@ export interface WorldNode {
   type: NodeType
   /** Level of its enemies in the first cycle (none for the safe points). */
   level?: number
-  /** CAMP_BOSS: the kind of boss and its id (e.g. 'morgrath', 'forest-miniboss-2'). */
+  /** CAMP_BOSS: the kind of boss. */
   bossKind?: BossKind
+  /** CAMP_BOSS and ABYSS_GATE: the id of its boss (e.g. 'morgrath', 'forest-miniboss-2', 'vael'). */
   bossId?: string
   /** CAMP_BOSS of kind CAPTOR: the character it holds. */
   captive?: CharacterId
@@ -24,6 +25,8 @@ export interface WorldNode {
   runeIndex?: number
   runeTier?: RuneTier
   guardian?: boolean
+  /** SANCTUARY with a guardian: the species of the mini boss (data/enemies.ts, GUARDIAN_SPECIES). */
+  guardianId?: string
   /** RELIQUARY: the weapon it keeps (data/weapons.ts). */
   weaponId?: string
   /** MERCHANT. */

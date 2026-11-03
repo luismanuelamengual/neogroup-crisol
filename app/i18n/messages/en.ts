@@ -304,6 +304,7 @@ export const en: Messages = {
       miniboss: 'Mini boss',
       captor: 'Captor',
       seal: 'Seal of the Abyss',
+      gate: 'Guardian of the Door',
       crisol: 'Final boss'
     },
     panel: {
@@ -340,7 +341,7 @@ export const en: Messages = {
       tear: 'You found a Tear of Oblivion',
       weapon: '{name} got {weapon}!',
       gold: '+{amount} gold',
-      abyssOpen: 'The three Seals fell: the Door of the Abyss opened',
+      abyssOpen: 'Both Seals fell: the Door of the Abyss opened',
       crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.'
     },
     runeTiers: {
@@ -617,6 +618,7 @@ export const en: Messages = {
     'abyss-eye': 'Abyss Eye',
     'boar-matriarch': 'Thorn Matriarch',
     'bandit-chief': 'Bandit Chief',
+    'wasp-queen': 'The Wasp Queen',
     morgrath: 'Morgrath, the Moss Witch',
     sahrak: 'Sahrak, the Scorpion King',
     vorneth: 'Vorneth, the Frost Wyrm',
@@ -692,6 +694,7 @@ export const en: Messages = {
     'thunder-roc': 'The Thunder Roc',
     'winter-witch': 'The Winter Witch',
     'ice-troll-king': 'The Ice Troll King',
+    'ancient-mammoth': 'The Ancient Mammoth',
     'fire-drake': 'The Fire Drake',
     'magma-behemoth': 'The Magma Behemoth',
     lich: 'The Lich',

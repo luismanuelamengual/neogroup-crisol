@@ -7,8 +7,9 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH
 } from '@/app/(protected)/(engine)/data/biomes'
+import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
-import { START_NODE_ID, WORLD_SEED, WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
+import { ABYSS_GATE_GUARDIAN, START_NODE_ID, WORLD_SEED, WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
@@ -18,7 +19,14 @@ import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom, Random, shuffle } from '@/app/(protected)/(engine)/utils/random'
-import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
+import {
+  isJunction,
+  KEY_BOSS_CAMP_MAX_STEPS,
+  KEY_BOSS_CAMP_STEPS,
+  MIN_CAMP_TRAILS,
+  MIN_STEPS_BETWEEN_CAMPS,
+  validateWorld
+} from '@/app/(protected)/(engine)/utils/worldValidation'
 
 /**
  * World generator. The world is generated once with a seed (yarn
@@ -33,10 +41,13 @@ import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
  *      random spanning tree of each biome (Kruskal) makes the maze (long
  *      corridors, branches and dead ends); a few border trails join the linked
  *      biomes; and some extra trails close loops (alternative routes).
- *   4. Points of interest: the starting camp, the bosses that open the camps,
+ *   4. Points of interest: the starting camp, the bosses that open the camps
+ *      (mini bosses always on crossroads; one near the entrance and one near
+ *      the center of each biome),
  *      the rune sanctuaries, Tears of Oblivion and chests (in dead ends), the
  *      merchants (in a dead end right off a camp), the reliquaries of the weapons (in the
- *      deepest dead ends), the door of the Abyss and Crisol.
+ *      deepest dead ends), the door of the Abyss (guarded by a boss) and Crisol.
+ *      The captors and the Seals wait at the deepest point of their biome.
  *   5. Levels: from the entrance of each biome to its deepest point.
  *
  * An attempt that does not pass validateWorld is thrown away and the next seed
@@ -56,8 +67,8 @@ const AREA_CELL = 100
 const MAX_ATTEMPTS = 200
 /** Where the starting camp is looked for. */
 const START_POSITION: [number, number] = [8000, 8600]
-/** Mini boss guardians of the sanctuaries, by number of sanctuaries of the biome (the rest: elite fights). */
-const GUARDIAN_SHARE = 0.2
+/** A camp this close to the center of its biome (in world units) counts as its central camp. */
+const CENTER_RADIUS = 800
 /** Extra levels of the special fights over the point where they are. */
 const KEY_BOSS_EXTRA_LEVELS = 2
 const MINIBOSS_EXTRA_LEVELS = 2
@@ -361,17 +372,50 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
   )
 
   gate.type = NodeType.ABYSS_GATE
+  gate.bossId = ABYSS_GATE_GUARDIAN
   finalBoss.type = NodeType.FINAL_BOSS
 
   const fromStart = hopDistances(adjacency, [START_NODE_ID])
   const isFree = (node: WorldNode) => node.type === NodeType.COMBAT
   const isBorder = (node: WorldNode) => adjacency.get(node.id)!.some((id) => byId.get(id)!.biome !== node.biome)
   const isLeaf = (node: WorldNode) => adjacency.get(node.id)!.length === 1
+  // Mini boss camps are always crossroads (at least three trails that are not dead ends); captors and Seals can wait at
+  // the end of a dead end.
+  const canBeCamp = (node: WorldNode) => isFree(node) && !isBorder(node) && isJunction(node.id, adjacency)
+  const canBeKeyBoss = (node: WorldNode) => isFree(node) && !isBorder(node)
   const biomeNodes = (definition: BiomeDefinition) => nodes.filter((node) => node.biome === definition.biome)
 
-  // Captors and Seals: in the deepest part of their biome.
+  // Captors and Seals: in the deepest part of their biome, where a camp fits about KEY_BOSS_CAMP_STEPS away.
+  const roomForNearCamp = (boss: WorldNode) => {
+    const fromBoss = hopDistances(adjacency, [boss.id])
+
+    return nodes.some((node) => {
+      const steps = fromBoss.get(node.id)!
+
+      return (
+        node !== boss &&
+        node.biome === boss.biome &&
+        canBeCamp(node) &&
+        steps >= KEY_BOSS_CAMP_STEPS &&
+        steps <= KEY_BOSS_CAMP_MAX_STEPS
+      )
+    })
+  }
+
   for (const definition of BIOMES) {
-    const options = biomeNodes(definition).filter((node) => isFree(node) && !isBorder(node) && !isLeaf(node))
+    const fromCamps = hopDistances(
+      adjacency,
+      nodes.filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS).map((node) => node.id)
+    )
+    const candidates = biomeNodes(definition).filter(
+      (node) => canBeKeyBoss(node) && (fromCamps.get(node.id) ?? Infinity) >= MIN_STEPS_BETWEEN_CAMPS
+    )
+    const withRoom = definition.captor || definition.sealId ? candidates.filter(roomForNearCamp) : []
+    const options = withRoom.length > 0 ? withRoom : candidates
+
+    if (options.length === 0) {
+      return null
+    }
 
     if (definition.captor) {
       const node = maxBy(options, (candidate) => fromStart.get(candidate.id)!)
@@ -385,30 +429,107 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
 
     if (definition.sealId) {
-      const node = maxBy(options, (candidate) => fromStart.get(candidate.id)!)
+      const node = maxBy(options.filter(canBeKeyBoss), (candidate) => fromStart.get(candidate.id)!)
 
       Object.assign(node, { type: NodeType.CAMP_BOSS, bossKind: BossKind.SEAL, bossId: definition.sealId })
     }
   }
 
-  // Mini boss camps: each one as far as possible from the camps placed before (even coverage).
+  // Mini boss camps, never closer than MIN_STEPS_BETWEEN_CAMPS to another camp: the first one about
+  // KEY_BOSS_CAMP_STEPS away from the captor or the Seal of the biome (on its side of the way in), then one near the
+  // entrance of the biome and one near its center (not in the biome of the starting camp), and the rest each one as far
+  // as possible from the camps placed before (even coverage).
   const isCamp = (node: WorldNode) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS
   const camps = () => nodes.filter(isCamp)
 
   for (const definition of BIOMES) {
-    for (let index = 1; index <= definition.minibossCamps; index++) {
-      const fromCamps = hopDistances(
-        adjacency,
-        camps().map((node) => node.id)
-      )
-      const options = biomeNodes(definition).filter((node) => isFree(node) && !isBorder(node) && !isLeaf(node))
-      const node = maxBy(options, (candidate) => fromCamps.get(candidate.id) ?? 0)
+    const members = biomeNodes(definition)
+    const centerX = members.reduce((sum, node) => sum + node.x, 0) / members.length
+    const centerY = members.reduce((sum, node) => sum + node.y, 0) / members.length
+    const goals: ((options: WorldNode[]) => WorldNode)[] = []
+    const toCenter = (node: WorldNode) => Math.hypot(node.x - centerX, node.y - centerY)
+    const keyBoss = members.find((node) => node.bossKind === BossKind.CAPTOR || node.bossKind === BossKind.SEAL)
 
-      Object.assign(node, {
-        type: NodeType.CAMP_BOSS,
-        bossKind: BossKind.MINIBOSS,
-        bossId: `${definition.biome}-miniboss-${index}`
-      })
+    if (keyBoss) {
+      const fromKeyBoss = hopDistances(adjacency, [keyBoss.id])
+
+      goals.push((options) =>
+        maxBy(
+          options,
+          (candidate) =>
+            -Math.abs(fromKeyBoss.get(candidate.id)! - KEY_BOSS_CAMP_STEPS) * 1000 - fromStart.get(candidate.id)!
+        )
+      )
+    }
+
+    // The starting camp is already at the entrance and near the center of its biome; a captor or a Seal can already
+    // be near the center too.
+    if (definition.biome !== start.biome) {
+      goals.push((options) => maxBy(options, (candidate) => -fromStart.get(candidate.id)!))
+
+      if (!members.some((node) => isCamp(node) && toCenter(node) <= CENTER_RADIUS)) {
+        goals.push((options) => maxBy(options, (candidate) => -toCenter(candidate)))
+      }
+    }
+
+    // A biome where the camps do not fit keeping their distance tries again without its last goals (the near
+    // camp of the captor or the Seal is always kept).
+    const placeAll = (biomeGoals: typeof goals): boolean => {
+      const placed: WorldNode[] = []
+
+      for (let index = 1; index <= definition.minibossCamps; index++) {
+        const fromCamps = hopDistances(
+          adjacency,
+          camps().map((camp) => camp.id)
+        )
+        let options = members.filter(
+          (node) => canBeCamp(node) && (fromCamps.get(node.id) ?? Infinity) >= MIN_STEPS_BETWEEN_CAMPS
+        )
+        // In a biome with a merchant, the camps leave room for it (a free dead end beside) until one does.
+        const hasRoom = (camp: WorldNode) => deadEndsBeside(camp, nodes, adjacency).length > 0
+        const roomy = options.filter(hasRoom)
+
+        if (
+          definition.merchant &&
+          !(keyBoss && index === 1) &&
+          roomy.length > 0 &&
+          !members.some((node) => node.type === NodeType.CAMP_BOSS && hasRoom(node))
+        ) {
+          options = roomy
+        }
+
+        if (options.length === 0) {
+          for (const node of placed) {
+            node.type = NodeType.COMBAT
+            delete node.bossKind
+            delete node.bossId
+          }
+
+          return false
+        }
+
+        const goal = biomeGoals[index - 1]
+        const node = goal ? goal(options) : maxBy(options, (candidate) => fromCamps.get(candidate.id) ?? 0)
+
+        Object.assign(node, {
+          type: NodeType.CAMP_BOSS,
+          bossKind: BossKind.MINIBOSS,
+          bossId: `${definition.biome}-miniboss-${index}`
+        })
+        placed.push(node)
+      }
+
+      return true
+    }
+
+    let fitted = false
+
+    for (let kept = goals.length; kept >= (keyBoss ? 1 : 0) && !fitted; kept--) {
+      fitted = placeAll(goals.slice(0, kept))
+    }
+
+    if (!fitted) {
+      return null
     }
   }
 
@@ -452,13 +573,18 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       sanctuaries.push(node)
     }
 
-    // The deepest sanctuaries are guarded by a mini boss.
-    const guardians = Math.round(definition.sanctuaries * GUARDIAN_SHARE)
+    // The deepest sanctuaries are guarded by the mini bosses of the biome (the rest: elite fights), the strongest one
+    // in the deepest sanctuary.
+    const guardians = GUARDIAN_SPECIES[definition.biome]
 
     sanctuaries
       .sort((a, b) => fromStart.get(b.id)! - fromStart.get(a.id)!)
       .forEach((node, position) => {
-        node.guardian = position < guardians
+        node.guardian = position < guardians.length
+
+        if (node.guardian) {
+          node.guardianId = guardians[guardians.length - 1 - position]
+        }
       })
 
     if (definition.tear) {
@@ -522,17 +648,21 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
   }
 }
 
-/** The starting camp: a meadow point near the south-center with 3 or 4 trails. */
+/** The starting camp: a meadow point near the south-center that is a crossroads (see isJunction). */
 function findStart(points: Point[], trails: [number, number][]): Point | null {
   const degree = new Array<number>(points.length).fill(0)
+  const neighbors = points.map(() => [] as number[])
 
   for (const [a, b] of trails) {
     degree[a]++
     degree[b]++
+    neighbors[a].push(b)
+    neighbors[b].push(a)
   }
 
+  const junction = (index: number) => neighbors[index].filter((other) => degree[other] > 1).length >= MIN_CAMP_TRAILS
   const options = points
-    .filter((point) => point.biome === Biome.MEADOWS && degree[point.index] >= 3)
+    .filter((point) => point.biome === Biome.MEADOWS && junction(point.index))
     .sort(
       (a, b) =>
         Math.hypot(a.x - START_POSITION[0], a.y - START_POSITION[1]) -
@@ -573,11 +703,16 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
         case NodeType.RELIQUARY:
           node.level = definition.levelMax + WARDEN_EXTRA_LEVELS
           break
+        case NodeType.ABYSS_GATE:
+          // Very strong, but under the weakest Seal.
+          node.level =
+            Math.min(...BIOMES.filter((item) => item.sealId).map((item) => item.levelMax)) + KEY_BOSS_EXTRA_LEVELS - 1
+          break
         case NodeType.FINAL_BOSS:
           node.level = getBiomeDefinition(Biome.ABYSS).levelMax
           break
         default:
-          // Safe points (start, merchants, chests, the door) have no fight of their own.
+          // Safe points (start, merchants, chests) have no fight of their own.
           break
       }
     }
@@ -619,6 +754,7 @@ function chooseMerchantCamps(
 
   let best: WorldNode[] = []
   let bestScore = -Infinity
+
   const search = (picked: WorldNode[], score: number) => {
     if (score <= bestScore) {
       return

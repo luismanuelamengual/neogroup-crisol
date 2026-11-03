@@ -36,7 +36,10 @@ export const BIOMES_ORDER = Object.values(Biome)
 /** Levels of the ground (see TileMap.heights). */
 export const LEVELS = 4
 
-/** How much each biome rises over the rest (mountains are mostly plateaus, the desert mostly flat). */
+/**
+ * How much each biome rises over the rest (mountains are mostly plateaus, the
+ * desert mostly flat, the volcano a high plateau over its neighbors).
+ */
 export const BIOME_RISE: Record<Biome, number> = {
   [Biome.MEADOWS]: 0,
   [Biome.FOREST]: 0.02,
@@ -44,7 +47,7 @@ export const BIOME_RISE: Record<Biome, number> = {
   [Biome.DESERT]: -0.03,
   [Biome.MOUNTAINS]: 0.06,
   [Biome.SNOW]: 0.04,
-  [Biome.VOLCANIC]: 0.03,
+  [Biome.VOLCANIC]: 0.3,
   [Biome.WASTELANDS]: -0.01,
   [Biome.ABYSS]: 0.02
 }

@@ -3,7 +3,7 @@
  * whole party. It refills when resting.
  */
 
-/** Charges at the start of a cycle; each Seal defeated adds one. */
+/** Charges at the start of a cycle; each Seal defeated adds one, and so does the guardian of the door of the Abyss. */
 export const FLASK_BASE_CHARGES = 1
 export const FLASK_MAX_CHARGES = 4
 

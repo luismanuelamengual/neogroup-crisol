@@ -385,7 +385,7 @@ describe('camp bosses and the Amber Flask', () => {
     expect(() => teleport(won, neighborsOf(captor.id)[0])).toThrow()
   })
 
-  it('opens the door of the Abyss once the three Seals fall', () => {
+  it('opens the door of the Abyss once the two Seals fall, and its guardian has to be beaten', () => {
     const closed = nextTo(world.gateNodeId)
 
     expect(isAbyssOpen(index, closed)).toBe(false)
@@ -395,8 +395,12 @@ describe('camp bosses and the Amber Flask', () => {
     const arrived = arriveAt(index, open, world.gateNodeId)
 
     expect(planRoute(index, open, world.gateNodeId)).toHaveLength(2)
-    expect(arrived.encounter).toBeNull()
-    expect(arrived.state.clearedNodeIds).toContain(world.gateNodeId)
+    expect(arrived.encounter).toMatchObject({ kind: EncounterKind.GATE, bossId: 'vael', canRetreat: false })
+
+    const won = winEncounter(index, arrived.state, {}).state
+
+    expect(won.clearedNodeIds).toContain(world.gateNodeId)
+    expect(getFlask(index, won).maxCharges).toBe(4)
   })
 
   it('has its Amber Embers on real mini bosses', () => {

@@ -64,11 +64,11 @@ describe('stored world', () => {
     expect(generateWorld(WORLD_SEED)).toEqual(world)
   })
 
-  it('has more than a thousand points and thirty camps', () => {
+  it('has more than a thousand points and thirty-one camps', () => {
     const camps = world.nodes.filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS)
 
     expect(world.nodes.length).toBeGreaterThanOrEqual(1000)
-    expect(camps).toHaveLength(30)
+    expect(camps).toHaveLength(31)
   })
 })
 

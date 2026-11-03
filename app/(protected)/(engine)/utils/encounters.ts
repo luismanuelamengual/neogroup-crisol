@@ -66,6 +66,13 @@ function commonPhase(random: Random, node: WorldNode, level: number, count: numb
   }))
 }
 
+/** Every guardian species, by its own id. */
+const GUARDIAN_SPECIES_BY_ID: Record<string, string> = Object.fromEntries(
+  Object.values(GUARDIAN_SPECIES)
+    .flat()
+    .map((id) => [id, id])
+)
+
 /** The species of a boss of the world (by its id in the world, or of its sanctuary). */
 function ownSpecies(id: string | undefined, table: Record<string, string>): string {
   const species = id === undefined ? undefined : table[id]
@@ -120,7 +127,7 @@ export function getEncounterPhases(node: WorldNode, encounter: Encounter): Enemy
       ]
 
     case EncounterKind.GUARDIAN:
-      return [[{ speciesId: ownSpecies(String(node.runeIndex), GUARDIAN_SPECIES), level }]]
+      return [[{ speciesId: ownSpecies(node.guardianId, GUARDIAN_SPECIES_BY_ID), level }]]
 
     case EncounterKind.MINIBOSS: {
       const boss = ownSpecies(node.bossId, BOSS_SPECIES)
@@ -136,6 +143,7 @@ export function getEncounterPhases(node: WorldNode, encounter: Encounter): Enemy
 
     case EncounterKind.CAPTOR:
     case EncounterKind.SEAL:
+    case EncounterKind.GATE:
       return [[{ speciesId: ownSpecies(node.bossId, BOSS_SPECIES), level }]]
     case EncounterKind.CRISOL:
       return [[{ speciesId: FINAL_BOSS_SPECIES, level }]]

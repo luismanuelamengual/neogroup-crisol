@@ -10,5 +10,7 @@ export enum EncounterKind {
   WARDEN = 'warden',
   CAPTOR = 'captor',
   SEAL = 'seal',
+  /** The guardian of the door of the Abyss. */
+  GATE = 'gate',
   CRISOL = 'crisol'
 }

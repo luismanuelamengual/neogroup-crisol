@@ -128,6 +128,8 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'boar-matriarch':
     'una matriarca jabalí espinada colosal con colmillos enormes, una corona de ramas espinosas y cicatrices de batalla',
   'bandit-chief': 'un jefe bandido humano con cicatrices, abrigo con ribete de piel, un sable pesado y una faja roja',
+  'wasp-queen':
+    'una reina avispa gigante de rayas amarillas y negras, alas translúcidas, una corona de cera y un aguijón enorme',
   'alpha-wolf': 'Colmillo Gris, un enorme lobo alfa gris con el hocico marcado, un ojo ciego y una melena sombría',
   'elder-treant':
     'un ent antiquísimo y altísimo con una larga barba de musgo, una cara en la corteza y ramas como astas',
@@ -146,6 +148,8 @@ export const ENEMY_LOOKS: Record<string, string> = {
   'thunder-roc': 'un ave roc enorme de plumas doradas que chisporrotean con rayos y una tormenta a su alrededor',
   'winter-witch': 'una bruja alta y pálida con una corona de carámbanos, capa de piel blanca y un báculo de hielo azul',
   'ice-troll-king': 'un rey trol enorme de piel azul escarcha, corona de hielo y un garrote de piedra congelada',
+  'ancient-mammoth':
+    'un mamut ancestral colosal de pelaje blanco escarchado, colmillos curvos enormes cubiertos de hielo y runas talladas',
   'fire-drake': 'un draco de fuego rojo con alas en llamas y escamas fundidas',
   'magma-behemoth': 'un behemot cuadrúpedo gigantesco de basalto y magma que fluye, con púas volcánicas en el lomo',
   lich: 'un liche hechicero esquelético con túnicas reales raídas, corona y un báculo coronado por una gema de alma verde',

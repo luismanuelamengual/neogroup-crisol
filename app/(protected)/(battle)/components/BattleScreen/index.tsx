@@ -95,6 +95,7 @@ const BATTLE_MUSIC: Record<EncounterKind, MusicId> = {
   [EncounterKind.WARDEN]: 'boss',
   [EncounterKind.CAPTOR]: 'boss',
   [EncounterKind.SEAL]: 'seal',
+  [EncounterKind.GATE]: 'seal',
   [EncounterKind.CRISOL]: 'crisol'
 }
 /** Pause before an enemy acts, so the player can follow it. */

@@ -24,12 +24,12 @@ const section = (locale: (typeof LOCALES)[number], name: string) =>
   (getMessages(locale) as unknown as Record<string, Record<string, unknown>>)[name]
 
 describe('bestiary content', () => {
-  it('has nine species in each biome and 52 bosses', () => {
+  it('has nine species in each biome and 54 bosses', () => {
     for (const biome of Object.values(Biome)) {
       expect(getBiomeSpecies(biome), biome).toHaveLength(9)
     }
 
-    expect(ENEMIES.filter((species) => species.rarity === 'boss')).toHaveLength(52)
+    expect(ENEMIES.filter((species) => species.rarity === 'boss')).toHaveLength(54)
   })
 
   it('gives every species a free basic attack, known skills and a name in every language', () => {
@@ -94,7 +94,8 @@ describe('bosses of the world', () => {
       }
 
       if (node.guardian) {
-        expect(getSpecies(GUARDIAN_SPECIES[node.runeIndex!]).rarity, `rune ${node.runeIndex}`).toBe('boss')
+        expect(GUARDIAN_SPECIES[node.biome], `rune ${node.runeIndex}`).toContain(node.guardianId)
+        expect(getSpecies(node.guardianId!).rarity, `rune ${node.runeIndex}`).toBe('boss')
       }
     }
 

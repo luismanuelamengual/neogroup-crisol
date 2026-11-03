@@ -308,6 +308,7 @@ export const es = {
       miniboss: 'Minijefe',
       captor: 'Captor',
       seal: 'Sello del Abismo',
+      gate: 'Guardián de la Puerta',
       crisol: 'Jefe final'
     },
     panel: {
@@ -345,7 +346,7 @@ export const es = {
       tear: 'Encontraste una Lágrima del Olvido',
       weapon: '¡{name} obtuvo {weapon}!',
       gold: '+{amount} de oro',
-      abyssOpen: 'Los tres Sellos cayeron: la Puerta del Abismo se abrió',
+      abyssOpen: 'Los dos Sellos cayeron: la Puerta del Abismo se abrió',
       crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.'
     },
     runeTiers: {
@@ -622,6 +623,7 @@ export const es = {
     'abyss-eye': 'Ojo del Abismo',
     'boar-matriarch': 'Matriarca Espinada',
     'bandit-chief': 'Jefe de los Bandidos',
+    'wasp-queen': 'La Reina Avispa',
     morgrath: 'Morgrath, la Bruja del Musgo',
     sahrak: 'Sahrak, el Rey Escorpión',
     vorneth: 'Vorneth, el Wyrm de Escarcha',
@@ -697,6 +699,7 @@ export const es = {
     'thunder-roc': 'El Roc del Trueno',
     'winter-witch': 'La Bruja del Invierno',
     'ice-troll-king': 'El Rey Trol de Hielo',
+    'ancient-mammoth': 'El Mamut Ancestral',
     'fire-drake': 'El Draco de Fuego',
     'magma-behemoth': 'El Behemot de Magma',
     lich: 'El Liche',

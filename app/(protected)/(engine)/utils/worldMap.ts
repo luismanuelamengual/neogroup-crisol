@@ -57,6 +57,7 @@ const FIGHT_TYPES = new Set([
   NodeType.SANCTUARY,
   NodeType.TEAR,
   NodeType.RELIQUARY,
+  NodeType.ABYSS_GATE,
   NodeType.FINAL_BOSS
 ])
 /** Rescued characters join at the average level of the party minus this (at least 1). */
@@ -251,6 +252,8 @@ function encounterKindOf(node: WorldNode): EncounterKind {
       return EncounterKind.ELITE
     case NodeType.RELIQUARY:
       return EncounterKind.WARDEN
+    case NodeType.ABYSS_GATE:
+      return EncounterKind.GATE
     case NodeType.FINAL_BOSS:
       return EncounterKind.CRISOL
     default:
@@ -510,7 +513,10 @@ export function getFlask(index: WorldIndex, state: GameState): Flask {
 
   return {
     charges: state.flaskCharges,
-    maxCharges: Math.min(FLASK_MAX_CHARGES, FLASK_BASE_CHARGES + countDefeatedSeals(index, state)),
+    maxCharges: Math.min(
+      FLASK_MAX_CHARGES,
+      FLASK_BASE_CHARGES + countDefeatedSeals(index, state) + (isCleared(state, index.world.gateNodeId) ? 1 : 0)
+    ),
     potency: Math.min(FLASK_MAX_POTENCY, FLASK_BASE_POTENCY + FLASK_EMBER_POTENCY * embers)
   }
 }

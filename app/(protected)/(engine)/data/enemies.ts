@@ -745,6 +745,15 @@ const BOSSES: EnemySpecies[] = [
     strength: 5.2,
     size: 1.6
   }),
+  species(
+    'wasp-queen',
+    Biome.MEADOWS,
+    Archetype.AGILE,
+    ['bite', 'sting', 'lunge'],
+    { [FIRE]: WEAK, [ICE]: WEAK },
+    0xeab308,
+    { rarity: 'boss', strength: 4.5, size: 1.5 }
+  ),
   species('bandit-chief', Biome.MEADOWS, Archetype.AGILE, ['bite', 'rend', 'lunge'], { [FIRE]: WEAK }, 0x4b5563, {
     rarity: 'boss',
     strength: 3,
@@ -992,6 +1001,15 @@ const BOSSES: EnemySpecies[] = [
     { [FIRE]: WEAK, [ICE]: IMMUNE },
     0xe2e8f0,
     { rarity: 'boss', strength: 3.6, size: 2.1 }
+  ),
+  species(
+    'ancient-mammoth',
+    Biome.SNOW,
+    Archetype.TANK,
+    ['bash', 'gore', 'frost-breath', 'harden'],
+    { [FIRE]: WEAK, [ICE]: RESIST, [PIERCE]: RESIST },
+    0xcbd5e1,
+    { rarity: 'boss', strength: 3.4, size: 2.2 }
   ),
   species(
     'fire-drake',
@@ -1262,6 +1280,7 @@ const ENEMIES_BY_ID = new Map(ENEMIES.map((enemy) => [enemy.id, enemy]))
 export const BOSS_SPECIES: Record<string, string> = {
   'meadows-miniboss-1': 'boar-matriarch',
   'meadows-miniboss-2': 'bandit-chief',
+  'meadows-miniboss-3': 'wasp-queen',
   'forest-miniboss-1': 'alpha-wolf',
   'forest-miniboss-2': 'elder-treant',
   'forest-miniboss-3': 'spider-queen',
@@ -1276,6 +1295,7 @@ export const BOSS_SPECIES: Record<string, string> = {
   'mountains-miniboss-3': 'thunder-roc',
   'snow-miniboss-1': 'winter-witch',
   'snow-miniboss-2': 'ice-troll-king',
+  'snow-miniboss-3': 'ancient-mammoth',
   'volcanic-miniboss-1': 'fire-drake',
   'volcanic-miniboss-2': 'magma-behemoth',
   'wastelands-miniboss-1': 'lich',
@@ -1293,20 +1313,21 @@ export const BOSS_SPECIES: Record<string, string> = {
 
 export const FINAL_BOSS_SPECIES = 'crisol'
 
-/** The guardian of each guarded sanctuary, by the index of its rune. */
-export const GUARDIAN_SPECIES: Record<number, string> = {
-  4: 'old-scarecrow',
-  9: 'moss-golem',
-  25: 'temple-serpent',
-  26: 'sphinx',
-  28: 'rune-golem',
-  39: 'ember-sentinel',
-  40: 'phoenix',
-  44: 'frost-sentinel',
-  51: 'death-knight',
-  52: 'wraith-lord',
-  59: 'void-sentinel',
-  60: 'crucible-herald'
+/**
+ * The guardians of the guarded sanctuaries of each biome, from the shallowest
+ * sanctuary to the deepest one (the world generator gives them out: see
+ * `WorldNode.guardianId`).
+ */
+export const GUARDIAN_SPECIES: Record<Biome, string[]> = {
+  [Biome.MEADOWS]: ['old-scarecrow'],
+  [Biome.FOREST]: ['moss-golem'],
+  [Biome.TROPICAL]: ['temple-serpent'],
+  [Biome.MOUNTAINS]: ['rune-golem'],
+  [Biome.DESERT]: ['sphinx'],
+  [Biome.WASTELANDS]: ['death-knight', 'wraith-lord'],
+  [Biome.SNOW]: ['frost-sentinel'],
+  [Biome.VOLCANIC]: ['ember-sentinel', 'phoenix'],
+  [Biome.ABYSS]: ['void-sentinel', 'crucible-herald']
 }
 
 export function getSpecies(id: string): EnemySpecies {

@@ -1,26 +1,42 @@
 import { BIOME_LINKS, BIOMES } from '@/app/(protected)/(engine)/data/biomes'
+import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
+import { ABYSS_GATE_GUARDIAN, SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
 import { World } from '@/app/(protected)/(engine)/models/World'
-import { buildAdjacency, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
+import { Adjacency, buildAdjacency, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 
 /** Minimum number of points of the world. */
 export const MIN_NODES = 1000
 
 /** Camps of the world: the starting one plus one per camp boss. */
-export const TOTAL_CAMPS = 30
+export const TOTAL_CAMPS = 31
 
 /** No point is farther than this many trail steps from a camp (or from the boss that opens one). */
 export const MAX_STEPS_TO_CAMP = 40
 
+/** Two camps are never closer than this many trail steps. */
+export const MIN_STEPS_BETWEEN_CAMPS = 8
+
+/** Every captor and Seal has another camp about this many steps away (and no more than KEY_BOSS_CAMP_MAX_STEPS). */
+export const KEY_BOSS_CAMP_STEPS = 8
+export const KEY_BOSS_CAMP_MAX_STEPS = 10
+
+/** Every camp but the captors and Seals is a crossroads: at least this many of its trails do not end in a dead end. */
+export const MIN_CAMP_TRAILS = 3
+
 const TOTAL_SANCTUARIES = 60
-const TOTAL_GUARDIANS = 12
 const TOTAL_MERCHANTS = 5
 const TOTAL_TEARS = 5
 const TIER_ORDER = [RuneTier.LESSER, RuneTier.GREATER, RuneTier.ANCESTRAL, RuneTier.ABYSSAL]
+
+/** Whether a point is a crossroads: MIN_CAMP_TRAILS or more of its trails lead somewhere (not to a dead end). */
+export function isJunction(id: string, adjacency: Adjacency): boolean {
+  return adjacency.get(id)!.filter((other) => adjacency.get(other)!.length > 1).length >= MIN_CAMP_TRAILS
+}
 
 /**
  * Checks the rules of the world design. Returns the broken ones (empty: the
@@ -104,6 +120,7 @@ export function validateWorld(world: World): string[] {
   const finalBoss = byId.get(world.finalBossNodeId)
 
   check(gate?.type === NodeType.ABYSS_GATE && gate.biome === Biome.ABYSS, 'the door of the Abyss is misplaced')
+  check(gate?.bossId === ABYSS_GATE_GUARDIAN, 'the door of the Abyss has no guardian')
   check(finalBoss?.type === NodeType.FINAL_BOSS && finalBoss.biome === Biome.ABYSS, 'Crisol is misplaced')
 
   const beforeGate = hopDistances(adjacency, [world.startNodeId], (id) => id !== world.gateNodeId)
@@ -122,7 +139,27 @@ export function validateWorld(world: World): string[] {
   check(camps.length === TOTAL_CAMPS, `${camps.length} camps`)
   check(world.nodes.filter((node) => node.type === NodeType.START).length === 1, 'not exactly one starting camp')
   check(new Set(captors.map((node) => node.captive)).size === 4 && captors.length === 4, 'not four captors')
-  check(seals.length === 3, `${seals.length} Seals`)
+  check(seals.length === SEALS_TO_OPEN_ABYSS, `${seals.length} Seals`)
+
+  for (const camp of camps) {
+    const fromCamp = hopDistances(adjacency, [camp.id])
+    const others = camps.filter((other) => other !== camp).map((other) => fromCamp.get(other.id) ?? Infinity)
+    const closest = Math.min(...others)
+
+    // Captors and Seals can wait at the end of a dead end; the other camps are crossroads.
+    check(
+      camp.bossKind === BossKind.CAPTOR || camp.bossKind === BossKind.SEAL || isJunction(camp.id, adjacency),
+      `the camp ${camp.id} is not a crossroads`
+    )
+    check(closest >= MIN_STEPS_BETWEEN_CAMPS, `the camp ${camp.id} is ${closest} steps away from another camp`)
+
+    if (camp.bossKind === BossKind.CAPTOR || camp.bossKind === BossKind.SEAL) {
+      check(
+        closest <= KEY_BOSS_CAMP_MAX_STEPS,
+        `${camp.bossId} has no camp near (the closest is ${closest} steps away)`
+      )
+    }
+  }
 
   for (const definition of BIOMES) {
     const expected = definition.minibossCamps + (definition.captor ? 1 : 0) + (definition.sealId ? 1 : 0)
@@ -153,7 +190,19 @@ export function validateWorld(world: World): string[] {
     sanctuaries.every((node, position) => node.runeIndex === position + 1),
     'the runes are not numbered 1..60'
   )
-  check(sanctuaries.filter((node) => node.guardian).length === TOTAL_GUARDIANS, 'not 12 sanctuary guardians')
+
+  for (const definition of BIOMES) {
+    const guardians = sanctuaries
+      .filter((node) => node.biome === definition.biome && node.guardian)
+      .map((node) => node.guardianId)
+      .sort()
+
+    check(
+      guardians.join() === [...GUARDIAN_SPECIES[definition.biome]].sort().join(),
+      `the sanctuary guardians of ${definition.biome} are wrong`
+    )
+  }
+
   check(
     sanctuaries.every(
       (node, position) =>
@@ -218,6 +267,12 @@ export function validateWorld(world: World): string[] {
       )
     }
   }
+
+  // The guardian of the door: weaker than every Seal.
+  check(
+    gate?.level !== undefined && seals.every((node) => node.level! > gate.level!),
+    'the guardian of the door of the Abyss is not weaker than the Seals'
+  )
 
   return errors
 }
