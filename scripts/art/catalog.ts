@@ -2,6 +2,7 @@ import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
 import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { weaponArtId } from '@/app/(protected)/(engine)/data/weapons'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
@@ -25,6 +26,7 @@ export type PieceKind =
   | 'hero'
   | 'heroPart'
   | 'weapon'
+  | 'weaponArt'
   | 'portrait'
   | 'enemy'
   | 'boss'
@@ -105,6 +107,19 @@ const HERO_BATCH: Record<CharacterId, Biome> = {
   [CharacterId.BRANN]: Biome.DESERT,
   [CharacterId.OREN]: Biome.SNOW,
   [CharacterId.YSOLDE]: Biome.VOLCANIC
+}
+/** How each weapon is shown on its own (weaponArt): long weapons cross the square, books face the camera. */
+const WEAPON_ART_POSE: Record<string, string> = {
+  default:
+    'en diagonal, con el mango abajo a la izquierda y la punta o la cabeza arriba a la derecha, vista de costado',
+  bow: 'en diagonal, con el arco de abajo a la izquierda hacia arriba a la derecha y la cuerda tensa, vista de costado',
+  'gale-bow':
+    'en diagonal, con el arco de abajo a la izquierda hacia arriba a la derecha y la cuerda tensa, vista de costado',
+  crossbow:
+    'en diagonal, con la culata abajo a la izquierda y la punta arriba a la derecha, vista de costado, con los brazos abiertos',
+  tome: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico',
+  codex: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico',
+  grimoire: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico'
 }
 /** The bosses big enough to be animated by parts. */
 const BOSSES_BY_PARTS = ['morgrath', 'sahrak', 'vorneth', 'ignaroth', 'xalqui', 'colossus', 'vael', 'crisol']
@@ -451,6 +466,18 @@ export function buildCatalog(): Piece[] {
         batch,
         prompt: prompt(
           `${reference}, solo el arma: ${description}, agarrada por el puño de ${name} (solo el puño, cortado en la muñeca, sin brazo). De largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado.`,
+          CHROMA
+        )
+      })),
+      // Each weapon on its own, for the hero screen: the image of the puppet has the fist in it.
+      ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
+        id: weaponArtId(id, weapon),
+        kind: 'weaponArt' as const,
+        width: 1024,
+        height: 1024,
+        batch,
+        prompt: prompt(
+          `Usando la imagen adjunta de esta arma de ${name} como referencia exacta (misma forma, colores, detalles y estilo), solo el arma, entera y sola: ${description.replace(/,? que flota junto a su mano/, '')}. Sin mano, sin puño, sin brazo y sin personaje: la parte que agarraba el puño se ve completa. Ilustración del arma para la pantalla del héroe, ${WEAPON_ART_POSE[weapon] ?? WEAPON_ART_POSE.default}, centrada y ocupando alrededor del 85% del cuadrado. Contorno grueso, aspecto brillante de juguete, se lee bien a 96 px.`,
           CHROMA
         )
       })),

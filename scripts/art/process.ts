@@ -4,12 +4,13 @@
  * (named as in art/catalog.csv), removes the green background, trims, resizes,
  * cuts the sheets into pieces, writes WebP images to public/art/ and copies the
  * audio to public/audio/, then writes public/art/manifest.json and lists what
- * is still missing in each batch.
+ * is still missing in each batch (green tick: there, red cross: missing).
  *
  * Usage: yarn art
  */
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { styleText } from 'node:util'
 import sharp from 'sharp'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
@@ -34,6 +35,7 @@ const MAX_SIDE: Record<PieceKind, number> = {
   hero: 720,
   heroPart: 720,
   weapon: 1024,
+  weaponArt: 320,
   portrait: 256,
   enemy: 512,
   boss: 900,
@@ -323,7 +325,7 @@ async function main(): Promise<void> {
     music: [],
     sfx: []
   }
-  const missing = new Map<string, string[]>()
+  const found = new Set<string>()
 
   rmSync(OUTPUT, { recursive: true, force: true })
   mkdirSync(OUTPUT, { recursive: true })
@@ -333,8 +335,7 @@ async function main(): Promise<void> {
 
     if (path) {
       await processPiece(piece, path, manifest)
-    } else {
-      missing.set(piece.batch, [...(missing.get(piece.batch) ?? []), piece.id])
+      found.add(piece.id)
     }
   }
 
@@ -350,21 +351,63 @@ async function main(): Promise<void> {
         .filter((id) => !known.has(id))
     : []
 
-  console.log(
-    `${Object.keys(manifest.images).length} images, ${manifest.music.length}/${MUSIC.length} music, ${manifest.sfx.length}/${SFX.length} sound effects`
-  )
+  report(catalog, found, manifest, strays)
+}
 
+const OK = styleText('green', '✔')
+const KO = styleText('red', '✘')
+
+/** A bar of `width` cells, green for the share done. */
+function bar(done: number, total: number, width = 20): string {
+  const filled = total > 0 ? Math.round((done / total) * width) : width
+
+  return styleText('green', '█'.repeat(filled)) + styleText('gray', '░'.repeat(width - filled))
+}
+
+function count(done: number, total: number): string {
+  const text = `${done}/${total}`
+
+  return styleText(done === total ? 'green' : done === 0 ? 'red' : 'yellow', text)
+}
+
+/** Every piece of the catalog by batch and kind: a green tick if its image is there, a red cross if it is missing. */
+function report(catalog: Piece[], found: Set<string>, manifest: ArtManifest, strays: string[]): void {
   for (const batch of BATCHES) {
-    const left = missing.get(batch) ?? []
-    const total = catalog.filter((piece) => piece.batch === batch).length
+    const pieces = catalog.filter((piece) => piece.batch === batch)
+    const done = pieces.filter((piece) => found.has(piece.id)).length
 
-    console.log(
-      `${batch.padEnd(12)} ${String(total - left.length).padStart(3)}/${total}${left.length ? `  missing: ${left.join(', ')}` : ''}`
-    )
+    console.log(`\n${styleText('bold', batch.padEnd(12))} ${bar(done, pieces.length)} ${count(done, pieces.length)}`)
+
+    for (const kind of [...new Set(pieces.map((piece) => piece.kind))]) {
+      const ofKind = pieces.filter((piece) => piece.kind === kind)
+      const doneOfKind = ofKind.filter((piece) => found.has(piece.id)).length
+
+      console.log(`  ${styleText('cyan', kind)} ${styleText('gray', `(${doneOfKind}/${ofKind.length})`)}`)
+
+      for (const piece of ofKind) {
+        console.log(found.has(piece.id) ? `    ${OK} ${piece.id}` : `    ${KO} ${styleText('red', piece.id)}`)
+      }
+    }
   }
 
+  const done = found.size
+  const total = catalog.length
+  const audio = (kind: string, have: number, all: number) => `${have === all ? OK : KO} ${kind} ${count(have, all)}`
+
+  console.log(`\n${styleText('bold', 'Total'.padEnd(12))} ${bar(done, total)} ${count(done, total)}`)
+  console.log(
+    `  ${styleText('green', `${done} ✔ ready`)}  ${styleText('red', `${total - done} ✘ missing`)}  ${styleText('gray', `(${Object.keys(manifest.images).length} images written)`)}`
+  )
+  console.log(
+    `  ${audio('music', manifest.music.length, MUSIC.length)}   ${audio('sound effects', manifest.sfx.length, SFX.length)}`
+  )
+
   if (strays.length > 0) {
-    console.log(`Not in the catalog (check the names): ${strays.join(', ')}`)
+    console.log(`\n${styleText('yellow', '⚠ Not in the catalog (check the names):')}`)
+
+    for (const stray of strays) {
+      console.log(`    ${styleText('yellow', '?')} ${stray}`)
+    }
   }
 }
 

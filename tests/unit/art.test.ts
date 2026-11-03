@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { HERO_LOADOUTS, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
+import { weaponArtId, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { BATCHES, buildCatalog } from '@/scripts/art/catalog'
 import { ENEMY_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
 import { findParts, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
@@ -95,7 +96,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(301)
+    expect(catalog).toHaveLength(316)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
@@ -120,6 +121,18 @@ describe('art pipeline', () => {
       for (const image of Object.values(RIGS[`heroes/${hero}/full`].images)) {
         expect(ids, image).toContain(image)
       }
+    }
+  })
+
+  it('has an image of every weapon on its own, without the fist, for the hero screen', () => {
+    const pieces = new Map(buildCatalog().map((piece) => [piece.id, piece]))
+
+    for (const weapon of WEAPONS) {
+      const piece = pieces.get(weaponArtId(weapon.characterId, weapon.art))
+
+      expect(piece?.kind, weapon.id).toBe('weaponArt')
+      expect(piece?.prompt, weapon.id).toContain('Sin mano')
+      expect(piece?.prompt, weapon.id).not.toContain('junto a su mano')
     }
   })
 

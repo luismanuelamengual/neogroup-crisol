@@ -826,15 +826,16 @@ export const es = {
     statsLine: 'Vida {health} · Ataque {attack} · Defensa {defense} · Velocidad {speed} (nivel {level})',
     skillsLine: 'Habilidades: {skills}',
     dropsLine: 'Deja: {items}',
+    status: 'Estado',
     health: 'Vida',
     focus: 'Concentración',
     experience: 'Experiencia',
     tabs: {
+      status: 'Estado',
       attributes: 'Atributos',
       weapons: 'Armas',
       skills: 'Habilidades',
-      runes: 'Runas',
-      echoes: 'Ecos'
+      runes: 'Runas'
     },
     openHero: 'Ver a {name}',
     previousHero: 'Héroe anterior',

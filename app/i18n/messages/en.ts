@@ -821,15 +821,16 @@ export const en: Messages = {
     statsLine: 'Health {health} · Attack {attack} · Defense {defense} · Speed {speed} (level {level})',
     skillsLine: 'Skills: {skills}',
     dropsLine: 'Drops: {items}',
+    status: 'Status',
     health: 'Health',
     focus: 'Focus',
     experience: 'Experience',
     tabs: {
+      status: 'Status',
       attributes: 'Attributes',
       weapons: 'Weapons',
       skills: 'Skills',
-      runes: 'Runes',
-      echoes: 'Echoes'
+      runes: 'Runes'
     },
     openHero: 'See {name}',
     previousHero: 'Previous hero',

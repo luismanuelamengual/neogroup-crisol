@@ -3,6 +3,207 @@
   flex-direction: column;
   gap: 14px;
 
+  // The state of the hero: its portrait next to its level, its bars and its place in the formation.
+  .status {
+    .status-body {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .portrait {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      width: 150px;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border: var(--frame-border);
+      border-radius: var(--frame-radius);
+      background: radial-gradient(circle at 50% 35%, #4a4fb0 0%, #1e1a5a 75%);
+      box-shadow:
+        0 0 0 2px #12103a,
+        0 0 0 3px #12103a;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .initial {
+        color: var(--color-gold);
+        font-family: var(--font-display);
+        font-size: 3.6rem;
+        text-shadow: 0 3px 0 #12103a;
+      }
+
+      &.fallen {
+        filter: grayscale(0.85);
+      }
+    }
+
+    .details {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .titles {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .level {
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .role {
+      padding: 2px 10px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: var(--color-lime);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+
+      &.reserve {
+        color: var(--color-text-secondary);
+      }
+    }
+
+    // One grid for the three bars, so that their labels share the width of the longest one.
+    .bars {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px 10px;
+
+      li {
+        display: contents;
+      }
+
+      .label,
+      .value {
+        color: var(--color-text-secondary);
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .value {
+        color: var(--color-text);
+        text-align: right;
+      }
+
+      .track {
+        height: 10px;
+        overflow: hidden;
+        border: 1px solid #12103a;
+        border-radius: 999px;
+        background: var(--bar-track);
+      }
+
+      .fill {
+        display: block;
+        height: 100%;
+        transition: width 0.4s ease;
+      }
+
+      .health .fill {
+        background: var(--bar-health);
+      }
+
+      .focus .fill {
+        background: var(--bar-focus);
+      }
+
+      .xp .fill {
+        background: var(--bar-xp);
+      }
+    }
+
+    .formation {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding-top: 8px;
+      border-top: 1px solid #12103a;
+
+      .label {
+        flex: 1;
+        color: var(--color-text-secondary);
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .MuiIconButton-root {
+        color: var(--color-gold);
+
+        &.Mui-disabled {
+          color: #4a3a28;
+        }
+      }
+    }
+
+    .formation-hint {
+      margin-top: 12px;
+    }
+
+    // On a phone: a smaller portrait, to leave the bars room.
+    @media (max-width: 599px), (max-height: 499px) {
+      .status-body {
+        gap: 12px;
+      }
+
+      .portrait {
+        width: 104px;
+
+        .initial {
+          font-size: 2.6rem;
+        }
+      }
+
+      .details {
+        gap: 7px;
+      }
+
+      .level {
+        font-size: 1.05rem;
+      }
+
+      .bars {
+        gap: 6px 8px;
+
+        .label,
+        .value {
+          font-size: 0.72rem;
+        }
+      }
+    }
+
+    // A narrow phone held upright: the portrait above the rest.
+    @media (max-width: 379px) {
+      .status-body {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .portrait {
+        align-self: center;
+      }
+    }
+  }
+
   // The six skills taken into battle, and the rest it knows.
   .loadout {
     display: grid;
@@ -108,10 +309,11 @@
     }
   }
 
+  // One attribute per row: its name, its value and the button that raises it.
   .attributes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 4px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 
     li {
       display: flex;
@@ -185,6 +387,25 @@
       color: var(--color-gold);
       font-size: 0.7rem;
       font-weight: 800;
+    }
+  }
+
+  // A weapon: its picture next to what it does.
+  .cards.weapons li {
+    flex-direction: row;
+    gap: 12px;
+
+    .weapon-body {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    @media (max-width: 599px), (max-height: 499px) {
+      gap: 10px;
     }
   }
 

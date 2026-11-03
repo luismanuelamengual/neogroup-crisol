@@ -2,10 +2,15 @@
 
 import './index.scss'
 import AddIcon from '@mui/icons-material/Add'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CloseIcon from '@mui/icons-material/Close'
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import classNames from 'classnames'
+import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
+import { artUrl } from '@/app/(protected)/(art)/utils/art'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import {
@@ -17,6 +22,7 @@ import {
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { ACTIVE_HEROES } from '@/app/(protected)/(engine)/utils/battle'
 import {
   assignEchoes,
   canEquipEcho,
@@ -30,11 +36,13 @@ import {
   getCharacterStats,
   getEchoLoad,
   getKnownSkills,
+  getMaxHealth,
   getSkillLevel,
   getSkillPoints,
   getWeaponLevel,
   isRuneMastered,
   isTreeComplete,
+  moveInFormation,
   SKILL_SLOTS,
   spendAttributePoint,
   spendTear,
@@ -45,8 +53,11 @@ import {
   unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
+import { xpToNextLevel } from '@/app/(protected)/(engine)/utils/progression'
+import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
 import SkillIcon from '@/app/(protected)/(party)/components/SkillIcon'
 import SkillTree from '@/app/(protected)/(party)/components/SkillTree'
+import WeaponArt from '@/app/(protected)/(party)/components/WeaponArt'
 import {
   describeBonuses,
   describeRune,
@@ -62,9 +73,9 @@ import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
 /** The tabs of the page of a hero. */
-export type HeroTab = 'attributes' | 'weapons' | 'skills' | 'runes' | 'echoes'
+export type HeroTab = 'status' | 'attributes' | 'weapons' | 'skills' | 'runes'
 
-export const HERO_TABS: HeroTab[] = ['attributes', 'weapons', 'skills', 'runes', 'echoes']
+export const HERO_TABS: HeroTab[] = ['status', 'attributes', 'weapons', 'skills', 'runes']
 
 interface HeroSheetProps {
   state: GameState
@@ -88,11 +99,27 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
   'critDamage'
 ]
 
-/** One part of the build of a hero: attributes, weapons, skills (loadout and tree), runes or echoes. */
+/** The portrait of a hero (its bust, see `yarn art`). */
+function portraitArtId(id: string): string {
+  return `heroes/${id}/portrait`
+}
+
+/** One part of a hero: its state (portrait, bars and place in the formation), attributes, weapons, skills (loadout and tree) or runes and echoes. */
 export default function HeroSheet({ state, character, tab, atCamp, canSwap, onChange }: HeroSheetProps) {
   const t = useT()
+  const images = useArtImages()
   const id = character.id
   const name = t(`characters.${id}.name` as MessageKey)
+  const position = state.characters.indexOf(character)
+  const count = state.characters.length
+  const active = position < ACTIVE_HEROES
+  const portrait = portraitArtId(id)
+  const { focus, maxFocus } = getFocus(character)
+  const bars = [
+    { kind: 'health', label: t('party.health'), value: character.health, max: getMaxHealth(character) },
+    { kind: 'focus', label: t('party.focus'), value: focus, max: maxFocus },
+    { kind: 'xp', label: t('party.experience'), value: character.xp, max: xpToNextLevel(character.level) }
+  ]
   const stats = getCharacterStats(character)
   const attributePoints = getAttributePoints(character)
   const skillPoints = getSkillPoints(character)
@@ -104,6 +131,78 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
 
   return (
     <div className="hero-sheet">
+      {tab === 'status' && (
+        <section className="status">
+          <h3>{t('party.status')}</h3>
+          <div className="status-body">
+            <div className={classNames('portrait', { fallen: character.health === 0 })}>
+              {images[portrait] ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- the art is already a sized webp */}
+                  <img src={artUrl(portrait)} alt="" draggable={false} />
+                </>
+              ) : (
+                <span className="initial">{name.charAt(0)}</span>
+              )}
+            </div>
+            <div className="details">
+              <div className="titles">
+                <span className="level">{t('world.level', { level: character.level })}</span>
+                <span className={classNames('role', { reserve: !active })}>
+                  {t(active ? 'party.active' : 'party.reserve')}
+                </span>
+              </div>
+              <ul className="bars">
+                {bars.map((bar) => (
+                  <li key={bar.kind} className={bar.kind}>
+                    <span className="label">{bar.label}</span>
+                    <span className="track">
+                      <span
+                        className="fill"
+                        style={{ width: `${Math.min(100, (bar.value / Math.max(1, bar.max)) * 100)}%` }}
+                      />
+                    </span>
+                    <span className="value">
+                      {bar.value}/{bar.max}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {count > 1 && (
+                <div className="formation">
+                  <span className="label">{t('party.formationPlace', { place: position + 1, total: count })}</span>
+                  <Tooltip title={t('party.moveUp')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        disabled={position === 0}
+                        aria-label={t('party.moveUp')}
+                        onClick={() => onChange(moveInFormation(state, id, position - 1))}
+                      >
+                        <ChevronLeftIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={t('party.moveDown')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        disabled={position === count - 1}
+                        aria-label={t('party.moveDown')}
+                        onClick={() => onChange(moveInFormation(state, id, position + 1))}
+                      >
+                        <ChevronRightIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+          </div>
+          {count > ACTIVE_HEROES && <p className="lines formation-hint">{t('party.formationHint')}</p>}
+        </section>
+      )}
+
       {tab === 'attributes' && (
         <section>
           <h3>
@@ -237,70 +336,73 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
 
                 return (
                   <li key={weapon.id} className={classNames({ worn: held })}>
-                    <div className="titles">
-                      <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
-                      <span className="tag">{held ? t('party.weaponHeld') : `+${level}`}</span>
-                    </div>
-                    <p className="lines kind">
-                      {t(`weapons.${weapon.id}.kind` as MessageKey)}
-                      {held && ` · +${level}`}
-                    </p>
-                    <p className="lines">
-                      {t('party.weaponAttack', {
-                        skill: skillName(t, attack.id),
-                        type: t(`damageTypes.${attack.damageType}`),
-                        target: t(`targets.${attack.target}`)
-                      })}
-                    </p>
-                    <p className="lines">
-                      {traits.length > 0
-                        ? t('party.weaponStyle', { traits: traits.join(' · ') })
-                        : t('party.weaponBalanced')}
-                    </p>
-                    <p className="lines">
-                      {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * level).slice(1) })}
-                    </p>
-                    {nextEffect && (
+                    <WeaponArt weapon={weapon} held={held} />
+                    <div className="weapon-body">
+                      <div className="titles">
+                        <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
+                        <span className="tag">{held ? t('party.weaponHeld') : `+${level}`}</span>
+                      </div>
+                      <p className="lines kind">
+                        {t(`weapons.${weapon.id}.kind` as MessageKey)}
+                        {held && ` · +${level}`}
+                      </p>
                       <p className="lines">
-                        {t('party.weaponNext', {
-                          level: (Math.floor(level / 5) + 1) * 5,
-                          effect: describeBonuses(t, nextEffect).join(' · ')
+                        {t('party.weaponAttack', {
+                          skill: skillName(t, attack.id),
+                          type: t(`damageTypes.${attack.damageType}`),
+                          target: t(`targets.${attack.target}`)
                         })}
                       </p>
-                    )}
-                    {nextUpgrade ? (
                       <p className="lines">
-                        {t('party.upgradeCost', {
-                          stones: nextUpgrade.stones,
-                          stone: itemName(t, nextUpgrade.stoneId),
-                          gold: nextUpgrade.gold
-                        })}
-                        {' · '}
-                        {t('party.have', { count: state.inventory[nextUpgrade.stoneId] ?? 0 })}
+                        {traits.length > 0
+                          ? t('party.weaponStyle', { traits: traits.join(' · ') })
+                          : t('party.weaponBalanced')}
                       </p>
-                    ) : (
-                      <p className="lines">{t('party.weaponMax')}</p>
-                    )}
-                    <div className="actions">
-                      {!held && (
-                        <GameButton
-                          size="small"
-                          color="cyan"
-                          disabled={!canSwap}
-                          onClick={() => onChange(equipWeapon(state, id, weapon.id))}
-                        >
-                          {t('party.wield')}
-                        </GameButton>
+                      <p className="lines">
+                        {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * level).slice(1) })}
+                      </p>
+                      {nextEffect && (
+                        <p className="lines">
+                          {t('party.weaponNext', {
+                            level: (Math.floor(level / 5) + 1) * 5,
+                            effect: describeBonuses(t, nextEffect).join(' · ')
+                          })}
+                        </p>
                       )}
-                      {nextUpgrade && (
-                        <GameButton
-                          size="small"
-                          disabled={!atCamp || !canUpgradeWeapon(state, character, weapon.id)}
-                          onClick={() => onChange(upgradeWeapon(state, id, weapon.id))}
-                        >
-                          {t('party.upgrade', { level: level + 1 })}
-                        </GameButton>
+                      {nextUpgrade ? (
+                        <p className="lines">
+                          {t('party.upgradeCost', {
+                            stones: nextUpgrade.stones,
+                            stone: itemName(t, nextUpgrade.stoneId),
+                            gold: nextUpgrade.gold
+                          })}
+                          {' · '}
+                          {t('party.have', { count: state.inventory[nextUpgrade.stoneId] ?? 0 })}
+                        </p>
+                      ) : (
+                        <p className="lines">{t('party.weaponMax')}</p>
                       )}
+                      <div className="actions">
+                        {!held && (
+                          <GameButton
+                            size="small"
+                            color="cyan"
+                            disabled={!canSwap}
+                            onClick={() => onChange(equipWeapon(state, id, weapon.id))}
+                          >
+                            {t('party.wield')}
+                          </GameButton>
+                        )}
+                        {nextUpgrade && (
+                          <GameButton
+                            size="small"
+                            disabled={!atCamp || !canUpgradeWeapon(state, character, weapon.id)}
+                            onClick={() => onChange(upgradeWeapon(state, id, weapon.id))}
+                          >
+                            {t('party.upgrade', { level: level + 1 })}
+                          </GameButton>
+                        )}
+                      </div>
                     </div>
                   </li>
                 )
@@ -310,102 +412,102 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
       )}
 
       {tab === 'runes' && (
-        <section>
-          <h3>
-            {t('party.runes')}
-            <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
-          </h3>
-          {!atCamp && state.runes.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
-          {state.runes.length === 0 ? (
-            <p className="lines">{t('party.noRunes')}</p>
-          ) : (
-            <ul className="cards">
-              {[...state.runes]
-                .sort((a, b) => a - b)
-                .map((index) => {
+        <>
+          <section>
+            <h3>
+              {t('party.runes')}
+              <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
+            </h3>
+            {!atCamp && state.runes.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
+            {state.runes.length === 0 ? (
+              <p className="lines">{t('party.noRunes')}</p>
+            ) : (
+              <ul className="cards">
+                {[...state.runes]
+                  .sort((a, b) => a - b)
+                  .map((index) => {
+                    const rune = getRune(index)
+                    const worn = character.runes.includes(index)
+                    const wearer = owner(index)
+
+                    return (
+                      <li key={index} className={classNames({ worn })}>
+                        <div className="titles">
+                          <span className="name">{runeName(t, rune)}</span>
+                          <span className="tag">
+                            {isRuneMastered(state, index)
+                              ? t('party.mastered')
+                              : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
+                          </span>
+                        </div>
+                        <p className="lines">{describeRune(t, rune).join(' · ')}</p>
+                        {wearer && !worn && (
+                          <p className="lines">
+                            {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
+                          </p>
+                        )}
+                        <GameButton
+                          size="small"
+                          color={worn ? 'ghost' : 'cyan'}
+                          disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
+                          onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
+                        >
+                          {t(worn ? 'party.unequip' : 'party.equip')}
+                        </GameButton>
+                      </li>
+                    )
+                  })}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h3>
+              {t('party.echoes')}
+              <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
+            </h3>
+            {state.echoes > 0 && (
+              <div className="row">
+                <span className="lines">
+                  {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
+                </span>
+                <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
+                  {t('party.assign', { name })}
+                </GameButton>
+              </div>
+            )}
+            <p className="lines">{t('party.echoesHint')}</p>
+            {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
+            {mastered.length === 0 ? (
+              <p className="lines">{t('party.noEchoes')}</p>
+            ) : (
+              <ul className="cards">
+                {mastered.map((index) => {
                   const rune = getRune(index)
-                  const worn = character.runes.includes(index)
-                  const wearer = owner(index)
+                  const worn = character.echoes.includes(index)
 
                   return (
                     <li key={index} className={classNames({ worn })}>
                       <div className="titles">
                         <span className="name">{runeName(t, rune)}</span>
-                        <span className="tag">
-                          {isRuneMastered(state, index)
-                            ? t('party.mastered')
-                            : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
-                        </span>
+                        <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
                       </div>
-                      <p className="lines">{describeRune(t, rune).join(' · ')}</p>
-                      {wearer && !worn && (
-                        <p className="lines">
-                          {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
-                        </p>
-                      )}
+                      <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
                       <GameButton
                         size="small"
-                        color={worn ? 'ghost' : 'cyan'}
-                        disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
-                        onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
+                        color={worn ? 'ghost' : 'magenta'}
+                        disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
+                        onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
                       >
                         {t(worn ? 'party.unequip' : 'party.equip')}
                       </GameButton>
                     </li>
                   )
                 })}
-            </ul>
-          )}
-        </section>
-      )}
-
-      {tab === 'echoes' && (
-        <section>
-          <h3>
-            {t('party.echoes')}
-            <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
-          </h3>
-          {state.echoes > 0 && (
-            <div className="row">
-              <span className="lines">
-                {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
-              </span>
-              <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
-                {t('party.assign', { name })}
-              </GameButton>
-            </div>
-          )}
-          <p className="lines">{t('party.echoesHint')}</p>
-          {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
-          {mastered.length === 0 ? (
-            <p className="lines">{t('party.noEchoes')}</p>
-          ) : (
-            <ul className="cards">
-              {mastered.map((index) => {
-                const rune = getRune(index)
-                const worn = character.echoes.includes(index)
-
-                return (
-                  <li key={index} className={classNames({ worn })}>
-                    <div className="titles">
-                      <span className="name">{runeName(t, rune)}</span>
-                      <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
-                    </div>
-                    <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
-                    <GameButton
-                      size="small"
-                      color={worn ? 'ghost' : 'magenta'}
-                      disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
-                      onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
-                    >
-                      {t(worn ? 'party.unequip' : 'party.equip')}
-                    </GameButton>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </section>
+              </ul>
+            )}
+          </section>
+        </>
       )}
     </div>
   )
