@@ -9,6 +9,7 @@ import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
+import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -69,10 +70,10 @@ interface PendingEncounter {
  * see it and tap "Go" (or tap it again) to walk there through the cleared
  * trails; a fight opens the battle screen over the map.
  */
-export default function WorldScreen() {
+export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const t = useT()
   const { showSuccessMessage } = useNotifications()
-  const { status, update, upload } = useGameSession()
+  const { status, update, upload } = useGameSession(test)
   const save = useGameStore((store) => store.save)
   const sync = useGameStore((store) => store.sync)
   const [index, setIndex] = useState<WorldIndex | null>(null)
@@ -402,7 +403,7 @@ export default function WorldScreen() {
         biome={t(`world.biomes.${position.biome}` as MessageKey)}
         gold={state.gold}
         cycle={state.cycle}
-        sync={sync}
+        sync={test ? 'synced' : sync}
         onRecenter={() => map.current?.centerOn(state.positionNodeId)}
       />
       <div className="bottom">

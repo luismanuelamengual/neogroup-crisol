@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { SAVE_VERSION } from '@/app/(protected)/(engine)/utils/gameState'
 import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
 import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
 import { chooseSave } from '@/app/(protected)/(saves)/utils/chooseSave'
@@ -24,21 +25,25 @@ export type SessionStatus = 'loading' | 'ready' | 'missing' | 'offline'
  * writes every change to the local copy at once, counts the play time and
  * uploads the changes to the server. Returns `update` to change the state and
  * `upload` to push it to the server right away (e.g. after resting).
+ *
+ * With `test` (development only, /dev/progressN) it plays that state in
+ * memory instead: nothing is read, written or uploaded.
  */
-export function useGameSession() {
+export function useGameSession(test?: GameState) {
   const t = useT()
   const userId = useUserStore((state) => state.user?.id)
   const { loadGame, saveGame } = useSaves()
   const { showWarningMessage } = useNotifications()
   const [status, setStatus] = useState<SessionStatus>('loading')
   const uploading = useRef(false)
+  const testing = !!test
   const persist = useCallback(() => {
     const { save } = useGameStore.getState()
 
-    if (save) {
+    if (save && !testing) {
       void writeLocalSave(save)
     }
-  }, [])
+  }, [testing])
   const fetchServerSave = useCallback(async (): Promise<LoadedSave | null | 'missing'> => {
     try {
       return await loadGame(false)
@@ -82,7 +87,7 @@ export function useGameSession() {
   const upload = useCallback(async () => {
     const { save, setSync } = useGameStore.getState()
 
-    if (!save?.dirty || uploading.current) {
+    if (!save?.dirty || uploading.current || testing) {
       return
     }
 
@@ -113,11 +118,30 @@ export function useGameSession() {
     } finally {
       uploading.current = false
     }
-  }, [fetchServerSave, persist, reconcile, saveGame])
+  }, [fetchServerSave, persist, reconcile, saveGame, testing])
+
+  // Loading a test game: only in memory.
+  useEffect(() => {
+    if (!test) {
+      return
+    }
+
+    useGameStore.getState().setSave({
+      userId: userId ?? 0,
+      version: 0,
+      playTimeSeconds: 0,
+      saveVersion: SAVE_VERSION,
+      state: test,
+      dirty: false
+    })
+    setStatus('ready')
+
+    return () => useGameStore.getState().setSave(null)
+  }, [test, userId])
 
   // Loading.
   useEffect(() => {
-    if (!userId) {
+    if (!userId || testing) {
       return
     }
 
@@ -141,11 +165,11 @@ export function useGameSession() {
     return () => {
       cancelled = true
     }
-  }, [fetchServerSave, reconcile, userId])
+  }, [fetchServerSave, reconcile, testing, userId])
 
   // Play time, periodic uploads, and uploads when the app goes to the background or the network comes back.
   useEffect(() => {
-    if (status !== 'ready') {
+    if (status !== 'ready' || testing) {
       return
     }
 
@@ -181,7 +205,7 @@ export function useGameSession() {
       persist()
       void upload()
     }
-  }, [persist, status, upload])
+  }, [persist, status, testing, upload])
 
   /** Changes the state of the game: written to the local copy at once, uploaded later. */
   const update = useCallback(

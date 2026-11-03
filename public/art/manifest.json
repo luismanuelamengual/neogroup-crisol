@@ -2,10 +2,10 @@
  "images": {
   "heroes/kael/full": {
    "width": 720,
-   "height": 644
+   "height": 652
   },
   "heroes/kael/outfits/traveller/body": {
-   "width": 616,
+   "width": 612,
    "height": 720
   },
   "heroes/kael/outfits/traveller/arm": {
@@ -31,6 +31,10 @@
   "heroes/kael/portrait": {
    "width": 256,
    "height": 256
+  },
+  "heroes/sera/full": {
+   "width": 651,
+   "height": 720
   },
   "enemies/thorn-boar": {
    "width": 512,
@@ -391,9 +395,9 @@
    {
     "id": "heroes/kael/outfits/traveller/body",
     "x": 9,
-    "y": 8,
+    "y": 0,
     "width": 986,
-    "height": 1152
+    "height": 1160
    }
   ],
   "heroes/kael/outfits/traveller/arm": [
