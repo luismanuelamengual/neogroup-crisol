@@ -1,4 +1,13 @@
-import { BIOME_RISE, BIOME_TERRAINS, BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import {
+  BIOME_RISE,
+  BIOME_TERRAINS,
+  BiomeTerrains,
+  BIOMES_ORDER,
+  LAKES,
+  TERRAINS
+} from '@/app/(protected)/(engine)/data/terrains'
+import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -56,10 +65,13 @@ export function buildTileMap(world: World): TileMap {
   const heightNoise = createNoise(random, 3)
   // Made after the rest, so that the other noises stay as they were.
   const riverNoise = createNoise(random, 2)
+  const sealNoise = createNoise(random, 2)
   const paved = new Uint8Array(columns * rows)
   const rise = new Float32Array(columns * rows)
   const grounds = new Uint8Array(columns * rows)
   const biomes = new Uint8Array(columns * rows)
+  const nearSeal = new Uint8Array(columns * rows)
+  const seals = sealsOf(world)
   const nodes = new Map(world.nodes.map((node) => [node.id, node]))
   const nodeBuckets = new Buckets<WorldNode>(world.width)
   const trailBuckets = new Buckets<[WorldNode, WorldNode]>(world.width)
@@ -100,7 +112,16 @@ export function buildTileMap(world: World): TileMap {
         trailDistance = Math.min(trailDistance, distanceToSegment(x, y, from, to))
       }
 
-      const biome = BIOME_TERRAINS[(closest ?? world.nodes[0]).biome]
+      const home = (closest ?? world.nodes[0]).biome
+      const seal = seals.get(home)
+      // How close to the Seal of the biome, a little wobbly so that the rings around it are not round.
+      const toSeal = seal
+        ? Math.min(
+            1,
+            Math.max(0, 1 - Math.hypot(seal.x - x, seal.y - y) / seal.reach + (sealNoise(x / 900, y / 900) - 0.5) * 0.3)
+          )
+        : 0
+      const biome = terrainsNear(BIOME_TERRAINS[home], toSeal)
       const width = TRAIL_HALF_WIDTH * (1 - TRAIL_WOBBLE + 2 * TRAIL_WOBBLE * trailNoise(x / 300, y / 300))
       let terrain: Terrain
 
@@ -121,11 +142,11 @@ export function buildTileMap(world: World): TileMap {
         terrain = biome.ground
       }
 
+      nearSeal[row * columns + column] = Math.round(toSeal * 255)
       terrains[row * columns + column] = terrainIndex.get(terrain)!
-      rise[row * columns + column] =
-        heightNoise(x / HEIGHT_SCALE, y / HEIGHT_SCALE) + BIOME_RISE[(closest ?? world.nodes[0]).biome]
+      rise[row * columns + column] = heightNoise(x / HEIGHT_SCALE, y / HEIGHT_SCALE) + BIOME_RISE[home]
       grounds[row * columns + column] = terrainIndex.get(biome.ground)!
-      biomes[row * columns + column] = BIOMES_ORDER.indexOf((closest ?? world.nodes[0]).biome)
+      biomes[row * columns + column] = BIOMES_ORDER.indexOf(home)
     }
   }
 
@@ -143,7 +164,47 @@ export function buildTileMap(world: World): TileMap {
     }
   }
 
-  return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes }
+  return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes, nearSeal }
+}
+
+/** The Seal of each biome that changes on the way to it, and how far from it its farthest point lies. */
+function sealsOf(world: World): Map<Biome, { x: number; y: number; reach: number }> {
+  const seals = new Map<Biome, { x: number; y: number; reach: number }>()
+
+  for (const seal of world.nodes) {
+    if (seal.bossKind === BossKind.SEAL && BIOME_TERRAINS[seal.biome].seal) {
+      const reach = Math.max(
+        ...world.nodes
+          .filter((node) => node.biome === seal.biome)
+          .map((node) => Math.hypot(node.x - seal.x, node.y - seal.y))
+      )
+
+      seals.set(seal.biome, { x: seal.x, y: seal.y, reach: reach + CLEARING_RADIUS })
+    }
+  }
+
+  return seals
+}
+
+/** The terrains of a biome at a share of the way to its Seal (0 at its edge, 1 at the Seal). */
+function terrainsNear(terrains: BiomeTerrains, toSeal: number): BiomeTerrains {
+  const { seal } = terrains
+
+  if (!seal) {
+    return terrains
+  }
+
+  const lakes = terrains.lakes ?? LAKE_THRESHOLD
+  const rivers = (terrains.rivers ?? 0) + (seal.rivers - (terrains.rivers ?? 0)) * toSeal
+  const past = toSeal >= seal.from
+
+  return {
+    ...terrains,
+    ground: past ? seal.ground : terrains.ground,
+    patches: past ? seal.patches : terrains.patches,
+    lakes: lakes + (seal.lakes - lakes) * toSeal,
+    rivers: rivers > 0 ? rivers : undefined
+  }
 }
 
 /**

@@ -30,6 +30,8 @@ const INFO_WIDTH = ATLAS_COLUMNS * ATLAS_COLUMNS
 const CLIFF_TINT = 0.3
 /** Plateaus whose cliffs take more of their color: the red rock of the volcano, the black one of the Abyss. */
 const STRONG_CLIFF_TINT: Partial<Record<Terrain, number>> = {
+  [Terrain.BASALT]: 0.75,
+  [Terrain.GLACIER]: 0.5,
   [Terrain.SCORCHED]: 0.7,
   [Terrain.MAGMA]: 0.7,
   [Terrain.FIRESTONE]: 0.6,

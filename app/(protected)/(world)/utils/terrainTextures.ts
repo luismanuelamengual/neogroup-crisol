@@ -87,7 +87,15 @@ const LOOKS: Record<Terrain, Look> = {
     pattern: 'slabs',
     glow: [132, 76, 200]
   },
-  [Terrain.ICHOR]: { base: [128, 44, 208], dark: [44, 12, 86], light: [226, 160, 255], pattern: 'flow' }
+  [Terrain.ICHOR]: { base: [128, 44, 208], dark: [44, 12, 86], light: [226, 160, 255], pattern: 'flow' },
+  [Terrain.BASALT]: {
+    base: [44, 28, 28],
+    dark: [18, 10, 10],
+    light: [78, 50, 46],
+    pattern: 'cracks',
+    glow: [150, 36, 20]
+  },
+  [Terrain.GLACIER]: { base: [168, 214, 240], dark: [104, 162, 210], light: [236, 250, 255], pattern: 'cracks' }
 }
 
 /** The provisional textures. */

@@ -28,5 +28,9 @@ export enum Terrain {
   /** Paved trails of the Abyss: black slabs with glowing violet joints. */
   RUNESTONE = 'runestone',
   /** Glowing violet liquid of the pools of the Abyss. */
-  ICHOR = 'ichor'
+  ICHOR = 'ichor',
+  /** Black volcanic rock with dim red cracks: the edge of the volcano. */
+  BASALT = 'basalt',
+  /** Solid blue ice that can be walked on: the heart of the snow, around its Seal. */
+  GLACIER = 'glacier'
 }

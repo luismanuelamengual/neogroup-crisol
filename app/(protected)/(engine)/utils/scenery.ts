@@ -1,5 +1,5 @@
 import { SCENERY_DENSITY } from '@/app/(protected)/(engine)/data/scenery'
-import { BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { BIOME_TERRAINS, BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { SceneryItem } from '@/app/(protected)/(engine)/models/SceneryItem'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -33,7 +33,7 @@ const LOW_ROOM = 52
 const SCALE_RANGE = [0.82, 1.18]
 
 export function placeScenery(world: World, map: TileMap): SceneryItem[] {
-  const { columns, rows, tileSize, terrains, heights, biomes } = map
+  const { columns, rows, tileSize, terrains, heights, biomes, nearSeal } = map
   const random = createRandom(world.seed ^ 0x7ee5)
   const woods = createNoise(random, 3)
   const fromTrail = distancesFromTrails(map)
@@ -102,6 +102,7 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
 
       const biome = BIOMES_ORDER[biomes[index]]
       const density = SCENERY_DENSITY[biome]
+      const seals = BIOME_TERRAINS[biome].seal !== undefined
       const x = (column + random()) * tileSize
       const y = (row + random()) * tileSize
       const thickness =
@@ -112,7 +113,7 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
         y: iy,
         layer,
         biome,
-        pick: random(),
+        pick: towardSeal(random(), seals ? nearSeal[index] / 255 : 0),
         scale: SCALE_RANGE[0] + random() * (SCALE_RANGE[1] - SCALE_RANGE[0]),
         flip: random() < 0.5
       })
@@ -143,6 +144,14 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
   }
 
   return items
+}
+
+/**
+ * The drawings of a biome whose Seal changes it are listed from its edge to
+ * its Seal: the closer to the Seal, the further down the list the pick.
+ */
+function towardSeal(pick: number, toSeal: number): number {
+  return toSeal > 0 ? Math.min(0.999, toSeal * 0.6 + pick * 0.4) : pick
 }
 
 /** Distance of each tile to the closest paved one, in tiles (up to a few). */

@@ -98,6 +98,8 @@ const TILES: Record<Terrain, string> = {
     'una alfombra de hongos alienígenas violetas y magenta con finas venas violetas brillantes y bulbos diminutos',
   [Terrain.RUNESTONE]:
     'losas de obsidiana negra encastradas con finas juntas violetas brillantes y runas talladas tenues',
+  [Terrain.BASALT]: 'black volcanic basalt rock with thin dim dark-red cracks and a few cinders',
+  [Terrain.GLACIER]: 'solid glacier ice, pale blue and white, with deep blue cracks and frosted patches',
   [Terrain.ICHOR]: 'líquido alienígena violeta brillante con lentos remolinos de luz magenta y lila pálido, sin orilla'
 }
 /** Where each hero joins: their pieces go with that biome's batch. */

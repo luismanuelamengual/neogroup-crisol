@@ -11,12 +11,14 @@ export const TERRAINS: Terrain[] = [
   Terrain.SNOW,
   Terrain.SAND,
   Terrain.ASH,
+  Terrain.BASALT,
   Terrain.SCORCHED,
   Terrain.GLOOM,
   Terrain.DIRT,
   Terrain.ROCK,
   Terrain.MAGMA,
   Terrain.MYCELIUM,
+  Terrain.GLACIER,
   Terrain.ICE,
   Terrain.STONE,
   Terrain.COBBLESTONE,
@@ -57,7 +59,10 @@ export const BIOME_RISE: Record<Biome, number> = {
  * its lakes (none in the desert). Some biomes have more lakes than the rest
  * (`lakes`, the share of the noise over which they lie, 0.56 by default) and
  * rivers of them winding between the trails (`rivers`, their width in shares
- * of the noise).
+ * of the noise). The biomes of the Seals change on the way to it (`seal`):
+ * past `from` (0 at the edge of the biome, 1 at the Seal) their ground and
+ * patches turn into these, and their lakes and rivers grow steadily from the
+ * edge to the Seal, up to these.
  */
 export interface BiomeTerrains {
   ground: Terrain
@@ -66,6 +71,7 @@ export interface BiomeTerrains {
   lake: Terrain | null
   lakes?: number
   rivers?: number
+  seal?: { from: number; ground: Terrain; patches: Terrain; lakes: number; rivers: number }
 }
 
 export const BIOME_TERRAINS: Record<Biome, BiomeTerrains> = {
@@ -74,14 +80,20 @@ export const BIOME_TERRAINS: Record<Biome, BiomeTerrains> = {
   [Biome.TROPICAL]: { ground: Terrain.GRASS, patches: Terrain.MOSS, trail: Terrain.SAND, lake: Terrain.WATER },
   [Biome.DESERT]: { ground: Terrain.SAND, patches: Terrain.ROCK, trail: Terrain.STONE, lake: null },
   [Biome.MOUNTAINS]: { ground: Terrain.ROCK, patches: Terrain.SNOW, trail: Terrain.DIRT, lake: Terrain.WATER },
-  [Biome.SNOW]: { ground: Terrain.SNOW, patches: Terrain.ROCK, trail: Terrain.STONE, lake: Terrain.ICE },
+  [Biome.SNOW]: {
+    ground: Terrain.SNOW,
+    patches: Terrain.ROCK,
+    trail: Terrain.STONE,
+    lake: Terrain.ICE,
+    seal: { from: 0.5, ground: Terrain.GLACIER, patches: Terrain.SNOW, lakes: 0.46, rivers: 0.03 }
+  },
   [Biome.VOLCANIC]: {
-    ground: Terrain.SCORCHED,
-    patches: Terrain.MAGMA,
+    ground: Terrain.BASALT,
+    patches: Terrain.SCORCHED,
     trail: Terrain.FIRESTONE,
     lake: Terrain.LAVA,
-    lakes: 0.5,
-    rivers: 0.035
+    lakes: 0.66,
+    seal: { from: 0.45, ground: Terrain.SCORCHED, patches: Terrain.MAGMA, lakes: 0.44, rivers: 0.05 }
   },
   [Biome.WASTELANDS]: { ground: Terrain.ASH, patches: Terrain.DIRT, trail: Terrain.COBBLESTONE, lake: Terrain.WATER },
   [Biome.ABYSS]: {

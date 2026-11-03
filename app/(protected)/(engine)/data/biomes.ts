@@ -20,6 +20,8 @@ export interface BiomeDefinition {
   captor?: { bossId: string; captive: CharacterId }
   /** The Seal of the biome (one of the two that close the Abyss). */
   sealId?: string
+  /** Where the Seal waits: at the point of the biome closest to this place (a far corner of the world). */
+  sealAt?: [number, number]
   /** Camps opened by a mini boss. */
   minibossCamps: number
   sanctuaries: number
@@ -72,7 +74,7 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#2f8f4e'
   },
   {
-    biome: Biome.TROPICAL,
+    biome: Biome.DESERT,
     levelMin: 10,
     levelMax: 18,
     nodes: 120,
@@ -80,14 +82,14 @@ export const BIOMES: BiomeDefinition[] = [
       [12600, 10200],
       [11000, 10800]
     ],
-    captor: { bossId: 'xalqui', captive: CharacterId.BRANN },
+    captor: { bossId: 'sahrak', captive: CharacterId.BRANN },
     minibossCamps: 3,
     sanctuaries: 6,
     runeTier: RuneTier.GREATER,
     merchant: MerchantId.ALCHEMIST,
     tear: false,
     chests: 2,
-    color: '#18c3a4'
+    color: '#e8c25a'
   },
   {
     biome: Biome.MOUNTAINS,
@@ -108,7 +110,7 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#9a8f86'
   },
   {
-    biome: Biome.DESERT,
+    biome: Biome.TROPICAL,
     levelMin: 18,
     levelMax: 26,
     nodes: 120,
@@ -116,13 +118,13 @@ export const BIOMES: BiomeDefinition[] = [
       [13000, 6600],
       [10800, 5600]
     ],
-    captor: { bossId: 'sahrak', captive: CharacterId.YSOLDE },
+    captor: { bossId: 'xalqui', captive: CharacterId.YSOLDE },
     minibossCamps: 3,
     sanctuaries: 6,
     runeTier: RuneTier.GREATER,
     tear: true,
     chests: 2,
-    color: '#e8c25a'
+    color: '#18c3a4'
   },
   {
     biome: Biome.WASTELANDS,
@@ -152,6 +154,7 @@ export const BIOMES: BiomeDefinition[] = [
       [4400, 2000]
     ],
     sealId: 'vorneth',
+    sealAt: [0, 0],
     minibossCamps: 3,
     sanctuaries: 7,
     runeTier: RuneTier.ANCESTRAL,
@@ -170,6 +173,7 @@ export const BIOMES: BiomeDefinition[] = [
       [11600, 2200]
     ],
     sealId: 'ignaroth',
+    sealAt: [WORLD_WIDTH, 0],
     minibossCamps: 2,
     sanctuaries: 8,
     runeTier: RuneTier.ANCESTRAL,
@@ -195,19 +199,20 @@ export const BIOMES: BiomeDefinition[] = [
 /**
  * Biomes joined by trails (always through very few border points: passes,
  * bridges). Any other pair of neighboring regions is closed (cliffs, rivers).
- * Snow and the volcanic lands (the two Seals) and the Abyss are only reached
- * through the Wastelands; the Abyss, by the door of the Abyss.
+ * Snow (a Seal) is only reached through the Mountains; the volcanic lands (the
+ * other Seal) and the Abyss only through the Wastelands, the Abyss by the door
+ * of the Abyss, in the middle of its southern edge.
  */
 export const BIOME_LINKS: [Biome, Biome][] = [
   [Biome.MEADOWS, Biome.FOREST],
-  [Biome.MEADOWS, Biome.TROPICAL],
   [Biome.MEADOWS, Biome.DESERT],
+  [Biome.MEADOWS, Biome.TROPICAL],
   [Biome.MEADOWS, Biome.MOUNTAINS],
   [Biome.FOREST, Biome.MOUNTAINS],
-  [Biome.TROPICAL, Biome.DESERT],
+  [Biome.DESERT, Biome.TROPICAL],
   [Biome.MOUNTAINS, Biome.WASTELANDS],
-  [Biome.DESERT, Biome.WASTELANDS],
-  [Biome.WASTELANDS, Biome.SNOW],
+  [Biome.TROPICAL, Biome.WASTELANDS],
+  [Biome.MOUNTAINS, Biome.SNOW],
   [Biome.WASTELANDS, Biome.VOLCANIC],
   [Biome.WASTELANDS, Biome.ABYSS]
 ]

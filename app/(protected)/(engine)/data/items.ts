@@ -134,9 +134,9 @@ export const BIOME_STONE: Record<Biome, StoneId> = {
 export const BIOME_POTIONS: Record<Biome, string[]> = {
   [Biome.MEADOWS]: ['health-potion', 'antidote'],
   [Biome.FOREST]: ['health-potion', 'antidote', 'focus-potion'],
-  [Biome.TROPICAL]: ['health-potion', 'focus-potion', 'antidote'],
+  [Biome.DESERT]: ['health-potion', 'focus-potion', 'antidote'],
   [Biome.MOUNTAINS]: ['health-potion', 'focus-potion', 'fire-bomb'],
-  [Biome.DESERT]: ['greater-health-potion', 'focus-potion', 'fire-bomb'],
+  [Biome.TROPICAL]: ['greater-health-potion', 'focus-potion', 'fire-bomb'],
   [Biome.SNOW]: ['greater-health-potion', 'greater-focus-potion', 'frost-bomb'],
   [Biome.VOLCANIC]: ['greater-health-potion', 'greater-focus-potion', 'revive-potion'],
   [Biome.WASTELANDS]: ['greater-health-potion', 'revive-potion', 'frost-bomb'],

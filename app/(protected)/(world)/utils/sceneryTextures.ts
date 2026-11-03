@@ -1183,20 +1183,37 @@ const SKETCHES: Record<Biome, Record<SceneryItem['layer'], Sketch[]>> = {
     low: [rock('#7d8494', '#a9afbc'), rock('#6c7382', '#959cab')],
     ground: [pebbles('#8a909c', '#b4bac4'), tuft('#6a9a5a', '#2f4f2a')]
   },
+  // From the edge of the biome to its Seal (see placeScenery): snowy pines, then frozen trees and spikes of ice.
   [Biome.SNOW]: {
-    tall: [pine('#2f6b4a', '#4f8f6a', '#174a34', true), pine('#2a6244', '#4a8864', '#15422e', true)],
-    low: [rock('#9aa6b8', '#e6eef7'), bush('#d9e7f4', '#ffffff', '#8fa3bf')],
-    ground: [pebbles('#a9b6c8', '#e6eef7')]
-  },
-  [Biome.VOLCANIC]: {
-    tall: [burningTree(), lavaSpire(), burningTree(), fireGeyser()],
-    low: [
-      rock('#6a1e14', '#9a3a22', '#ffb02a'),
-      rock('#8a2a16', '#c0502a', '#ffd04a'),
-      flameBush(),
-      crystal('#ff8a1a', '#ffe07a')
+    tall: [
+      pine('#2f6b4a', '#4f8f6a', '#174a34', true),
+      pine('#2a6244', '#4a8864', '#15422e', true),
+      deadTree('#9ab8d0', '#eaf6ff'),
+      crystal('#7cc4f0', '#e4f6ff')
     ],
-    ground: [embers(), smallFlame(), pebbles('#8a2a1a', '#d0602a'), pebbles('#c88a1a', '#ffd84a'), embers()]
+    low: [
+      bush('#d9e7f4', '#ffffff', '#8fa3bf'),
+      rock('#9aa6b8', '#e6eef7'),
+      rock('#8cc6ec', '#eaf8ff', '#ffffff'),
+      crystal('#9ad6ff', '#f0faff')
+    ],
+    ground: [
+      pebbles('#a9b6c8', '#e6eef7'),
+      pebbles('#a9b6c8', '#e6eef7'),
+      pebbles('#bfe4ff', '#ffffff'),
+      spores('#f0faff')
+    ]
+  },
+  // From the edge of the biome to its Seal (see placeScenery): charred trees and black rocks, then lava and fire.
+  [Biome.VOLCANIC]: {
+    tall: [deadTree('#2a1a18', '#4a2c26'), lavaSpire(), burningTree(), fireGeyser()],
+    low: [
+      rock('#2a1e1e', '#4a3432'),
+      rock('#6a1e14', '#9a3a22', '#ffb02a'),
+      crystal('#ff8a1a', '#ffe07a'),
+      flameBush()
+    ],
+    ground: [pebbles('#2a1e1e', '#5a3a34'), pebbles('#8a2a1a', '#d0602a'), embers(), smallFlame()]
   },
   [Biome.WASTELANDS]: {
     tall: [deadTree('#6a5a6e', '#8f7f92'), deadTree('#5a4c5e', '#7f6f82')],

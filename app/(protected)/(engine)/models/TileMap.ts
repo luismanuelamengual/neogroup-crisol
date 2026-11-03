@@ -12,4 +12,9 @@ export interface TileMap {
   paved: Uint8Array
   /** Biome of each tile (the one of its closest point), as its index in BIOMES_ORDER (data/terrains.ts). */
   biomes: Uint8Array
+  /**
+   * How close each tile is to the Seal of its biome, from 0 (the edge of the biome) to 255 (the Seal), in the biomes
+   * that change on the way to it (BiomeTerrains.seal); 0 elsewhere.
+   */
+  nearSeal: Uint8Array
 }

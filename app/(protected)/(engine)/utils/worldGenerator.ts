@@ -301,7 +301,19 @@ function buildTrails(random: Random, points: Point[], candidates: Candidate[]): 
       return null
     }
 
-    add(options[Math.floor(random() * options.length)])
+    const pick = random()
+
+    // The door of the Abyss: the border trail closest to the middle of its southern edge.
+    if (first === Biome.ABYSS || second === Biome.ABYSS) {
+      const [centerX] = getBiomeDefinition(Biome.ABYSS).anchors[0]
+      const abyssEnd = (candidate: Candidate) =>
+        points[candidate.a].biome === Biome.ABYSS ? points[candidate.a] : points[candidate.b]
+
+      add(minBy(options, (candidate) => Math.abs(abyssEnd(candidate).x - centerX) - abyssEnd(candidate).y))
+      continue
+    }
+
+    add(options[Math.floor(pick * options.length)])
   }
 
   // Loops: some extra trails inside the biomes (they never touch the Abyss before the door).
@@ -429,7 +441,10 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
 
     if (definition.sealId) {
-      const node = maxBy(options.filter(canBeKeyBoss), (candidate) => fromStart.get(candidate.id)!)
+      const { sealAt } = definition
+      const node = sealAt
+        ? minBy(options, (candidate) => Math.hypot(candidate.x - sealAt[0], candidate.y - sealAt[1]))
+        : maxBy(options.filter(canBeKeyBoss), (candidate) => fromStart.get(candidate.id)!)
 
       Object.assign(node, { type: NodeType.CAMP_BOSS, bossKind: BossKind.SEAL, bossId: definition.sealId })
     }
@@ -788,6 +803,10 @@ function deadEndsBeside(camp: WorldNode, nodes: WorldNode[], adjacency: Adjacenc
       (node) => node.type === NodeType.COMBAT && node.biome === camp.biome && adjacency.get(node.id)!.length === 1
     )
     .sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }))
+}
+
+function minBy<T>(items: T[], score: (item: T) => number): T {
+  return maxBy(items, (item) => -score(item))
 }
 
 function maxBy<T>(items: T[], score: (item: T) => number): T {
