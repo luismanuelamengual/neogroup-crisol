@@ -96,7 +96,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(318)
+    expect(catalog).toHaveLength(320)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
@@ -128,9 +128,10 @@ describe('art pipeline', () => {
     const pieces = new Map(buildCatalog().map((piece) => [piece.id, piece]))
 
     for (const weapon of WEAPONS) {
-      const piece = pieces.get(weaponArtId(weapon.characterId, weapon.art))
+      const piece = pieces.get(weaponArtId(weapon.art))
 
       expect(piece?.kind, weapon.id).toBe('weaponArt')
+      expect(piece?.batch, weapon.id).toBe('ui')
       expect(piece?.prompt, weapon.id).toContain('Sin mano')
       expect(piece?.prompt, weapon.id).not.toContain('junto a su mano')
     }

@@ -32,13 +32,13 @@ export interface Weapon {
   biome?: Biome
   /** Its warden (the species that guards the reliquary). */
   warden?: string
-  /** Its image: heroes/<character>/weapons/<art> (with the fist, for the battle puppet) and weaponArtId (on its own). */
+  /** Its image: heroes/<character>/weapons/<art> (with the fist, for the battle puppet) and icons/weapons/<art> (on its own, weaponArtId); the art names do not repeat between heroes. */
   art: string
 }
 
 /** The picture of a weapon on its own, for the hero screen (the battle image has the fist that holds it). */
-export function weaponArtId(characterId: string, art: string): string {
-  return `heroes/${characterId}/weapons/${art}-portrait`
+export function weaponArtId(art: string): string {
+  return `icons/weapons/${art}`
 }
 
 export const MAX_WEAPON_LEVEL = 20

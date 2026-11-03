@@ -16,7 +16,15 @@
    "width": 782,
    "height": 245
   },
-  "heroes/kael/weapons/sword-portrait": {
+  "heroes/kael/weapons/dawnbrand": {
+   "width": 1024,
+   "height": 230
+  },
+  "heroes/kael/weapons/mace": {
+   "width": 1024,
+   "height": 311
+  },
+  "icons/weapons/sword": {
    "width": 320,
    "height": 309
   },
@@ -63,6 +71,10 @@
   "bosses/boar-matriarch": {
    "width": 900,
    "height": 761
+  },
+  "bosses/wasp-queen": {
+   "width": 900,
+   "height": 617
   },
   "bosses/bandit-chief": {
    "width": 900,
@@ -400,6 +412,24 @@
     "y": 0,
     "width": 782,
     "height": 245
+   }
+  ],
+  "heroes/kael/weapons/dawnbrand": [
+   {
+    "id": "heroes/kael/weapons/dawnbrand",
+    "x": 21,
+    "y": 85,
+    "width": 2130,
+    "height": 478
+   }
+  ],
+  "heroes/kael/weapons/mace": [
+   {
+    "id": "heroes/kael/weapons/mace",
+    "x": 28,
+    "y": 25,
+    "width": 2112,
+    "height": 642
    }
   ]
  },

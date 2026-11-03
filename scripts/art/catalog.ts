@@ -471,13 +471,14 @@ export function buildCatalog(): Piece[] {
           CHROMA
         )
       })),
-      // Each weapon on its own, for the hero screen: the image of the puppet has the fist in it.
+      // Each weapon on its own (icons/weapons), for the hero screen: the image of the puppet has the fist in it.
       ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
-        id: weaponArtId(id, weapon),
+        id: weaponArtId(weapon),
         kind: 'weaponArt' as const,
         width: 1024,
         height: 1024,
-        batch,
+        // With the icons, after every hero batch: each one takes the weapon with the fist as reference.
+        batch: 'ui',
         prompt: prompt(
           `Usando la imagen adjunta de esta arma de ${name} como referencia exacta (misma forma, colores, detalles y estilo), solo el arma, entera y sola: ${description.replace(/,? que flota junto a su mano/, '')}. Sin mano, sin puño, sin brazo y sin personaje: la parte que agarraba el puño se ve completa. Ilustración del arma para la pantalla del héroe, ${WEAPON_ART_POSE[weapon] ?? WEAPON_ART_POSE.default}, centrada y ocupando alrededor del 85% del cuadrado. Contorno grueso, aspecto brillante de juguete, se lee bien a 96 px.`,
           CHROMA

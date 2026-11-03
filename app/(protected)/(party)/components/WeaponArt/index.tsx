@@ -15,13 +15,13 @@ interface WeaponArtProps {
 }
 
 /**
- * The picture of a weapon on its own (heroes/<id>/weapons/<art>-portrait, see `yarn
+ * The picture of a weapon on its own (icons/weapons/<art>, see `yarn
  * art`), in a frame; until it exists, the medallion of its weapon attack,
  * colored by its damage type.
  */
 export default function WeaponArt({ weapon, held = false, className }: WeaponArtProps) {
   const images = useArtImages()
-  const artId = weaponArtId(weapon.characterId, weapon.art)
+  const artId = weaponArtId(weapon.art)
 
   return (
     <span className={classNames('weapon-art', { held }, className)}>
