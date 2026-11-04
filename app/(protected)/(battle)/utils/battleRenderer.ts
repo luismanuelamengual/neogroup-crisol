@@ -5,10 +5,12 @@ import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
-import { BattleScenery, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/utils/battleScenery'
+import { ArrowKind, arrowKindOf, drawArrow, drawImpact, drawTrail } from '@/app/(protected)/(battle)/utils/arrows'
+import { BattleScenery, FLOOR_LINE, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/utils/battleScenery'
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
+import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
 import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
@@ -17,6 +19,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
+import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { paintSceneryTextures, SceneryTextures } from '@/app/(protected)/(world)/utils/sceneryTextures'
 
 /** Texts the scene shows over the fighters (already translated). */
@@ -42,6 +45,8 @@ interface Figure {
   side: Combatant['side']
   /** The puppet, when the figure is put together from a parts sheet. */
   rig: RigFigure | null
+  /** Its weapon shoots: it attacks from its spot, with an arrow (see shoot). */
+  ranged: boolean
   size: number
   /** Its shadow (data/shadows), in pixels of a fighter of size 1: the rings at its feet follow it. */
   shadow: ReturnType<typeof shadowOf>
@@ -70,7 +75,7 @@ function rigOf(combatant: Combatant, artId: string, parts: ArtManifest['parts'])
     const id = combatant.characterId!
     const rig = heroRig(id, { ...HERO_LOADOUTS[id], weapon: getWeapon(combatant.weaponId).art })
 
-    if (parts[rig.images.weapon]) {
+    if (parts[rig.images.weapon ?? '']) {
       return rig
     }
   }
@@ -207,7 +212,8 @@ export class BattleRenderer {
           (band) => art.get(landscape.bands.find((id) => id.endsWith(`/${band}`)) ?? '') ?? null
         ),
         landmarks: landscape.landmarks.flatMap((id) => (art.has(id) ? [art.get(id)!] : [])),
-        floor: landscape.floor ? (art.get(landscape.floor) ?? null) : null
+        floor: landscape.floor ? (art.get(landscape.floor) ?? null) : null,
+        floorLine: landscape.floorLine ?? FLOOR_LINE
       }
     )
     const renderer = new BattleRenderer(app, labels, onTap, art, parts, scenery)
@@ -398,6 +404,7 @@ export class BattleRenderer {
       statusText,
       side: combatant.side,
       rig,
+      ranged: combatant.side === 'hero' && !!combatant.weaponId && !!getWeapon(combatant.weaponId).ranged,
       size,
       shadow: shadowOf(artId),
       health: combatant.health,
@@ -500,7 +507,14 @@ export class BattleRenderer {
         this.float(actor, this.labels.skill(event.skillId), 0xffffff, 15, -40)
         this.focus(target && target.side !== actor.side ? (actor.home.x + target.home.x) / 2 : actor.home.x)
 
-        if (target && target.side !== actor.side) {
+        if (target && target.side !== actor.side && actor.ranged) {
+          const skill = getSkill(event.skillId)
+          const targets = event.targetIds
+            .map((id) => this.figures.get(id))
+            .filter((figure): figure is Figure => !!figure && figure.side !== actor.side)
+
+          await this.shoot(actor, targets, arrowKindOf(skill), skill.target === TargetType.ALL_ENEMIES)
+        } else if (target && target.side !== actor.side) {
           const dx = (target.home.x - actor.home.x) * 0.55
           const dy = (target.home.y - actor.home.y) * 0.55
 
@@ -736,6 +750,96 @@ export class BattleRenderer {
       default:
         break
     }
+  }
+
+  /**
+   * A shot from where the shooter stands: it leans back drawing the string,
+   * lets go with a small recoil and the arrows (drawn by code, see arrows.ts)
+   * fly to their targets, one after the other, high when they rain on every
+   * enemy. It ends when the last one lands, so the damage shows on impact.
+   */
+  private async shoot(actor: Figure, targets: Figure[], kind: ArrowKind, volley: boolean): Promise<void> {
+    const ms = (value: number) => value / this.speed
+    const direction = actor.side === 'hero' ? 1 : -1
+
+    actor.rig?.play('shoot', ms(460))
+
+    // Drawing the string: back and leaning away from the target.
+    await this.tween(ms(240), (t) => {
+      actor.body.position.x = -6 * direction * ease(t)
+      actor.body.rotation = -0.05 * direction * ease(t)
+    })
+
+    // The release: a quick snap forward, then back to rest while the arrows fly.
+    void this.tween(ms(220), (t) => {
+      // From drawn (-6) past rest (+3) in the first quarter, then easing back to 0.
+      const snap = t < 0.25 ? -6 + 9 * (t / 0.25) : 3 * (1 - ease((t - 0.25) / 0.75))
+
+      actor.body.position.x = snap * direction
+      actor.body.rotation = (snap / 6) * 0.05 * direction
+    }).then(() => {
+      actor.body.position.x = 0
+      actor.body.rotation = 0
+    })
+
+    await Promise.all(
+      targets.map((target, index) =>
+        wait(ms(index * 70)).then(() => this.flyArrow(actor, target, kind, volley, direction))
+      )
+    )
+  }
+
+  /** One arrow from the bow of `from` to the chest of `to`, along a low arc (a high one in a volley). */
+  private async flyArrow(from: Figure, to: Figure, kind: ArrowKind, volley: boolean, direction: number): Promise<void> {
+    const ms = (value: number) => value / this.speed
+    const scale = this.scale
+    const start = {
+      x: from.root.position.x + 26 * direction * scale,
+      y: from.root.position.y - FIGURE_HEIGHT * from.size * 0.58 * scale
+    }
+    const end = {
+      x: to.root.position.x - 14 * direction * to.size * scale,
+      y: to.root.position.y - FIGURE_HEIGHT * to.size * 0.5 * scale
+    }
+    const distance = Math.hypot(end.x - start.x, end.y - start.y)
+    const lift = distance * (volley ? 0.32 : 0.07)
+    const at = (t: number) => ({
+      x: start.x + (end.x - start.x) * t,
+      y: start.y + (end.y - start.y) * t - Math.sin(t * Math.PI) * lift
+    })
+    const arrow = drawArrow(kind, 50 * scale)
+    const trail = new Graphics()
+    const points: { x: number; y: number }[] = []
+
+    this.effects.addChild(trail, arrow)
+
+    await this.tween(ms(Math.min(320, 150 + distance * 0.22) * (volley ? 1.3 : 1)), (t) => {
+      const here = at(t)
+      const ahead = at(Math.min(1, t + 0.02))
+      const behind = at(Math.max(0, t - 0.02))
+
+      arrow.position.set(here.x, here.y)
+      arrow.rotation = Math.atan2(ahead.y - behind.y, ahead.x - behind.x)
+      points.push(here)
+
+      if (points.length > 8) {
+        points.shift()
+      }
+
+      drawTrail(trail, points, kind, 8 * scale)
+    })
+
+    trail.destroy()
+
+    // The impact: a flash, and the arrow stays stuck for a moment before it fades.
+    const impact = new Graphics()
+
+    impact.position.set(end.x, end.y)
+    this.effects.addChild(impact)
+    void this.tween(ms(260), (t) => drawImpact(impact, kind, 26 * scale, t)).then(() => impact.destroy())
+    void this.tween(ms(300), (t) => {
+      arrow.alpha = t < 0.4 ? 1 : 1 - (t - 0.4) / 0.6
+    }).then(() => arrow.destroy({ children: true }))
   }
 
   private hit(figure: Figure, duration: number): Promise<void> {

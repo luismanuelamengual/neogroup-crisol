@@ -25,7 +25,12 @@ export interface LandscapeArt {
   landmarks: Texture[]
   /** The floor the fighters stand on, with its decorated edge at the top. */
   floor: Texture | null
+  /** Where the clear floor begins under that edge, as a share of its height from the top. */
+  floorLine: number
 }
+
+/** Where the clear floor of a painted floor begins when its art does not say (its edge takes about a third). */
+export const FLOOR_LINE = 0.34
 
 /** A prop the scenery can place, with its height relative to the tallest one of its biome (0 to 1). */
 export interface SceneryProp {
@@ -129,7 +134,10 @@ export class BattleScenery {
   private width = 0
   private height = 0
   private groundY = 0
-  /** Where the floor the fighters stand on begins: just behind their back row (46 px behind the ground line). */
+  /**
+   * Where the clear floor the fighters stand on begins: a margin behind their back row (46 px behind the ground
+   * line), so even their feet and shadows stay on it. The decorated edge stands above this line.
+   */
   private floorY = 0
   private horizonY = 0
   private time = 0
@@ -142,7 +150,12 @@ export class BattleScenery {
     /** Small things scattered on the ground (tufts, flowers, pebbles, embers). */
     private readonly scatter: Texture[] = [],
     /** The final art of the biome's landscape, as far as it exists (the rest is drawn with shapes). */
-    private readonly art: LandscapeArt = { bands: [null, null, null], landmarks: [], floor: null }
+    private readonly art: LandscapeArt = {
+      bands: [null, null, null],
+      landmarks: [],
+      floor: null,
+      floorLine: FLOOR_LINE
+    }
   ) {
     this.look = LOOKS[biome]
     this.plan = planLandscape(seed, biome)
@@ -824,12 +837,13 @@ export class BattleScenery {
     const tint = mix(0xffffff, this.mood.grade, this.mood.gradeAlpha * 0.5)
 
     if (this.art.floor) {
-      // The painted edge takes the top quarter of the picture, about as tall as half a fighter.
+      // The painted edge (above its floor line) stands about as tall as half a fighter, its clear floor from the line down.
       const texture = this.art.floor
-      const ratio = (95 * scale) / (texture.height * 0.25)
+      const line = Math.min(0.6, Math.max(0.1, this.art.floorLine))
+      const ratio = (95 * scale) / (texture.height * line)
       const flip = random() < 0.5
-      const floor = this.strip(texture, left, right, ratio, top, 0.25, tint, flip)
-      const end = top + texture.height * 0.75 * ratio
+      const floor = this.strip(texture, left, right, ratio, top, line, tint, flip)
+      const end = top + texture.height * (1 - line) * ratio
 
       // On tall screens it does not reach the bottom: its last rows stretch down the rest of the way.
       if (end < this.height) {
@@ -856,11 +870,13 @@ export class BattleScenery {
     const rim = mix(color, 0x000000, 0.3)
     const tilt = (random() - 0.5) * 16 * scale
     const waves = [0, 1].map(() => ({ cycles: 2 + random() * 3, phase: random() * Math.PI * 2 }))
+    // The edge rises and falls (up to 15 px each way) above the floor line, never below it: its lip hangs 7 px lower.
     const edge = (x: number) => {
       const t = (x - left) / (right - left)
 
       return (
-        top +
+        top -
+        15 * scale +
         tilt * (t - 0.5) +
         Math.sin(t * waves[0].cycles * Math.PI * 2 + waves[0].phase) * 5 * scale +
         Math.sin(t * waves[1].cycles * Math.PI * 4 + waves[1].phase) * 2 * scale

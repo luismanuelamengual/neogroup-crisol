@@ -19,6 +19,7 @@ import {
   Box,
   findParts,
   hasChromaBackground,
+  floorLine,
   makeSeamless,
   opaqueBox,
   Part,
@@ -241,11 +242,15 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
     }
 
     // The whole strip: its decorated edge on top (the green above it is gone) and the floor down to the bottom.
-    manifest.images[id] = await writeWebp(image, opaqueBox(image) ?? whole, id, HORIZON_SIDE)
+    const box = opaqueBox(image) ?? whole
+
+    manifest.images[id] = await writeWebp(image, box, id, HORIZON_SIDE)
     manifest.battle[biome] = {
       bands: manifest.battle[biome]?.bands ?? [],
       landmarks: manifest.battle[biome]?.landmarks ?? [],
-      floor: id
+      floor: id,
+      // Where its clear floor begins under the edge: the fighters stand below it.
+      floorLine: floorLine(image, box)
     }
 
     return

@@ -221,24 +221,13 @@ export const HERO_BODIES: Record<string, string> = {
   ysolde: 'Ysolde, una joven hechicera de largo cabello plateado y ojos violetas'
 }
 
-/** What each hero wears; the first one is the outfit they start with. */
-export const HERO_OUTFITS: Record<string, Record<string, string>> = {
-  kael: {
-    traveller:
-      'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo derecho'
-  },
-  sera: {
-    ranger:
-      'una capa con capucha verde bosque sobre una armadura ligera de cuero marrón claro, brazales de cuero y botas blandas'
-  },
-  brann: {
-    berserker:
-      'un manto de piel sobre los hombros, una coraza de hierro, brazos desnudos, falda de cuero y botas de piel'
-  },
-  oren: { grove: 'largas túnicas verde musgo y de corteza marrón con enredaderas vivas, y sandalias' },
-  ysolde: {
-    court: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
-  }
+/** What each hero wears. */
+export const HERO_CLOTHES: Record<string, string> = {
+  kael: 'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo derecho',
+  sera: 'una capa con capucha verde bosque sobre una armadura ligera de cuero marrón claro, brazales de cuero y botas blandas',
+  brann: 'un manto de piel sobre los hombros, una coraza de hierro, brazos desnudos, falda de cuero y botas de piel',
+  oren: 'largas túnicas verde musgo y de corteza marrón con enredaderas vivas, y sandalias',
+  ysolde: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
 }
 
 /** The hand each hero holds the weapon with (the shield, if any, goes on the other arm); right unless listed. */
@@ -284,12 +273,10 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
   }
 }
 
-/** The heroes as they start: body, first outfit and first weapon. */
+/** The heroes as they start: body, clothes and first weapon. */
 export const HERO_LOOKS: Record<string, string> = Object.fromEntries(
   Object.entries(HERO_BODIES).map(([id, body]) => [
     id,
-    [body, `que lleva ${Object.values(HERO_OUTFITS[id])[0]}`, `sosteniendo ${Object.values(HERO_WEAPONS[id])[0]}`].join(
-      ', '
-    )
+    [body, `que lleva ${HERO_CLOTHES[id]}`, `sosteniendo ${Object.values(HERO_WEAPONS[id])[0]}`].join(', ')
   ])
 )

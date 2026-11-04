@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
-import { HERO_LOADOUTS, RIGS } from '@/app/(protected)/(art)/data/rigs'
+import { HERO_LOADOUTS, heroParts, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
-import { weaponArtId, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
+import { isRangedCharacter, weaponArtId, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { BATCHES, buildCatalog } from '@/scripts/art/catalog'
-import { ENEMY_LOOKS, HERO_OUTFITS, HERO_WEAPONS } from '@/scripts/art/descriptions'
-import { findParts, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
+import { ENEMY_LOOKS, HERO_WEAPONS } from '@/scripts/art/descriptions'
+import { findParts, floorLine, hasChromaBackground, opaqueBox, RawImage, removeChroma } from '@/scripts/art/images'
 
 type Color = [number, number, number]
 
@@ -68,6 +69,19 @@ describe('art pipeline', () => {
     expect(hasChromaBackground(image(10, 10, () => [30, 30, 60]))).toBe(false)
   })
 
+  it('finds where the clear floor of a floor strip begins, under its decorated edge', () => {
+    // A strip 100 px tall: grass with flowers and stones on top, and brown dirt with a few leaves from row 34 down.
+    const strip = image(200, 100, (x, y) => {
+      if (y < 34) {
+        return (x * 7 + y * 3) % 5 === 0 ? [220, 40, 40] : [60, 170, 40]
+      }
+
+      return y > 60 && x % 50 < 4 ? [90, 160, 60] : [190, 120, 60]
+    })
+
+    expect(floorLine(strip, { x: 0, y: 0, width: 200, height: 100 })).toBeCloseTo(0.34, 2)
+  })
+
   it('finds the separate parts of a sheet in reading order', () => {
     const blocks = [
       { x: 2, y: 2, size: 8 },
@@ -96,7 +110,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(320)
+    expect(catalog).toHaveLength(319)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
@@ -110,17 +124,29 @@ describe('art pipeline', () => {
     const ids = new Set(buildCatalog().map((piece) => piece.id))
 
     for (const [hero, loadout] of Object.entries(HERO_LOADOUTS)) {
-      const outfit = Object.keys(HERO_OUTFITS[hero])[0]
-
-      expect(
-        Object.values(loadout.parts).every((skin) => skin === outfit),
-        hero
-      ).toBe(true)
       expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
 
       for (const image of Object.values(RIGS[`heroes/${hero}/full`].images)) {
         expect(ids, image).toContain(image)
       }
+    }
+  })
+
+  it('gives the heroes that shoot a body without the weapon and no arm, so any of their weapons fits', () => {
+    const ids = buildCatalog().map((piece) => piece.id)
+    const sera = RIGS[`heroes/${CharacterId.SERA}/full`]
+
+    expect(isRangedCharacter(CharacterId.SERA)).toBe(true)
+    expect(isRangedCharacter(CharacterId.KAEL)).toBe(false)
+    expect(heroParts(CharacterId.SERA)).toEqual(['body'])
+    expect(sera.images.arm).toBeUndefined()
+    expect(sera.bones.find((bone) => bone.role === 'weapon')?.parent).toBe('body')
+    expect(ids).toContain('heroes/sera/body')
+    expect(ids).not.toContain('heroes/sera/arm')
+    expect(ids).toContain('heroes/kael/arm')
+
+    for (const weapon of WEAPONS.filter((each) => each.characterId === CharacterId.SERA)) {
+      expect(ids, weapon.id).toContain(`heroes/sera/weapons/${weapon.art}`)
     }
   })
 

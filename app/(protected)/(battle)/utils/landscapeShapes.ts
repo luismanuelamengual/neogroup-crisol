@@ -786,9 +786,10 @@ export function drawCloud(kind: CloudKind, random: Random, width: number, color:
     puffs.push([(t - 0.5) * width * 0.75, -r * 0.6, r])
   }
 
+  // The flat base goes first, so the puffs cover it and it only fills the gaps between them.
+  g.roundRect(-width * 0.42, -width * 0.04, width * 0.84, width * 0.08, width * 0.04).fill({ color: shade })
   puffs.forEach(([x, y, r]) => g.circle(x, y + r * 0.18, r).fill({ color: shade }))
   puffs.forEach(([x, y, r]) => g.circle(x - r * 0.08, y, r * 0.92).fill({ color }))
-  g.roundRect(-width * 0.42, -width * 0.04, width * 0.84, width * 0.08, width * 0.04).fill({ color: shade })
 
   if (kind === 'smoke') {
     g.alpha = 0.75

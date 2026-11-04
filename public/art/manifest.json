@@ -4,11 +4,11 @@
    "width": 720,
    "height": 652
   },
-  "heroes/kael/outfits/traveller/body": {
+  "heroes/kael/body": {
    "width": 612,
    "height": 720
   },
-  "heroes/kael/outfits/traveller/arm": {
+  "heroes/kael/arm": {
    "width": 248,
    "height": 258
   },
@@ -36,6 +36,14 @@
    "width": 651,
    "height": 720
   },
+  "heroes/sera/body": {
+   "width": 597,
+   "height": 720
+  },
+  "heroes/sera/weapons/bow": {
+   "width": 1024,
+   "height": 245
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 341
@@ -51,6 +59,14 @@
   "enemies/hedge-sprite": {
    "width": 440,
    "height": 512
+  },
+  "enemies/shadow-wolf": {
+   "width": 512,
+   "height": 437
+  },
+  "enemies/rotten-ent": {
+   "width": 512,
+   "height": 494
   },
   "enemies/field-rat": {
    "width": 512,
@@ -127,6 +143,46 @@
   "battle/meadows/landmarks/6": {
    "width": 489,
    "height": 234
+  },
+  "battle/forest/far": {
+   "width": 1652,
+   "height": 243
+  },
+  "battle/forest/middle": {
+   "width": 1652,
+   "height": 238
+  },
+  "battle/forest/near": {
+   "width": 1652,
+   "height": 195
+  },
+  "battle/forest/floor": {
+   "width": 1672,
+   "height": 843
+  },
+  "battle/forest/landmarks/1": {
+   "width": 510,
+   "height": 453
+  },
+  "battle/forest/landmarks/2": {
+   "width": 372,
+   "height": 431
+  },
+  "battle/forest/landmarks/3": {
+   "width": 494,
+   "height": 273
+  },
+  "battle/forest/landmarks/4": {
+   "width": 500,
+   "height": 415
+  },
+  "battle/forest/landmarks/5": {
+   "width": 442,
+   "height": 423
+  },
+  "battle/forest/landmarks/6": {
+   "width": 483,
+   "height": 376
   },
   "map/meadows/1": {
    "width": 256,
@@ -387,22 +443,40 @@
     "battle/meadows/landmarks/5",
     "battle/meadows/landmarks/6"
    ],
-   "floor": "battle/meadows/floor"
+   "floor": "battle/meadows/floor",
+   "floorLine": 0.2900763358778626
+  },
+  "forest": {
+   "bands": [
+    "battle/forest/far",
+    "battle/forest/middle",
+    "battle/forest/near"
+   ],
+   "landmarks": [
+    "battle/forest/landmarks/1",
+    "battle/forest/landmarks/2",
+    "battle/forest/landmarks/3",
+    "battle/forest/landmarks/4",
+    "battle/forest/landmarks/5",
+    "battle/forest/landmarks/6"
+   ],
+   "floor": "battle/forest/floor",
+   "floorLine": 0.33926453143534996
   }
  },
  "parts": {
-  "heroes/kael/outfits/traveller/body": [
+  "heroes/kael/body": [
    {
-    "id": "heroes/kael/outfits/traveller/body",
+    "id": "heroes/kael/body",
     "x": 9,
     "y": 0,
     "width": 986,
     "height": 1160
    }
   ],
-  "heroes/kael/outfits/traveller/arm": [
+  "heroes/kael/arm": [
    {
-    "id": "heroes/kael/outfits/traveller/arm",
+    "id": "heroes/kael/arm",
     "x": 12,
     "y": 9,
     "width": 248,
@@ -434,6 +508,24 @@
     "y": 25,
     "width": 2112,
     "height": 642
+   }
+  ],
+  "heroes/sera/body": [
+   {
+    "id": "heroes/sera/body",
+    "x": 45,
+    "y": 24,
+    "width": 953,
+    "height": 1149
+   }
+  ],
+  "heroes/sera/weapons/bow": [
+   {
+    "id": "heroes/sera/weapons/bow",
+    "x": 2,
+    "y": 29,
+    "width": 1194,
+    "height": 286
    }
   ]
  },

@@ -2,7 +2,7 @@ import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
 import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
-import { weaponArtId } from '@/app/(protected)/(engine)/data/weapons'
+import { isRangedCharacter, weaponArtId } from '@/app/(protected)/(engine)/data/weapons'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
@@ -10,7 +10,7 @@ import {
   ENEMY_LOOKS,
   HERO_BODIES,
   HERO_LOOKS,
-  HERO_OUTFITS,
+  HERO_CLOTHES,
   HERO_WEAPON_HAND,
   HERO_WEAPONS
 } from '@/scripts/art/descriptions'
@@ -109,6 +109,19 @@ const HERO_BATCH: Record<CharacterId, Biome> = {
   [CharacterId.BRANN]: Biome.DESERT,
   [CharacterId.OREN]: Biome.SNOW,
   [CharacterId.YSOLDE]: Biome.VOLCANIC
+}
+/**
+ * How each weapon is drawn for the puppet: lying horizontal (rigs.ts turns
+ * the bows upright, with the string towards the archer).
+ */
+const WEAPON_RIG_POSE: Record<string, string> = {
+  default:
+    'De largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado.',
+  bow: 'De largo completo, acostado perfectamente horizontal, visto de costado: una punta del arco a la izquierda y la otra a la derecha, la cuerda recta arriba y la curva del arco abajo, con el puño agarrando la empuñadura en el centro. Sin flecha.',
+  'gale-bow':
+    'De largo completo, acostado perfectamente horizontal, visto de costado: una punta del arco a la izquierda y la otra a la derecha, la cuerda recta arriba y la curva del arco abajo, con el puño agarrando la empuñadura en el centro. Sin flecha.',
+  crossbow:
+    'De largo completo, perfectamente horizontal, visto de costado, apuntando a la derecha con la culata a la izquierda, con el puño agarrando la empuñadura debajo.'
 }
 /** How each weapon is shown on its own (weaponArt): long weapons cross the square, books face the camera. */
 const WEAPON_ART_POSE: Record<string, string> = {
@@ -410,10 +423,12 @@ function prompt(...parts: string[]): string {
 export function buildCatalog(): Piece[] {
   const pieces: Piece[] = []
 
-  // Heroes are puppets of three images: per outfit, the body without the arm
-  // that holds the weapon and that arm on its own
-  // (heroes/<id>/outfits/<outfit>/body and /arm), and each weapon
+  // Heroes are puppets of three images: the body without the arm that holds
+  // the weapon and that arm on its own (heroes/<id>/body and /arm), and each weapon
   // (heroes/<id>/weapons/<weapon>). The whole figure is their reference.
+  // Heroes that shoot (isRangedCharacter) do not swing an arm: only the body,
+  // without the weapon nor the hand that holds it (the weapon images come with
+  // that fist), so any of their weapons fits it.
   for (const [id, look] of Object.entries(HERO_LOOKS)) {
     const batch = HERO_BATCH[id as CharacterId]
     const name = `${id[0].toUpperCase()}${id.slice(1)}`
@@ -422,8 +437,34 @@ export function buildCatalog(): Piece[] {
       (HERO_WEAPON_HAND[id] ?? 'right') === 'left' ? ['izquierda', 'derecha'] : ['derecha', 'izquierda']
     const [arm, otherArm] = [hand, other].map((side) => side.replace(/a$/, 'o'))
     const reference = `Usando la imagen completa adjunta de ${name} como referencia exacta (mismo estilo, colores y proporciones)`
+    const ranged = isRangedCharacter(id as CharacterId)
     const profile =
       'visto de frente en un ángulo de tres cuartos, mirando a la cámara y girado levemente hacia la derecha'
+    const part = (file: string, what: string): Piece => ({
+      id: `heroes/${id}/${file}`,
+      kind: 'heroPart',
+      width: 1024,
+      height: file === 'body' ? 1536 : 1024,
+      batch,
+      prompt: prompt(`${reference}, ${what}. El equipo: ${HERO_CLOTHES[id]}. Sin arma.`, CHROMA)
+    })
+    const parts = ranged
+      ? [
+          part(
+            'body',
+            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, sin el arma y sin la mano ${hand} (la mano que sostiene el arma): el brazo ${arm} está completo en la misma posición que en la imagen completa pero termina en la muñeca, limpia y redondeada, para poder apoyar encima el arma con su puño. La otra mano queda igual que en la imagen completa, sin flecha ni cuerda. ${HERO_BODIES[id]}`
+          )
+        ]
+      : [
+          part(
+            'body',
+            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, con todo excepto el brazo ${arm} (el brazo que sostiene el arma): el brazo ${arm} queda afuera por completo y el hombro ${arm} termina limpio y redondeado donde se une el brazo, para poder apoyar encima un brazo separado. La cabeza, el torso, las piernas y el brazo ${otherArm} (con el escudo si el equipo tiene uno) están todos. ${HERO_BODIES[id]}`
+          ),
+          part(
+            'arm',
+            `solo el brazo ${arm} de ${name} (el brazo que sostiene el arma), entero y en una sola pieza: desde el hombro (con su hombrera) hasta la muñeca, sin la mano (la mano va con el arma), con el codo flexionado como en la imagen completa, ${profile}, con el extremo del hombro redondeado para que se superponga con el cuerpo al armarlo`
+          )
+        ]
 
     pieces.push(
       {
@@ -437,29 +478,7 @@ export function buildCatalog(): Piece[] {
           CHROMA
         )
       },
-      ...Object.entries(HERO_OUTFITS[id]).flatMap(([outfit, clothes]) => {
-        const part = (file: string, kind: PieceKind, what: string) => ({
-          id: `heroes/${id}/outfits/${outfit}/${file}`,
-          kind,
-          width: 1024,
-          height: file === 'body' ? 1536 : 1024,
-          batch,
-          prompt: prompt(`${reference}, ${what}. El equipo: ${clothes}. Sin arma.`, CHROMA)
-        })
-
-        return [
-          part(
-            'body',
-            'heroPart',
-            `el cuerpo entero de ${name} en la misma pose y vista, de la cabeza a los pies, con todo excepto el brazo ${arm} (el brazo que sostiene el arma): el brazo ${arm} queda afuera por completo y el hombro ${arm} termina limpio y redondeado donde se une el brazo, para poder apoyar encima un brazo separado. La cabeza, el torso, las piernas y el brazo ${otherArm} (con el escudo si el equipo tiene uno) están todos. ${HERO_BODIES[id]}`
-          ),
-          part(
-            'arm',
-            'heroPart',
-            `solo el brazo ${arm} de ${name} (el brazo que sostiene el arma), entero y en una sola pieza: desde el hombro (con su hombrera) hasta la muñeca, sin la mano (la mano va con el arma), con el codo flexionado como en la imagen completa, ${profile}, con el extremo del hombro redondeado para que se superponga con el cuerpo al armarlo`
-          )
-        ]
-      }),
+      ...parts,
       ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
         id: `heroes/${id}/weapons/${weapon}`,
         kind: 'weapon' as const,
@@ -467,7 +486,7 @@ export function buildCatalog(): Piece[] {
         height: 512,
         batch,
         prompt: prompt(
-          `${reference}, solo el arma: ${description}, agarrada por el puño de ${name} (solo el puño, cortado en la muñeca, sin brazo). De largo completo, perfectamente horizontal, apuntando a la derecha con el mango a la izquierda, vista de costado.`,
+          `${reference}, solo el arma: ${description}, agarrada por el puño de ${name} (solo el puño, cortado en la muñeca, sin brazo). ${WEAPON_RIG_POSE[weapon] ?? WEAPON_RIG_POSE.default}`,
           CHROMA
         )
       })),

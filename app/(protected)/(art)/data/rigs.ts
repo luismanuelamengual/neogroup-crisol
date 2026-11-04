@@ -1,12 +1,18 @@
+import { isRangedCharacter } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 
 /**
  * Puppets: figures put together from separate images. A hero is three
- * images: per outfit, the body without the arm that holds the weapon
- * (heroes/<id>/outfits/<outfit>/body) and that arm on its own, in one piece
- * from the shoulder to the wrist (heroes/<id>/outfits/<outfit>/arm), and each
+ * images: the body without the arm that holds the weapon
+ * (heroes/<id>/body) and that arm on its own, in one piece
+ * from the shoulder to the wrist (heroes/<id>/arm), and each
  * weapon with the fist that holds it (heroes/<id>/weapons/<weapon>). Nothing bends: the body only leans
  * and breathes, and the whole arm swings from the shoulder, the weapon from the wrist.
+ *
+ * Heroes that shoot (isRangedCharacter: Sera) do not swing their arm: they
+ * are two images, the body without the weapon nor the hand that holds it and
+ * the weapon with that fist, set at the wrist of the body (see HANDS). Any of
+ * their weapons fits the same body.
  *
  * Every image is generated on its own, at its own scale: each slot is sized
  * by one of its segments (`SIZES`, in body heights), and joints are shares of
@@ -16,7 +22,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
  * straight down: rotation 0 hangs, positive turns clockwise.
  */
 
-/** The body parts, each one an image per outfit. */
+/** The body parts, each one an image of its own. */
 export const BODY_PARTS = ['body', 'arm'] as const
 
 export type BodyPart = (typeof BODY_PARTS)[number]
@@ -50,45 +56,44 @@ export interface SlotSize {
 }
 
 export interface Rig {
-  /** The image (catalog id) each slot reads. */
-  images: Record<Slot, string>
-  sizes: Record<Slot, SlotSize>
+  /** The image (catalog id) each slot reads (a hero that shoots has no arm). */
+  images: Partial<Record<Slot, string>>
+  sizes: Partial<Record<Slot, SlotSize>>
   bones: RigBone[]
 }
 
-/** What a hero wears, part by part, and holds. */
+/** What a hero holds. */
 export interface Loadout {
-  parts: Record<BodyPart, string>
   weapon: string
 }
 
-/** Every part from the same outfit. */
-function outfit(name: string): Record<BodyPart, string> {
-  return Object.fromEntries(BODY_PARTS.map((part) => [part, name])) as Record<BodyPart, string>
-}
-
-/** What each hero starts with (the first outfit and weapon of scripts/art/descriptions.ts). */
+/** What each hero starts with (the first weapon of scripts/art/descriptions.ts). */
 export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
-  [CharacterId.KAEL]: { parts: outfit('traveller'), weapon: 'sword' },
-  [CharacterId.SERA]: { parts: outfit('ranger'), weapon: 'bow' },
-  [CharacterId.BRANN]: { parts: outfit('berserker'), weapon: 'axe' },
-  [CharacterId.OREN]: { parts: outfit('grove'), weapon: 'root-sickle' },
-  [CharacterId.YSOLDE]: { parts: outfit('court'), weapon: 'tome' }
+  [CharacterId.KAEL]: { weapon: 'sword' },
+  [CharacterId.SERA]: { weapon: 'bow' },
+  [CharacterId.BRANN]: { weapon: 'axe' },
+  [CharacterId.OREN]: { weapon: 'root-sickle' },
+  [CharacterId.YSOLDE]: { weapon: 'tome' }
 }
 
 /**
  * Each weapon: where the fist holds it (share of its length from the handle
  * end: the weapon images come with the hero's fist on the grip) and how long
- * it is, fist included (in body heights).
+ * it is, fist included (in body heights). The weapons of heroes that shoot
+ * also say how they are held (`rest`, radians from the image, which is
+ * horizontal): the bows stand upright, the crossbow points ahead, and where
+ * the fist is across the image (`gripY`, share of its height: 0.5 unless given).
  */
-const WEAPONS: Record<string, { grip: number; length: number }> = {
+const WEAPONS: Record<string, { grip: number; length: number; rest?: number; gripY?: number }> = {
   sword: { grip: 0.18, length: 0.67 },
-  bow: { grip: 0.5, length: 0.78 },
+  // The bow images lie with the string on top: turned upright, the string faces the archer.
+  // Fitted so body + bow match Sera's whole figure (heroes/sera/full) over each other.
+  bow: { grip: 0.467, gripY: 0.592, length: 0.935, rest: -Math.PI / 2 + 0.245 },
   axe: { grip: 0.3, length: 0.73 },
   dawnbrand: { grip: 0.18, length: 0.66 },
   mace: { grip: 0.15, length: 0.53 },
-  crossbow: { grip: 0.35, length: 0.53 },
-  'gale-bow': { grip: 0.5, length: 0.78 },
+  crossbow: { grip: 0.35, length: 0.53, rest: 0 },
+  'gale-bow': { grip: 0.5, length: 0.78, rest: -Math.PI / 2 },
   maul: { grip: 0.25, length: 0.78 },
   hatchets: { grip: 0.2, length: 0.44 },
   'root-sickle': { grip: 0.2, length: 0.44 },
@@ -120,6 +125,16 @@ interface ArmJoints {
 
 const DEFAULT_ARM: ArmJoints = { shoulder: [0.67, 0.37], top: [0.28, 0.12], wrist: [1.12, 0.91] }
 const ARMS: Partial<Record<CharacterId, Partial<ArmJoints>>> = {}
+/**
+ * Heroes that shoot: the wrist on the body image (share of its box from the
+ * top-left corner) where the fist of the weapon image goes. Adjust a hero
+ * here when the weapon does not meet the hand (see /dev/art).
+ */
+const DEFAULT_HAND: [number, number] = [0.88, 0.52]
+const HANDS: Partial<Record<CharacterId, [number, number]>> = {
+  // Past the end of the bracer of the outstretched arm, where the fist is in the whole figure.
+  [CharacterId.SERA]: [0.973, 0.499]
+}
 
 /** The hero skeleton, back to front: the arm, the weapon with its fist over it, and the body in front of both. */
 function heroBones(grip: number, arm: ArmJoints): RigBone[] {
@@ -131,19 +146,38 @@ function heroBones(grip: number, arm: ArmJoints): RigBone[] {
   ]
 }
 
-/** A hero's puppet as they are dressed and armed. */
+/** A hero that shoots, front to back: the body, and the weapon with its fist in front, at its wrist. */
+function shooterBones(grip: [number, number], rest: number, hand: [number, number]): RigBone[] {
+  return [
+    { role: 'body', slot: 'body', segment: 1, pivot: [0.5, 1], at: [0, 0] },
+    { role: 'weapon', slot: 'weapon', segment: 1, parent: 'body', pivot: grip, at: hand, rotation: rest }
+  ]
+}
+
+/** The body parts of a hero: the ones that shoot have no arm of their own. */
+export function heroParts(id: CharacterId): BodyPart[] {
+  return isRangedCharacter(id) ? ['body'] : [...BODY_PARTS]
+}
+
+/** A hero's puppet as they are armed. */
 export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): Rig {
   const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 0.7 }
+  const parts = heroParts(id)
+  const ranged = isRangedCharacter(id)
 
   return {
     images: {
-      ...(Object.fromEntries(
-        BODY_PARTS.map((part) => [part, `heroes/${id}/outfits/${loadout.parts[part]}/${part}`])
-      ) as Record<BodyPart, string>),
+      ...Object.fromEntries(parts.map((part) => [part, `heroes/${id}/${part}`])),
       weapon: `heroes/${id}/weapons/${loadout.weapon}`
     },
-    sizes: { ...SIZES, weapon: { segment: 1, side: 'width', length: weapon.length } },
-    bones: heroBones(weapon.grip, { ...DEFAULT_ARM, ...ARMS[id] })
+    sizes: {
+      body: SIZES.body,
+      ...(ranged ? {} : { arm: SIZES.arm }),
+      weapon: { segment: 1, side: 'width', length: weapon.length }
+    },
+    bones: ranged
+      ? shooterBones([weapon.grip, weapon.gripY ?? 0.5], weapon.rest ?? -Math.PI / 2, HANDS[id] ?? DEFAULT_HAND)
+      : heroBones(weapon.grip, { ...DEFAULT_ARM, ...ARMS[id] })
   }
 }
 

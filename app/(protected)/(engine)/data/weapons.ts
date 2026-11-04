@@ -32,6 +32,12 @@ export interface Weapon {
   biome?: Biome
   /** Its warden (the species that guards the reliquary). */
   warden?: string
+  /**
+   * It shoots from where it stands (bows and crossbows): in battle the hero
+   * does not close in, an arrow drawn by code flies to the target. A hero
+   * whose weapons all shoot is a puppet without an arm (see isRangedCharacter).
+   */
+  ranged?: boolean
   /** Its image: heroes/<character>/weapons/<art> (with the fist, for the battle puppet) and icons/weapons/<art> (on its own, weaponArtId); the art names do not repeat between heroes. */
   art: string
 }
@@ -116,6 +122,7 @@ export const WEAPONS: Weapon[] = [
       { weakness: 0.2 },
       { stats: { critDamage: 0.3 } }
     ],
+    ranged: true,
     art: 'bow'
   },
   {
@@ -131,6 +138,7 @@ export const WEAPONS: Weapon[] = [
     ],
     biome: Biome.DESERT,
     warden: 'glass-djinn',
+    ranged: true,
     art: 'crossbow'
   },
   {
@@ -146,6 +154,7 @@ export const WEAPONS: Weapon[] = [
     ],
     biome: Biome.MOUNTAINS,
     warden: 'storm-harpy',
+    ranged: true,
     art: 'gale-bow'
   },
   // Brann: an axe that feeds the fury, a slow maul that stuns and two fast hatchets that bleed.
@@ -283,6 +292,17 @@ export function getWeapon(id: string): Weapon {
 /** The three weapons of a character, the one it starts with first. */
 export function getCharacterWeapons(characterId: CharacterId): Weapon[] {
   return WEAPONS.filter((weapon) => weapon.characterId === characterId)
+}
+
+/**
+ * Whether every weapon of a character shoots: it fights from its spot and does
+ * not swing its arm, so its puppet is its body (without the weapon nor the
+ * hand that holds it) and the weapon with that fist, with no arm image.
+ */
+export function isRangedCharacter(characterId: CharacterId): boolean {
+  const weapons = getCharacterWeapons(characterId)
+
+  return weapons.length > 0 && weapons.every((weapon) => weapon.ranged)
 }
 
 export function getStartingWeapon(characterId: CharacterId): Weapon {

@@ -288,3 +288,53 @@ export function makeSeamless({ data, width, height }: RawImage): RawImage {
 
   return { data: output, width, height }
 }
+
+/**
+ * Where the clear floor of a floor strip begins, as a share of the height of
+ * `box` (0 = its top): the first row, from the top, made almost only of the
+ * color of the floor (the middle color of its lower half), so the decorated
+ * edge above it (grass, stones, a fence) is left out. A quarter if none is.
+ */
+export function floorLine({ data, width }: RawImage, box: Box): number {
+  const step = Math.max(1, Math.floor(box.width / 400))
+  const samples: number[][] = [[], [], []]
+
+  for (let y = box.y + Math.floor(box.height / 2); y < box.y + box.height; y += step) {
+    for (let x = box.x; x < box.x + box.width; x += step) {
+      const pixel = (y * width + x) * 4
+
+      if (data[pixel + 3] > 200) {
+        samples.forEach((channel, index) => channel.push(data[pixel + index]))
+      }
+    }
+  }
+
+  const floor = samples.map((channel) => channel.sort((a, b) => a - b)[Math.floor(channel.length / 2)] ?? 0)
+
+  const isFloor = (y: number) => {
+    let count = 0
+    let total = 0
+
+    for (let x = box.x; x < box.x + box.width; x += step) {
+      const pixel = (y * width + x) * 4
+      const distance =
+        Math.abs(data[pixel] - floor[0]) + Math.abs(data[pixel + 1] - floor[1]) + Math.abs(data[pixel + 2] - floor[2])
+
+      total++
+      count += data[pixel + 3] > 200 && distance < 90 ? 1 : 0
+    }
+
+    return count / total >= 0.85
+  }
+
+  // Some rows in a row, so a stray stripe of the edge does not count.
+  const run = Math.max(2, Math.round(box.height * 0.01))
+
+  for (let y = box.y; y < box.y + box.height / 2; y++) {
+    if (Array.from({ length: run }, (_, index) => isFloor(y + index)).every(Boolean)) {
+      return (y - box.y) / box.height
+    }
+  }
+
+  return 0.25
+}

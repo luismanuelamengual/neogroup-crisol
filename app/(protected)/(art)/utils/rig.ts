@@ -3,7 +3,7 @@ import { BoneRole, Rig, RigBone } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 
 /** A move the puppet plays over its idle breathing. */
-export type RigMove = 'attack' | 'cast' | 'hit'
+export type RigMove = 'attack' | 'cast' | 'hit' | 'shoot'
 
 /** Angle offsets (radians) of a bone along a move: [progress, angle] keys. */
 type Keys = [number, number][]
@@ -29,6 +29,15 @@ const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
       [0, 0],
       [0.45, -0.1],
       [0.65, 0.7],
+      [1, 0]
+    ]
+  },
+  // Heroes that shoot: the bow pulled back while the string is drawn, and a kick forward on the release.
+  shoot: {
+    weapon: [
+      [0, 0],
+      [0.5, -0.06],
+      [0.6, 0.08],
       [1, 0]
     ]
   },
@@ -80,7 +89,7 @@ function sample(keys: Keys, progress: number): number {
 }
 
 function partOf(rig: Rig, bone: RigBone, parts: ArtManifest['parts']): Part | undefined {
-  return parts[rig.images[bone.slot]]?.[bone.segment - 1]
+  return parts[rig.images[bone.slot] ?? '']?.[bone.segment - 1]
 }
 
 /** The images the puppet needs, so they can be loaded first. */
@@ -147,8 +156,8 @@ export class RigFigure {
       const part = partOf(rig, bone, parts)!
       const texture = textures.get(part.id)!
       const sprite = new Sprite(texture)
-      const size = rig.sizes[bone.slot]
-      const reference = parts[rig.images[bone.slot]][size.segment - 1]
+      const size = rig.sizes[bone.slot]!
+      const reference = parts[rig.images[bone.slot]!][size.segment - 1]
 
       if (bone.far) {
         sprite.tint = FAR_TINT
