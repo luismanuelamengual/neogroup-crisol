@@ -268,7 +268,7 @@ describe('weapon reliquaries', () => {
   })
 
   it('opens only for the owner of the weapon and gives it to them', () => {
-    const node = reliquaryOf('frost-crossbow')
+    const node = reliquaryOf('frost-longbow')
     const withoutSera = nextTo(node.id)
 
     expect(getMissingOwner(withoutSera, node)).toBe(CharacterId.SERA)
@@ -282,8 +282,8 @@ describe('weapon reliquaries', () => {
     const won = winEncounter(index, arriveAt(index, withSera, node.id).state, {})
     const sera = won.state.characters.find((character) => character.id === CharacterId.SERA)!
 
-    expect(won.rewards).toContainEqual({ type: 'weapon', weaponId: 'frost-crossbow', characterId: CharacterId.SERA })
-    expect(sera.weapons).toEqual({ 'ranger-bow': 0, 'frost-crossbow': 0 })
+    expect(won.rewards).toContainEqual({ type: 'weapon', weaponId: 'frost-longbow', characterId: CharacterId.SERA })
+    expect(sera.weapons).toEqual({ 'ranger-bow': 0, 'frost-longbow': 0 })
     expect(sera.weaponId).toBe('ranger-bow')
   })
 

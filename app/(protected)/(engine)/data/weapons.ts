@@ -33,7 +33,7 @@ export interface Weapon {
   /** Its warden (the species that guards the reliquary). */
   warden?: string
   /**
-   * It shoots from where it stands (bows and crossbows): in battle the hero
+   * It shoots from where it stands (bows): in battle the hero
    * does not close in, an arrow drawn by code flies to the target. A hero
    * whose weapons all shoot is a puppet without an arm (see isRangedCharacter).
    */
@@ -110,7 +110,7 @@ export const WEAPONS: Weapon[] = [
     warden: 'shell-colossus',
     art: 'mace'
   },
-  // Sera: a bow for marks and crits, a crossbow for heavy shots and a bow that hits them all.
+  // Sera: a bow for marks and crits, a longbow for heavy shots and a bow that hits them all.
   {
     id: 'ranger-bow',
     characterId: CharacterId.SERA,
@@ -126,9 +126,9 @@ export const WEAPONS: Weapon[] = [
     art: 'bow'
   },
   {
-    id: 'frost-crossbow',
+    id: 'frost-longbow',
     characterId: CharacterId.SERA,
-    attack: 'sera-frost-bolt',
+    attack: 'sera-frost-arrow',
     traits: { stats: { attack: 0.12, speed: -0.12, critChance: -0.04 } },
     effects: [
       { damage: { [ICE]: 0.15 } },
@@ -139,7 +139,7 @@ export const WEAPONS: Weapon[] = [
     biome: Biome.DESERT,
     warden: 'glass-djinn',
     ranged: true,
-    art: 'crossbow'
+    art: 'longbow'
   },
   {
     id: 'gale-bow',

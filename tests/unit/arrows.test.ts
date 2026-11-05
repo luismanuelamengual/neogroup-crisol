@@ -7,7 +7,7 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 describe('arrows', () => {
   it('picks the arrow of a skill by what it does', () => {
     expect(arrowKindOf(getSkill('sera-shot'))).toBe('plain')
-    expect(arrowKindOf(getSkill('sera-frost-bolt'))).toBe('ice')
+    expect(arrowKindOf(getSkill('sera-frost-arrow'))).toBe('ice')
     expect(arrowKindOf(getSkill('sera-gale-shot'))).toBe('lightning')
     expect(arrowKindOf(getSkill('sera-blinding-arrow'))).toBe('light')
     expect(arrowKindOf({ damageType: DamageType.FIRE })).toBe('fire')

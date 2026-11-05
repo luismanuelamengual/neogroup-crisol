@@ -9,7 +9,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 11
+export const SAVE_VERSION = 12
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -170,6 +170,20 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
           return { ...reset, skills: character.skills.filter((skill) => known.includes(skill)) }
         }
       )
+    }
+  }
+
+  if (fromVersion < 12) {
+    // v12: all of Sera's weapons are bows (the frost crossbow is a frost longbow).
+    const rename = (id: string) => (id === 'frost-crossbow' ? 'frost-longbow' : id)
+
+    state = {
+      ...state,
+      characters: ((state.characters ?? []) as CharacterState[]).map((character) => ({
+        ...character,
+        weaponId: rename(character.weaponId),
+        weapons: Object.fromEntries(Object.entries(character.weapons).map(([id, level]) => [rename(id), level]))
+      }))
     }
   }
 

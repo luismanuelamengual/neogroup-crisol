@@ -105,7 +105,7 @@ const HERO_SKILLS: Skill[] = [
   // Sera: bow.
   { id: 'sera-shot', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.PIERCE },
   {
-    id: 'sera-frost-bolt',
+    id: 'sera-frost-arrow',
     cost: 0,
     target: TargetType.ENEMY,
     power: 1.25,

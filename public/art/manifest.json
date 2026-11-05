@@ -68,6 +68,10 @@
    "width": 512,
    "height": 494
   },
+  "enemies/weaver-spider": {
+   "width": 512,
+   "height": 346
+  },
   "enemies/field-rat": {
    "width": 512,
    "height": 455
@@ -87,6 +91,30 @@
   "enemies/giant-toad": {
    "width": 512,
    "height": 319
+  },
+  "enemies/thorn-dryad": {
+   "width": 493,
+   "height": 512
+  },
+  "enemies/bog-wight": {
+   "width": 495,
+   "height": 512
+  },
+  "enemies/moss-bear": {
+   "width": 512,
+   "height": 396
+  },
+  "enemies/forest-goblin": {
+   "width": 512,
+   "height": 481
+  },
+  "enemies/cursed-stag": {
+   "width": 489,
+   "height": 512
+  },
+  "enemies/creeping-vine": {
+   "width": 447,
+   "height": 512
   },
   "bosses/boar-matriarch": {
    "width": 900,

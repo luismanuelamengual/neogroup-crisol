@@ -81,7 +81,7 @@ export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
  * end: the weapon images come with the hero's fist on the grip) and how long
  * it is, fist included (in body heights). The weapons of heroes that shoot
  * also say how they are held (`rest`, radians from the image, which is
- * horizontal): the bows stand upright, the crossbow points ahead, and where
+ * horizontal): the bows stand upright, and where
  * the fist is across the image (`gripY`, share of its height: 0.5 unless given).
  */
 const WEAPONS: Record<string, { grip: number; length: number; rest?: number; gripY?: number }> = {
@@ -92,7 +92,7 @@ const WEAPONS: Record<string, { grip: number; length: number; rest?: number; gri
   axe: { grip: 0.3, length: 0.73 },
   dawnbrand: { grip: 0.18, length: 0.66 },
   mace: { grip: 0.15, length: 0.53 },
-  crossbow: { grip: 0.35, length: 0.53, rest: 0 },
+  longbow: { grip: 0.5, length: 0.97, rest: -Math.PI / 2 },
   'gale-bow': { grip: 0.5, length: 0.78, rest: -Math.PI / 2 },
   maul: { grip: 0.25, length: 0.78 },
   hatchets: { grip: 0.2, length: 0.44 },

@@ -126,8 +126,8 @@ const WEAPON_RIG_POSE: Record<string, string> = {
   bow: 'De largo completo, acostado perfectamente horizontal, visto de costado: una punta del arco a la izquierda y la otra a la derecha, la cuerda recta arriba y la curva del arco abajo, con el puño agarrando la empuñadura en el centro. Sin flecha.',
   'gale-bow':
     'De largo completo, acostado perfectamente horizontal, visto de costado: una punta del arco a la izquierda y la otra a la derecha, la cuerda recta arriba y la curva del arco abajo, con el puño agarrando la empuñadura en el centro. Sin flecha.',
-  crossbow:
-    'De largo completo, perfectamente horizontal, visto de costado, apuntando a la derecha con la culata a la izquierda, con el puño agarrando la empuñadura debajo.'
+  longbow:
+    'De largo completo, acostado perfectamente horizontal, visto de costado: una punta del arco a la izquierda y la otra a la derecha, la cuerda recta arriba y la curva del arco abajo, con el puño agarrando la empuñadura en el centro. Sin flecha.'
 }
 /** How each weapon is shown on its own (weaponArt): long weapons cross the square, books face the camera. */
 const WEAPON_ART_POSE: Record<string, string> = {
@@ -136,8 +136,8 @@ const WEAPON_ART_POSE: Record<string, string> = {
   bow: 'en diagonal, con el arco de abajo a la izquierda hacia arriba a la derecha y la cuerda tensa, vista de costado',
   'gale-bow':
     'en diagonal, con el arco de abajo a la izquierda hacia arriba a la derecha y la cuerda tensa, vista de costado',
-  crossbow:
-    'en diagonal, con la culata abajo a la izquierda y la punta arriba a la derecha, vista de costado, con los brazos abiertos',
+  longbow:
+    'en diagonal, con el arco de abajo a la izquierda hacia arriba a la derecha y la cuerda tensa, vista de costado',
   tome: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico',
   codex: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico',
   grimoire: 'abierto y flotando, visto de frente y levemente desde arriba, con las páginas en abanico'

@@ -245,8 +245,8 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
   },
   sera: {
     bow: 'un arco recurvo alto de madera clara con la cuerda tensa',
-    crossbow:
-      'Colmillo Invernal, una ballesta compacta de madera oscura y acero escarchado, con puntas como carámbanos en los brazos y un virote azul pálido cargado',
+    longbow:
+      'Colmillo Invernal, un arco largo y recto, tan alto como Sera, de madera oscura cubierta de escarcha, con puntas como carámbanos en ambos extremos y una cuerda azul pálido que despide un vaho helado',
     'gale-bow':
       'Canto del Vendaval, un arco esbelto de madera blanco plateada tallado con espirales de viento, con plumitas en las puntas y chispas tenues de rayo a lo largo de la cuerda'
   },
