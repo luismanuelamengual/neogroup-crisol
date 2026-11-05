@@ -1,6 +1,7 @@
 import { Container, Rectangle, Sprite, Texture } from 'pixi.js'
 import { SceneryItem } from '@/app/(protected)/(engine)/models/SceneryItem'
 import { SceneryTextures } from '@/app/(protected)/(world)/utils/sceneryTextures'
+import { ZoneTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
 
 /**
  * The scenery of the world map, drawn so that it looks solid: the small things
@@ -60,8 +61,8 @@ export class WorldScenery {
     this.standing.addChild(hero)
   }
 
-  /** Places the pieces with their drawings (again, if the drawings change). */
-  setItems(items: SceneryItem[], textures: SceneryTextures): void {
+  /** Places the pieces with their drawings (again, if the drawings change): those of their zone, or else of their biome. */
+  setItems(items: SceneryItem[], textures: SceneryTextures, zones: ZoneTextures = {}): void {
     const landmarks: Standing[] = []
 
     for (const chunk of this.chunks.values()) {
@@ -87,7 +88,7 @@ export class WorldScenery {
         continue
       }
 
-      const choices = textures[item.biome][item.layer]
+      const choices = (item.zone && zones[item.zone]?.[item.layer]) || textures[item.biome][item.layer]
       const sprite = new Sprite(choices[Math.floor(item.pick * choices.length)])
 
       sprite.anchor.set(0.5, 0.96)

@@ -9,8 +9,8 @@ import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import {
   ENEMY_LOOKS,
   HERO_BODIES,
-  HERO_LOOKS,
   HERO_CLOTHES,
+  HERO_LOOKS,
   HERO_WEAPON_HAND,
   HERO_WEAPONS
 } from '@/scripts/art/descriptions'
@@ -100,7 +100,13 @@ const TILES: Record<Terrain, string> = {
     'losas de obsidiana negra encastradas con finas juntas violetas brillantes y runas talladas tenues',
   [Terrain.BASALT]: 'black volcanic basalt rock with thin dim dark-red cracks and a few cinders',
   [Terrain.GLACIER]: 'solid glacier ice, pale blue and white, with deep blue cracks and frosted patches',
-  [Terrain.ICHOR]: 'líquido alienígena violeta brillante con lentos remolinos de luz magenta y lila pálido, sin orilla'
+  [Terrain.ICHOR]: 'líquido alienígena violeta brillante con lentos remolinos de luz magenta y lila pálido, sin orilla',
+  [Terrain.LEAVES]:
+    'una alfombra espesa de hojas secas de otoño caídas, naranjas, rojas y doradas, con algunas ramitas y bellotas',
+  [Terrain.NEEDLES]:
+    'suelo de pinar cubierto de agujas de pino secas marrón rojizo, con piñas pequeñas y algo de musgo',
+  [Terrain.BLIGHT]:
+    'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes'
 }
 /** Where each hero joins: their pieces go with that biome's batch. */
 const HERO_BATCH: Record<CharacterId, Biome> = {

@@ -10,7 +10,9 @@ import { loadMerchantHouses } from '@/app/(protected)/(world)/utils/merchantHous
 import { loadSceneryArt, paintSceneryTextures, paintShadow } from '@/app/(protected)/(world)/utils/sceneryTextures'
 import { loadGroundArt, paintGroundTextures } from '@/app/(protected)/(world)/utils/terrainTextures'
 import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
+import { WorldLairs } from '@/app/(protected)/(world)/utils/worldLairs'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
+import { buildLairTextures, buildZoneTextures, loadZoneArt } from '@/app/(protected)/(world)/utils/zoneTextures'
 
 /** What the map shows: it comes from the game state (see WorldMap). */
 export interface MapView {
@@ -77,6 +79,7 @@ export class WorldRenderer {
   private readonly tiles: TileMap
   private readonly ground: WorldGround
   private readonly scenery: WorldScenery
+  private readonly lairs: WorldLairs
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
@@ -123,19 +126,26 @@ export class WorldRenderer {
     fog.visible = options.fog !== false
     this.drawHero()
     this.scenery = new WorldScenery(world.width, this.hero, paintShadow())
-    this.scenery.setItems(placeScenery(world, this.tiles), paintSceneryTextures())
+    this.lairs = new WorldLairs(world, this.tiles)
+
+    const provisional = paintSceneryTextures()
+
+    this.scenery.setItems(placeScenery(world, this.tiles), provisional, buildZoneTextures(provisional, new Map()))
     this.outOfReach.alpha = OUT_OF_REACH_ALPHA
     // The trees, the landmarks and the hero stand over the trails and the points, sorted by depth.
     viewport.addChild(
       this.ground,
       this.scenery.ground,
+      this.lairs.circles,
       this.trails,
       this.route,
       this.outOfReach,
       this.markers,
       this.scenery.shadows,
       this.scenery.standing,
+      this.lairs.motes,
       fog,
+      this.lairs.beams,
       this.beacons,
       this.lostXp,
       this.selection
@@ -222,13 +232,19 @@ export class WorldRenderer {
     }
   }
 
-  /** The final art of the scenery, as far as it exists. */
+  /** The final art of the scenery, as far as it exists, with the drawings of the zones and the lairs made from it. */
   private async loadSceneryArt(): Promise<void> {
-    const art = await loadSceneryArt(paintSceneryTextures())
+    const [art, extras] = await Promise.all([loadSceneryArt(paintSceneryTextures()), loadZoneArt()])
 
-    if (!this.scenery.standing.destroyed) {
-      this.scenery.setItems(placeScenery(this.world, this.tiles), art)
+    if (this.scenery.standing.destroyed) {
+      return
     }
+
+    const zones = buildZoneTextures(art, extras)
+
+    this.scenery.setItems(placeScenery(this.world, this.tiles), art, zones)
+
+    this.lairs.setTextures((zone) => buildLairTextures(zones, extras, zone), this.scenery)
   }
 
   /** The final art of the terrains, as far as it exists (the provisional textures stay otherwise). */
@@ -252,6 +268,7 @@ export class WorldRenderer {
     this.resizeObserver?.disconnect()
     // The scenery first, keeping its textures: they are shared through the asset cache.
     this.scenery.destroy()
+    this.lairs.destroy()
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true, texture: true })
   }
@@ -263,6 +280,7 @@ export class WorldRenderer {
     this.view = view
 
     if (!previous || previous.cleared !== view.cleared || previous.respawned !== view.respawned) {
+      this.lairs.setFreed(view.cleared)
       this.drawTrails(view)
       this.drawMarkers(view)
       this.drawFog(view)
@@ -687,6 +705,7 @@ export class WorldRenderer {
 
     this.ground.update(visible)
     this.scenery.update(visible, this.elapsed)
+    this.lairs.update(this.elapsed)
     this.hero.scale.set(1 + pulse * 0.04)
     this.drawBeacons(pulse)
     this.drawLostXp()

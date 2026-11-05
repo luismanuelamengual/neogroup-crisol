@@ -32,5 +32,11 @@ export enum Terrain {
   /** Black volcanic rock with dim red cracks: the edge of the volcano. */
   BASALT = 'basalt',
   /** Solid blue ice that can be walked on: the heart of the snow, around its Seal. */
-  GLACIER = 'glacier'
+  GLACIER = 'glacier',
+  /** Carpet of fallen orange and red leaves: the autumn woods of the forest. */
+  LEAVES = 'leaves',
+  /** Rusty brown pine needles: the floor of the pinewoods. */
+  NEEDLES = 'needles',
+  /** Sickly dark moss with glowing spores: the lair of the Moss Witch. */
+  BLIGHT = 'blight'
 }

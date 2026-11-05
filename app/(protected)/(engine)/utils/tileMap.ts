@@ -1,11 +1,12 @@
 import {
   BIOME_RISE,
   BIOME_TERRAINS,
-  BiomeTerrains,
   BIOMES_ORDER,
+  BiomeTerrains,
   LAKES,
   TERRAINS
 } from '@/app/(protected)/(engine)/data/terrains'
+import { getZoneDefinition, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
@@ -14,6 +15,7 @@ import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom } from '@/app/(protected)/(engine)/utils/random'
+import { createZoneFinder } from '@/app/(protected)/(engine)/utils/zones'
 
 /**
  * The ground of the world map as square tiles, worked out from the points and
@@ -71,6 +73,9 @@ export function buildTileMap(world: World): TileMap {
   const grounds = new Uint8Array(columns * rows)
   const biomes = new Uint8Array(columns * rows)
   const nearSeal = new Uint8Array(columns * rows)
+  const zones = new Uint8Array(columns * rows)
+  // Its own random numbers, so that the noises above stay as they were.
+  const zoneAt = createZoneFinder(world)
   const seals = sealsOf(world)
   const nodes = new Map(world.nodes.map((node) => [node.id, node]))
   const nodeBuckets = new Buckets<WorldNode>(world.width)
@@ -121,7 +126,8 @@ export function buildTileMap(world: World): TileMap {
             Math.max(0, 1 - Math.hypot(seal.x - x, seal.y - y) / seal.reach + (sealNoise(x / 900, y / 900) - 0.5) * 0.3)
           )
         : 0
-      const biome = terrainsNear(BIOME_TERRAINS[home], toSeal)
+      const zone = zoneAt(x, y, home)
+      const biome = withZone(terrainsNear(BIOME_TERRAINS[home], toSeal), zone)
       const width = TRAIL_HALF_WIDTH * (1 - TRAIL_WOBBLE + 2 * TRAIL_WOBBLE * trailNoise(x / 300, y / 300))
       let terrain: Terrain
 
@@ -147,6 +153,7 @@ export function buildTileMap(world: World): TileMap {
       rise[row * columns + column] = heightNoise(x / HEIGHT_SCALE, y / HEIGHT_SCALE) + BIOME_RISE[home]
       grounds[row * columns + column] = terrainIndex.get(biome.ground)!
       biomes[row * columns + column] = BIOMES_ORDER.indexOf(home)
+      zones[row * columns + column] = zone
     }
   }
 
@@ -164,7 +171,18 @@ export function buildTileMap(world: World): TileMap {
     }
   }
 
-  return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes, nearSeal }
+  return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes, nearSeal, zones }
+}
+
+/** The terrains of a biome in one of its zones (its index in ZONES_ORDER plus one; 0 leaves them as they are). */
+function withZone(terrains: BiomeTerrains, zone: number): BiomeTerrains {
+  if (!zone) {
+    return terrains
+  }
+
+  const { ground, patches } = getZoneDefinition(ZONES_ORDER[zone - 1])
+
+  return { ...terrains, ground: ground ?? terrains.ground, patches: patches ?? terrains.patches }
 }
 
 /** The Seal of each biome that changes on the way to it, and how far from it its farthest point lies. */

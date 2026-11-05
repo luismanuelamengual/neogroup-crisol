@@ -42,8 +42,8 @@ describe('scenery of the world map', () => {
     }
   })
 
-  it('never stands a tree or a rock on the face of a cliff', () => {
-    for (const { x, y } of items.filter((item) => item.layer !== 'ground')) {
+  it('never puts anything on the face of a cliff (not even a mushroom or a tuft)', () => {
+    for (const { x, y } of items) {
       expect(heightAt(map, x, y - 56)).toBeLessThanOrEqual(heightAt(map, x, y))
     }
   })
@@ -53,6 +53,14 @@ describe('scenery of the world map', () => {
       for (const dx of [-34, 0, 34]) {
         expect(heightAt(map, x + dx, y)).toBe(heightAt(map, x, y))
         expect(isPaved(map, x + dx, y)).toBe(false)
+      }
+    }
+  })
+
+  it('rests every small thing on one level (never half over the rim of a plateau)', () => {
+    for (const { x, y } of items.filter((item) => item.layer === 'ground')) {
+      for (const dx of [-10, 0, 10]) {
+        expect(heightAt(map, x + dx, y)).toBe(heightAt(map, x, y))
       }
     }
   })

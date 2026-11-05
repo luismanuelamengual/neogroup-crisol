@@ -248,6 +248,70 @@
    "width": 256,
    "height": 191
   },
+  "map/forest/1": {
+   "width": 216,
+   "height": 256
+  },
+  "map/forest/2": {
+   "width": 246,
+   "height": 256
+  },
+  "map/forest/3": {
+   "width": 204,
+   "height": 256
+  },
+  "map/forest/4": {
+   "width": 242,
+   "height": 256
+  },
+  "map/forest/5": {
+   "width": 256,
+   "height": 252
+  },
+  "map/forest/6": {
+   "width": 256,
+   "height": 253
+  },
+  "map/forest/7": {
+   "width": 256,
+   "height": 220
+  },
+  "map/forest/8": {
+   "width": 256,
+   "height": 229
+  },
+  "map/forest/9": {
+   "width": 256,
+   "height": 183
+  },
+  "map/forest/10": {
+   "width": 256,
+   "height": 211
+  },
+  "map/forest/11": {
+   "width": 256,
+   "height": 223
+  },
+  "map/forest/12": {
+   "width": 256,
+   "height": 218
+  },
+  "map/forest/13": {
+   "width": 223,
+   "height": 256
+  },
+  "map/forest/14": {
+   "width": 256,
+   "height": 242
+  },
+  "map/forest/15": {
+   "width": 256,
+   "height": 232
+  },
+  "map/forest/16": {
+   "width": 256,
+   "height": 230
+  },
   "map/meadows/scenery/tall-1@2x": {
    "width": 299,
    "height": 310
@@ -312,6 +376,70 @@
    "width": 64,
    "height": 41
   },
+  "map/forest/scenery/tall-1@2x": {
+   "width": 233,
+   "height": 297
+  },
+  "map/forest/scenery/tall-2@2x": {
+   "width": 177,
+   "height": 243
+  },
+  "map/forest/scenery/tall-3@2x": {
+   "width": 205,
+   "height": 327
+  },
+  "map/forest/scenery/tall-4@2x": {
+   "width": 200,
+   "height": 248
+  },
+  "map/forest/scenery/tall-5@2x": {
+   "width": 186,
+   "height": 219
+  },
+  "map/forest/scenery/tall-6@2x": {
+   "width": 328,
+   "height": 287
+  },
+  "map/forest/scenery/tall-7@2x": {
+   "width": 328,
+   "height": 297
+  },
+  "map/forest/scenery/tall-8@2x": {
+   "width": 328,
+   "height": 280
+  },
+  "map/forest/scenery/low-1@2x": {
+   "width": 160,
+   "height": 126
+  },
+  "map/forest/scenery/low-2@2x": {
+   "width": 160,
+   "height": 122
+  },
+  "map/forest/scenery/low-3@2x": {
+   "width": 160,
+   "height": 125
+  },
+  "map/forest/scenery/low-4@2x": {
+   "width": 160,
+   "height": 128
+  },
+  "map/forest/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 57
+  },
+  "map/forest/scenery/ground-2@2x": {
+   "width": 60,
+   "height": 64
+  },
+  "map/forest/scenery/ground-3@2x": {
+   "width": 61,
+   "height": 64
+  },
+  "map/forest/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 48
+  },
   "props/meadows/1": {
    "width": 200,
    "height": 194
@@ -363,6 +491,54 @@
   "props/meadows/13": {
    "width": 150,
    "height": 163
+  },
+  "props/forest/1": {
+   "width": 206,
+   "height": 210
+  },
+  "props/forest/2": {
+   "width": 197,
+   "height": 210
+  },
+  "props/forest/3": {
+   "width": 159,
+   "height": 216
+  },
+  "props/forest/4": {
+   "width": 160,
+   "height": 109
+  },
+  "props/forest/5": {
+   "width": 146,
+   "height": 81
+  },
+  "props/forest/6": {
+   "width": 215,
+   "height": 79
+  },
+  "props/forest/7": {
+   "width": 164,
+   "height": 86
+  },
+  "props/forest/8": {
+   "width": 141,
+   "height": 82
+  },
+  "props/forest/9": {
+   "width": 125,
+   "height": 111
+  },
+  "props/forest/10": {
+   "width": 178,
+   "height": 111
+  },
+  "props/forest/11": {
+   "width": 153,
+   "height": 144
+  },
+  "props/forest/12": {
+   "width": 162,
+   "height": 115
   }
  },
  "decorations": {
@@ -383,6 +559,24 @@
    "map/meadows/14",
    "map/meadows/15",
    "map/meadows/16"
+  ],
+  "forest": [
+   "map/forest/1",
+   "map/forest/2",
+   "map/forest/3",
+   "map/forest/4",
+   "map/forest/5",
+   "map/forest/6",
+   "map/forest/7",
+   "map/forest/8",
+   "map/forest/9",
+   "map/forest/10",
+   "map/forest/11",
+   "map/forest/12",
+   "map/forest/13",
+   "map/forest/14",
+   "map/forest/15",
+   "map/forest/16"
   ]
  },
  "scenery": {
@@ -409,6 +603,30 @@
     "map/meadows/scenery/ground-3@2x",
     "map/meadows/scenery/ground-4@2x"
    ]
+  },
+  "forest": {
+   "tall": [
+    "map/forest/scenery/tall-1@2x",
+    "map/forest/scenery/tall-2@2x",
+    "map/forest/scenery/tall-3@2x",
+    "map/forest/scenery/tall-4@2x",
+    "map/forest/scenery/tall-5@2x",
+    "map/forest/scenery/tall-6@2x",
+    "map/forest/scenery/tall-7@2x",
+    "map/forest/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/forest/scenery/low-1@2x",
+    "map/forest/scenery/low-2@2x",
+    "map/forest/scenery/low-3@2x",
+    "map/forest/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/forest/scenery/ground-1@2x",
+    "map/forest/scenery/ground-2@2x",
+    "map/forest/scenery/ground-3@2x",
+    "map/forest/scenery/ground-4@2x"
+   ]
   }
  },
  "props": {
@@ -426,6 +644,20 @@
    "props/meadows/11",
    "props/meadows/12",
    "props/meadows/13"
+  ],
+  "forest": [
+   "props/forest/1",
+   "props/forest/2",
+   "props/forest/3",
+   "props/forest/4",
+   "props/forest/5",
+   "props/forest/6",
+   "props/forest/7",
+   "props/forest/8",
+   "props/forest/9",
+   "props/forest/10",
+   "props/forest/11",
+   "props/forest/12"
   ]
  },
  "battle": {

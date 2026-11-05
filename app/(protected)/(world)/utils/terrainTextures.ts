@@ -95,7 +95,16 @@ const LOOKS: Record<Terrain, Look> = {
     pattern: 'cracks',
     glow: [150, 36, 20]
   },
-  [Terrain.GLACIER]: { base: [168, 214, 240], dark: [104, 162, 210], light: [236, 250, 255], pattern: 'cracks' }
+  [Terrain.GLACIER]: { base: [168, 214, 240], dark: [104, 162, 210], light: [236, 250, 255], pattern: 'cracks' },
+  [Terrain.LEAVES]: { base: [194, 102, 40], dark: [134, 50, 26], light: [242, 178, 68], pattern: 'speckles' },
+  [Terrain.NEEDLES]: { base: [112, 78, 46], dark: [70, 46, 28], light: [150, 112, 64], pattern: 'blades' },
+  [Terrain.BLIGHT]: {
+    base: [60, 44, 72],
+    dark: [30, 20, 42],
+    light: [96, 74, 110],
+    pattern: 'speckles',
+    glow: [150, 230, 90]
+  }
 }
 
 /** The provisional textures. */

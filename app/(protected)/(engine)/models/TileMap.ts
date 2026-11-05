@@ -17,4 +17,6 @@ export interface TileMap {
    * that change on the way to it (BiomeTerrains.seal); 0 elsewhere.
    */
   nearSeal: Uint8Array
+  /** Zone of each tile (see data/zones.ts): its index in ZONES_ORDER plus one, or 0 for the plain look of its biome. */
+  zones: Uint8Array
 }

@@ -1,5 +1,6 @@
 import { SCENERY_DENSITY } from '@/app/(protected)/(engine)/data/scenery'
 import { BIOME_TERRAINS, BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { getZoneDefinition, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { SceneryItem } from '@/app/(protected)/(engine)/models/SceneryItem'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -23,17 +24,17 @@ const WOODS_FLOOR = 0.3
 /** Room under the rim of a plateau where nothing stands (the face of the cliff, see WorldGround). */
 const CLIFF_FACE = 56
 /**
- * Half the width of the foot of a tree (its trunk) and of a bush or a rock:
+ * Half the width of the foot of a tree (its trunk), of a bush or a rock and of a small thing (a mushroom, a tuft):
  * all of it must rest on the same level, off trails, lakes and the faces of
  * cliffs, or the piece would hang in the air.
  */
-const FOOT = { tall: 16, low: 34 }
+const FOOT = { tall: 16, low: 34, ground: 10 }
 /** Least room between a bush or a rock and any other standing piece (trees may crowd each other: woods). */
 const LOW_ROOM = 52
 const SCALE_RANGE = [0.82, 1.18]
 
 export function placeScenery(world: World, map: TileMap): SceneryItem[] {
-  const { columns, rows, tileSize, terrains, heights, biomes, nearSeal } = map
+  const { columns, rows, tileSize, terrains, heights, biomes, nearSeal, zones } = map
   const random = createRandom(world.seed ^ 0x7ee5)
   const woods = createNoise(random, 3)
   const fromTrail = distancesFromTrails(map)
@@ -101,7 +102,8 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
       }
 
       const biome = BIOMES_ORDER[biomes[index]]
-      const density = SCENERY_DENSITY[biome]
+      const zone = zones[index] ? ZONES_ORDER[zones[index] - 1] : undefined
+      const density = (zone && getZoneDefinition(zone).density) || SCENERY_DENSITY[biome]
       const seals = BIOME_TERRAINS[biome].seal !== undefined
       const x = (column + random()) * tileSize
       const y = (row + random()) * tileSize
@@ -113,6 +115,7 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
         y: iy,
         layer,
         biome,
+        ...(zone && { zone }),
         pick: towardSeal(random(), seals ? nearSeal[index] / 255 : 0),
         scale: SCALE_RANGE[0] + random() * (SCALE_RANGE[1] - SCALE_RANGE[0]),
         flip: random() < 0.5
@@ -137,7 +140,14 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
       // The small things also grow along the trails, but thinner.
       for (let count = 0; count < density.ground * Math.min(1, 0.4 + distance / TRAIL_FADE); count++) {
         if (random() < 0.7) {
-          items.push(item('ground', (column + random()) * tileSize, (row + random()) * tileSize))
+          const gx = (column + random()) * tileSize
+          const gy = (row + random()) * tileSize
+          // Never on the face of a cliff or half over its rim: on firm ground.
+          const piece = item('ground', gx, gy)
+
+          if (rests(gx, gy, FOOT.ground)) {
+            items.push(piece)
+          }
         }
       }
     }
