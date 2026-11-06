@@ -1374,7 +1374,12 @@ export function getEnemyStats(speciesId: string, level: number, elite = false, c
   }
 }
 
-/** Experience and gold an enemy gives when it falls. */
+/**
+ * Experience and gold an enemy gives when it falls. The experience is half of
+ * what it once was (2 + 1.1 per level instead of 4 + 2.2): clearing every
+ * fight of a biome leaves the party a few levels over its deepest enemies,
+ * not a whole biome ahead (see scripts/simulate-progression.ts).
+ */
 export function getEnemyRewards(
   speciesId: string,
   level: number,
@@ -1386,7 +1391,7 @@ export function getEnemyRewards(
   const multiplier = (elite ? 2 : 1) * (boss ? strength * bars * 2 : 1) * (1 + 0.75 * cycle)
 
   return {
-    xp: Math.round((4 + 2.2 * level) * multiplier),
+    xp: Math.round((2 + 1.1 * level) * multiplier),
     gold: Math.round((boss ? 80 + 5 * level * bars : 2 + 0.35 * level) * (elite ? 2 : 1) * (1 + 0.75 * cycle))
   }
 }

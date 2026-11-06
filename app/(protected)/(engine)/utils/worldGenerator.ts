@@ -76,6 +76,12 @@ const GUARDIAN_EXTRA_LEVELS = 3
 const ELITE_EXTRA_LEVELS = 2
 /** The wardens of the reliquaries: over the deepest level of their biome. */
 const WARDEN_EXTRA_LEVELS = 4
+/**
+ * The fights that keep a treasure (the rune of a sanctuary, the weapon of a
+ * reliquary) are elite and this much stronger still: in the Abyss they can be
+ * over the Crisol itself.
+ */
+const TREASURE_EXTRA_LEVELS = 6
 const TIER_ORDER = [RuneTier.LESSER, RuneTier.GREATER, RuneTier.ANCESTRAL, RuneTier.ABYSSAL]
 
 interface Point {
@@ -710,13 +716,13 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
               : definition.levelMax + KEY_BOSS_EXTRA_LEVELS
           break
         case NodeType.SANCTUARY:
-          node.level = level + (node.guardian ? GUARDIAN_EXTRA_LEVELS : ELITE_EXTRA_LEVELS)
+          node.level = level + (node.guardian ? GUARDIAN_EXTRA_LEVELS : ELITE_EXTRA_LEVELS) + TREASURE_EXTRA_LEVELS
           break
         case NodeType.TEAR:
           node.level = level + ELITE_EXTRA_LEVELS
           break
         case NodeType.RELIQUARY:
-          node.level = definition.levelMax + WARDEN_EXTRA_LEVELS
+          node.level = definition.levelMax + WARDEN_EXTRA_LEVELS + TREASURE_EXTRA_LEVELS
           break
         case NodeType.ABYSS_GATE:
           // Very strong, but under the weakest Seal.

@@ -10,6 +10,7 @@ import { WORLD_SEED } from '@/app/(protected)/(engine)/data/world'
 import { EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
+import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
 
@@ -18,7 +19,8 @@ import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
  * after resting) chosen from the node id, with 1 to 3 phases of 1 to 3
  * enemies of its biome (the rare species show up less). The first points of
  * a biome are gentler. Camps, sanctuaries, Seals and reliquaries have their
- * own bosses.
+ * own bosses. Every enemy that keeps a treasure (the rune of a sanctuary,
+ * the weapon of a reliquary) is elite.
  */
 
 /** How often each rarity shows up in the fights of its biome. */
@@ -84,8 +86,19 @@ function ownSpecies(id: string | undefined, table: Record<string, string>): stri
   return species
 }
 
+/** The points whose enemies keep a treasure: all of them are elite. */
+const TREASURE_TYPES = new Set([NodeType.SANCTUARY, NodeType.RELIQUARY])
+
 /** The phases of enemies of an encounter. */
 export function getEncounterPhases(node: WorldNode, encounter: Encounter): EnemySpawn[][] {
+  const phases = encounterPhases(node, encounter)
+
+  return TREASURE_TYPES.has(node.type)
+    ? phases.map((phase) => phase.map((spawn) => ({ ...spawn, elite: true })))
+    : phases
+}
+
+function encounterPhases(node: WorldNode, encounter: Encounter): EnemySpawn[][] {
   const random = createRandom(hashText(`${WORLD_SEED}:${node.id}`))
   const level = encounter.level
 

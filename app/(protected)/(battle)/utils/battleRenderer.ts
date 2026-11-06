@@ -66,7 +66,7 @@ const DAMAGE_COLORS: Partial<Record<DamageType, number>> = {
 }
 const FONT = "'Lilita One', Nunito, sans-serif"
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
-const FIGURE_HEIGHT = 120
+export const FIGURE_HEIGHT = 120
 const OUTLINE = 0x0a0710
 
 /** The puppet of a fighter: a hero holds its weapon (the one it starts with while that image is missing). */
@@ -990,7 +990,7 @@ function mix(a: number, b: number, share: number): number {
 }
 
 /** How tall the final art stands: heroes a bit taller than a common enemy of size 1. */
-function artHeight(side: Combatant['side']): number {
+export function artHeight(side: Combatant['side']): number {
   return FIGURE_HEIGHT * (side === 'hero' ? 1.15 : 1)
 }
 
@@ -1002,7 +1002,7 @@ function drawShadow(artId: string): Graphics {
 }
 
 /** A fighter with its final art: the figure standing on its spot, with a shadow at its feet. */
-function drawArt(texture: Texture, side: Combatant['side'], artId: string): Container {
+export function drawArt(texture: Texture, side: Combatant['side'], artId: string): Container {
   const container = new Container()
   const sprite = new Sprite(texture)
 
@@ -1014,7 +1014,7 @@ function drawArt(texture: Texture, side: Combatant['side'], artId: string): Cont
 }
 
 /** A fighter put together from its parts sheet (it animates itself). */
-function drawRig(rig: RigFigure, artId: string): Container {
+export function drawRig(rig: RigFigure, artId: string): Container {
   const container = new Container()
 
   container.addChild(drawShadow(artId), rig.view)
@@ -1023,7 +1023,7 @@ function drawRig(rig: RigFigure, artId: string): Container {
 }
 
 /** Provisional hero: a figure facing right with its weapon. */
-function drawHero(characterId: CharacterId): Container {
+export function drawHero(characterId: CharacterId): Container {
   const color = getCharacterDefinition(characterId).color
   const container = new Container()
   const g = new Graphics()
@@ -1070,7 +1070,7 @@ function drawHero(characterId: CharacterId): Container {
 }
 
 /** Provisional enemy: a shape by archetype, in the color of its species, facing left. */
-function drawEnemy(combatant: Combatant): Container {
+export function drawEnemy(combatant: Combatant): Container {
   const species = getSpecies(combatant.speciesId!)
   const color = species.color
   const container = new Container()

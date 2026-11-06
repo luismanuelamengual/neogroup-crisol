@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "world:generate": "tsx scripts/generate-world.ts",
     "battles": "tsx scripts/simulate-world.ts",
+    "progression": "tsx scripts/simulate-progression.ts",
     "art": "tsx scripts/art/process.ts",
     "art:catalog": "tsx scripts/art/write-catalog.ts"
   },

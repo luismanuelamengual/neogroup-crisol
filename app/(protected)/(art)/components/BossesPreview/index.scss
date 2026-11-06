@@ -1,0 +1,418 @@
+.bosses-preview {
+  display: grid;
+  grid-template-areas:
+    'toolbar'
+    'viewer'
+    'list';
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 auto;
+  padding: 12px max(12px, env(safe-area-inset-right)) 32px max(12px, env(safe-area-inset-left));
+  width: 100%;
+  max-width: 1280px;
+
+  button {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--color-panel);
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--color-gold);
+      color: var(--color-gold);
+    }
+  }
+
+  code {
+    overflow-wrap: anywhere;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
+
+  .toolbar {
+    grid-area: toolbar;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .summary {
+      margin: 0;
+      color: var(--color-gold-light);
+      font-size: 14px;
+    }
+
+    .hint {
+      flex-basis: 100%;
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+  }
+
+  // The stage stays in sight while the list scrolls under it.
+  .viewer {
+    grid-area: viewer;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 8px 10px 10px;
+    background: rgba(28, 20, 58, 0.97);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .viewer-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: center;
+
+    strong {
+      font-size: 16px;
+    }
+  }
+
+  .drawn {
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-weight: 700;
+    font-size: 11px;
+
+    &.drawn-rig {
+      color: #0d2a06;
+      background: var(--color-lime);
+    }
+
+    &.drawn-image {
+      color: #2a1a00;
+      background: var(--color-gold);
+    }
+
+    &.drawn-provisional {
+      color: #fff;
+      background: var(--color-magenta-dark);
+    }
+  }
+
+  .stage {
+    height: clamp(170px, 30vh, 260px);
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    button {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+
+  .list {
+    grid-area: list;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    button {
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+
+    .count {
+      color: var(--color-text-secondary);
+      font-weight: 400;
+    }
+  }
+
+  .empty {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+
+  .boss-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(42, 26, 64, 0.85);
+
+    &.selected {
+      border-color: var(--color-gold);
+    }
+  }
+
+  .boss-summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: none;
+    padding: 8px 10px;
+    width: 100%;
+    text-align: left;
+    background: none;
+  }
+
+  .thumb {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid;
+    border-radius: 10px;
+    width: 56px;
+    height: 56px;
+    background: rgba(0, 0, 0, 0.25);
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .swatch {
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      opacity: 0.7;
+    }
+  }
+
+  .identity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .name {
+      font-size: 15px;
+    }
+
+    .context {
+      color: var(--color-text-secondary);
+      font-weight: 400;
+      font-size: 12px;
+    }
+  }
+
+  .tag {
+    border-radius: 6px;
+    padding: 0 6px;
+    color: var(--color-gold-light);
+    font-weight: 700;
+    font-size: 11px;
+    background: rgba(255, 201, 60, 0.15);
+
+    &.role-captor,
+    &.role-seal,
+    &.role-gate,
+    &.role-final {
+      color: #ffd1d1;
+      background: rgba(255, 90, 90, 0.2);
+    }
+
+    &.role-warden {
+      color: #cfe9ff;
+      background: rgba(79, 195, 255, 0.18);
+    }
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+
+    span {
+      border-radius: 6px;
+      padding: 0 6px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .ok {
+      color: var(--color-lime);
+      background: rgba(126, 224, 90, 0.14);
+    }
+
+    .missing {
+      color: var(--color-ember);
+      background: rgba(255, 154, 42, 0.16);
+    }
+
+    .partial {
+      color: var(--color-gold-light);
+      background: rgba(255, 201, 60, 0.12);
+    }
+
+    .none {
+      color: var(--color-text-secondary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+  }
+
+  .boss-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 6px;
+    margin: 0;
+
+    div {
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    dt {
+      color: var(--color-text-secondary);
+      font-size: 11px;
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 700;
+      font-size: 14px;
+    }
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: baseline;
+
+    .label {
+      min-width: 84px;
+      color: var(--color-text-secondary);
+      font-size: 12px;
+    }
+  }
+
+  .chips {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .chip {
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.08);
+
+    small {
+      color: var(--color-text-secondary);
+    }
+
+    &.phase {
+      color: var(--color-gold-light);
+    }
+
+    &.affinity-weak {
+      color: var(--color-lime);
+    }
+
+    &.affinity-resist {
+      color: var(--color-text-secondary);
+    }
+
+    &.affinity-immune {
+      color: #d4d4d8;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    &.affinity-absorb {
+      color: var(--color-cyan);
+    }
+  }
+
+  .art {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  // Desktop and tablets held sideways: the stage on the left, the list on the right.
+  @media (min-width: 901px) {
+    grid-template-areas:
+      'toolbar toolbar'
+      'viewer list';
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+
+    .viewer {
+      top: 12px;
+    }
+
+    .stage {
+      height: clamp(280px, 56vh, 520px);
+    }
+  }
+
+  // Phones held sideways: little height, so the stage goes beside the list too.
+  @media (max-height: 500px) and (min-width: 601px) {
+    grid-template-areas:
+      'toolbar toolbar'
+      'viewer list';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+
+    .toolbar h1 {
+      font-size: 18px;
+    }
+
+    .toolbar .hint {
+      display: none;
+    }
+
+    .viewer {
+      top: 6px;
+      gap: 4px;
+      padding: 6px 8px 8px;
+    }
+
+    .stage {
+      height: clamp(140px, 52vh, 260px);
+    }
+
+    .actions {
+      gap: 4px;
+
+      button {
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+    }
+  }
+}

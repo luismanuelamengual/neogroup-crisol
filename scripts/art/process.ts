@@ -18,8 +18,8 @@ import { BATCHES, buildCatalog, Piece, PieceKind } from '@/scripts/art/catalog'
 import {
   Box,
   findParts,
-  hasChromaBackground,
   floorLine,
+  hasChromaBackground,
   makeSeamless,
   opaqueBox,
   Part,
@@ -375,22 +375,38 @@ function count(done: number, total: number): string {
   return styleText(done === total ? 'green' : done === 0 ? 'red' : 'yellow', text)
 }
 
-/** Every piece of the catalog by batch and kind: a green tick if its image is there, a red cross if it is missing. */
+/**
+ * Every piece of the catalog by batch and kind: a green tick if its image is there, a red cross if it is missing.
+ * Complete batches and kinds are collapsed to one line.
+ */
 function report(catalog: Piece[], found: Set<string>, manifest: ArtManifest, strays: string[]): void {
   for (const batch of BATCHES) {
     const pieces = catalog.filter((piece) => piece.batch === batch)
     const done = pieces.filter((piece) => found.has(piece.id)).length
+    const title = `${styleText('bold', batch.padEnd(12))} ${bar(done, pieces.length)} ${count(done, pieces.length)}`
 
-    console.log(`\n${styleText('bold', batch.padEnd(12))} ${bar(done, pieces.length)} ${count(done, pieces.length)}`)
+    // A complete batch takes a single line: only what is missing gets listed.
+    if (done === pieces.length) {
+      console.log(`${OK} ${title}`)
+      continue
+    }
+
+    console.log(`\n${KO} ${title}`)
 
     for (const kind of [...new Set(pieces.map((piece) => piece.kind))]) {
       const ofKind = pieces.filter((piece) => piece.kind === kind)
       const doneOfKind = ofKind.filter((piece) => found.has(piece.id)).length
+      const kindTitle = `${styleText('cyan', kind)} ${styleText('gray', `(${doneOfKind}/${ofKind.length})`)}`
 
-      console.log(`  ${styleText('cyan', kind)} ${styleText('gray', `(${doneOfKind}/${ofKind.length})`)}`)
+      if (doneOfKind === ofKind.length) {
+        console.log(`  ${OK} ${kindTitle}`)
+        continue
+      }
+
+      console.log(`  ${KO} ${kindTitle}`)
 
       for (const piece of ofKind) {
-        console.log(found.has(piece.id) ? `    ${OK} ${piece.id}` : `    ${KO} ${styleText('red', piece.id)}`)
+        console.log(found.has(piece.id) ? `      ${OK} ${piece.id}` : `      ${KO} ${styleText('red', piece.id)}`)
       }
     }
   }

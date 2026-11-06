@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
+import { getBiomeDefinition } from '@/app/(protected)/(engine)/data/biomes'
+import { FINAL_BOSS_SPECIES, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
+import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { createBattle } from '@/app/(protected)/(engine)/utils/battle'
 import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
@@ -47,6 +49,29 @@ describe('encounters', () => {
 
       expect(getEncounterPhases(node, encounter)).toEqual(phases)
     }
+  })
+
+  it('makes elite, and six levels stronger, every enemy that keeps a rune or a weapon', () => {
+    const crisol = world.nodes.find((node) => node.type === NodeType.FINAL_BOSS)!
+    const treasures = world.nodes.filter((node) => node.type === NodeType.SANCTUARY || node.type === NodeType.RELIQUARY)
+
+    expect(treasures.length).toBeGreaterThan(0)
+
+    for (const node of treasures) {
+      const encounter = getEncounter(index, fresh, node.id)!
+      const phases = getEncounterPhases(node, encounter)
+
+      expect(phases.flat().every((spawn) => spawn.elite)).toBe(true)
+      expect(node.level!).toBeGreaterThanOrEqual(getBiomeDefinition(node.biome).levelMin + 6)
+    }
+
+    // In the Abyss they may be over the Crisol itself.
+    const abyss = treasures.filter((node) => node.biome === Biome.ABYSS).map((node) => node.level!)
+
+    expect(Math.max(...abyss)).toBeGreaterThan(crisol.level!)
+    expect(getEncounterPhases(crisol, getEncounter(index, fresh, crisol.id)!)).toEqual([
+      [{ speciesId: FINAL_BOSS_SPECIES, level: crisol.level }]
+    ])
   })
 
   it('puts the camp boss alone with its own species in the Meadows', () => {
