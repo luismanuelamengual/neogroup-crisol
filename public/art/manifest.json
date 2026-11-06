@@ -172,9 +172,29 @@
    "width": 103,
    "height": 259
   },
+  "bosses/alpha-wolf": {
+   "width": 900,
+   "height": 827
+  },
+  "bosses/elder-treant": {
+   "width": 865,
+   "height": 900
+  },
+  "bosses/spider-queen": {
+   "width": 897,
+   "height": 900
+  },
   "bosses/old-scarecrow": {
    "width": 900,
    "height": 863
+  },
+  "bosses/moss-golem": {
+   "width": 900,
+   "height": 890
+  },
+  "bosses/cinder-stag": {
+   "width": 828,
+   "height": 900
   },
   "battle/meadows/far": {
    "width": 1521,
