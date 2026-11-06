@@ -56,6 +56,90 @@
    "width": 256,
    "height": 256
   },
+  "heroes/brann/full": {
+   "width": 548,
+   "height": 720
+  },
+  "heroes/brann/body": {
+   "width": 542,
+   "height": 720
+  },
+  "heroes/brann/arm": {
+   "width": 518,
+   "height": 720
+  },
+  "heroes/brann/weapons/axe": {
+   "width": 1024,
+   "height": 379
+  },
+  "heroes/brann/weapons/maul": {
+   "width": 1024,
+   "height": 343
+  },
+  "heroes/brann/weapons/hatchets": {
+   "width": 1024,
+   "height": 325
+  },
+  "heroes/brann/portrait": {
+   "width": 256,
+   "height": 256
+  },
+  "heroes/oren/full": {
+   "width": 539,
+   "height": 720
+  },
+  "heroes/oren/body": {
+   "width": 526,
+   "height": 720
+  },
+  "heroes/oren/arm": {
+   "width": 667,
+   "height": 720
+  },
+  "heroes/oren/weapons/root-sickle": {
+   "width": 1024,
+   "height": 312
+  },
+  "heroes/oren/weapons/scythe": {
+   "width": 1024,
+   "height": 305
+  },
+  "heroes/oren/weapons/thorn-sickle": {
+   "width": 1024,
+   "height": 227
+  },
+  "heroes/oren/portrait": {
+   "width": 256,
+   "height": 256
+  },
+  "heroes/ysolde/full": {
+   "width": 515,
+   "height": 720
+  },
+  "heroes/ysolde/body": {
+   "width": 456,
+   "height": 720
+  },
+  "heroes/ysolde/arm": {
+   "width": 520,
+   "height": 720
+  },
+  "heroes/ysolde/weapons/tome": {
+   "width": 1024,
+   "height": 395
+  },
+  "heroes/ysolde/weapons/codex": {
+   "width": 1024,
+   "height": 361
+  },
+  "heroes/ysolde/weapons/grimoire": {
+   "width": 1024,
+   "height": 358
+  },
+  "heroes/ysolde/portrait": {
+   "width": 256,
+   "height": 256
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 341
@@ -83,6 +167,54 @@
   "enemies/weaver-spider": {
    "width": 512,
    "height": 346
+  },
+  "enemies/jade-viper": {
+   "width": 512,
+   "height": 488
+  },
+  "enemies/fungal-shaman": {
+   "width": 512,
+   "height": 512
+  },
+  "enemies/toxic-frog": {
+   "width": 512,
+   "height": 347
+  },
+  "enemies/giant-scorpion": {
+   "width": 512,
+   "height": 486
+  },
+  "enemies/wandering-mummy": {
+   "width": 512,
+   "height": 488
+  },
+  "enemies/sand-worm": {
+   "width": 512,
+   "height": 510
+  },
+  "enemies/rock-golem": {
+   "width": 512,
+   "height": 474
+  },
+  "enemies/harpy": {
+   "width": 512,
+   "height": 493
+  },
+  "enemies/renegade-dwarf": {
+   "width": 512,
+   "height": 489
+  },
+  "enemies/ghoul": {
+   "width": 497,
+   "height": 512
+  },
+  "enemies/bone-knight": {
+   "width": 502,
+   "height": 512
+  },
+  "enemies/devourer": {
+   "width": 460,
+   "height": 512
   },
   "enemies/field-rat": {
    "width": 512,
@@ -128,6 +260,102 @@
    "width": 447,
    "height": 512
   },
+  "enemies/jungle-panther": {
+   "width": 512,
+   "height": 380
+  },
+  "enemies/giant-mosquito": {
+   "width": 512,
+   "height": 450
+  },
+  "enemies/carnivorous-plant": {
+   "width": 478,
+   "height": 512
+  },
+  "enemies/lizard-warrior": {
+   "width": 512,
+   "height": 502
+  },
+  "enemies/mangrove-croc": {
+   "width": 512,
+   "height": 344
+  },
+  "enemies/tribal-witch": {
+   "width": 488,
+   "height": 512
+  },
+  "enemies/dune-raider": {
+   "width": 502,
+   "height": 512
+  },
+  "enemies/sun-priest": {
+   "width": 512,
+   "height": 508
+  },
+  "enemies/desert-djinn": {
+   "width": 425,
+   "height": 512
+  },
+  "enemies/vulture": {
+   "width": 512,
+   "height": 456
+  },
+  "enemies/tomb-guardian": {
+   "width": 504,
+   "height": 512
+  },
+  "enemies/scarab-swarm": {
+   "width": 512,
+   "height": 511
+  },
+  "enemies/mountain-troll": {
+   "width": 512,
+   "height": 486
+  },
+  "enemies/storm-eagle": {
+   "width": 512,
+   "height": 506
+  },
+  "enemies/crystal-sprite": {
+   "width": 512,
+   "height": 466
+  },
+  "enemies/dwarf-runepriest": {
+   "width": 512,
+   "height": 491
+  },
+  "enemies/cave-bat": {
+   "width": 512,
+   "height": 441
+  },
+  "enemies/stone-basilisk": {
+   "width": 512,
+   "height": 302
+  },
+  "enemies/banshee": {
+   "width": 512,
+   "height": 484
+  },
+  "enemies/plague-rat": {
+   "width": 512,
+   "height": 484
+  },
+  "enemies/grave-priest": {
+   "width": 512,
+   "height": 508
+  },
+  "enemies/hollow-archer": {
+   "width": 498,
+   "height": 512
+  },
+  "enemies/flesh-golem": {
+   "width": 512,
+   "height": 480
+  },
+  "enemies/carrion-crow": {
+   "width": 512,
+   "height": 448
+  },
   "bosses/boar-matriarch": {
    "width": 900,
    "height": 761
@@ -172,6 +400,198 @@
    "width": 103,
    "height": 259
   },
+  "bosses/sahrak": {
+   "width": 896,
+   "height": 900
+  },
+  "bosses/sahrak-parts/1": {
+   "width": 157,
+   "height": 182
+  },
+  "bosses/sahrak-parts/2": {
+   "width": 261,
+   "height": 277
+  },
+  "bosses/sahrak-parts/3": {
+   "width": 133,
+   "height": 129
+  },
+  "bosses/sahrak-parts/4": {
+   "width": 167,
+   "height": 182
+  },
+  "bosses/sahrak-parts/5": {
+   "width": 134,
+   "height": 134
+  },
+  "bosses/sahrak-parts/6": {
+   "width": 269,
+   "height": 305
+  },
+  "bosses/sahrak-parts/7": {
+   "width": 477,
+   "height": 230
+  },
+  "bosses/sahrak-parts/8": {
+   "width": 269,
+   "height": 409
+  },
+  "bosses/sahrak-parts/9": {
+   "width": 137,
+   "height": 121
+  },
+  "bosses/sahrak-parts/10": {
+   "width": 136,
+   "height": 121
+  },
+  "bosses/sahrak-parts/11": {
+   "width": 140,
+   "height": 123
+  },
+  "bosses/sahrak-parts/12": {
+   "width": 136,
+   "height": 123
+  },
+  "bosses/sahrak-parts/13": {
+   "width": 85,
+   "height": 153
+  },
+  "bosses/sahrak-parts/14": {
+   "width": 79,
+   "height": 153
+  },
+  "bosses/sahrak-parts/15": {
+   "width": 76,
+   "height": 155
+  },
+  "bosses/sahrak-parts/16": {
+   "width": 71,
+   "height": 155
+  },
+  "bosses/xalqui": {
+   "width": 895,
+   "height": 900
+  },
+  "bosses/xalqui-parts/1": {
+   "width": 519,
+   "height": 402
+  },
+  "bosses/xalqui-parts/2": {
+   "width": 305,
+   "height": 462
+  },
+  "bosses/xalqui-parts/3": {
+   "width": 310,
+   "height": 253
+  },
+  "bosses/xalqui-parts/4": {
+   "width": 330,
+   "height": 171
+  },
+  "bosses/xalqui-parts/5": {
+   "width": 135,
+   "height": 251
+  },
+  "bosses/xalqui-parts/6": {
+   "width": 205,
+   "height": 340
+  },
+  "bosses/colossus": {
+   "width": 887,
+   "height": 900
+  },
+  "bosses/colossus-parts/1": {
+   "width": 255,
+   "height": 344
+  },
+  "bosses/colossus-parts/2": {
+   "width": 307,
+   "height": 376
+  },
+  "bosses/colossus-parts/3": {
+   "width": 183,
+   "height": 242
+  },
+  "bosses/colossus-parts/4": {
+   "width": 253,
+   "height": 182
+  },
+  "bosses/colossus-parts/5": {
+   "width": 188,
+   "height": 242
+  },
+  "bosses/colossus-parts/6": {
+   "width": 242,
+   "height": 197
+  },
+  "bosses/colossus-parts/7": {
+   "width": 180,
+   "height": 213
+  },
+  "bosses/colossus-parts/8": {
+   "width": 222,
+   "height": 237
+  },
+  "bosses/colossus-parts/9": {
+   "width": 182,
+   "height": 212
+  },
+  "bosses/colossus-parts/10": {
+   "width": 227,
+   "height": 235
+  },
+  "bosses/vael": {
+   "width": 900,
+   "height": 819
+  },
+  "bosses/vael-parts/1": {
+   "width": 245,
+   "height": 289
+  },
+  "bosses/vael-parts/2": {
+   "width": 133,
+   "height": 156
+  },
+  "bosses/vael-parts/3": {
+   "width": 171,
+   "height": 104
+  },
+  "bosses/vael-parts/4": {
+   "width": 253,
+   "height": 296
+  },
+  "bosses/vael-parts/5": {
+   "width": 135,
+   "height": 157
+  },
+  "bosses/vael-parts/6": {
+   "width": 304,
+   "height": 296
+  },
+  "bosses/vael-parts/7": {
+   "width": 176,
+   "height": 96
+  },
+  "bosses/vael-parts/8": {
+   "width": 132,
+   "height": 198
+  },
+  "bosses/vael-parts/9": {
+   "width": 155,
+   "height": 169
+  },
+  "bosses/vael-parts/10": {
+   "width": 127,
+   "height": 196
+  },
+  "bosses/vael-parts/11": {
+   "width": 156,
+   "height": 169
+  },
+  "bosses/vael-parts/12": {
+   "width": 747,
+   "height": 199
+  },
   "bosses/alpha-wolf": {
    "width": 900,
    "height": 827
@@ -184,6 +604,50 @@
    "width": 897,
    "height": 900
   },
+  "bosses/mire-witch": {
+   "width": 892,
+   "height": 900
+  },
+  "bosses/jaguar-king": {
+   "width": 900,
+   "height": 895
+  },
+  "bosses/swamp-hydra": {
+   "width": 899,
+   "height": 900
+  },
+  "bosses/dune-wyrm": {
+   "width": 900,
+   "height": 889
+  },
+  "bosses/mummy-pharaoh": {
+   "width": 867,
+   "height": 900
+  },
+  "bosses/sand-titan": {
+   "width": 900,
+   "height": 875
+  },
+  "bosses/crystal-wyrm": {
+   "width": 879,
+   "height": 900
+  },
+  "bosses/dwarf-warlord": {
+   "width": 900,
+   "height": 875
+  },
+  "bosses/thunder-roc": {
+   "width": 900,
+   "height": 892
+  },
+  "bosses/lich": {
+   "width": 889,
+   "height": 900
+  },
+  "bosses/bone-dragon": {
+   "width": 900,
+   "height": 838
+  },
   "bosses/old-scarecrow": {
    "width": 900,
    "height": 863
@@ -192,9 +656,53 @@
    "width": 900,
    "height": 890
   },
+  "bosses/temple-serpent": {
+   "width": 894,
+   "height": 900
+  },
+  "bosses/sphinx": {
+   "width": 900,
+   "height": 883
+  },
+  "bosses/rune-golem": {
+   "width": 900,
+   "height": 882
+  },
+  "bosses/death-knight": {
+   "width": 900,
+   "height": 856
+  },
+  "bosses/wraith-lord": {
+   "width": 900,
+   "height": 883
+  },
   "bosses/cinder-stag": {
    "width": 828,
    "height": 900
+  },
+  "bosses/shell-colossus": {
+   "width": 900,
+   "height": 804
+  },
+  "bosses/glass-djinn": {
+   "width": 872,
+   "height": 900
+  },
+  "bosses/storm-harpy": {
+   "width": 900,
+   "height": 842
+  },
+  "bosses/granite-warden": {
+   "width": 900,
+   "height": 879
+  },
+  "bosses/thorn-widow": {
+   "width": 900,
+   "height": 803
+  },
+  "bosses/storm-revenant": {
+   "width": 900,
+   "height": 883
   },
   "battle/meadows/far": {
    "width": 1521,
@@ -275,6 +783,170 @@
   "battle/forest/landmarks/6": {
    "width": 483,
    "height": 376
+  },
+  "battle/tropical/far": {
+   "width": 2048,
+   "height": 378
+  },
+  "battle/tropical/middle": {
+   "width": 2048,
+   "height": 380
+  },
+  "battle/tropical/near": {
+   "width": 2048,
+   "height": 283
+  },
+  "battle/tropical/floor": {
+   "width": 2048,
+   "height": 866
+  },
+  "battle/tropical/landmarks/1": {
+   "width": 537,
+   "height": 640
+  },
+  "battle/tropical/landmarks/2": {
+   "width": 640,
+   "height": 482
+  },
+  "battle/tropical/landmarks/3": {
+   "width": 414,
+   "height": 640
+  },
+  "battle/tropical/landmarks/4": {
+   "width": 588,
+   "height": 640
+  },
+  "battle/tropical/landmarks/5": {
+   "width": 640,
+   "height": 553
+  },
+  "battle/tropical/landmarks/6": {
+   "width": 541,
+   "height": 640
+  },
+  "battle/desert/far": {
+   "width": 2048,
+   "height": 335
+  },
+  "battle/desert/middle": {
+   "width": 2048,
+   "height": 302
+  },
+  "battle/desert/near": {
+   "width": 2048,
+   "height": 240
+  },
+  "battle/desert/floor": {
+   "width": 2048,
+   "height": 899
+  },
+  "battle/desert/landmarks/1": {
+   "width": 640,
+   "height": 440
+  },
+  "battle/desert/landmarks/2": {
+   "width": 640,
+   "height": 381
+  },
+  "battle/desert/landmarks/3": {
+   "width": 530,
+   "height": 638
+  },
+  "battle/desert/landmarks/4": {
+   "width": 640,
+   "height": 467
+  },
+  "battle/desert/landmarks/5": {
+   "width": 640,
+   "height": 505
+  },
+  "battle/desert/landmarks/6": {
+   "width": 640,
+   "height": 493
+  },
+  "battle/mountains/far": {
+   "width": 2048,
+   "height": 394
+  },
+  "battle/mountains/middle": {
+   "width": 2048,
+   "height": 392
+  },
+  "battle/mountains/near": {
+   "width": 2048,
+   "height": 249
+  },
+  "battle/mountains/floor": {
+   "width": 2048,
+   "height": 936
+  },
+  "battle/mountains/landmarks/1": {
+   "width": 640,
+   "height": 566
+  },
+  "battle/mountains/landmarks/2": {
+   "width": 640,
+   "height": 532
+  },
+  "battle/mountains/landmarks/3": {
+   "width": 640,
+   "height": 580
+  },
+  "battle/mountains/landmarks/4": {
+   "width": 575,
+   "height": 640
+  },
+  "battle/mountains/landmarks/5": {
+   "width": 640,
+   "height": 573
+  },
+  "battle/mountains/landmarks/6": {
+   "width": 630,
+   "height": 622
+  },
+  "battle/wastelands/far": {
+   "width": 2048,
+   "height": 281
+  },
+  "battle/wastelands/middle": {
+   "width": 2048,
+   "height": 375
+  },
+  "battle/wastelands/near": {
+   "width": 2048,
+   "height": 274
+  },
+  "battle/wastelands/floor": {
+   "width": 2048,
+   "height": 882
+  },
+  "battle/wastelands/landmarks/1": {
+   "width": 630,
+   "height": 543
+  },
+  "battle/wastelands/landmarks/2": {
+   "width": 565,
+   "height": 640
+  },
+  "battle/wastelands/landmarks/3": {
+   "width": 403,
+   "height": 533
+  },
+  "battle/wastelands/landmarks/4": {
+   "width": 346,
+   "height": 458
+  },
+  "battle/wastelands/landmarks/5": {
+   "width": 523,
+   "height": 640
+  },
+  "battle/wastelands/landmarks/6": {
+   "width": 640,
+   "height": 479
+  },
+  "battle/wastelands/landmarks/7": {
+   "width": 640,
+   "height": 293
   },
   "map/meadows/1": {
    "width": 256,
@@ -403,6 +1075,262 @@
   "map/forest/16": {
    "width": 256,
    "height": 230
+  },
+  "map/tropical/1": {
+   "width": 256,
+   "height": 249
+  },
+  "map/tropical/2": {
+   "width": 256,
+   "height": 255
+  },
+  "map/tropical/3": {
+   "width": 256,
+   "height": 243
+  },
+  "map/tropical/4": {
+   "width": 256,
+   "height": 246
+  },
+  "map/tropical/5": {
+   "width": 256,
+   "height": 239
+  },
+  "map/tropical/6": {
+   "width": 256,
+   "height": 213
+  },
+  "map/tropical/7": {
+   "width": 256,
+   "height": 212
+  },
+  "map/tropical/8": {
+   "width": 256,
+   "height": 209
+  },
+  "map/tropical/9": {
+   "width": 256,
+   "height": 197
+  },
+  "map/tropical/10": {
+   "width": 256,
+   "height": 195
+  },
+  "map/tropical/11": {
+   "width": 256,
+   "height": 191
+  },
+  "map/tropical/12": {
+   "width": 256,
+   "height": 216
+  },
+  "map/tropical/13": {
+   "width": 256,
+   "height": 230
+  },
+  "map/tropical/14": {
+   "width": 256,
+   "height": 215
+  },
+  "map/tropical/15": {
+   "width": 256,
+   "height": 220
+  },
+  "map/tropical/16": {
+   "width": 223,
+   "height": 256
+  },
+  "map/desert/1": {
+   "width": 256,
+   "height": 246
+  },
+  "map/desert/2": {
+   "width": 225,
+   "height": 256
+  },
+  "map/desert/3": {
+   "width": 212,
+   "height": 256
+  },
+  "map/desert/4": {
+   "width": 256,
+   "height": 145
+  },
+  "map/desert/5": {
+   "width": 256,
+   "height": 129
+  },
+  "map/desert/6": {
+   "width": 256,
+   "height": 137
+  },
+  "map/desert/7": {
+   "width": 256,
+   "height": 187
+  },
+  "map/desert/8": {
+   "width": 256,
+   "height": 193
+  },
+  "map/desert/9": {
+   "width": 256,
+   "height": 206
+  },
+  "map/desert/10": {
+   "width": 256,
+   "height": 168
+  },
+  "map/desert/11": {
+   "width": 256,
+   "height": 222
+  },
+  "map/desert/12": {
+   "width": 256,
+   "height": 173
+  },
+  "map/desert/13": {
+   "width": 256,
+   "height": 246
+  },
+  "map/desert/14": {
+   "width": 256,
+   "height": 199
+  },
+  "map/desert/15": {
+   "width": 256,
+   "height": 226
+  },
+  "map/desert/16": {
+   "width": 213,
+   "height": 256
+  },
+  "map/mountains/1": {
+   "width": 256,
+   "height": 210
+  },
+  "map/mountains/2": {
+   "width": 256,
+   "height": 237
+  },
+  "map/mountains/3": {
+   "width": 256,
+   "height": 205
+  },
+  "map/mountains/4": {
+   "width": 256,
+   "height": 223
+  },
+  "map/mountains/5": {
+   "width": 208,
+   "height": 256
+  },
+  "map/mountains/6": {
+   "width": 190,
+   "height": 256
+  },
+  "map/mountains/7": {
+   "width": 202,
+   "height": 256
+  },
+  "map/mountains/8": {
+   "width": 256,
+   "height": 195
+  },
+  "map/mountains/9": {
+   "width": 256,
+   "height": 183
+  },
+  "map/mountains/10": {
+   "width": 256,
+   "height": 132
+  },
+  "map/mountains/11": {
+   "width": 256,
+   "height": 229
+  },
+  "map/mountains/12": {
+   "width": 256,
+   "height": 236
+  },
+  "map/mountains/13": {
+   "width": 256,
+   "height": 189
+  },
+  "map/mountains/14": {
+   "width": 256,
+   "height": 188
+  },
+  "map/mountains/15": {
+   "width": 256,
+   "height": 224
+  },
+  "map/mountains/16": {
+   "width": 226,
+   "height": 256
+  },
+  "map/wastelands/1": {
+   "width": 256,
+   "height": 245
+  },
+  "map/wastelands/2": {
+   "width": 256,
+   "height": 256
+  },
+  "map/wastelands/3": {
+   "width": 256,
+   "height": 256
+  },
+  "map/wastelands/4": {
+   "width": 251,
+   "height": 256
+  },
+  "map/wastelands/5": {
+   "width": 256,
+   "height": 246
+  },
+  "map/wastelands/6": {
+   "width": 239,
+   "height": 256
+  },
+  "map/wastelands/7": {
+   "width": 256,
+   "height": 230
+  },
+  "map/wastelands/8": {
+   "width": 256,
+   "height": 216
+  },
+  "map/wastelands/9": {
+   "width": 256,
+   "height": 182
+  },
+  "map/wastelands/10": {
+   "width": 256,
+   "height": 146
+  },
+  "map/wastelands/11": {
+   "width": 256,
+   "height": 163
+  },
+  "map/wastelands/12": {
+   "width": 256,
+   "height": 229
+  },
+  "map/wastelands/13": {
+   "width": 256,
+   "height": 233
+  },
+  "map/wastelands/14": {
+   "width": 253,
+   "height": 256
+  },
+  "map/wastelands/15": {
+   "width": 213,
+   "height": 256
+  },
+  "map/wastelands/16": {
+   "width": 256,
+   "height": 161
   },
   "map/village/1": {
    "width": 256,
@@ -568,6 +1496,270 @@
    "width": 64,
    "height": 48
   },
+  "map/tropical/scenery/tall-1@2x": {
+   "width": 289,
+   "height": 328
+  },
+  "map/tropical/scenery/tall-2@2x": {
+   "width": 293,
+   "height": 328
+  },
+  "map/tropical/scenery/tall-3@2x": {
+   "width": 306,
+   "height": 328
+  },
+  "map/tropical/scenery/tall-4@2x": {
+   "width": 302,
+   "height": 328
+  },
+  "map/tropical/scenery/tall-5@2x": {
+   "width": 313,
+   "height": 328
+  },
+  "map/tropical/scenery/tall-6@2x": {
+   "width": 328,
+   "height": 314
+  },
+  "map/tropical/scenery/tall-7@2x": {
+   "width": 328,
+   "height": 301
+  },
+  "map/tropical/scenery/tall-8@2x": {
+   "width": 328,
+   "height": 300
+  },
+  "map/tropical/scenery/low-1@2x": {
+   "width": 160,
+   "height": 131
+  },
+  "map/tropical/scenery/low-2@2x": {
+   "width": 160,
+   "height": 131
+  },
+  "map/tropical/scenery/low-3@2x": {
+   "width": 160,
+   "height": 123
+  },
+  "map/tropical/scenery/low-4@2x": {
+   "width": 160,
+   "height": 117
+  },
+  "map/tropical/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 41
+  },
+  "map/tropical/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 34
+  },
+  "map/tropical/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 34
+  },
+  "map/tropical/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/desert/scenery/tall-1@2x": {
+   "width": 255,
+   "height": 328
+  },
+  "map/desert/scenery/tall-2@2x": {
+   "width": 202,
+   "height": 328
+  },
+  "map/desert/scenery/tall-3@2x": {
+   "width": 267,
+   "height": 328
+  },
+  "map/desert/scenery/tall-4@2x": {
+   "width": 218,
+   "height": 328
+  },
+  "map/desert/scenery/tall-5@2x": {
+   "width": 195,
+   "height": 328
+  },
+  "map/desert/scenery/tall-6@2x": {
+   "width": 262,
+   "height": 328
+  },
+  "map/desert/scenery/tall-7@2x": {
+   "width": 328,
+   "height": 317
+  },
+  "map/desert/scenery/tall-8@2x": {
+   "width": 328,
+   "height": 325
+  },
+  "map/desert/scenery/low-1@2x": {
+   "width": 160,
+   "height": 138
+  },
+  "map/desert/scenery/low-2@2x": {
+   "width": 160,
+   "height": 100
+  },
+  "map/desert/scenery/low-3@2x": {
+   "width": 153,
+   "height": 160
+  },
+  "map/desert/scenery/low-4@2x": {
+   "width": 160,
+   "height": 128
+  },
+  "map/desert/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 44
+  },
+  "map/desert/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 32
+  },
+  "map/desert/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/desert/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 43
+  },
+  "map/desert/scenery/ground-5@2x": {
+   "width": 59,
+   "height": 64
+  },
+  "map/mountains/scenery/tall-1@2x": {
+   "width": 242,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-2@2x": {
+   "width": 263,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-3@2x": {
+   "width": 291,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-4@2x": {
+   "width": 249,
+   "height": 275
+  },
+  "map/mountains/scenery/tall-5@2x": {
+   "width": 283,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-6@2x": {
+   "width": 277,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-7@2x": {
+   "width": 237,
+   "height": 328
+  },
+  "map/mountains/scenery/tall-8@2x": {
+   "width": 238,
+   "height": 328
+  },
+  "map/mountains/scenery/low-1@2x": {
+   "width": 160,
+   "height": 122
+  },
+  "map/mountains/scenery/low-2@2x": {
+   "width": 160,
+   "height": 117
+  },
+  "map/mountains/scenery/low-3@2x": {
+   "width": 160,
+   "height": 100
+  },
+  "map/mountains/scenery/low-4@2x": {
+   "width": 160,
+   "height": 99
+  },
+  "map/mountains/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 39
+  },
+  "map/mountains/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 38
+  },
+  "map/mountains/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 46
+  },
+  "map/mountains/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 34
+  },
+  "map/wastelands/scenery/tall-1@2x": {
+   "width": 269,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-2@2x": {
+   "width": 251,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-3@2x": {
+   "width": 328,
+   "height": 322
+  },
+  "map/wastelands/scenery/tall-4@2x": {
+   "width": 270,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-5@2x": {
+   "width": 305,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-6@2x": {
+   "width": 298,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-7@2x": {
+   "width": 272,
+   "height": 328
+  },
+  "map/wastelands/scenery/tall-8@2x": {
+   "width": 328,
+   "height": 295
+  },
+  "map/wastelands/scenery/low-1@2x": {
+   "width": 160,
+   "height": 135
+  },
+  "map/wastelands/scenery/low-2@2x": {
+   "width": 160,
+   "height": 108
+  },
+  "map/wastelands/scenery/low-3@2x": {
+   "width": 160,
+   "height": 113
+  },
+  "map/wastelands/scenery/low-4@2x": {
+   "width": 129,
+   "height": 160
+  },
+  "map/wastelands/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/wastelands/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 37
+  },
+  "map/wastelands/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/wastelands/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 55
+  },
+  "map/wastelands/scenery/ground-5@2x": {
+   "width": 64,
+   "height": 36
+  },
   "props/meadows/1": {
    "width": 200,
    "height": 194
@@ -667,6 +1859,198 @@
   "props/forest/12": {
    "width": 162,
    "height": 115
+  },
+  "props/tropical/1": {
+   "width": 233,
+   "height": 259
+  },
+  "props/tropical/2": {
+   "width": 211,
+   "height": 245
+  },
+  "props/tropical/3": {
+   "width": 283,
+   "height": 295
+  },
+  "props/tropical/4": {
+   "width": 272,
+   "height": 195
+  },
+  "props/tropical/5": {
+   "width": 250,
+   "height": 187
+  },
+  "props/tropical/6": {
+   "width": 222,
+   "height": 169
+  },
+  "props/tropical/7": {
+   "width": 231,
+   "height": 173
+  },
+  "props/tropical/8": {
+   "width": 241,
+   "height": 118
+  },
+  "props/tropical/9": {
+   "width": 213,
+   "height": 249
+  },
+  "props/tropical/10": {
+   "width": 150,
+   "height": 278
+  },
+  "props/tropical/11": {
+   "width": 220,
+   "height": 297
+  },
+  "props/tropical/12": {
+   "width": 315,
+   "height": 160
+  },
+  "props/desert/1": {
+   "width": 182,
+   "height": 265
+  },
+  "props/desert/2": {
+   "width": 171,
+   "height": 256
+  },
+  "props/desert/3": {
+   "width": 312,
+   "height": 225
+  },
+  "props/desert/4": {
+   "width": 262,
+   "height": 172
+  },
+  "props/desert/5": {
+   "width": 256,
+   "height": 136
+  },
+  "props/desert/6": {
+   "width": 205,
+   "height": 150
+  },
+  "props/desert/7": {
+   "width": 204,
+   "height": 226
+  },
+  "props/desert/8": {
+   "width": 250,
+   "height": 199
+  },
+  "props/desert/9": {
+   "width": 229,
+   "height": 186
+  },
+  "props/desert/10": {
+   "width": 207,
+   "height": 202
+  },
+  "props/desert/11": {
+   "width": 160,
+   "height": 251
+  },
+  "props/desert/12": {
+   "width": 183,
+   "height": 285
+  },
+  "props/mountains/1": {
+   "width": 231,
+   "height": 290
+  },
+  "props/mountains/2": {
+   "width": 205,
+   "height": 227
+  },
+  "props/mountains/3": {
+   "width": 183,
+   "height": 126
+  },
+  "props/mountains/4": {
+   "width": 238,
+   "height": 142
+  },
+  "props/mountains/5": {
+   "width": 188,
+   "height": 100
+  },
+  "props/mountains/6": {
+   "width": 180,
+   "height": 185
+  },
+  "props/mountains/7": {
+   "width": 215,
+   "height": 169
+  },
+  "props/mountains/8": {
+   "width": 242,
+   "height": 183
+  },
+  "props/mountains/9": {
+   "width": 214,
+   "height": 179
+  },
+  "props/mountains/10": {
+   "width": 182,
+   "height": 187
+  },
+  "props/mountains/11": {
+   "width": 196,
+   "height": 202
+  },
+  "props/mountains/12": {
+   "width": 315,
+   "height": 191
+  },
+  "props/wastelands/1": {
+   "width": 294,
+   "height": 299
+  },
+  "props/wastelands/2": {
+   "width": 256,
+   "height": 270
+  },
+  "props/wastelands/3": {
+   "width": 172,
+   "height": 173
+  },
+  "props/wastelands/4": {
+   "width": 165,
+   "height": 208
+  },
+  "props/wastelands/5": {
+   "width": 265,
+   "height": 171
+  },
+  "props/wastelands/6": {
+   "width": 200,
+   "height": 114
+  },
+  "props/wastelands/7": {
+   "width": 188,
+   "height": 227
+  },
+  "props/wastelands/8": {
+   "width": 288,
+   "height": 147
+  },
+  "props/wastelands/9": {
+   "width": 161,
+   "height": 248
+  },
+  "props/wastelands/10": {
+   "width": 211,
+   "height": 177
+  },
+  "props/wastelands/11": {
+   "width": 178,
+   "height": 310
+  },
+  "props/wastelands/12": {
+   "width": 257,
+   "height": 301
   }
  },
  "decorations": {
@@ -705,6 +2089,78 @@
    "map/forest/14",
    "map/forest/15",
    "map/forest/16"
+  ],
+  "tropical": [
+   "map/tropical/1",
+   "map/tropical/2",
+   "map/tropical/3",
+   "map/tropical/4",
+   "map/tropical/5",
+   "map/tropical/6",
+   "map/tropical/7",
+   "map/tropical/8",
+   "map/tropical/9",
+   "map/tropical/10",
+   "map/tropical/11",
+   "map/tropical/12",
+   "map/tropical/13",
+   "map/tropical/14",
+   "map/tropical/15",
+   "map/tropical/16"
+  ],
+  "desert": [
+   "map/desert/1",
+   "map/desert/2",
+   "map/desert/3",
+   "map/desert/4",
+   "map/desert/5",
+   "map/desert/6",
+   "map/desert/7",
+   "map/desert/8",
+   "map/desert/9",
+   "map/desert/10",
+   "map/desert/11",
+   "map/desert/12",
+   "map/desert/13",
+   "map/desert/14",
+   "map/desert/15",
+   "map/desert/16"
+  ],
+  "mountains": [
+   "map/mountains/1",
+   "map/mountains/2",
+   "map/mountains/3",
+   "map/mountains/4",
+   "map/mountains/5",
+   "map/mountains/6",
+   "map/mountains/7",
+   "map/mountains/8",
+   "map/mountains/9",
+   "map/mountains/10",
+   "map/mountains/11",
+   "map/mountains/12",
+   "map/mountains/13",
+   "map/mountains/14",
+   "map/mountains/15",
+   "map/mountains/16"
+  ],
+  "wastelands": [
+   "map/wastelands/1",
+   "map/wastelands/2",
+   "map/wastelands/3",
+   "map/wastelands/4",
+   "map/wastelands/5",
+   "map/wastelands/6",
+   "map/wastelands/7",
+   "map/wastelands/8",
+   "map/wastelands/9",
+   "map/wastelands/10",
+   "map/wastelands/11",
+   "map/wastelands/12",
+   "map/wastelands/13",
+   "map/wastelands/14",
+   "map/wastelands/15",
+   "map/wastelands/16"
   ],
   "village": [
    "map/village/1",
@@ -766,6 +2222,104 @@
     "map/forest/scenery/ground-3@2x",
     "map/forest/scenery/ground-4@2x"
    ]
+  },
+  "tropical": {
+   "tall": [
+    "map/tropical/scenery/tall-1@2x",
+    "map/tropical/scenery/tall-2@2x",
+    "map/tropical/scenery/tall-3@2x",
+    "map/tropical/scenery/tall-4@2x",
+    "map/tropical/scenery/tall-5@2x",
+    "map/tropical/scenery/tall-6@2x",
+    "map/tropical/scenery/tall-7@2x",
+    "map/tropical/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/tropical/scenery/low-1@2x",
+    "map/tropical/scenery/low-2@2x",
+    "map/tropical/scenery/low-3@2x",
+    "map/tropical/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/tropical/scenery/ground-1@2x",
+    "map/tropical/scenery/ground-2@2x",
+    "map/tropical/scenery/ground-3@2x",
+    "map/tropical/scenery/ground-4@2x"
+   ]
+  },
+  "desert": {
+   "tall": [
+    "map/desert/scenery/tall-1@2x",
+    "map/desert/scenery/tall-2@2x",
+    "map/desert/scenery/tall-3@2x",
+    "map/desert/scenery/tall-4@2x",
+    "map/desert/scenery/tall-5@2x",
+    "map/desert/scenery/tall-6@2x",
+    "map/desert/scenery/tall-7@2x",
+    "map/desert/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/desert/scenery/low-1@2x",
+    "map/desert/scenery/low-2@2x",
+    "map/desert/scenery/low-3@2x",
+    "map/desert/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/desert/scenery/ground-1@2x",
+    "map/desert/scenery/ground-2@2x",
+    "map/desert/scenery/ground-3@2x",
+    "map/desert/scenery/ground-4@2x",
+    "map/desert/scenery/ground-5@2x"
+   ]
+  },
+  "mountains": {
+   "tall": [
+    "map/mountains/scenery/tall-1@2x",
+    "map/mountains/scenery/tall-2@2x",
+    "map/mountains/scenery/tall-3@2x",
+    "map/mountains/scenery/tall-4@2x",
+    "map/mountains/scenery/tall-5@2x",
+    "map/mountains/scenery/tall-6@2x",
+    "map/mountains/scenery/tall-7@2x",
+    "map/mountains/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/mountains/scenery/low-1@2x",
+    "map/mountains/scenery/low-2@2x",
+    "map/mountains/scenery/low-3@2x",
+    "map/mountains/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/mountains/scenery/ground-1@2x",
+    "map/mountains/scenery/ground-2@2x",
+    "map/mountains/scenery/ground-3@2x",
+    "map/mountains/scenery/ground-4@2x"
+   ]
+  },
+  "wastelands": {
+   "tall": [
+    "map/wastelands/scenery/tall-1@2x",
+    "map/wastelands/scenery/tall-2@2x",
+    "map/wastelands/scenery/tall-3@2x",
+    "map/wastelands/scenery/tall-4@2x",
+    "map/wastelands/scenery/tall-5@2x",
+    "map/wastelands/scenery/tall-6@2x",
+    "map/wastelands/scenery/tall-7@2x",
+    "map/wastelands/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/wastelands/scenery/low-1@2x",
+    "map/wastelands/scenery/low-2@2x",
+    "map/wastelands/scenery/low-3@2x",
+    "map/wastelands/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/wastelands/scenery/ground-1@2x",
+    "map/wastelands/scenery/ground-2@2x",
+    "map/wastelands/scenery/ground-3@2x",
+    "map/wastelands/scenery/ground-4@2x",
+    "map/wastelands/scenery/ground-5@2x"
+   ]
   }
  },
  "props": {
@@ -797,6 +2351,62 @@
    "props/forest/10",
    "props/forest/11",
    "props/forest/12"
+  ],
+  "tropical": [
+   "props/tropical/1",
+   "props/tropical/2",
+   "props/tropical/3",
+   "props/tropical/4",
+   "props/tropical/5",
+   "props/tropical/6",
+   "props/tropical/7",
+   "props/tropical/8",
+   "props/tropical/9",
+   "props/tropical/10",
+   "props/tropical/11",
+   "props/tropical/12"
+  ],
+  "desert": [
+   "props/desert/1",
+   "props/desert/2",
+   "props/desert/3",
+   "props/desert/4",
+   "props/desert/5",
+   "props/desert/6",
+   "props/desert/7",
+   "props/desert/8",
+   "props/desert/9",
+   "props/desert/10",
+   "props/desert/11",
+   "props/desert/12"
+  ],
+  "mountains": [
+   "props/mountains/1",
+   "props/mountains/2",
+   "props/mountains/3",
+   "props/mountains/4",
+   "props/mountains/5",
+   "props/mountains/6",
+   "props/mountains/7",
+   "props/mountains/8",
+   "props/mountains/9",
+   "props/mountains/10",
+   "props/mountains/11",
+   "props/mountains/12"
+  ],
+  "wastelands": [
+   "props/wastelands/1",
+   "props/wastelands/2",
+   "props/wastelands/3",
+   "props/wastelands/4",
+   "props/wastelands/5",
+   "props/wastelands/6",
+   "props/wastelands/7",
+   "props/wastelands/8",
+   "props/wastelands/9",
+   "props/wastelands/10",
+   "props/wastelands/11",
+   "props/wastelands/12"
   ]
  },
  "battle": {
@@ -833,6 +2443,75 @@
    ],
    "floor": "battle/forest/floor",
    "floorLine": 0.33926453143534996
+  },
+  "tropical": {
+   "bands": [
+    "battle/tropical/far",
+    "battle/tropical/middle",
+    "battle/tropical/near"
+   ],
+   "landmarks": [
+    "battle/tropical/landmarks/1",
+    "battle/tropical/landmarks/2",
+    "battle/tropical/landmarks/3",
+    "battle/tropical/landmarks/4",
+    "battle/tropical/landmarks/5",
+    "battle/tropical/landmarks/6"
+   ],
+   "floor": "battle/tropical/floor",
+   "floorLine": 0.41866913123844735
+  },
+  "desert": {
+   "bands": [
+    "battle/desert/far",
+    "battle/desert/middle",
+    "battle/desert/near"
+   ],
+   "landmarks": [
+    "battle/desert/landmarks/1",
+    "battle/desert/landmarks/2",
+    "battle/desert/landmarks/3",
+    "battle/desert/landmarks/4",
+    "battle/desert/landmarks/5",
+    "battle/desert/landmarks/6"
+   ],
+   "floor": "battle/desert/floor",
+   "floorLine": 0.2775800711743772
+  },
+  "mountains": {
+   "bands": [
+    "battle/mountains/far",
+    "battle/mountains/middle",
+    "battle/mountains/near"
+   ],
+   "landmarks": [
+    "battle/mountains/landmarks/1",
+    "battle/mountains/landmarks/2",
+    "battle/mountains/landmarks/3",
+    "battle/mountains/landmarks/4",
+    "battle/mountains/landmarks/5",
+    "battle/mountains/landmarks/6"
+   ],
+   "floor": "battle/mountains/floor",
+   "floorLine": 0.39914529914529917
+  },
+  "wastelands": {
+   "bands": [
+    "battle/wastelands/far",
+    "battle/wastelands/middle",
+    "battle/wastelands/near"
+   ],
+   "landmarks": [
+    "battle/wastelands/landmarks/1",
+    "battle/wastelands/landmarks/2",
+    "battle/wastelands/landmarks/3",
+    "battle/wastelands/landmarks/4",
+    "battle/wastelands/landmarks/5",
+    "battle/wastelands/landmarks/6",
+    "battle/wastelands/landmarks/7"
+   ],
+   "floor": "battle/wastelands/floor",
+   "floorLine": 0.2937443336355394
   }
  },
  "parts": {
@@ -917,6 +2596,141 @@
     "height": 397
    }
   ],
+  "heroes/brann/body": [
+   {
+    "id": "heroes/brann/body",
+    "x": 17,
+    "y": 134,
+    "width": 1000,
+    "height": 1328
+   }
+  ],
+  "heroes/brann/arm": [
+   {
+    "id": "heroes/brann/arm",
+    "x": 165,
+    "y": 44,
+    "width": 667,
+    "height": 927
+   }
+  ],
+  "heroes/brann/weapons/axe": [
+   {
+    "id": "heroes/brann/weapons/axe",
+    "x": 354,
+    "y": 8,
+    "width": 1339,
+    "height": 496
+   }
+  ],
+  "heroes/brann/weapons/maul": [
+   {
+    "id": "heroes/brann/weapons/maul",
+    "x": 282,
+    "y": 9,
+    "width": 1484,
+    "height": 497
+   }
+  ],
+  "heroes/brann/weapons/hatchets": [
+   {
+    "id": "heroes/brann/weapons/hatchets",
+    "x": 339,
+    "y": 47,
+    "width": 1378,
+    "height": 437
+   }
+  ],
+  "heroes/oren/body": [
+   {
+    "id": "heroes/oren/body",
+    "x": 103,
+    "y": 199,
+    "width": 911,
+    "height": 1247
+   }
+  ],
+  "heroes/oren/arm": [
+   {
+    "id": "heroes/oren/arm",
+    "x": 146,
+    "y": 112,
+    "width": 750,
+    "height": 809
+   }
+  ],
+  "heroes/oren/weapons/root-sickle": [
+   {
+    "id": "heroes/oren/weapons/root-sickle",
+    "x": 284,
+    "y": 23,
+    "width": 1480,
+    "height": 451
+   }
+  ],
+  "heroes/oren/weapons/scythe": [
+   {
+    "id": "heroes/oren/weapons/scythe",
+    "x": 272,
+    "y": 32,
+    "width": 1506,
+    "height": 448
+   }
+  ],
+  "heroes/oren/weapons/thorn-sickle": [
+   {
+    "id": "heroes/oren/weapons/thorn-sickle",
+    "x": 287,
+    "y": 84,
+    "width": 1474,
+    "height": 327
+   }
+  ],
+  "heroes/ysolde/body": [
+   {
+    "id": "heroes/ysolde/body",
+    "x": 7,
+    "y": 90,
+    "width": 894,
+    "height": 1411
+   }
+  ],
+  "heroes/ysolde/arm": [
+   {
+    "id": "heroes/ysolde/arm",
+    "x": 189,
+    "y": 104,
+    "width": 597,
+    "height": 826
+   }
+  ],
+  "heroes/ysolde/weapons/tome": [
+   {
+    "id": "heroes/ysolde/weapons/tome",
+    "x": 420,
+    "y": 26,
+    "width": 1193,
+    "height": 460
+   }
+  ],
+  "heroes/ysolde/weapons/codex": [
+   {
+    "id": "heroes/ysolde/weapons/codex",
+    "x": 256,
+    "y": 0,
+    "width": 1454,
+    "height": 512
+   }
+  ],
+  "heroes/ysolde/weapons/grimoire": [
+   {
+    "id": "heroes/ysolde/weapons/grimoire",
+    "x": 256,
+    "y": 0,
+    "width": 1466,
+    "height": 512
+   }
+  ],
   "bosses/morgrath-parts": [
    {
     "id": "bosses/morgrath-parts/1",
@@ -966,6 +2780,322 @@
     "y": 50,
     "width": 205,
     "height": 517
+   }
+  ],
+  "bosses/sahrak-parts": [
+   {
+    "id": "bosses/sahrak-parts/1",
+    "x": 80,
+    "y": 1067,
+    "width": 314,
+    "height": 364
+   },
+   {
+    "id": "bosses/sahrak-parts/2",
+    "x": 115,
+    "y": 52,
+    "width": 521,
+    "height": 553
+   },
+   {
+    "id": "bosses/sahrak-parts/3",
+    "x": 186,
+    "y": 811,
+    "width": 266,
+    "height": 258
+   },
+   {
+    "id": "bosses/sahrak-parts/4",
+    "x": 542,
+    "y": 1078,
+    "width": 333,
+    "height": 363
+   },
+   {
+    "id": "bosses/sahrak-parts/5",
+    "x": 569,
+    "y": 811,
+    "width": 267,
+    "height": 267
+   },
+   {
+    "id": "bosses/sahrak-parts/6",
+    "x": 742,
+    "y": 145,
+    "width": 538,
+    "height": 610
+   },
+   {
+    "id": "bosses/sahrak-parts/7",
+    "x": 971,
+    "y": 909,
+    "width": 953,
+    "height": 460
+   },
+   {
+    "id": "bosses/sahrak-parts/8",
+    "x": 1431,
+    "y": 59,
+    "width": 538,
+    "height": 817
+   },
+   {
+    "id": "bosses/sahrak-parts/9",
+    "x": 248,
+    "y": 1460,
+    "width": 273,
+    "height": 241
+   },
+   {
+    "id": "bosses/sahrak-parts/10",
+    "x": 680,
+    "y": 1460,
+    "width": 272,
+    "height": 242
+   },
+   {
+    "id": "bosses/sahrak-parts/11",
+    "x": 1118,
+    "y": 1456,
+    "width": 280,
+    "height": 246
+   },
+   {
+    "id": "bosses/sahrak-parts/12",
+    "x": 1540,
+    "y": 1456,
+    "width": 271,
+    "height": 246
+   },
+   {
+    "id": "bosses/sahrak-parts/13",
+    "x": 268,
+    "y": 1709,
+    "width": 170,
+    "height": 306
+   },
+   {
+    "id": "bosses/sahrak-parts/14",
+    "x": 720,
+    "y": 1709,
+    "width": 157,
+    "height": 306
+   },
+   {
+    "id": "bosses/sahrak-parts/15",
+    "x": 1158,
+    "y": 1710,
+    "width": 152,
+    "height": 309
+   },
+   {
+    "id": "bosses/sahrak-parts/16",
+    "x": 1601,
+    "y": 1710,
+    "width": 141,
+    "height": 309
+   }
+  ],
+  "bosses/xalqui-parts": [
+   {
+    "id": "bosses/xalqui-parts/1",
+    "x": 109,
+    "y": 111,
+    "width": 1038,
+    "height": 804
+   },
+   {
+    "id": "bosses/xalqui-parts/2",
+    "x": 1209,
+    "y": 174,
+    "width": 610,
+    "height": 924
+   },
+   {
+    "id": "bosses/xalqui-parts/3",
+    "x": 31,
+    "y": 1312,
+    "width": 619,
+    "height": 506
+   },
+   {
+    "id": "bosses/xalqui-parts/4",
+    "x": 665,
+    "y": 1493,
+    "width": 659,
+    "height": 342
+   },
+   {
+    "id": "bosses/xalqui-parts/5",
+    "x": 1340,
+    "y": 1374,
+    "width": 269,
+    "height": 501
+   },
+   {
+    "id": "bosses/xalqui-parts/6",
+    "x": 1611,
+    "y": 1180,
+    "width": 409,
+    "height": 679
+   }
+  ],
+  "bosses/colossus-parts": [
+   {
+    "id": "bosses/colossus-parts/1",
+    "x": 447,
+    "y": 84,
+    "width": 509,
+    "height": 687
+   },
+   {
+    "id": "bosses/colossus-parts/2",
+    "x": 1076,
+    "y": 62,
+    "width": 614,
+    "height": 751
+   },
+   {
+    "id": "bosses/colossus-parts/3",
+    "x": 37,
+    "y": 840,
+    "width": 365,
+    "height": 483
+   },
+   {
+    "id": "bosses/colossus-parts/4",
+    "x": 460,
+    "y": 988,
+    "width": 505,
+    "height": 364
+   },
+   {
+    "id": "bosses/colossus-parts/5",
+    "x": 1060,
+    "y": 844,
+    "width": 375,
+    "height": 484
+   },
+   {
+    "id": "bosses/colossus-parts/6",
+    "x": 1503,
+    "y": 995,
+    "width": 484,
+    "height": 393
+   },
+   {
+    "id": "bosses/colossus-parts/7",
+    "x": 125,
+    "y": 1433,
+    "width": 359,
+    "height": 426
+   },
+   {
+    "id": "bosses/colossus-parts/8",
+    "x": 444,
+    "y": 1509,
+    "width": 443,
+    "height": 474
+   },
+   {
+    "id": "bosses/colossus-parts/9",
+    "x": 1052,
+    "y": 1423,
+    "width": 363,
+    "height": 423
+   },
+   {
+    "id": "bosses/colossus-parts/10",
+    "x": 1480,
+    "y": 1507,
+    "width": 453,
+    "height": 470
+   }
+  ],
+  "bosses/vael-parts": [
+   {
+    "id": "bosses/vael-parts/1",
+    "x": 169,
+    "y": 64,
+    "width": 489,
+    "height": 577
+   },
+   {
+    "id": "bosses/vael-parts/2",
+    "x": 212,
+    "y": 705,
+    "width": 265,
+    "height": 312
+   },
+   {
+    "id": "bosses/vael-parts/3",
+    "x": 563,
+    "y": 794,
+    "width": 342,
+    "height": 207
+   },
+   {
+    "id": "bosses/vael-parts/4",
+    "x": 771,
+    "y": 107,
+    "width": 506,
+    "height": 591
+   },
+   {
+    "id": "bosses/vael-parts/5",
+    "x": 1110,
+    "y": 709,
+    "width": 270,
+    "height": 313
+   },
+   {
+    "id": "bosses/vael-parts/6",
+    "x": 1361,
+    "y": 126,
+    "width": 608,
+    "height": 592
+   },
+   {
+    "id": "bosses/vael-parts/7",
+    "x": 1478,
+    "y": 817,
+    "width": 352,
+    "height": 191
+   },
+   {
+    "id": "bosses/vael-parts/8",
+    "x": 187,
+    "y": 1074,
+    "width": 264,
+    "height": 396
+   },
+   {
+    "id": "bosses/vael-parts/9",
+    "x": 539,
+    "y": 1124,
+    "width": 309,
+    "height": 337
+   },
+   {
+    "id": "bosses/vael-parts/10",
+    "x": 1160,
+    "y": 1079,
+    "width": 254,
+    "height": 391
+   },
+   {
+    "id": "bosses/vael-parts/11",
+    "x": 1546,
+    "y": 1124,
+    "width": 311,
+    "height": 338
+   },
+   {
+    "id": "bosses/vael-parts/12",
+    "x": 279,
+    "y": 1529,
+    "width": 1493,
+    "height": 397
    }
   ]
  },

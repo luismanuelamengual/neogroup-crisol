@@ -1,3 +1,4 @@
+import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { ITEMS } from '@/app/(protected)/(engine)/data/items'
 import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
@@ -108,14 +109,14 @@ const TILES: Record<Terrain, string> = {
   [Terrain.BLIGHT]:
     'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes'
 }
-/** Where each hero joins: their pieces go with that biome's batch. */
-const HERO_BATCH: Record<CharacterId, Biome> = {
+/**
+ * Where each hero joins: their pieces go with that biome's batch. Kael starts
+ * in the meadows; the others join in the biome of the boss that holds them.
+ */
+const HERO_BATCH = {
   [CharacterId.KAEL]: Biome.MEADOWS,
-  [CharacterId.SERA]: Biome.FOREST,
-  [CharacterId.BRANN]: Biome.DESERT,
-  [CharacterId.OREN]: Biome.SNOW,
-  [CharacterId.YSOLDE]: Biome.VOLCANIC
-}
+  ...Object.fromEntries(BIOMES.flatMap(({ biome, captor }) => (captor ? [[captor.captive, biome]] : [])))
+} as Record<CharacterId, Biome>
 /**
  * How each weapon is drawn for the puppet: lying horizontal (rigs.ts turns
  * the bows upright, with the string towards the archer).
