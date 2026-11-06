@@ -204,6 +204,30 @@
    "width": 512,
    "height": 489
   },
+  "enemies/yeti": {
+   "width": 512,
+   "height": 509
+  },
+  "enemies/frost-wolf": {
+   "width": 512,
+   "height": 444
+  },
+  "enemies/ice-wisp": {
+   "width": 442,
+   "height": 512
+  },
+  "enemies/salamander": {
+   "width": 512,
+   "height": 322
+  },
+  "enemies/magma-elemental": {
+   "width": 453,
+   "height": 512
+  },
+  "enemies/young-dragon": {
+   "width": 512,
+   "height": 413
+  },
   "enemies/ghoul": {
    "width": 497,
    "height": 512
@@ -331,6 +355,54 @@
   "enemies/stone-basilisk": {
    "width": 512,
    "height": 302
+  },
+  "enemies/snow-troll": {
+   "width": 512,
+   "height": 470
+  },
+  "enemies/ice-wraith": {
+   "width": 512,
+   "height": 511
+  },
+  "enemies/frost-giant": {
+   "width": 512,
+   "height": 509
+  },
+  "enemies/polar-bear": {
+   "width": 512,
+   "height": 460
+  },
+  "enemies/snow-harpy": {
+   "width": 512,
+   "height": 498
+  },
+  "enemies/frozen-shaman": {
+   "width": 485,
+   "height": 512
+  },
+  "enemies/fire-imp": {
+   "width": 512,
+   "height": 460
+  },
+  "enemies/lava-golem": {
+   "width": 512,
+   "height": 491
+  },
+  "enemies/ash-wraith": {
+   "width": 478,
+   "height": 512
+  },
+  "enemies/hellhound": {
+   "width": 512,
+   "height": 425
+  },
+  "enemies/obsidian-knight": {
+   "width": 512,
+   "height": 490
+  },
+  "enemies/flame-priest": {
+   "width": 512,
+   "height": 497
   },
   "enemies/banshee": {
    "width": 512,
@@ -467,6 +539,106 @@
   "bosses/sahrak-parts/16": {
    "width": 71,
    "height": 155
+  },
+  "bosses/vorneth": {
+   "width": 900,
+   "height": 891
+  },
+  "bosses/vorneth-parts/1": {
+   "width": 379,
+   "height": 334
+  },
+  "bosses/vorneth-parts/2": {
+   "width": 336,
+   "height": 330
+  },
+  "bosses/vorneth-parts/3": {
+   "width": 273,
+   "height": 453
+  },
+  "bosses/vorneth-parts/4": {
+   "width": 422,
+   "height": 337
+  },
+  "bosses/vorneth-parts/5": {
+   "width": 274,
+   "height": 162
+  },
+  "bosses/vorneth-parts/6": {
+   "width": 41,
+   "height": 46
+  },
+  "bosses/vorneth-parts/7": {
+   "width": 39,
+   "height": 43
+  },
+  "bosses/vorneth-parts/8": {
+   "width": 167,
+   "height": 151
+  },
+  "bosses/vorneth-parts/9": {
+   "width": 145,
+   "height": 63
+  },
+  "bosses/vorneth-parts/10": {
+   "width": 147,
+   "height": 151
+  },
+  "bosses/vorneth-parts/11": {
+   "width": 136,
+   "height": 69
+  },
+  "bosses/vorneth-parts/12": {
+   "width": 282,
+   "height": 146
+  },
+  "bosses/ignaroth": {
+   "width": 898,
+   "height": 900
+  },
+  "bosses/ignaroth-parts/1": {
+   "width": 179,
+   "height": 155
+  },
+  "bosses/ignaroth-parts/2": {
+   "width": 306,
+   "height": 379
+  },
+  "bosses/ignaroth-parts/3": {
+   "width": 199,
+   "height": 173
+  },
+  "bosses/ignaroth-parts/4": {
+   "width": 322,
+   "height": 375
+  },
+  "bosses/ignaroth-parts/5": {
+   "width": 191,
+   "height": 158
+  },
+  "bosses/ignaroth-parts/6": {
+   "width": 200,
+   "height": 144
+  },
+  "bosses/ignaroth-parts/7": {
+   "width": 156,
+   "height": 189
+  },
+  "bosses/ignaroth-parts/8": {
+   "width": 182,
+   "height": 189
+  },
+  "bosses/ignaroth-parts/9": {
+   "width": 161,
+   "height": 187
+  },
+  "bosses/ignaroth-parts/10": {
+   "width": 186,
+   "height": 187
+  },
+  "bosses/ignaroth-parts/11": {
+   "width": 349,
+   "height": 201
   },
   "bosses/xalqui": {
    "width": 895,
@@ -640,6 +812,26 @@
    "width": 900,
    "height": 892
   },
+  "bosses/winter-witch": {
+   "width": 900,
+   "height": 889
+  },
+  "bosses/ice-troll-king": {
+   "width": 900,
+   "height": 812
+  },
+  "bosses/ancient-mammoth": {
+   "width": 900,
+   "height": 801
+  },
+  "bosses/fire-drake": {
+   "width": 900,
+   "height": 879
+  },
+  "bosses/magma-behemoth": {
+   "width": 900,
+   "height": 786
+  },
   "bosses/lich": {
    "width": 889,
    "height": 900
@@ -668,6 +860,18 @@
    "width": 900,
    "height": 882
   },
+  "bosses/ember-sentinel": {
+   "width": 900,
+   "height": 894
+  },
+  "bosses/phoenix": {
+   "width": 900,
+   "height": 881
+  },
+  "bosses/frost-sentinel": {
+   "width": 900,
+   "height": 895
+  },
   "bosses/death-knight": {
    "width": 900,
    "height": 856
@@ -695,6 +899,14 @@
   "bosses/granite-warden": {
    "width": 900,
    "height": 879
+  },
+  "bosses/frost-reaver": {
+   "width": 900,
+   "height": 809
+  },
+  "bosses/ashen-seraph": {
+   "width": 900,
+   "height": 876
   },
   "bosses/thorn-widow": {
    "width": 900,
@@ -903,6 +1115,86 @@
   "battle/mountains/landmarks/6": {
    "width": 630,
    "height": 622
+  },
+  "battle/snow/far": {
+   "width": 2048,
+   "height": 390
+  },
+  "battle/snow/middle": {
+   "width": 2048,
+   "height": 428
+  },
+  "battle/snow/near": {
+   "width": 2048,
+   "height": 259
+  },
+  "battle/snow/floor": {
+   "width": 2048,
+   "height": 978
+  },
+  "battle/snow/landmarks/1": {
+   "width": 530,
+   "height": 640
+  },
+  "battle/snow/landmarks/2": {
+   "width": 640,
+   "height": 586
+  },
+  "battle/snow/landmarks/3": {
+   "width": 466,
+   "height": 640
+  },
+  "battle/snow/landmarks/4": {
+   "width": 640,
+   "height": 391
+  },
+  "battle/snow/landmarks/5": {
+   "width": 640,
+   "height": 420
+  },
+  "battle/snow/landmarks/6": {
+   "width": 426,
+   "height": 640
+  },
+  "battle/volcanic/far": {
+   "width": 2048,
+   "height": 435
+  },
+  "battle/volcanic/middle": {
+   "width": 2048,
+   "height": 422
+  },
+  "battle/volcanic/near": {
+   "width": 2048,
+   "height": 263
+  },
+  "battle/volcanic/floor": {
+   "width": 2048,
+   "height": 882
+  },
+  "battle/volcanic/landmarks/1": {
+   "width": 597,
+   "height": 604
+  },
+  "battle/volcanic/landmarks/2": {
+   "width": 640,
+   "height": 627
+  },
+  "battle/volcanic/landmarks/3": {
+   "width": 640,
+   "height": 617
+  },
+  "battle/volcanic/landmarks/4": {
+   "width": 464,
+   "height": 640
+  },
+  "battle/volcanic/landmarks/5": {
+   "width": 640,
+   "height": 331
+  },
+  "battle/volcanic/landmarks/6": {
+   "width": 640,
+   "height": 494
   },
   "battle/wastelands/far": {
    "width": 2048,
@@ -1267,6 +1559,134 @@
   "map/mountains/16": {
    "width": 226,
    "height": 256
+  },
+  "map/snow/1": {
+   "width": 204,
+   "height": 256
+  },
+  "map/snow/2": {
+   "width": 197,
+   "height": 256
+  },
+  "map/snow/3": {
+   "width": 208,
+   "height": 256
+  },
+  "map/snow/4": {
+   "width": 212,
+   "height": 256
+  },
+  "map/snow/5": {
+   "width": 230,
+   "height": 256
+  },
+  "map/snow/6": {
+   "width": 256,
+   "height": 228
+  },
+  "map/snow/7": {
+   "width": 252,
+   "height": 256
+  },
+  "map/snow/8": {
+   "width": 256,
+   "height": 184
+  },
+  "map/snow/9": {
+   "width": 256,
+   "height": 186
+  },
+  "map/snow/10": {
+   "width": 256,
+   "height": 176
+  },
+  "map/snow/11": {
+   "width": 256,
+   "height": 191
+  },
+  "map/snow/12": {
+   "width": 256,
+   "height": 131
+  },
+  "map/snow/13": {
+   "width": 256,
+   "height": 144
+  },
+  "map/snow/14": {
+   "width": 196,
+   "height": 256
+  },
+  "map/snow/15": {
+   "width": 256,
+   "height": 193
+  },
+  "map/snow/16": {
+   "width": 256,
+   "height": 187
+  },
+  "map/volcanic/1": {
+   "width": 247,
+   "height": 256
+  },
+  "map/volcanic/2": {
+   "width": 251,
+   "height": 256
+  },
+  "map/volcanic/3": {
+   "width": 250,
+   "height": 256
+  },
+  "map/volcanic/4": {
+   "width": 256,
+   "height": 243
+  },
+  "map/volcanic/5": {
+   "width": 252,
+   "height": 256
+  },
+  "map/volcanic/6": {
+   "width": 256,
+   "height": 247
+  },
+  "map/volcanic/7": {
+   "width": 256,
+   "height": 168
+  },
+  "map/volcanic/8": {
+   "width": 256,
+   "height": 163
+  },
+  "map/volcanic/9": {
+   "width": 256,
+   "height": 165
+  },
+  "map/volcanic/10": {
+   "width": 256,
+   "height": 220
+  },
+  "map/volcanic/11": {
+   "width": 256,
+   "height": 213
+  },
+  "map/volcanic/12": {
+   "width": 249,
+   "height": 256
+  },
+  "map/volcanic/13": {
+   "width": 235,
+   "height": 256
+  },
+  "map/volcanic/14": {
+   "width": 212,
+   "height": 256
+  },
+  "map/volcanic/15": {
+   "width": 198,
+   "height": 256
+  },
+  "map/volcanic/16": {
+   "width": 256,
+   "height": 227
   },
   "map/wastelands/1": {
    "width": 256,
@@ -1692,6 +2112,150 @@
    "width": 64,
    "height": 34
   },
+  "map/snow/scenery/tall-1@2x": {
+   "width": 281,
+   "height": 328
+  },
+  "map/snow/scenery/tall-2@2x": {
+   "width": 267,
+   "height": 328
+  },
+  "map/snow/scenery/tall-3@2x": {
+   "width": 269,
+   "height": 305
+  },
+  "map/snow/scenery/tall-4@2x": {
+   "width": 226,
+   "height": 328
+  },
+  "map/snow/scenery/tall-5@2x": {
+   "width": 322,
+   "height": 328
+  },
+  "map/snow/scenery/tall-6@2x": {
+   "width": 241,
+   "height": 328
+  },
+  "map/snow/scenery/tall-7@2x": {
+   "width": 251,
+   "height": 328
+  },
+  "map/snow/scenery/tall-8@2x": {
+   "width": 230,
+   "height": 328
+  },
+  "map/snow/scenery/low-1@2x": {
+   "width": 160,
+   "height": 142
+  },
+  "map/snow/scenery/low-2@2x": {
+   "width": 160,
+   "height": 114
+  },
+  "map/snow/scenery/low-3@2x": {
+   "width": 160,
+   "height": 123
+  },
+  "map/snow/scenery/low-4@2x": {
+   "width": 158,
+   "height": 160
+  },
+  "map/snow/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 41
+  },
+  "map/snow/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 38
+  },
+  "map/snow/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 38
+  },
+  "map/snow/scenery/ground-4@2x": {
+   "width": 62,
+   "height": 64
+  },
+  "map/volcanic/scenery/tall-1@2x": {
+   "width": 292,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-2@2x": {
+   "width": 249,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-3@2x": {
+   "width": 328,
+   "height": 318
+  },
+  "map/volcanic/scenery/tall-4@2x": {
+   "width": 291,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-5@2x": {
+   "width": 295,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-6@2x": {
+   "width": 328,
+   "height": 288
+  },
+  "map/volcanic/scenery/tall-7@2x": {
+   "width": 229,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-8@2x": {
+   "width": 223,
+   "height": 328
+  },
+  "map/volcanic/scenery/tall-9@2x": {
+   "width": 64,
+   "height": 73
+  },
+  "map/volcanic/scenery/low-1@2x": {
+   "width": 160,
+   "height": 141
+  },
+  "map/volcanic/scenery/low-2@2x": {
+   "width": 160,
+   "height": 139
+  },
+  "map/volcanic/scenery/low-3@2x": {
+   "width": 160,
+   "height": 138
+  },
+  "map/volcanic/scenery/low-4@2x": {
+   "width": 160,
+   "height": 147
+  },
+  "map/volcanic/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 39
+  },
+  "map/volcanic/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 39
+  },
+  "map/volcanic/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/volcanic/scenery/ground-4@2x": {
+   "width": 43,
+   "height": 64
+  },
+  "map/volcanic/scenery/ground-5@2x": {
+   "width": 64,
+   "height": 38
+  },
+  "map/volcanic/scenery/ground-6@2x": {
+   "width": 64,
+   "height": 40
+  },
+  "map/volcanic/scenery/ground-7@2x": {
+   "width": 64,
+   "height": 30
+  },
   "map/wastelands/scenery/tall-1@2x": {
    "width": 269,
    "height": 328
@@ -2004,6 +2568,102 @@
    "width": 315,
    "height": 191
   },
+  "props/snow/1": {
+   "width": 185,
+   "height": 297
+  },
+  "props/snow/2": {
+   "width": 209,
+   "height": 264
+  },
+  "props/snow/3": {
+   "width": 248,
+   "height": 273
+  },
+  "props/snow/4": {
+   "width": 191,
+   "height": 221
+  },
+  "props/snow/5": {
+   "width": 164,
+   "height": 194
+  },
+  "props/snow/6": {
+   "width": 208,
+   "height": 170
+  },
+  "props/snow/7": {
+   "width": 237,
+   "height": 138
+  },
+  "props/snow/8": {
+   "width": 221,
+   "height": 264
+  },
+  "props/snow/9": {
+   "width": 218,
+   "height": 250
+  },
+  "props/snow/10": {
+   "width": 252,
+   "height": 114
+  },
+  "props/snow/11": {
+   "width": 224,
+   "height": 263
+  },
+  "props/snow/12": {
+   "width": 304,
+   "height": 166
+  },
+  "props/volcanic/1": {
+   "width": 286,
+   "height": 244
+  },
+  "props/volcanic/2": {
+   "width": 233,
+   "height": 195
+  },
+  "props/volcanic/3": {
+   "width": 205,
+   "height": 239
+  },
+  "props/volcanic/4": {
+   "width": 182,
+   "height": 206
+  },
+  "props/volcanic/5": {
+   "width": 239,
+   "height": 180
+  },
+  "props/volcanic/6": {
+   "width": 229,
+   "height": 128
+  },
+  "props/volcanic/7": {
+   "width": 235,
+   "height": 214
+  },
+  "props/volcanic/8": {
+   "width": 255,
+   "height": 163
+  },
+  "props/volcanic/9": {
+   "width": 261,
+   "height": 148
+  },
+  "props/volcanic/10": {
+   "width": 307,
+   "height": 126
+  },
+  "props/volcanic/11": {
+   "width": 274,
+   "height": 166
+  },
+  "props/volcanic/12": {
+   "width": 204,
+   "height": 208
+  },
   "props/wastelands/1": {
    "width": 294,
    "height": 299
@@ -2143,6 +2803,42 @@
    "map/mountains/14",
    "map/mountains/15",
    "map/mountains/16"
+  ],
+  "snow": [
+   "map/snow/1",
+   "map/snow/2",
+   "map/snow/3",
+   "map/snow/4",
+   "map/snow/5",
+   "map/snow/6",
+   "map/snow/7",
+   "map/snow/8",
+   "map/snow/9",
+   "map/snow/10",
+   "map/snow/11",
+   "map/snow/12",
+   "map/snow/13",
+   "map/snow/14",
+   "map/snow/15",
+   "map/snow/16"
+  ],
+  "volcanic": [
+   "map/volcanic/1",
+   "map/volcanic/2",
+   "map/volcanic/3",
+   "map/volcanic/4",
+   "map/volcanic/5",
+   "map/volcanic/6",
+   "map/volcanic/7",
+   "map/volcanic/8",
+   "map/volcanic/9",
+   "map/volcanic/10",
+   "map/volcanic/11",
+   "map/volcanic/12",
+   "map/volcanic/13",
+   "map/volcanic/14",
+   "map/volcanic/15",
+   "map/volcanic/16"
   ],
   "wastelands": [
    "map/wastelands/1",
@@ -2296,6 +2992,58 @@
     "map/mountains/scenery/ground-4@2x"
    ]
   },
+  "snow": {
+   "tall": [
+    "map/snow/scenery/tall-1@2x",
+    "map/snow/scenery/tall-2@2x",
+    "map/snow/scenery/tall-3@2x",
+    "map/snow/scenery/tall-4@2x",
+    "map/snow/scenery/tall-5@2x",
+    "map/snow/scenery/tall-6@2x",
+    "map/snow/scenery/tall-7@2x",
+    "map/snow/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/snow/scenery/low-1@2x",
+    "map/snow/scenery/low-2@2x",
+    "map/snow/scenery/low-3@2x",
+    "map/snow/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/snow/scenery/ground-1@2x",
+    "map/snow/scenery/ground-2@2x",
+    "map/snow/scenery/ground-3@2x",
+    "map/snow/scenery/ground-4@2x"
+   ]
+  },
+  "volcanic": {
+   "tall": [
+    "map/volcanic/scenery/tall-1@2x",
+    "map/volcanic/scenery/tall-2@2x",
+    "map/volcanic/scenery/tall-3@2x",
+    "map/volcanic/scenery/tall-4@2x",
+    "map/volcanic/scenery/tall-5@2x",
+    "map/volcanic/scenery/tall-6@2x",
+    "map/volcanic/scenery/tall-7@2x",
+    "map/volcanic/scenery/tall-8@2x",
+    "map/volcanic/scenery/tall-9@2x"
+   ],
+   "low": [
+    "map/volcanic/scenery/low-1@2x",
+    "map/volcanic/scenery/low-2@2x",
+    "map/volcanic/scenery/low-3@2x",
+    "map/volcanic/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/volcanic/scenery/ground-1@2x",
+    "map/volcanic/scenery/ground-2@2x",
+    "map/volcanic/scenery/ground-3@2x",
+    "map/volcanic/scenery/ground-4@2x",
+    "map/volcanic/scenery/ground-5@2x",
+    "map/volcanic/scenery/ground-6@2x",
+    "map/volcanic/scenery/ground-7@2x"
+   ]
+  },
   "wastelands": {
    "tall": [
     "map/wastelands/scenery/tall-1@2x",
@@ -2393,6 +3141,34 @@
    "props/mountains/10",
    "props/mountains/11",
    "props/mountains/12"
+  ],
+  "snow": [
+   "props/snow/1",
+   "props/snow/2",
+   "props/snow/3",
+   "props/snow/4",
+   "props/snow/5",
+   "props/snow/6",
+   "props/snow/7",
+   "props/snow/8",
+   "props/snow/9",
+   "props/snow/10",
+   "props/snow/11",
+   "props/snow/12"
+  ],
+  "volcanic": [
+   "props/volcanic/1",
+   "props/volcanic/2",
+   "props/volcanic/3",
+   "props/volcanic/4",
+   "props/volcanic/5",
+   "props/volcanic/6",
+   "props/volcanic/7",
+   "props/volcanic/8",
+   "props/volcanic/9",
+   "props/volcanic/10",
+   "props/volcanic/11",
+   "props/volcanic/12"
   ],
   "wastelands": [
    "props/wastelands/1",
@@ -2494,6 +3270,40 @@
    ],
    "floor": "battle/mountains/floor",
    "floorLine": 0.39914529914529917
+  },
+  "snow": {
+   "bands": [
+    "battle/snow/far",
+    "battle/snow/middle",
+    "battle/snow/near"
+   ],
+   "landmarks": [
+    "battle/snow/landmarks/1",
+    "battle/snow/landmarks/2",
+    "battle/snow/landmarks/3",
+    "battle/snow/landmarks/4",
+    "battle/snow/landmarks/5",
+    "battle/snow/landmarks/6"
+   ],
+   "floor": "battle/snow/floor",
+   "floorLine": 0.3802125919869174
+  },
+  "volcanic": {
+   "bands": [
+    "battle/volcanic/far",
+    "battle/volcanic/middle",
+    "battle/volcanic/near"
+   ],
+   "landmarks": [
+    "battle/volcanic/landmarks/1",
+    "battle/volcanic/landmarks/2",
+    "battle/volcanic/landmarks/3",
+    "battle/volcanic/landmarks/4",
+    "battle/volcanic/landmarks/5",
+    "battle/volcanic/landmarks/6"
+   ],
+   "floor": "battle/volcanic/floor",
+   "floorLine": 0.3590208522212149
   },
   "wastelands": {
    "bands": [
@@ -2894,6 +3704,171 @@
     "y": 1710,
     "width": 141,
     "height": 309
+   }
+  ],
+  "bosses/vorneth-parts": [
+   {
+    "id": "bosses/vorneth-parts/1",
+    "x": 72,
+    "y": 124,
+    "width": 758,
+    "height": 668
+   },
+   {
+    "id": "bosses/vorneth-parts/2",
+    "x": 81,
+    "y": 855,
+    "width": 672,
+    "height": 659
+   },
+   {
+    "id": "bosses/vorneth-parts/3",
+    "x": 738,
+    "y": 229,
+    "width": 546,
+    "height": 905
+   },
+   {
+    "id": "bosses/vorneth-parts/4",
+    "x": 1131,
+    "y": 799,
+    "width": 843,
+    "height": 673
+   },
+   {
+    "id": "bosses/vorneth-parts/5",
+    "x": 1421,
+    "y": 360,
+    "width": 547,
+    "height": 324
+   },
+   {
+    "id": "bosses/vorneth-parts/6",
+    "x": 1618,
+    "y": 297,
+    "width": 82,
+    "height": 91
+   },
+   {
+    "id": "bosses/vorneth-parts/7",
+    "x": 1718,
+    "y": 556,
+    "width": 77,
+    "height": 86
+   },
+   {
+    "id": "bosses/vorneth-parts/8",
+    "x": 70,
+    "y": 1594,
+    "width": 334,
+    "height": 301
+   },
+   {
+    "id": "bosses/vorneth-parts/9",
+    "x": 423,
+    "y": 1756,
+    "width": 290,
+    "height": 125
+   },
+   {
+    "id": "bosses/vorneth-parts/10",
+    "x": 778,
+    "y": 1594,
+    "width": 293,
+    "height": 301
+   },
+   {
+    "id": "bosses/vorneth-parts/11",
+    "x": 1083,
+    "y": 1753,
+    "width": 271,
+    "height": 137
+   },
+   {
+    "id": "bosses/vorneth-parts/12",
+    "x": 1415,
+    "y": 1606,
+    "width": 563,
+    "height": 291
+   }
+  ],
+  "bosses/ignaroth-parts": [
+   {
+    "id": "bosses/ignaroth-parts/1",
+    "x": 97,
+    "y": 830,
+    "width": 357,
+    "height": 310
+   },
+   {
+    "id": "bosses/ignaroth-parts/2",
+    "x": 263,
+    "y": 31,
+    "width": 612,
+    "height": 758
+   },
+   {
+    "id": "bosses/ignaroth-parts/3",
+    "x": 517,
+    "y": 828,
+    "width": 398,
+    "height": 345
+   },
+   {
+    "id": "bosses/ignaroth-parts/4",
+    "x": 1043,
+    "y": 84,
+    "width": 643,
+    "height": 749
+   },
+   {
+    "id": "bosses/ignaroth-parts/5",
+    "x": 1086,
+    "y": 847,
+    "width": 382,
+    "height": 316
+   },
+   {
+    "id": "bosses/ignaroth-parts/6",
+    "x": 1550,
+    "y": 865,
+    "width": 399,
+    "height": 288
+   },
+   {
+    "id": "bosses/ignaroth-parts/7",
+    "x": 152,
+    "y": 1210,
+    "width": 312,
+    "height": 377
+   },
+   {
+    "id": "bosses/ignaroth-parts/8",
+    "x": 502,
+    "y": 1210,
+    "width": 364,
+    "height": 377
+   },
+   {
+    "id": "bosses/ignaroth-parts/9",
+    "x": 1140,
+    "y": 1210,
+    "width": 321,
+    "height": 373
+   },
+   {
+    "id": "bosses/ignaroth-parts/10",
+    "x": 1508,
+    "y": 1213,
+    "width": 372,
+    "height": 374
+   },
+   {
+    "id": "bosses/ignaroth-parts/11",
+    "x": 664,
+    "y": 1623,
+    "width": 698,
+    "height": 402
    }
   ],
   "bosses/xalqui-parts": [
