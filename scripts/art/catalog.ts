@@ -341,6 +341,9 @@ const PROP_SHEETS: Record<Biome, string> = {
   [Biome.ABYSS]:
     '2 agujas de roca negra dentadas, 2 esquirlas de cristal violeta, 1 pilar encadenado, 1 cerca de púas de hierro, 1 pila de calaveras, 1 estatua negra rota, 1 brasero encendido, 1 roca de obsidiana agrietada, 1 jaula colgando de un poste'
 }
+/** The cottages of the village of the meadows, around its merchant. */
+const VILLAGE_HOUSES =
+  'una cabaña de paredes crema con techo de tejas rojas y chimenea humeante, una casa blanca con techo azul y macetas con flores en las ventanas, una casa de troncos con techo verde, una casa amarilla con techo naranja, una casa de piedra gris con techo de paja, una casa rosa con techo violeta, una casa de entramado de madera de dos pisos con techo marrón, una panadería pequeña con un cartel de pan y techo rojo, una posada con un cartel colgante y techo de tejas oscuras'
 /** The building beside each merchant on the world map. */
 const MERCHANT_HOUSES: [string, string][] = [
   [
@@ -630,6 +633,20 @@ export function buildCatalog(): Piece[] {
       )
     })
   }
+
+  // The cottages of the village around the merchant of the meadows (see placeVillages); its well, fences, fields and
+  // windmill come from the meadows sheet.
+  pieces.push({
+    id: 'map/village-sheet',
+    kind: 'mapSheet',
+    width: 2048,
+    height: 2048,
+    batch: Biome.MEADOWS,
+    prompt: prompt(
+      `Hoja de sprites de 9 casitas de un pueblo de campo separadas en una grilla de 3 por 3, vista cenital de tres cuartos (vista desde arriba en ángulo, como el mapa de un RPG 2D clásico, el frente y un costado a la vista), cada una parada sobre su base en el centro de su celda con espacio vacío alrededor, sin suelo debajo: ${VILLAGE_HOUSES}. Misma escala para todas, del mismo tamaño aproximado, con la puerta en el frente.`,
+      'Fondo liso y plano #00FF00, sin sombras sobre el fondo.'
+    )
+  })
 
   for (const [biome, [tall, low, ground]] of Object.entries(SCENERY_SHEETS)) {
     pieces.push({

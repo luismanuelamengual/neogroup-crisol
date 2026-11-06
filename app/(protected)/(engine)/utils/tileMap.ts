@@ -6,7 +6,7 @@ import {
   LAKES,
   TERRAINS
 } from '@/app/(protected)/(engine)/data/terrains'
-import { getZoneDefinition, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
+import { getZoneDefinition, VILLAGES, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
@@ -15,6 +15,7 @@ import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom } from '@/app/(protected)/(engine)/utils/random'
+import { placeVillages } from '@/app/(protected)/(engine)/utils/village'
 import { createZoneFinder } from '@/app/(protected)/(engine)/utils/zones'
 
 /**
@@ -34,6 +35,9 @@ export const TILE_SIZE = 64
 /** Half the width of a paved trail, and the radius of the clearing around a point (world pixels). */
 const TRAIL_HALF_WIDTH = 52
 const CLEARING_RADIUS = 84
+/** Shares of the radius of a village: flat and dry up to the first, its ground blending into the land around up to the second. */
+const VILLAGE_FLAT = 0.85
+const VILLAGE_EDGE = 1.25
 /** Lakes keep this far from trails and points. */
 const LAKE_CLEARANCE = 160
 /** Noise above these makes a lake or a patch; the scales are in world pixels. */
@@ -96,6 +100,20 @@ export function buildTileMap(world: World): TileMap {
     ])
   }
 
+  // The villages around the merchants lie on one level and keep dry (see placeVillages).
+  const villages = world.nodes.flatMap((node) =>
+    node.merchant && VILLAGES[node.biome]
+      ? [
+          {
+            x: node.x,
+            y: node.y,
+            radius: VILLAGES[node.biome]!.radius,
+            rise: heightNoise(node.x / HEIGHT_SCALE, node.y / HEIGHT_SCALE) + BIOME_RISE[node.biome]
+          }
+        ]
+      : []
+  )
+
   for (let row = 0; row < rows; row++) {
     for (let column = 0; column < columns; column++) {
       const x = (column + 0.5) * TILE_SIZE
@@ -128,6 +146,14 @@ export function buildTileMap(world: World): TileMap {
         : 0
       const zone = zoneAt(x, y, home)
       const biome = withZone(terrainsNear(BIOME_TERRAINS[home], toSeal), zone)
+      // How much of a village the tile is: all of it up to most of its radius, fading out to its edge.
+      const village = villages.find((place) => Math.hypot(place.x - x, place.y - y) < place.radius * VILLAGE_EDGE)
+      const inVillage = village
+        ? Math.min(
+            1,
+            (VILLAGE_EDGE - Math.hypot(village.x - x, village.y - y) / village.radius) / (VILLAGE_EDGE - VILLAGE_FLAT)
+          )
+        : 0
       const width = TRAIL_HALF_WIDTH * (1 - TRAIL_WOBBLE + 2 * TRAIL_WOBBLE * trailNoise(x / 300, y / 300))
       let terrain: Terrain
 
@@ -136,6 +162,7 @@ export function buildTileMap(world: World): TileMap {
         paved[row * columns + column] = 1
       } else if (
         biome.lake &&
+        !inVillage &&
         trailDistance > LAKE_CLEARANCE &&
         nodeDistance > LAKE_CLEARANCE &&
         (lakeNoise(x / LAKE_SCALE, y / LAKE_SCALE) > (biome.lakes ?? LAKE_THRESHOLD) ||
@@ -150,7 +177,9 @@ export function buildTileMap(world: World): TileMap {
 
       nearSeal[row * columns + column] = Math.round(toSeal * 255)
       terrains[row * columns + column] = terrainIndex.get(terrain)!
-      rise[row * columns + column] = heightNoise(x / HEIGHT_SCALE, y / HEIGHT_SCALE) + BIOME_RISE[home]
+      rise[row * columns + column] =
+        (heightNoise(x / HEIGHT_SCALE, y / HEIGHT_SCALE) + BIOME_RISE[home]) * (1 - inVillage) +
+        (village?.rise ?? 0) * inVillage
       grounds[row * columns + column] = terrainIndex.get(biome.ground)!
       biomes[row * columns + column] = BIOMES_ORDER.indexOf(home)
       zones[row * columns + column] = zone
@@ -171,7 +200,15 @@ export function buildTileMap(world: World): TileMap {
     }
   }
 
-  return { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes, nearSeal, zones }
+  const map = { columns, rows, tileSize: TILE_SIZE, terrains, heights, paved, biomes, nearSeal, zones }
+  const dirt = terrainIndex.get(Terrain.DIRT)!
+
+  // The dirt paths of the villages, from the doors of their cottages to the trails.
+  for (const village of placeVillages(world, map)) {
+    village.paths.forEach((index) => (terrains[index] = dirt))
+  }
+
+  return map
 }
 
 /** The terrains of a biome in one of its zones (its index in ZONES_ORDER plus one; 0 leaves them as they are). */

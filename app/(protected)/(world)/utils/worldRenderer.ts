@@ -5,6 +5,7 @@ import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { placeScenery } from '@/app/(protected)/(engine)/utils/scenery'
 import { buildTileMap } from '@/app/(protected)/(engine)/utils/tileMap'
+import { placeVillages } from '@/app/(protected)/(engine)/utils/village'
 import { darken, markerOf, MarkerStyle } from '@/app/(protected)/(world)/utils/mapStyle'
 import { loadMerchantHouses } from '@/app/(protected)/(world)/utils/merchantHouses'
 import { loadSceneryArt, paintSceneryTextures, paintShadow } from '@/app/(protected)/(world)/utils/sceneryTextures'
@@ -12,6 +13,7 @@ import { loadGroundArt, paintGroundTextures } from '@/app/(protected)/(world)/ut
 import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
 import { WorldLairs } from '@/app/(protected)/(world)/utils/worldLairs'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
+import { addVillages, loadVillageTextures, paintContactShadow } from '@/app/(protected)/(world)/utils/worldVillages'
 import { buildLairTextures, buildZoneTextures, loadZoneArt } from '@/app/(protected)/(world)/utils/zoneTextures'
 
 /** What the map shows: it comes from the game state (see WorldMap). */
@@ -194,6 +196,7 @@ export class WorldRenderer {
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
     void renderer.addMerchantHouses()
+    void renderer.addVillages()
     void renderer.loadGroundArt()
     void renderer.loadSceneryArt()
     app.renderer.on('resize', (width: number, height: number) => {
@@ -208,6 +211,7 @@ export class WorldRenderer {
   /** A house, tent or tower beside each merchant, so that the place reads from far. */
   private async addMerchantHouses(): Promise<void> {
     const houses = await loadMerchantHouses()
+    const contactShadows = new Map(Object.values(houses).map((texture) => [texture, paintContactShadow(texture)]))
 
     if (this.scenery.standing.destroyed) {
       return
@@ -223,12 +227,22 @@ export class WorldRenderer {
       sprite.anchor.set(0.5, 0.96)
       sprite.scale.set(HOUSE_HEIGHT / sprite.texture.height)
       sprite.position.set(node.x, node.y - 2)
-      this.scenery.add(sprite)
+      // A shadow along the edge of its base, as the cottages of the villages, so that it sits on the ground.
+      this.scenery.add(sprite, contactShadows.get(sprite.texture))
       this.houses.set(node.id, sprite)
     }
 
     if (this.view) {
       this.drawMarkers(this.view)
+    }
+  }
+
+  /** The cottages, the well, the fences and the fields of the village around a merchant. */
+  private async addVillages(): Promise<void> {
+    const textures = await loadVillageTextures()
+
+    if (!this.scenery.standing.destroyed) {
+      addVillages(placeVillages(this.world, this.tiles), textures, this.scenery)
     }
   }
 

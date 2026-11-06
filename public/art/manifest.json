@@ -384,6 +384,42 @@
    "width": 256,
    "height": 230
   },
+  "map/village/1": {
+   "width": 256,
+   "height": 249
+  },
+  "map/village/2": {
+   "width": 256,
+   "height": 227
+  },
+  "map/village/3": {
+   "width": 256,
+   "height": 233
+  },
+  "map/village/4": {
+   "width": 256,
+   "height": 228
+  },
+  "map/village/5": {
+   "width": 256,
+   "height": 217
+  },
+  "map/village/6": {
+   "width": 256,
+   "height": 230
+  },
+  "map/village/7": {
+   "width": 256,
+   "height": 219
+  },
+  "map/village/8": {
+   "width": 256,
+   "height": 230
+  },
+  "map/village/9": {
+   "width": 256,
+   "height": 231
+  },
   "map/meadows/scenery/tall-1@2x": {
    "width": 299,
    "height": 310
@@ -649,6 +685,17 @@
    "map/forest/14",
    "map/forest/15",
    "map/forest/16"
+  ],
+  "village": [
+   "map/village/1",
+   "map/village/2",
+   "map/village/3",
+   "map/village/4",
+   "map/village/5",
+   "map/village/6",
+   "map/village/7",
+   "map/village/8",
+   "map/village/9"
   ]
  },
  "scenery": {

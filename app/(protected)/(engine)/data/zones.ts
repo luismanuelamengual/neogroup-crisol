@@ -56,6 +56,12 @@ export const ZONES: ZoneDefinition[] = [
     ground: Terrain.BLIGHT,
     patches: Terrain.GLOOM,
     density: { tall: 0.8, low: 0.34, ground: 1.8 }
+  },
+  {
+    zone: Zone.VILLAGE,
+    biome: Biome.MEADOWS,
+    weight: 0,
+    density: { tall: 0.1, low: 0.08, ground: 2 }
   }
 ]
 
@@ -71,6 +77,21 @@ export interface LairDefinition {
 
 export const LAIRS: Partial<Record<Biome, LairDefinition>> = {
   [Biome.FOREST]: { zone: Zone.WITCHWOOD, radius: 1000 }
+}
+
+/**
+ * The village around the merchant of a biome (see placeVillages): its zone,
+ * how far it reaches from the merchant (world pixels, a little wobbly) and
+ * how many cottages it has at most.
+ */
+export interface VillageDefinition {
+  zone: Zone
+  radius: number
+  houses: number
+}
+
+export const VILLAGES: Partial<Record<Biome, VillageDefinition>> = {
+  [Biome.MEADOWS]: { zone: Zone.VILLAGE, radius: 850, houses: 12 }
 }
 
 /** Every zone, in the order TileMap.zones refers to them (0 is none, 1 the first one...). */

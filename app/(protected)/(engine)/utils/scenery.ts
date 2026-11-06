@@ -6,13 +6,16 @@ import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom } from '@/app/(protected)/(engine)/utils/random'
+import { placeVillages, VILLAGE_PIECE_SIZES } from '@/app/(protected)/(engine)/utils/village'
 
 /**
  * Trees, bushes, rocks and the small things on the ground of the world map,
  * the same for the same world: woods grow where the noise says, thicker away
  * from the trails (the trails run through clearings), never on a trail or a
  * lake. Whatever stands rests all its foot on one level (never half over a
- * cliff), and bushes and rocks keep some room around them.
+ * cliff), and bushes and rocks keep some room around them. In a village
+ * nothing grows on its paths, and the trees, bushes and rocks keep clear of
+ * its cottages and the rest of its pieces (see placeVillages).
  */
 
 /** Tiles kept free of tall pieces on each side of a trail, and how many tiles the woods take to reach their thickest. */
@@ -153,7 +156,43 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
     }
   }
 
-  return items
+  return clearVillages(items, world, map)
+}
+
+/** Room kept between a tree, a bush or a rock and a piece of a village, besides the width of the piece. */
+const VILLAGE_ROOM = 40
+
+/** The scenery without what would grow on the paths of the villages or over their pieces. */
+function clearVillages(items: SceneryItem[], world: World, map: TileMap): SceneryItem[] {
+  const villages = placeVillages(world, map)
+  const paths = new Set(villages.flatMap(({ paths }) => paths))
+  const pieces = villages.flatMap(({ pieces }) => pieces)
+
+  if (!pieces.length) {
+    return items
+  }
+
+  return items.filter(({ x, y, layer }) => {
+    const index = Math.floor(y / map.tileSize) * map.columns + Math.floor(x / map.tileSize)
+
+    if (paths.has(index)) {
+      return false
+    }
+
+    // Standing pieces keep clear of the village: from its sides, and in front of it (they would hide it).
+    return (
+      layer === 'ground' ||
+      pieces.every((piece) => {
+        const { half, height } = VILLAGE_PIECE_SIZES[piece.kind]
+
+        return (
+          Math.abs(piece.x - x) > half + VILLAGE_ROOM ||
+          y < piece.y - height * 0.5 ||
+          y > piece.y + (layer === 'tall' ? 150 : 50)
+        )
+      })
+    )
+  })
 }
 
 /**

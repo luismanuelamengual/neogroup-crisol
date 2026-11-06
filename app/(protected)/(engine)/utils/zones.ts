@@ -1,4 +1,11 @@
-import { BIOME_PLAIN_WEIGHT, LAIRS, ZoneDefinition, ZONES, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
+import {
+  BIOME_PLAIN_WEIGHT,
+  LAIRS,
+  VILLAGES,
+  ZoneDefinition,
+  ZONES,
+  ZONES_ORDER
+} from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -9,7 +16,7 @@ import { createRandom } from '@/app/(protected)/(engine)/utils/random'
  * Where the zones of the biomes lie (see data/zones.ts), the same for the
  * same world: the biome is cut in cells of irregular shape (the closest of
  * some scattered centers, with wobbly borders), each one of a zone or of the
- * plain biome, and its lair surrounds its captor.
+ * plain biome, its lair surrounds its captor and its village its merchant.
  */
 
 /** Side of the grid the centers of the cells are scattered on (world pixels), and how much their borders wobble. */
@@ -41,6 +48,11 @@ export function createZoneFinder(world: World): ZoneFinder {
       ? [{ biome: node.biome, x: node.x, y: node.y, ...LAIRS[node.biome]! }]
       : []
   )
+  // The villages, like the lairs: around the merchant of their biome.
+  const villages = world.nodes.flatMap((node) =>
+    node.merchant && VILLAGES[node.biome] ? [{ biome: node.biome, x: node.x, y: node.y, ...VILLAGES[node.biome]! }] : []
+  )
+  const places = [...lairs, ...villages]
 
   // A number in [0, 1) for each cell and biome, always the same.
   const hash = (column: number, row: number, extra: number) => {
@@ -53,7 +65,7 @@ export function createZoneFinder(world: World): ZoneFinder {
   }
 
   return (x, y, biome) => {
-    for (const lair of lairs) {
+    for (const lair of places) {
       const reach = lair.radius * (1 - LAIR_WOBBLE + 2 * LAIR_WOBBLE * lairNoise(x / 500, y / 500))
 
       if (lair.biome === biome && Math.hypot(lair.x - x, lair.y - y) < reach) {

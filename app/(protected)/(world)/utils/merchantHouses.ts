@@ -5,7 +5,7 @@ import { MerchantId } from '@/app/(protected)/(engine)/models/MerchantId'
 /**
  * The building beside each merchant on the world map, so that the place reads
  * from far: its final art when it exists (`map/merchants/<merchant>`, see
- * `yarn art`) and otherwise a provisional one painted here in the style of the
+ * `yarn art`), else a cottage of the village sheet for some of them, and otherwise a provisional one painted here in the style of the
  * scenery (flat colors, black outline), with its base at the bottom middle.
  */
 
@@ -20,11 +20,32 @@ type Point = [number, number]
 /** The buildings of every merchant: the final art where it exists, the provisional one otherwise. */
 export async function loadMerchantHouses(): Promise<Record<MerchantId, Texture>> {
   const merchants = Object.values(MerchantId)
-  const art = await loadTextures(merchants.map((merchant) => `map/merchants/${merchant}`))
+  const art = await loadTextures([
+    ...merchants.map((merchant) => `map/merchants/${merchant}`),
+    ...Object.values(MERCHANT_VILLAGE_HOUSES)
+  ])
+
+  const borrowed = (merchant: MerchantId) => {
+    const id = MERCHANT_VILLAGE_HOUSES[merchant]
+
+    return id ? art.get(id) : undefined
+  }
 
   return Object.fromEntries(
-    merchants.map((merchant) => [merchant, art.get(`map/merchants/${merchant}`) ?? paintMerchantHouse(merchant)])
+    merchants.map((merchant) => [
+      merchant,
+      art.get(`map/merchants/${merchant}`) ?? borrowed(merchant) ?? paintMerchantHouse(merchant)
+    ])
   ) as Record<MerchantId, Texture>
+}
+
+/**
+ * The cottage of the village sheet a merchant lives in while its own
+ * building has no art: the peddler, in the middle of the village of the
+ * meadows. The village leaves it out of its cottages (see worldVillages).
+ */
+export const MERCHANT_VILLAGE_HOUSES: Partial<Record<MerchantId, string>> = {
+  [MerchantId.PEDDLER]: 'map/village/1'
 }
 
 export function paintMerchantHouse(merchant: MerchantId): Texture {
@@ -62,6 +83,46 @@ const PAINTERS: Record<MerchantId, (context: CanvasRenderingContext2D) => void> 
     tent(context, { cloth: '#3a2e44', side: '#1e1626', trim: '#d33a3a' })
     lantern(context, 154, BASE)
   }
+}
+/** Colors of the provisional cottages of the villages (see paintVillageHouse), and what each one has beside it. */
+const VILLAGE_HOUSES: (CottageColors & { chimney?: boolean; crates?: boolean; sack?: boolean })[] = [
+  { wall: '#f0dcb4', side: '#b89a6a', roof: '#d0603e', roofDark: '#963c26', chimney: true },
+  { wall: '#f4f0e6', side: '#b8b2a4', roof: '#4a78c4', roofDark: '#2c4c8a', sack: true },
+  { wall: '#c98c55', side: '#8f5b30', roof: '#5f9a4a', roofDark: '#3c6a2e', crates: true },
+  { wall: '#f2cf6e', side: '#b8923a', roof: '#c8483a', roofDark: '#8a2c22', chimney: true },
+  { wall: '#b9b4ac', side: '#7e7a72', roof: '#8a5a3a', roofDark: '#5a3822' },
+  { wall: '#f2c4c0', side: '#b88a86', roof: '#8a5ab0', roofDark: '#5c3a7a', crates: true }
+]
+
+/** How many provisional cottages the villages have to choose from. */
+export const VILLAGE_HOUSE_VARIANTS = VILLAGE_HOUSES.length
+
+/** A provisional cottage of a village, in the style of the merchant houses, with its base at the bottom middle. */
+export function paintVillageHouse(variant: number): Texture {
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')!
+  const { chimney: smoke, crates, sack: bag, ...colors } = VILLAGE_HOUSES[variant % VILLAGE_HOUSES.length]
+
+  canvas.width = WIDTH
+  canvas.height = HEIGHT
+  context.lineJoin = 'round'
+  context.lineCap = 'round'
+
+  if (smoke) {
+    chimney(context, 86, 66)
+  }
+
+  cottage(context, colors)
+
+  if (crates) {
+    crate(context, 22, BASE + 2, 20)
+  }
+
+  if (bag) {
+    sack(context, 150, BASE)
+  }
+
+  return Texture.from(canvas)
 }
 
 /** A filled shape (a flat color or a gradient) with the outline of the scenery. */

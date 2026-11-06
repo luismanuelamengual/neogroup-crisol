@@ -206,7 +206,7 @@ function slice<T>(items: T[], [from, to]: [number, number]): T[] {
 }
 
 /** The pixels of a texture on a canvas (its frame, at its full resolution). */
-function pixelsOf(texture: Texture): HTMLCanvasElement {
+export function pixelsOf(texture: Texture): HTMLCanvasElement {
   const { source, frame } = texture
   const resolution = source.resolution ?? 1
   const canvas = document.createElement('canvas')

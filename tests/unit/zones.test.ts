@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { BIOMES_ORDER, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
-import { LAIRS, ZONES, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
+import { getZoneDefinition, LAIRS, ZONES, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import type { World } from '@/app/(protected)/(engine)/models/World'
@@ -68,6 +68,6 @@ describe('zones of the biomes', () => {
     const zoned = placeScenery(world, map).filter((item) => item.zone)
 
     expect(zoned.length).toBeGreaterThan(0)
-    expect(zoned.every((item) => item.biome === Biome.FOREST)).toBe(true)
+    expect(zoned.every((item) => item.biome === getZoneDefinition(item.zone!).biome)).toBe(true)
   })
 })

@@ -11,5 +11,7 @@ export enum Zone {
   /** Forest: a light glade of oaks in pink and white bloom, among flowers. */
   BLOSSOM = 'blossom',
   /** Forest: the lair of Morgrath, the Moss Witch, where Sera is held: withered violet trees over blighted ground. */
-  WITCHWOOD = 'witchwood'
+  WITCHWOOD = 'witchwood',
+  /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
+  VILLAGE = 'village'
 }

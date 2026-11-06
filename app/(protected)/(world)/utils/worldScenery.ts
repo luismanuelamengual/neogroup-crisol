@@ -103,8 +103,11 @@ export class WorldScenery {
     }
   }
 
-  /** A landmark (a windmill, a well...): it stands like the trees, but does not sway. */
-  add(sprite: Sprite): void {
+  /**
+   * A landmark (a windmill, a well...): it stands like the trees, but does not sway. It may bring its own shadow,
+   * drawn like the sprite (same scale, anchored by its texture) instead of the round one.
+   */
+  add(sprite: Sprite, shadow?: Texture): void {
     const room = Math.max(LANDMARK_ROOM, Math.abs(sprite.width) * 0.5)
 
     for (const key of this.keysAround(sprite.x, sprite.y)) {
@@ -130,7 +133,7 @@ export class WorldScenery {
       this.shown.delete(key)
     }
 
-    this.stand(sprite, 'low', false, true)
+    this.stand(sprite, 'low', false, true, shadow)
   }
 
   private nearLandmark(x: number, y: number): boolean {
@@ -149,14 +152,22 @@ export class WorldScenery {
     return [...new Set(keys)]
   }
 
-  private stand(sprite: Sprite, layer: 'tall' | 'low', sways: boolean, landmark: boolean): void {
-    const shadow = new Sprite(this.shadow)
-    const width = Math.abs(sprite.width) * SHADOW_WIDTH[layer]
+  private stand(sprite: Sprite, layer: 'tall' | 'low', sways: boolean, landmark: boolean, own?: Texture): void {
+    const shadow = new Sprite(own ?? this.shadow)
 
-    shadow.anchor.set(0.5)
-    shadow.position.set(sprite.x + SHADOW_OFFSET, sprite.y)
-    shadow.width = width
-    shadow.height = width * 0.4
+    if (own) {
+      // Its anchor is the one of its texture.
+      shadow.position.copyFrom(sprite.position)
+      shadow.scale.copyFrom(sprite.scale)
+    } else {
+      const width = Math.abs(sprite.width) * SHADOW_WIDTH[layer]
+
+      shadow.anchor.set(0.5)
+      shadow.position.set(sprite.x + SHADOW_OFFSET, sprite.y)
+      shadow.width = width
+      shadow.height = width * 0.4
+    }
+
     sprite.zIndex = sprite.y
     this.chunkAt(sprite.x, sprite.y).standing.push({ sprite, shadow, sways, landmark })
     this.shown.delete(this.keyAt(sprite.x, sprite.y))
