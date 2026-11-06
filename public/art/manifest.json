@@ -28,6 +28,14 @@
    "width": 320,
    "height": 309
   },
+  "icons/weapons/dawnbrand": {
+   "width": 320,
+   "height": 271
+  },
+  "icons/weapons/mace": {
+   "width": 320,
+   "height": 305
+  },
   "heroes/kael/portrait": {
    "width": 256,
    "height": 256
@@ -51,6 +59,18 @@
   "heroes/sera/weapons/gale-bow": {
    "width": 1024,
    "height": 189
+  },
+  "icons/weapons/bow": {
+   "width": 320,
+   "height": 313
+  },
+  "icons/weapons/longbow": {
+   "width": 315,
+   "height": 320
+  },
+  "icons/weapons/gale-bow": {
+   "width": 320,
+   "height": 297
   },
   "heroes/sera/portrait": {
    "width": 256,
@@ -80,6 +100,18 @@
    "width": 1024,
    "height": 325
   },
+  "icons/weapons/axe": {
+   "width": 320,
+   "height": 311
+  },
+  "icons/weapons/maul": {
+   "width": 320,
+   "height": 314
+  },
+  "icons/weapons/hatchets": {
+   "width": 320,
+   "height": 284
+  },
   "heroes/brann/portrait": {
    "width": 256,
    "height": 256
@@ -108,6 +140,18 @@
    "width": 1024,
    "height": 227
   },
+  "icons/weapons/root-sickle": {
+   "width": 320,
+   "height": 288
+  },
+  "icons/weapons/scythe": {
+   "width": 320,
+   "height": 300
+  },
+  "icons/weapons/thorn-sickle": {
+   "width": 320,
+   "height": 291
+  },
   "heroes/oren/portrait": {
    "width": 256,
    "height": 256
@@ -135,6 +179,18 @@
   "heroes/ysolde/weapons/grimoire": {
    "width": 1024,
    "height": 358
+  },
+  "icons/weapons/tome": {
+   "width": 320,
+   "height": 206
+  },
+  "icons/weapons/codex": {
+   "width": 320,
+   "height": 150
+  },
+  "icons/weapons/grimoire": {
+   "width": 320,
+   "height": 150
   },
   "heroes/ysolde/portrait": {
    "width": 256,
@@ -238,6 +294,18 @@
   },
   "enemies/devourer": {
    "width": 460,
+   "height": 512
+  },
+  "enemies/crucible-horror": {
+   "width": 512,
+   "height": 497
+  },
+  "enemies/castle-warden": {
+   "width": 512,
+   "height": 478
+  },
+  "enemies/abyss-eye": {
+   "width": 480,
    "height": 512
   },
   "enemies/field-rat": {
@@ -427,6 +495,30 @@
   "enemies/carrion-crow": {
    "width": 512,
    "height": 448
+  },
+  "enemies/abyssal-knight": {
+   "width": 512,
+   "height": 463
+  },
+  "enemies/chaos-spawn": {
+   "width": 511,
+   "height": 512
+  },
+  "enemies/void-weaver": {
+   "width": 512,
+   "height": 367
+  },
+  "enemies/crucible-priest": {
+   "width": 512,
+   "height": 491
+  },
+  "enemies/shadow-stalker": {
+   "width": 506,
+   "height": 512
+  },
+  "enemies/molten-horror": {
+   "width": 512,
+   "height": 494
   },
   "bosses/boar-matriarch": {
    "width": 900,
@@ -764,6 +856,54 @@
    "width": 747,
    "height": 199
   },
+  "bosses/crisol": {
+   "width": 899,
+   "height": 900
+  },
+  "bosses/crisol-parts/1": {
+   "width": 409,
+   "height": 441
+  },
+  "bosses/crisol-parts/2": {
+   "width": 44,
+   "height": 40
+  },
+  "bosses/crisol-parts/3": {
+   "width": 421,
+   "height": 381
+  },
+  "bosses/crisol-parts/4": {
+   "width": 250,
+   "height": 222
+  },
+  "bosses/crisol-parts/5": {
+   "width": 174,
+   "height": 172
+  },
+  "bosses/crisol-parts/6": {
+   "width": 203,
+   "height": 195
+  },
+  "bosses/crisol-parts/7": {
+   "width": 200,
+   "height": 177
+  },
+  "bosses/crisol-parts/8": {
+   "width": 216,
+   "height": 218
+  },
+  "bosses/crisol-parts/9": {
+   "width": 208,
+   "height": 110
+  },
+  "bosses/crisol-parts/10": {
+   "width": 209,
+   "height": 217
+  },
+  "bosses/crisol-parts/11": {
+   "width": 215,
+   "height": 111
+  },
   "bosses/alpha-wolf": {
    "width": 900,
    "height": 827
@@ -840,6 +980,14 @@
    "width": 900,
    "height": 838
   },
+  "bosses/abyssal-champion": {
+   "width": 900,
+   "height": 876
+  },
+  "bosses/crucible-maw": {
+   "width": 891,
+   "height": 900
+  },
   "bosses/old-scarecrow": {
    "width": 900,
    "height": 863
@@ -880,6 +1028,14 @@
    "width": 900,
    "height": 883
   },
+  "bosses/void-sentinel": {
+   "width": 900,
+   "height": 891
+  },
+  "bosses/crucible-herald": {
+   "width": 900,
+   "height": 778
+  },
   "bosses/cinder-stag": {
    "width": 828,
    "height": 900
@@ -915,6 +1071,10 @@
   "bosses/storm-revenant": {
    "width": 900,
    "height": 883
+  },
+  "bosses/prism-horror": {
+   "width": 900,
+   "height": 855
   },
   "battle/meadows/far": {
    "width": 1521,
@@ -1239,6 +1399,62 @@
   "battle/wastelands/landmarks/7": {
    "width": 640,
    "height": 293
+  },
+  "battle/abyss/far": {
+   "width": 2048,
+   "height": 497
+  },
+  "battle/abyss/middle": {
+   "width": 2048,
+   "height": 390
+  },
+  "battle/abyss/near": {
+   "width": 2048,
+   "height": 309
+  },
+  "battle/abyss/floor": {
+   "width": 2048,
+   "height": 914
+  },
+  "battle/abyss/landmarks/1": {
+   "width": 549,
+   "height": 478
+  },
+  "battle/abyss/landmarks/2": {
+   "width": 190,
+   "height": 192
+  },
+  "battle/abyss/landmarks/3": {
+   "width": 259,
+   "height": 253
+  },
+  "battle/abyss/landmarks/4": {
+   "width": 551,
+   "height": 640
+  },
+  "battle/abyss/landmarks/5": {
+   "width": 611,
+   "height": 640
+  },
+  "battle/abyss/landmarks/6": {
+   "width": 639,
+   "height": 640
+  },
+  "battle/abyss/landmarks/7": {
+   "width": 640,
+   "height": 632
+  },
+  "battle/abyss/landmarks/8": {
+   "width": 379,
+   "height": 640
+  },
+  "backgrounds/castle": {
+   "width": 1920,
+   "height": 1080
+  },
+  "backgrounds/crisol": {
+   "width": 1920,
+   "height": 1080
   },
   "map/meadows/1": {
    "width": 256,
@@ -1751,6 +1967,66 @@
   "map/wastelands/16": {
    "width": 256,
    "height": 161
+  },
+  "map/abyss/1": {
+   "width": 256,
+   "height": 237
+  },
+  "map/abyss/2": {
+   "width": 256,
+   "height": 243
+  },
+  "map/abyss/3": {
+   "width": 255,
+   "height": 256
+  },
+  "map/abyss/4": {
+   "width": 213,
+   "height": 256
+  },
+  "map/abyss/5": {
+   "width": 222,
+   "height": 256
+  },
+  "map/abyss/6": {
+   "width": 207,
+   "height": 256
+  },
+  "map/abyss/7": {
+   "width": 209,
+   "height": 256
+  },
+  "map/abyss/8": {
+   "width": 256,
+   "height": 248
+  },
+  "map/abyss/9": {
+   "width": 239,
+   "height": 256
+  },
+  "map/abyss/10": {
+   "width": 256,
+   "height": 165
+  },
+  "map/abyss/11": {
+   "width": 256,
+   "height": 158
+  },
+  "map/abyss/12": {
+   "width": 256,
+   "height": 244
+  },
+  "map/abyss/13": {
+   "width": 256,
+   "height": 235
+  },
+  "map/abyss/14": {
+   "width": 256,
+   "height": 166
+  },
+  "map/abyss/15": {
+   "width": 256,
+   "height": 199
   },
   "map/village/1": {
    "width": 256,
@@ -2324,6 +2600,82 @@
    "width": 64,
    "height": 36
   },
+  "map/abyss/scenery/tall-1@2x": {
+   "width": 314,
+   "height": 328
+  },
+  "map/abyss/scenery/tall-2@2x": {
+   "width": 297,
+   "height": 328
+  },
+  "map/abyss/scenery/tall-3@2x": {
+   "width": 328,
+   "height": 326
+  },
+  "map/abyss/scenery/tall-4@2x": {
+   "width": 328,
+   "height": 319
+  },
+  "map/abyss/scenery/tall-5@2x": {
+   "width": 328,
+   "height": 294
+  },
+  "map/abyss/scenery/tall-6@2x": {
+   "width": 221,
+   "height": 328
+  },
+  "map/abyss/scenery/tall-7@2x": {
+   "width": 236,
+   "height": 328
+  },
+  "map/abyss/scenery/tall-8@2x": {
+   "width": 237,
+   "height": 328
+  },
+  "map/abyss/scenery/low-1@2x": {
+   "width": 160,
+   "height": 150
+  },
+  "map/abyss/scenery/low-2@2x": {
+   "width": 160,
+   "height": 137
+  },
+  "map/abyss/scenery/low-3@2x": {
+   "width": 160,
+   "height": 110
+  },
+  "map/abyss/scenery/low-4@2x": {
+   "width": 160,
+   "height": 147
+  },
+  "map/abyss/scenery/ground-1@2x": {
+   "width": 64,
+   "height": 61
+  },
+  "map/abyss/scenery/ground-2@2x": {
+   "width": 64,
+   "height": 31
+  },
+  "map/abyss/scenery/ground-3@2x": {
+   "width": 64,
+   "height": 62
+  },
+  "map/abyss/scenery/ground-4@2x": {
+   "width": 64,
+   "height": 61
+  },
+  "map/abyss/scenery/ground-5@2x": {
+   "width": 64,
+   "height": 50
+  },
+  "map/abyss/scenery/ground-6@2x": {
+   "width": 64,
+   "height": 53
+  },
+  "map/abyss/scenery/ground-7@2x": {
+   "width": 64,
+   "height": 41
+  },
   "props/meadows/1": {
    "width": 200,
    "height": 194
@@ -2711,6 +3063,466 @@
   "props/wastelands/12": {
    "width": 257,
    "height": 301
+  },
+  "props/abyss/1": {
+   "width": 205,
+   "height": 311
+  },
+  "props/abyss/2": {
+   "width": 206,
+   "height": 214
+  },
+  "props/abyss/3": {
+   "width": 157,
+   "height": 245
+  },
+  "props/abyss/4": {
+   "width": 169,
+   "height": 167
+  },
+  "props/abyss/5": {
+   "width": 182,
+   "height": 266
+  },
+  "props/abyss/6": {
+   "width": 213,
+   "height": 202
+  },
+  "props/abyss/7": {
+   "width": 231,
+   "height": 187
+  },
+  "props/abyss/8": {
+   "width": 208,
+   "height": 254
+  },
+  "props/abyss/9": {
+   "width": 214,
+   "height": 304
+  },
+  "props/abyss/10": {
+   "width": 284,
+   "height": 233
+  },
+  "props/abyss/11": {
+   "width": 257,
+   "height": 304
+  },
+  "map/merchants/peddler": {
+   "width": 320,
+   "height": 319
+  },
+  "map/merchants/alchemist": {
+   "width": 253,
+   "height": 320
+  },
+  "map/merchants/smith": {
+   "width": 320,
+   "height": 307
+  },
+  "map/merchants/scholar": {
+   "width": 138,
+   "height": 320
+  },
+  "map/merchants/threshold": {
+   "width": 275,
+   "height": 320
+  },
+  "map/special-1/1": {
+   "width": 256,
+   "height": 238
+  },
+  "map/special-1/2": {
+   "width": 256,
+   "height": 235
+  },
+  "map/special-1/3": {
+   "width": 256,
+   "height": 242
+  },
+  "map/special-1/4": {
+   "width": 256,
+   "height": 202
+  },
+  "map/special-1/5": {
+   "width": 256,
+   "height": 246
+  },
+  "map/special-1/6": {
+   "width": 256,
+   "height": 237
+  },
+  "map/special-1/7": {
+   "width": 256,
+   "height": 241
+  },
+  "map/special-1/8": {
+   "width": 256,
+   "height": 244
+  },
+  "map/special-1/9": {
+   "width": 225,
+   "height": 256
+  },
+  "map/special-1/10": {
+   "width": 256,
+   "height": 252
+  },
+  "map/special-1/11": {
+   "width": 256,
+   "height": 238
+  },
+  "map/special-1/12": {
+   "width": 256,
+   "height": 222
+  },
+  "map/special-1/13": {
+   "width": 256,
+   "height": 254
+  },
+  "map/special-1/14": {
+   "width": 234,
+   "height": 256
+  },
+  "map/special-1/15": {
+   "width": 256,
+   "height": 185
+  },
+  "map/special-1/16": {
+   "width": 256,
+   "height": 193
+  },
+  "map/special-2/1": {
+   "width": 256,
+   "height": 250
+  },
+  "map/special-2/2": {
+   "width": 256,
+   "height": 238
+  },
+  "map/special-2/3": {
+   "width": 256,
+   "height": 256
+  },
+  "map/special-2/4": {
+   "width": 256,
+   "height": 244
+  },
+  "map/special-2/5": {
+   "width": 256,
+   "height": 244
+  },
+  "map/special-2/6": {
+   "width": 256,
+   "height": 255
+  },
+  "map/special-2/7": {
+   "width": 256,
+   "height": 212
+  },
+  "map/special-2/8": {
+   "width": 256,
+   "height": 231
+  },
+  "map/special-2/9": {
+   "width": 256,
+   "height": 234
+  },
+  "map/special-2/10": {
+   "width": 256,
+   "height": 232
+  },
+  "map/special-2/11": {
+   "width": 256,
+   "height": 228
+  },
+  "map/special-2/12": {
+   "width": 256,
+   "height": 233
+  },
+  "map/special-2/13": {
+   "width": 256,
+   "height": 244
+  },
+  "map/special-2/14": {
+   "width": 245,
+   "height": 256
+  },
+  "map/special-2/15": {
+   "width": 251,
+   "height": 256
+  },
+  "map/special-2/16": {
+   "width": 256,
+   "height": 250
+  },
+  "tiles/cliff": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/grass": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/moss": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/leaves": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/snow": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/sand": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/ash": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/basalt": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/scorched": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/gloom": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/blight": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/needles": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/dirt": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/rock": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/magma": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/mycelium": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/glacier": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/ice": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/stone": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/cobblestone": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/firestone": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/runestone": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/water": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/lava": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/ichor": {
+   "width": 256,
+   "height": 256
+  },
+  "icons/skills/slash": {
+   "width": 128,
+   "height": 117
+  },
+  "icons/skills/pierce": {
+   "width": 128,
+   "height": 115
+  },
+  "icons/skills/blunt": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/skills/fire": {
+   "width": 110,
+   "height": 128
+  },
+  "icons/skills/ice": {
+   "width": 87,
+   "height": 128
+  },
+  "icons/skills/lightning": {
+   "width": 97,
+   "height": 128
+  },
+  "icons/skills/earth": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/skills/light": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/skills/darkness": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/skills/heal": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/skills/buff": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/skills/debuff": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/skills/revive": {
+   "width": 115,
+   "height": 128
+  },
+  "icons/runes/leech": {
+   "width": 110,
+   "height": 128
+  },
+  "icons/runes/ember": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/wellspring": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/edge": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/runes/ward": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/frost": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/vigor": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/haste": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/venom": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/fury": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/storm": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/runes/hunter": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/items/health-potion": {
+   "width": 93,
+   "height": 128
+  },
+  "icons/items/focus-potion": {
+   "width": 95,
+   "height": 128
+  },
+  "icons/items/antidote": {
+   "width": 82,
+   "height": 128
+  },
+  "icons/items/fire-bomb": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/items/greater-health-potion": {
+   "width": 92,
+   "height": 128
+  },
+  "icons/items/greater-focus-potion": {
+   "width": 94,
+   "height": 128
+  },
+  "icons/items/revive-potion": {
+   "width": 93,
+   "height": 128
+  },
+  "icons/items/frost-bomb": {
+   "width": 110,
+   "height": 128
+  },
+  "icons/items/elixir": {
+   "width": 98,
+   "height": 128
+  },
+  "icons/items/rough-stone": {
+   "width": 128,
+   "height": 121
+  },
+  "icons/items/tempered-stone": {
+   "width": 128,
+   "height": 109
+  },
+  "icons/items/arcane-stone": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/items/abyssal-stone": {
+   "width": 128,
+   "height": 123
+  },
+  "icons/items/echo": {
+   "width": 106,
+   "height": 128
+  },
+  "icons/items/tear": {
+   "width": 96,
+   "height": 128
+  },
+  "icons/items/flask": {
+   "width": 100,
+   "height": 128
+  },
+  "icons/items/gold": {
+   "width": 128,
+   "height": 126
   }
  },
  "decorations": {
@@ -2858,6 +3670,23 @@
    "map/wastelands/15",
    "map/wastelands/16"
   ],
+  "abyss": [
+   "map/abyss/1",
+   "map/abyss/2",
+   "map/abyss/3",
+   "map/abyss/4",
+   "map/abyss/5",
+   "map/abyss/6",
+   "map/abyss/7",
+   "map/abyss/8",
+   "map/abyss/9",
+   "map/abyss/10",
+   "map/abyss/11",
+   "map/abyss/12",
+   "map/abyss/13",
+   "map/abyss/14",
+   "map/abyss/15"
+  ],
   "village": [
    "map/village/1",
    "map/village/2",
@@ -2868,6 +3697,42 @@
    "map/village/7",
    "map/village/8",
    "map/village/9"
+  ],
+  "special-1": [
+   "map/special-1/1",
+   "map/special-1/2",
+   "map/special-1/3",
+   "map/special-1/4",
+   "map/special-1/5",
+   "map/special-1/6",
+   "map/special-1/7",
+   "map/special-1/8",
+   "map/special-1/9",
+   "map/special-1/10",
+   "map/special-1/11",
+   "map/special-1/12",
+   "map/special-1/13",
+   "map/special-1/14",
+   "map/special-1/15",
+   "map/special-1/16"
+  ],
+  "special-2": [
+   "map/special-2/1",
+   "map/special-2/2",
+   "map/special-2/3",
+   "map/special-2/4",
+   "map/special-2/5",
+   "map/special-2/6",
+   "map/special-2/7",
+   "map/special-2/8",
+   "map/special-2/9",
+   "map/special-2/10",
+   "map/special-2/11",
+   "map/special-2/12",
+   "map/special-2/13",
+   "map/special-2/14",
+   "map/special-2/15",
+   "map/special-2/16"
   ]
  },
  "scenery": {
@@ -3068,6 +3933,33 @@
     "map/wastelands/scenery/ground-4@2x",
     "map/wastelands/scenery/ground-5@2x"
    ]
+  },
+  "abyss": {
+   "tall": [
+    "map/abyss/scenery/tall-1@2x",
+    "map/abyss/scenery/tall-2@2x",
+    "map/abyss/scenery/tall-3@2x",
+    "map/abyss/scenery/tall-4@2x",
+    "map/abyss/scenery/tall-5@2x",
+    "map/abyss/scenery/tall-6@2x",
+    "map/abyss/scenery/tall-7@2x",
+    "map/abyss/scenery/tall-8@2x"
+   ],
+   "low": [
+    "map/abyss/scenery/low-1@2x",
+    "map/abyss/scenery/low-2@2x",
+    "map/abyss/scenery/low-3@2x",
+    "map/abyss/scenery/low-4@2x"
+   ],
+   "ground": [
+    "map/abyss/scenery/ground-1@2x",
+    "map/abyss/scenery/ground-2@2x",
+    "map/abyss/scenery/ground-3@2x",
+    "map/abyss/scenery/ground-4@2x",
+    "map/abyss/scenery/ground-5@2x",
+    "map/abyss/scenery/ground-6@2x",
+    "map/abyss/scenery/ground-7@2x"
+   ]
   }
  },
  "props": {
@@ -3183,6 +4075,19 @@
    "props/wastelands/10",
    "props/wastelands/11",
    "props/wastelands/12"
+  ],
+  "abyss": [
+   "props/abyss/1",
+   "props/abyss/2",
+   "props/abyss/3",
+   "props/abyss/4",
+   "props/abyss/5",
+   "props/abyss/6",
+   "props/abyss/7",
+   "props/abyss/8",
+   "props/abyss/9",
+   "props/abyss/10",
+   "props/abyss/11"
   ]
  },
  "battle": {
@@ -3322,6 +4227,25 @@
    ],
    "floor": "battle/wastelands/floor",
    "floorLine": 0.2937443336355394
+  },
+  "abyss": {
+   "bands": [
+    "battle/abyss/far",
+    "battle/abyss/middle",
+    "battle/abyss/near"
+   ],
+   "landmarks": [
+    "battle/abyss/landmarks/1",
+    "battle/abyss/landmarks/2",
+    "battle/abyss/landmarks/3",
+    "battle/abyss/landmarks/4",
+    "battle/abyss/landmarks/5",
+    "battle/abyss/landmarks/6",
+    "battle/abyss/landmarks/7",
+    "battle/abyss/landmarks/8"
+   ],
+   "floor": "battle/abyss/floor",
+   "floorLine": 0.300087489063867
   }
  },
  "parts": {
@@ -4071,6 +4995,85 @@
     "y": 1529,
     "width": 1493,
     "height": 397
+   }
+  ],
+  "bosses/crisol-parts": [
+   {
+    "id": "bosses/crisol-parts/1",
+    "x": 152,
+    "y": 46,
+    "width": 817,
+    "height": 882
+   },
+   {
+    "id": "bosses/crisol-parts/2",
+    "x": 838,
+    "y": 112,
+    "width": 87,
+    "height": 80
+   },
+   {
+    "id": "bosses/crisol-parts/3",
+    "x": 1000,
+    "y": 185,
+    "width": 842,
+    "height": 762
+   },
+   {
+    "id": "bosses/crisol-parts/4",
+    "x": 78,
+    "y": 996,
+    "width": 500,
+    "height": 443
+   },
+   {
+    "id": "bosses/crisol-parts/5",
+    "x": 619,
+    "y": 1109,
+    "width": 348,
+    "height": 343
+   },
+   {
+    "id": "bosses/crisol-parts/6",
+    "x": 1080,
+    "y": 1047,
+    "width": 406,
+    "height": 390
+   },
+   {
+    "id": "bosses/crisol-parts/7",
+    "x": 1553,
+    "y": 1096,
+    "width": 399,
+    "height": 354
+   },
+   {
+    "id": "bosses/crisol-parts/8",
+    "x": 107,
+    "y": 1529,
+    "width": 432,
+    "height": 436
+   },
+   {
+    "id": "bosses/crisol-parts/9",
+    "x": 504,
+    "y": 1745,
+    "width": 415,
+    "height": 220
+   },
+   {
+    "id": "bosses/crisol-parts/10",
+    "x": 1053,
+    "y": 1531,
+    "width": 418,
+    "height": 433
+   },
+   {
+    "id": "bosses/crisol-parts/11",
+    "x": 1518,
+    "y": 1743,
+    "width": 429,
+    "height": 222
    }
   ]
  },
