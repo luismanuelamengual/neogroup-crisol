@@ -1,5 +1,5 @@
-import { Container, Matrix, Sprite, Texture } from 'pixi.js'
-import { BoneRole, Rig, RigBone } from '@/app/(protected)/(art)/data/rigs'
+import { Container, Graphics, Matrix, Point, Sprite, Texture } from 'pixi.js'
+import { BoneRole, Rig, RigBone, RigString } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 
 /** A move the puppet plays over its idle breathing. */
@@ -116,6 +116,8 @@ export class RigFigure {
   private readonly bones = new Map<BoneRole, RigBone>()
   /** How much each bone's segment is scaled so every image matches the others (they come at their own scale). */
   private readonly boneScale = new Map<BoneRole, number>()
+  /** The bowstring drawn up to the nocks of a bow that does not reach the one on the body (see RigString). */
+  private string: { spec: RigString; line: Graphics } | null = null
   private time = Math.random() * 10
   private move: { kind: RigMove; elapsed: number; duration: number } | null = null
 
@@ -168,6 +170,14 @@ export class RigFigure {
       figure.boneScale.set(bone.role, (size.length * UNIT) / reference[size.side])
       figure.sprites.set(bone.role, sprite)
       figure.inner.addChild(sprite)
+    }
+
+    if (rig.string) {
+      const line = new Graphics()
+
+      // Behind the bow, in front of the body.
+      figure.inner.addChildAt(line, figure.inner.getChildIndex(figure.sprites.get('weapon')!))
+      figure.string = { spec: rig.string, line }
     }
 
     figure.layout()
@@ -239,6 +249,25 @@ export class RigFigure {
       const partScale = this.partScale.get(bone.role)!
 
       sprite.setFromMatrix(new Matrix().scale(partScale, partScale).prepend(world))
+    }
+
+    if (this.string) {
+      const { spec, line } = this.string
+
+      const at = (role: BoneRole, [x, y]: [number, number]) => {
+        const size = this.sizes.get(role)!
+
+        return worlds.get(role)!.apply(new Point(x * size.width, y * size.height))
+      }
+
+      line.clear()
+      spec.body.forEach((end, index) => {
+        const from = at('body', end)
+        const to = at('weapon', spec.weapon[index])
+
+        line.moveTo(from.x, from.y).lineTo(to.x, to.y)
+      })
+      line.stroke({ width: spec.width * UNIT, color: spec.color, cap: 'round' })
     }
   }
 }

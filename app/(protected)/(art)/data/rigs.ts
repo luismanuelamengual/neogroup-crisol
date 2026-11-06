@@ -55,11 +55,28 @@ export interface SlotSize {
   length: number
 }
 
+/** A point on an image: shares of its box from the top-left corner. */
+export type Share = [number, number]
+
+/**
+ * The bowstring drawn by code where the one on the body image does not reach
+ * the bow: from each end of the string on the body to the nock of the bow on
+ * the same side (top, then bottom). Drawn behind the bow.
+ */
+export interface RigString {
+  body: [Share, Share]
+  weapon: [Share, Share]
+  /** In body heights. */
+  width: number
+  color: number
+}
+
 export interface Rig {
   /** The image (catalog id) each slot reads (a hero that shoots has no arm). */
   images: Partial<Record<Slot, string>>
   sizes: Partial<Record<Slot, SlotSize>>
   bones: RigBone[]
+  string?: RigString
 }
 
 /** What a hero holds. */
@@ -83,17 +100,41 @@ export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
  * also say how they are held (`rest`, radians from the image, which is
  * horizontal): the bows stand upright, and where
  * the fist is across the image (`gripY`, share of its height: 0.5 unless given).
+ * A bow whose limbs do not reach the string drawn on the body says where its
+ * nocks are (`nocks`, shares of the image, the end that ends up on top first):
+ * the string is drawn by code from the body to them (see BOW_STRINGS).
  */
-const WEAPONS: Record<string, { grip: number; length: number; rest?: number; gripY?: number }> = {
+interface WeaponFit {
+  grip: number
+  length: number
+  rest?: number
+  gripY?: number
+  nocks?: [Share, Share]
+}
+
+const WEAPONS: Record<string, WeaponFit> = {
   sword: { grip: 0.18, length: 0.67 },
   // The bow images lie with the string on top: turned upright, the string faces the archer.
   // Fitted so body + bow match Sera's whole figure (heroes/sera/full) over each other.
   bow: { grip: 0.467, gripY: 0.592, length: 0.935, rest: -Math.PI / 2 + 0.245 },
   axe: { grip: 0.3, length: 0.73 },
   dawnbrand: { grip: 0.18, length: 0.66 },
-  mace: { grip: 0.15, length: 0.53 },
-  longbow: { grip: 0.5, length: 0.97, rest: -Math.PI / 2 },
-  'gale-bow': { grip: 0.5, length: 0.78, rest: -Math.PI / 2 },
+  mace: { grip: 0.15, length: 0.62 },
+  // The other bows: the fist on the wrist at the same size and tilt as the first bow's
+  // (grip on the middle of the fist), measured on the images.
+  // The longbow is straight and even: its lower limb does not reach the string of the body, so it has nocks.
+  longbow: {
+    grip: 0.5045,
+    gripY: 0.6006,
+    length: 0.99,
+    rest: -Math.PI / 2 + 0.22,
+    nocks: [
+      [0.99, 0.08],
+      [0.01, 0.06]
+    ]
+  },
+  // Both string ends of the body fall on its gold rings.
+  'gale-bow': { grip: 0.4997, gripY: 0.714, length: 0.956, rest: -Math.PI / 2 + 0.213 },
   maul: { grip: 0.25, length: 0.78 },
   hatchets: { grip: 0.2, length: 0.44 },
   'root-sickle': { grip: 0.2, length: 0.44 },
@@ -104,6 +145,12 @@ const WEAPONS: Record<string, { grip: number; length: number; rest?: number; gri
   codex: { grip: 0.5, length: 0.39 },
   grimoire: { grip: 0.5, length: 0.39 }
 }
+
+/** How a weapon is held and how long it is (see WEAPONS), or null when it has no fit of its own: for /dev/heroes. */
+export function weaponFit(art: string): WeaponFit | null {
+  return WEAPONS[art] ?? null
+}
+
 /** The arm is sized by its width (it comes bent, from the shoulder to the wrist). */
 const SIZES: Record<BodyPart, SlotSize> = {
   body: { segment: 1, side: 'height', length: 1 },
@@ -135,6 +182,21 @@ const HANDS: Partial<Record<CharacterId, [number, number]>> = {
   // Past the end of the bracer of the outstretched arm, where the fist is in the whole figure.
   [CharacterId.SERA]: [0.973, 0.499]
 }
+/**
+ * Heroes that shoot: where the string drawn on the body image ends (top, then
+ * bottom), and how thick it is (body heights) and its color, for the bows that
+ * need the string drawn up to their nocks.
+ */
+const BOW_STRINGS: Partial<Record<CharacterId, { ends: [Share, Share]; width: number; color: number }>> = {
+  [CharacterId.SERA]: {
+    ends: [
+      [0.993, 0.031],
+      [0.858, 0.781]
+    ],
+    width: 0.0065,
+    color: 0x1e0c02
+  }
+}
 
 /** The hero skeleton, back to front: the arm, the weapon with its fist over it, and the body in front of both. */
 function heroBones(grip: number, arm: ArmJoints): RigBone[] {
@@ -164,6 +226,7 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
   const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 0.7 }
   const parts = heroParts(id)
   const ranged = isRangedCharacter(id)
+  const bowString = ranged ? BOW_STRINGS[id] : undefined
 
   return {
     images: {
@@ -177,7 +240,10 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
     },
     bones: ranged
       ? shooterBones([weapon.grip, weapon.gripY ?? 0.5], weapon.rest ?? -Math.PI / 2, HANDS[id] ?? DEFAULT_HAND)
-      : heroBones(weapon.grip, { ...DEFAULT_ARM, ...ARMS[id] })
+      : heroBones(weapon.grip, { ...DEFAULT_ARM, ...ARMS[id] }),
+    ...(bowString && weapon.nocks
+      ? { string: { body: bowString.ends, weapon: weapon.nocks, width: bowString.width, color: bowString.color } }
+      : {})
   }
 }
 

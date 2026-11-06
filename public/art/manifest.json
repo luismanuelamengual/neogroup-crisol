@@ -44,6 +44,18 @@
    "width": 1024,
    "height": 245
   },
+  "heroes/sera/weapons/longbow": {
+   "width": 1024,
+   "height": 155
+  },
+  "heroes/sera/weapons/gale-bow": {
+   "width": 1024,
+   "height": 189
+  },
+  "heroes/sera/portrait": {
+   "width": 256,
+   "height": 256
+  },
   "enemies/thorn-boar": {
    "width": 512,
    "height": 341
@@ -786,6 +798,24 @@
     "y": 29,
     "width": 1194,
     "height": 286
+   }
+  ],
+  "heroes/sera/weapons/longbow": [
+   {
+    "id": "heroes/sera/weapons/longbow",
+    "x": 29,
+    "y": 181,
+    "width": 2111,
+    "height": 320
+   }
+  ],
+  "heroes/sera/weapons/gale-bow": [
+   {
+    "id": "heroes/sera/weapons/gale-bow",
+    "x": 10,
+    "y": 118,
+    "width": 2153,
+    "height": 397
    }
   ]
  },

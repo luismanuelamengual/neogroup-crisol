@@ -1,0 +1,150 @@
+.hero-weapons-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 auto;
+  padding: 12px max(12px, env(safe-area-inset-right)) 32px max(12px, env(safe-area-inset-left));
+  width: 100%;
+  max-width: 1200px;
+
+  button {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--color-panel);
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--color-gold);
+      color: var(--color-gold);
+    }
+  }
+
+  code {
+    overflow-wrap: anywhere;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+  }
+
+  .missing {
+    margin: 0;
+    color: var(--color-ember);
+    font-size: 13px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hint {
+      flex-basis: 100%;
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+  }
+
+  .hero-row {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(42, 26, 64, 0.85);
+  }
+
+  .hero-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    .full {
+      flex-shrink: 0;
+      height: 64px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 2px 0 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+  }
+
+  .stage {
+    margin-top: 8px;
+    height: clamp(200px, 42vh, 340px);
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
+  .weapons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .weapon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    min-width: 0;
+
+    button {
+      margin-top: 4px;
+      padding: 6px 12px;
+    }
+  }
+
+  .weapon-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: baseline;
+
+    .tag {
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: var(--color-gold-light);
+      font-size: 11px;
+      background: rgba(255, 201, 60, 0.15);
+    }
+  }
+
+  // Phones held sideways: little height, so the stage and the texts shrink.
+  @media (max-height: 500px) {
+    gap: 10px;
+
+    .toolbar h1 {
+      font-size: 18px;
+    }
+
+    .stage {
+      height: clamp(170px, 55vh, 240px);
+    }
+
+    .hero-header .full {
+      height: 48px;
+    }
+  }
+}
