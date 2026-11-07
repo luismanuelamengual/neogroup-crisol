@@ -109,6 +109,8 @@ const TILES: Record<Terrain, string> = {
     'suelo de pinar cubierto de agujas de pino secas marrón rojizo, con piñas pequeñas y algo de musgo',
   [Terrain.BLIGHT]:
     'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes',
+  [Terrain.JADEMOSS]:
+    'musgo espeso verde azulado muy oscuro con diminutas motas de luz color jade brillante y algunas raíces finas',
   [Terrain.REDSAND]:
     'arena rojo profundo de desierto maldito con suaves ondas de viento, sombras carmesí y algunas piedritas oscuras'
 }

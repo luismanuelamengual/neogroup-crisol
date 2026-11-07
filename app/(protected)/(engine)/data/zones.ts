@@ -66,6 +66,51 @@ export const ZONES: ZoneDefinition[] = [
     density: { tall: 0.5, low: 0.42, ground: 1.3 }
   },
   {
+    zone: Zone.MARSH,
+    biome: Biome.TROPICAL,
+    weight: 1.5,
+    ground: Terrain.MOSS,
+    patches: Terrain.GRASS,
+    density: { tall: 0.35, low: 0.42, ground: 1.6 }
+  },
+  {
+    zone: Zone.DEEP_JUNGLE,
+    biome: Biome.TROPICAL,
+    weight: 2.2,
+    ground: Terrain.MOSS,
+    patches: Terrain.DIRT,
+    density: { tall: 1, low: 0.34, ground: 2 }
+  },
+  {
+    zone: Zone.PALM_GROVE,
+    biome: Biome.TROPICAL,
+    weight: 2,
+    patches: Terrain.SAND,
+    density: { tall: 0.55, low: 0.2, ground: 1.4 }
+  },
+  {
+    zone: Zone.BAMBOO,
+    biome: Biome.TROPICAL,
+    weight: 2.3,
+    patches: Terrain.NEEDLES,
+    density: { tall: 0.95, low: 0.16, ground: 1.4 }
+  },
+  {
+    zone: Zone.FLAMEWOOD,
+    biome: Biome.TROPICAL,
+    weight: 3.2,
+    patches: Terrain.LEAVES,
+    density: { tall: 0.7, low: 0.3, ground: 2.4 }
+  },
+  {
+    zone: Zone.JADE_TEMPLE,
+    biome: Biome.TROPICAL,
+    weight: 0,
+    ground: Terrain.JADEMOSS,
+    patches: Terrain.MOSS,
+    density: { tall: 0.6, low: 0.36, ground: 1.6 }
+  },
+  {
     zone: Zone.VILLAGE,
     biome: Biome.MEADOWS,
     weight: 0,
@@ -85,7 +130,8 @@ export interface LairDefinition {
 
 export const LAIRS: Partial<Record<Biome, LairDefinition>> = {
   [Biome.FOREST]: { zone: Zone.WITCHWOOD, radius: 1000 },
-  [Biome.DESERT]: { zone: Zone.NECROPOLIS, radius: 1150 }
+  [Biome.DESERT]: { zone: Zone.NECROPOLIS, radius: 1150 },
+  [Biome.TROPICAL]: { zone: Zone.JADE_TEMPLE, radius: 1150 }
 }
 
 /**

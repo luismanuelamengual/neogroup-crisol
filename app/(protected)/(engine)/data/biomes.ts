@@ -18,6 +18,8 @@ export interface BiomeDefinition {
   anchors: [number, number][]
   /** The captor boss of the biome and the character it holds. */
   captor?: { bossId: string; captive: CharacterId }
+  /** Where the captor waits: at the point of the biome closest to this place (otherwise, at its deepest point). */
+  captorAt?: [number, number]
   /** The Seal of the biome (one of the two that close the Abyss). */
   sealId?: string
   /** Where the Seal waits: at the point of the biome closest to this place (a far corner of the world). */
@@ -101,6 +103,7 @@ export const BIOMES: BiomeDefinition[] = [
       [10800, 5600]
     ],
     captor: { bossId: 'xalqui', captive: CharacterId.OREN },
+    captorAt: [WORLD_WIDTH, 3800],
     minibossCamps: 3,
     sanctuaries: 6,
     runeTier: RuneTier.GREATER,

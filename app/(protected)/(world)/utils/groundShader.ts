@@ -28,7 +28,7 @@ export const GROUND_FRAGMENT = `#version 300 es
 in vec2 vWorld;
 out vec4 finalColor;
 
-// Tiles (terrain, level, paved), the atlas of textures (5 by 5: the terrains, then the cliff at uCliff,
+// Tiles (terrain, level, paved), the atlas of textures (6 by 6: the terrains, then the cliff at uCliff,
 // each one in the middle half of its cell and repeated around it),
 // the noise of the wobble and, for each terrain, its average color and lake flag (first row) and how
 // much the cliffs under it take that color (second row).
@@ -42,7 +42,7 @@ uniform float uCliff;
 
 // World pixels per repetition of a texture; the atlas.
 const float TEXTURE_SPAN = 128.0;
-const float ATLAS_COLUMNS = 5.0;
+const float ATLAS_COLUMNS = 6.0;
 // World pixels per value of the noise, and its side.
 const float NOISE_SPAN = 4.0;
 const float NOISE_SIZE = 512.0;

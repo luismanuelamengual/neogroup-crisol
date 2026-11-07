@@ -37,7 +37,7 @@ export interface TestGame {
 
 const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
 
-/** The test games, by number. Positions come from public/world/world.json (WORLD_VERSION 11). */
+/** The test games, by number. Positions come from public/world/world.json (WORLD_VERSION 12). */
 export const TEST_GAMES: Record<number, TestGame> = {
   // In the forest, right after freeing Sera from Morgrath.
   1: {

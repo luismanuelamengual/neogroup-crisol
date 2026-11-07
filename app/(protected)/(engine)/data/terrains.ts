@@ -17,6 +17,7 @@ export const TERRAINS: Terrain[] = [
   Terrain.SCORCHED,
   Terrain.GLOOM,
   Terrain.BLIGHT,
+  Terrain.JADEMOSS,
   Terrain.NEEDLES,
   Terrain.DIRT,
   Terrain.ROCK,

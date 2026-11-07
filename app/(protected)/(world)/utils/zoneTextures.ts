@@ -81,6 +81,23 @@ const SAND_PEBBLES: [number, number] = [0.2, 0.6]
 const BONE: [number, number] = [0.6, 0.8]
 /** Cactuses dead on their feet, in the purple of the Scorpion King. */
 const VENOMED: Recolor = { hue: 296, saturation: 0.5, lightness: 0.62 }
+/** Shares of the tropical sheet: 5 palms then 3 wide trees; 2 ferns, a flowering bush, a mossy rock; a tuft, 2 flowers, a fern. */
+const PALMS: [number, number] = [0, 0.625]
+const WIDE_TREES: [number, number] = [0.625, 1]
+const FERNS: [number, number] = [0, 0.5]
+const FLOWER_BUSH: [number, number] = [0.5, 0.75]
+const MOSSY_ROCK: [number, number] = [0.75, 1]
+const TUFT: [number, number] = [0, 0.25]
+const FLOWERS: [number, number] = [0.25, 0.75]
+const SMALL_FERN: [number, number] = [0.75, 1]
+const JUNGLE_DARK: Recolor = { hue: 140, saturation: 0.85, lightness: 0.62 }
+const LIME: Recolor = { hue: 76, saturation: 1.1, lightness: 1.12 }
+const BAMBOO_GOLD: Recolor = { hue: 50, saturation: 1.05, lightness: 1.12 }
+const FLAME: Recolor = { hue: 12, saturation: 1.2, lightness: 1.02 }
+const FLAME_ORANGE: Recolor = { hue: 30, saturation: 1.2, lightness: 1.12 }
+const JACARANDA: Recolor = { hue: 272, saturation: 0.75, lightness: 1.1 }
+const MARSH_BLUE: Recolor = { hue: 176, saturation: 0.6, lightness: 0.78 }
+const JADE: Recolor = { hue: 166, saturation: 0.9, lightness: 0.72 }
 const LOOKS: Partial<Record<Zone, Look>> = {
   [Zone.AUTUMN]: {
     tall: [
@@ -155,6 +172,81 @@ const LOOKS: Partial<Record<Zone, Look>> = {
       { share: PEBBLES }
     ]
   },
+  [Zone.DEEP_JUNGLE]: {
+    tall: [
+      { share: WIDE_TREES, recolor: JUNGLE_DARK },
+      { share: WIDE_TREES },
+      { id: 'props/tropical/3', height: 170, recolor: JUNGLE_DARK },
+      { id: 'props/tropical/3', height: 170 }
+    ],
+    low: [
+      { share: FERNS, recolor: JUNGLE_DARK },
+      { share: FERNS },
+      { share: MOSSY_ROCK },
+      { id: 'map/tropical/13', height: 86 },
+      { id: 'map/tropical/14', height: 76 },
+      { id: 'props/tropical/12', height: 44 }
+    ],
+    ground: [{ share: SMALL_FERN, recolor: JUNGLE_DARK }, { share: SMALL_FERN }, { share: TUFT, recolor: JUNGLE_DARK }]
+  },
+  [Zone.PALM_GROVE]: {
+    tall: [{ share: PALMS }, { share: PALMS, recolor: LIME }],
+    low: [{ share: FLOWER_BUSH }, { share: FERNS, recolor: LIME }, { id: 'props/tropical/8', height: 40 }],
+    ground: [{ share: TUFT, recolor: LIME }, { share: FLOWERS }]
+  },
+  [Zone.BAMBOO]: {
+    tall: [
+      { id: 'props/tropical/11', height: 170 },
+      { id: 'props/tropical/11', height: 150, recolor: LIME },
+      { id: 'props/tropical/11', height: 180, recolor: BAMBOO_GOLD }
+    ],
+    low: [{ share: FERNS, recolor: LIME }, { share: MOSSY_ROCK }, { id: 'props/tropical/10', height: 92 }],
+    ground: [
+      { share: TUFT, recolor: BAMBOO_GOLD },
+      { share: SMALL_FERN, recolor: LIME }
+    ]
+  },
+  [Zone.FLAMEWOOD]: {
+    tall: [
+      { share: WIDE_TREES, recolor: FLAME },
+      { share: WIDE_TREES, recolor: FLAME_ORANGE },
+      { share: WIDE_TREES, recolor: JACARANDA },
+      { share: PALMS }
+    ],
+    low: [{ share: FLOWER_BUSH }, { id: 'map/tropical/9', height: 54 }, { share: FERNS, recolor: FLAME_ORANGE }],
+    ground: [{ share: FLOWERS }, { share: FLOWERS }, { share: TUFT, recolor: FLAME_ORANGE }]
+  },
+  [Zone.MARSH]: {
+    tall: [
+      { share: WIDE_TREES, recolor: MARSH_BLUE },
+      { share: PALMS, recolor: MARSH_BLUE }
+    ],
+    low: [
+      { id: 'map/tropical/15', height: 78 },
+      { id: 'map/tropical/15', height: 62 },
+      { id: 'props/tropical/12', height: 44, recolor: MARSH_BLUE },
+      { share: FERNS, recolor: MARSH_BLUE }
+    ],
+    ground: [
+      { share: TUFT, recolor: MARSH_BLUE },
+      { share: SMALL_FERN, recolor: MARSH_BLUE }
+    ]
+  },
+  [Zone.JADE_TEMPLE]: {
+    tall: [
+      { share: WIDE_TREES, recolor: JADE },
+      { id: 'props/tropical/3', height: 170, recolor: JADE },
+      { share: PALMS, recolor: JADE }
+    ],
+    low: [
+      { share: FERNS, recolor: JADE },
+      { id: 'map/tropical/13', height: 92 },
+      { id: 'map/tropical/14', height: 82 },
+      { id: 'props/tropical/9', height: 88 },
+      { id: 'map/tropical/15', height: 72 }
+    ],
+    ground: [{ share: SMALL_FERN, recolor: JADE }, { share: TUFT, recolor: JADE }, { share: FLOWERS }]
+  },
   [Zone.NECROPOLIS]: {
     tall: [
       { share: DEAD_TREES },
@@ -196,6 +288,20 @@ interface LairLook {
 }
 
 const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
+  [Zone.JADE_TEMPLE]: {
+    stone: { id: 'map/tropical/16', height: 112 },
+    captive: 'heroes/oren/full',
+    monuments: [
+      { id: 'battle/tropical/landmarks/2', height: 270 },
+      { id: 'battle/tropical/landmarks/5', height: 220 },
+      { id: 'battle/tropical/landmarks/1', height: 270 },
+      { id: 'battle/tropical/landmarks/3', height: 250 }
+    ],
+    branch: '#3f4a2a',
+    glow: '80, 255, 190',
+    spell: '#27e6a4',
+    spellLight: '#c8ffe9'
+  },
   [Zone.WITCHWOOD]: {
     stone: { id: 'props/forest/11', height: 92, recolor: HEX_RUNES },
     captive: 'heroes/sera/full',

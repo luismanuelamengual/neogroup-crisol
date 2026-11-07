@@ -40,5 +40,7 @@ export enum Terrain {
   /** Sickly dark moss with glowing spores: the lair of the Moss Witch. */
   BLIGHT = 'blight',
   /** Deep red sand: the necropolis of the Scorpion King. */
-  REDSAND = 'redsand'
+  REDSAND = 'redsand',
+  /** Dark teal moss with glowing jade specks: the temple of the Jade Serpent. */
+  JADEMOSS = 'jademoss'
 }

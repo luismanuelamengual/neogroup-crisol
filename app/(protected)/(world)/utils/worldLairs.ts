@@ -1,5 +1,5 @@
 import { Graphics, Sprite, Texture } from 'pixi.js'
-import { LAKES } from '@/app/(protected)/(engine)/data/terrains'
+import { BIOMES_ORDER, LAKES } from '@/app/(protected)/(engine)/data/terrains'
 import { LAIRS } from '@/app/(protected)/(engine)/data/zones'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
@@ -21,8 +21,10 @@ import { LairTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
  */
 
 /** Where the tree of the cage stands from the point (world pixels), the ring of stones, and how many stones at most. */
-const TREE_DISTANCE = [190, 230, 270]
+const TREE_DISTANCE = [190, 230, 270, 320, 380]
 const RING_RADII = [300, 250, 350]
+/** Half the width of the tree of the cage, with the cage. */
+const TREE_HALF_WIDTH = 230
 const STONES = 11
 /** Least angle between a piece and a trail leaving the point (radians), and room kept from the trails. */
 const TRAIL_ANGLE = 0.3
@@ -45,14 +47,15 @@ interface LairMagic {
   light: number
   /** A third of the motes are of this color. */
   accent: number
-  /** What crosses the inner ring of the spell circle: a star or the rays of a sun. */
-  sigil: 'star' | 'sun'
+  /** What crosses the inner ring of the spell circle: a star, the rays of a sun or a coiled serpent. */
+  sigil: 'star' | 'sun' | 'coil'
   /** The motes rise and fade, or whirl up like a storm of sand. */
   motes: 'rise' | 'whirl'
 }
 
 const LAIR_MAGIC: Partial<Record<Zone, LairMagic>> = {
   [Zone.WITCHWOOD]: { color: 0xff4fc8, light: 0xffc2f0, accent: 0xb6f05a, sigil: 'star', motes: 'rise' },
+  [Zone.JADE_TEMPLE]: { color: 0x27e6a4, light: 0xc8ffe9, accent: 0xffc83a, sigil: 'coil', motes: 'rise' },
   [Zone.NECROPOLIS]: { color: 0xffb81f, light: 0xfff0a8, accent: 0xb13bd0, sigil: 'sun', motes: 'whirl' }
 }
 
@@ -135,7 +138,9 @@ export class WorldLairs {
         scenery.add(stone)
       }
 
-      for (const { texture, x, y } of this.monumentSpots(lair, textures.monuments)) {
+      const standing = { texture: textures.caged, x: spot[0], y: spot[1] }
+
+      for (const { texture, x, y } of this.monumentSpots(lair, textures.monuments, standing)) {
         const monument = new Sprite(texture)
 
         monument.anchor.set(0.5, 0.96)
@@ -189,14 +194,17 @@ export class WorldLairs {
 
   /** North of the point if it can (behind its marker), away from its trails, on its level. */
   private treeSpot({ node, trails }: Lair): [number, number] {
-    const angles = [-90, -60, -120, -30, -150, 0, 180, 30, 150].map((degrees) => (degrees * Math.PI) / 180)
+    const angles = [-90, -60, -120, -30, -150, 0, 180, 30, 150, 60, 120, 90].map((degrees) => (degrees * Math.PI) / 180)
 
     for (const distance of TREE_DISTANCE) {
       for (const angle of angles) {
         const x = node.x + Math.cos(angle) * distance
         const y = node.y + Math.sin(angle) * distance
 
-        if (this.awayFromTrails(trails, angle, 0.6) && this.rests(node, x, y, 46)) {
+        // In front of the point, it would hide it.
+        const hides = y > node.y && Math.abs(x - node.x) < TREE_HALF_WIDTH
+
+        if (!hides && this.awayFromTrails(trails, angle, 0.6) && this.rests(node, x, y, 46)) {
           return [x, y]
         }
       }
@@ -234,8 +242,8 @@ export class WorldLairs {
    * Past the ring, each one at the closest place where it stands on flat
    * ground, hides no trail or point and touches no other monument.
    */
-  private monumentSpots({ node }: Lair, textures: Texture[]): MonumentSpot[] {
-    const placed: MonumentSpot[] = []
+  private monumentSpots({ node }: Lair, textures: Texture[], tree: MonumentSpot): MonumentSpot[] {
+    const placed = [tree]
 
     for (const texture of textures) {
       const spot = this.monumentSpot(node, texture, placed)
@@ -245,7 +253,7 @@ export class WorldLairs {
       }
     }
 
-    return placed
+    return placed.slice(1)
   }
 
   private monumentSpot(node: WorldNode, texture: Texture, placed: MonumentSpot[]): MonumentSpot | null {
@@ -260,7 +268,7 @@ export class WorldLairs {
             y < other.y - other.texture.height - MONUMENT_ROOM
         )
 
-        if (apart && this.standsClear(x, y, texture.width, texture.height)) {
+        if (apart && this.standsClear(node, x, y, texture.width, texture.height)) {
           return { texture, x, y }
         }
       }
@@ -269,8 +277,14 @@ export class WorldLairs {
     return null
   }
 
+  private inBiome({ biome }: WorldNode, x: number, y: number): boolean {
+    const { biomes, columns, tileSize } = this.tiles
+
+    return biomes[Math.floor(y / tileSize) * columns + Math.floor(x / tileSize)] === BIOMES_ORDER.indexOf(biome)
+  }
+
   /** Whether a piece this big rests on one level, inside the world, with no trail or lake under it or behind it. */
-  private standsClear(x: number, y: number, width: number, height: number): boolean {
+  private standsClear(node: WorldNode, x: number, y: number, width: number, height: number): boolean {
     const level = heightAt(this.tiles, x, y)
 
     if (x - width / 2 <= 0 || x + width / 2 >= this.world.width || y - height <= 0 || y >= this.world.height) {
@@ -278,7 +292,7 @@ export class WorldLairs {
     }
 
     for (let dx = -width / 2; dx <= width / 2; dx += 30) {
-      if (heightAt(this.tiles, x + dx, y) !== level) {
+      if (heightAt(this.tiles, x + dx, y) !== level || !this.inBiome(node, x + dx, y)) {
         return false
       }
 
@@ -315,6 +329,7 @@ export class WorldLairs {
           px < this.world.width &&
           py < this.world.height &&
           heightAt(this.tiles, px, py) === level &&
+          this.inBiome(node, px, py) &&
           !isPaved(this.tiles, px, py) &&
           !LAKES.has(terrainAt(this.tiles, px, py))
         )
@@ -352,6 +367,12 @@ export class WorldLairs {
       })
     }
 
+    if (sigil === 'coil') {
+      this.drawCoil(x, y, squash, color, elapsed, 0.35 + breath * 0.3)
+
+      return
+    }
+
     // Across the inner ring, turning the other way: a star of lines or the rays of a sun.
     const lines = sigil === 'sun' ? 12 : 5
 
@@ -382,6 +403,24 @@ export class WorldLairs {
     if (sigil === 'sun') {
       g.ellipse(x, y, CIRCLE_RADIUS * 0.18, CIRCLE_RADIUS * 0.18 * squash).fill({ color, alpha: 0.4 + breath * 0.3 })
     }
+  }
+
+  /** A serpent coiled inside the inner ring, turning the other way. */
+  private drawCoil(x: number, y: number, squash: number, color: number, elapsed: number, alpha: number): void {
+    const steps = 48
+    const turns = 2.5
+
+    this.circles.moveTo(x, y)
+
+    for (let step = 1; step <= steps; step++) {
+      const share = step / steps
+      const angle = -elapsed * 0.3 + share * turns * Math.PI * 2
+      const reach = CIRCLE_RADIUS * 0.68 * share
+
+      this.circles.lineTo(x + Math.cos(angle) * reach, y + Math.sin(angle) * reach * squash)
+    }
+
+    this.circles.stroke({ width: 5, color, alpha })
   }
 
   /** Motes of magic and spores rising from the ring and fading. */

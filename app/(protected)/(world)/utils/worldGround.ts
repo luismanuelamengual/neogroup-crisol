@@ -22,7 +22,7 @@ import { GroundTextures, TerrainTexture } from '@/app/(protected)/(world)/utils/
  * in the middle and repeated around it, so that the smaller mipmaps never
  * blend it with its neighbors.
  */
-const ATLAS_COLUMNS = 5
+const ATLAS_COLUMNS = 6
 const ATLAS_CELL = 400
 /** Cells of the info texture (see infoTexture): room for every terrain. */
 const INFO_WIDTH = ATLAS_COLUMNS * ATLAS_COLUMNS

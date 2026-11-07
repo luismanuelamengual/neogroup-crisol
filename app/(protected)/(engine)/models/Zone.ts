@@ -14,6 +14,18 @@ export enum Zone {
   WITCHWOOD = 'witchwood',
   /** Desert: the lair of Sahrak, the Scorpion King, where Brann is held: a ruined necropolis over red sand. */
   NECROPOLIS = 'necropolis',
+  /** Tropical: deep jungle of dark wide trees, ferns and ruins of jade. */
+  DEEP_JUNGLE = 'deepJungle',
+  /** Tropical: open grove of palms over light grass and sand. */
+  PALM_GROVE = 'palmGrove',
+  /** Tropical: thick stands of bamboo, green and golden. */
+  BAMBOO = 'bamboo',
+  /** Tropical: flame trees in red, orange and violet bloom, among flowers. */
+  FLAMEWOOD = 'flamewood',
+  /** Tropical: a marsh of ponds and reeds among bluish trees. */
+  MARSH = 'marsh',
+  /** Tropical: the lair of Xalqui, the Jade Serpent, where Oren is held: a jungle temple of jade over glowing moss. */
+  JADE_TEMPLE = 'jadeTemple',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }

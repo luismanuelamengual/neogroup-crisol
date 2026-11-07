@@ -66,6 +66,29 @@ describe('zones of the biomes', () => {
     expect(tiles.some((terrain) => TERRAINS[terrain] === Terrain.REDSAND)).toBe(true)
   })
 
+  it('split the tropical jungle into its plain look and every one of its zones', () => {
+    const tropical = BIOMES_ORDER.indexOf(Biome.TROPICAL)
+    const tiles = map.zones.filter((_, index) => map.biomes[index] === tropical)
+    const share = (zone: number) => tiles.filter((tile) => tile === zone).length / tiles.length
+
+    expect(share(0)).toBeGreaterThan(0.1)
+
+    for (const zone of [Zone.DEEP_JUNGLE, Zone.PALM_GROVE, Zone.BAMBOO, Zone.FLAMEWOOD, Zone.MARSH, Zone.JADE_TEMPLE]) {
+      expect(share(ZONES_ORDER.indexOf(zone) + 1)).toBeGreaterThan(0.02)
+    }
+  })
+
+  it('put the captor of the tropical jungle in its northeast, in its temple', () => {
+    const members = world.nodes.filter((node) => node.biome === Biome.TROPICAL)
+    const captor = members.find((node) => node.bossKind === BossKind.CAPTOR)!
+    const index = Math.floor(captor.y / map.tileSize) * map.columns + Math.floor(captor.x / map.tileSize)
+    const middle = (values: number[]) => (Math.min(...values) + Math.max(...values)) / 2
+
+    expect(captor.x).toBeGreaterThan(middle(members.map(({ x }) => x)))
+    expect(captor.y).toBeLessThan(middle(members.map(({ y }) => y)))
+    expect(ZONES_ORDER[map.zones[index] - 1]).toBe(Zone.JADE_TEMPLE)
+  })
+
   it('give their ground to their tiles', () => {
     const autumn = ZONES_ORDER.indexOf(Zone.AUTUMN) + 1
     const leaves = map.terrains.filter(

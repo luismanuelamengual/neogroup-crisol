@@ -437,7 +437,8 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
   const canBeKeyBoss = (node: WorldNode) => isFree(node) && !isBorder(node)
   const biomeNodes = (definition: BiomeDefinition) => nodes.filter((node) => node.biome === definition.biome)
 
-  // Captors and Seals: in the deepest part of their biome, where a camp fits about KEY_BOSS_CAMP_STEPS away.
+  // Captors and Seals: in the deepest part of their biome (or the place set for them), where a camp fits about
+  // KEY_BOSS_CAMP_STEPS away.
   const roomForNearCamp = (boss: WorldNode) => {
     const fromBoss = hopDistances(adjacency, [boss.id])
 
@@ -470,7 +471,10 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
 
     if (definition.captor) {
-      const node = maxBy(options, (candidate) => fromStart.get(candidate.id)!)
+      const { captorAt } = definition
+      const node = captorAt
+        ? minBy(options, (candidate) => Math.hypot(candidate.x - captorAt[0], candidate.y - captorAt[1]))
+        : maxBy(options, (candidate) => fromStart.get(candidate.id)!)
 
       Object.assign(node, {
         type: NodeType.CAMP_BOSS,

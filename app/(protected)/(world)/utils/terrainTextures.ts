@@ -105,6 +105,13 @@ const LOOKS: Record<Terrain, Look> = {
     pattern: 'speckles',
     glow: [150, 230, 90]
   },
+  [Terrain.JADEMOSS]: {
+    base: [24, 96, 88],
+    dark: [10, 54, 56],
+    light: [44, 140, 118],
+    pattern: 'speckles',
+    glow: [110, 255, 200]
+  },
   [Terrain.REDSAND]: { base: [176, 72, 44], dark: [122, 40, 32], light: [216, 112, 64], pattern: 'ripples' }
 }
 
