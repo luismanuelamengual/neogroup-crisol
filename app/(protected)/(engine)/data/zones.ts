@@ -111,6 +111,14 @@ export const ZONES: ZoneDefinition[] = [
     density: { tall: 0.6, low: 0.36, ground: 1.6 }
   },
   {
+    zone: Zone.BASALT_HOLD,
+    biome: Biome.MOUNTAINS,
+    weight: 0,
+    ground: Terrain.BASALT,
+    patches: Terrain.ROCK,
+    density: { tall: 0.45, low: 0.4, ground: 1.1 }
+  },
+  {
     zone: Zone.VILLAGE,
     biome: Biome.MEADOWS,
     weight: 0,
@@ -131,7 +139,8 @@ export interface LairDefinition {
 export const LAIRS: Partial<Record<Biome, LairDefinition>> = {
   [Biome.FOREST]: { zone: Zone.WITCHWOOD, radius: 1000 },
   [Biome.DESERT]: { zone: Zone.NECROPOLIS, radius: 1150 },
-  [Biome.TROPICAL]: { zone: Zone.JADE_TEMPLE, radius: 1150 }
+  [Biome.TROPICAL]: { zone: Zone.JADE_TEMPLE, radius: 1150 },
+  [Biome.MOUNTAINS]: { zone: Zone.BASALT_HOLD, radius: 1150 }
 }
 
 /**

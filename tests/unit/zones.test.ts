@@ -89,6 +89,13 @@ describe('zones of the biomes', () => {
     expect(ZONES_ORDER[map.zones[index] - 1]).toBe(Zone.JADE_TEMPLE)
   })
 
+  it('surround the captor of the mountains with its hold of basalt', () => {
+    const captor = world.nodes.find((node) => node.biome === Biome.MOUNTAINS && node.bossKind === BossKind.CAPTOR)!
+    const index = Math.floor(captor.y / map.tileSize) * map.columns + Math.floor(captor.x / map.tileSize)
+
+    expect(ZONES_ORDER[map.zones[index] - 1]).toBe(Zone.BASALT_HOLD)
+  })
+
   it('give their ground to their tiles', () => {
     const autumn = ZONES_ORDER.indexOf(Zone.AUTUMN) + 1
     const leaves = map.terrains.filter(

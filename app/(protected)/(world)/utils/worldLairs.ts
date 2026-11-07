@@ -22,7 +22,7 @@ import { LairTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
 
 /** Where the tree of the cage stands from the point (world pixels), the ring of stones, and how many stones at most. */
 const TREE_DISTANCE = [190, 230, 270, 320, 380]
-const RING_RADII = [300, 250, 350]
+const RING_RADII = [300, 250, 350, 400]
 /** Half the width of the tree of the cage, with the cage. */
 const TREE_HALF_WIDTH = 230
 const STONES = 11
@@ -55,6 +55,7 @@ interface LairMagic {
 
 const LAIR_MAGIC: Partial<Record<Zone, LairMagic>> = {
   [Zone.WITCHWOOD]: { color: 0xff4fc8, light: 0xffc2f0, accent: 0xb6f05a, sigil: 'star', motes: 'rise' },
+  [Zone.BASALT_HOLD]: { color: 0xffa51f, light: 0xffe9a0, accent: 0xff5a1f, sigil: 'coil', motes: 'rise' },
   [Zone.JADE_TEMPLE]: { color: 0x27e6a4, light: 0xc8ffe9, accent: 0xffc83a, sigil: 'coil', motes: 'rise' },
   [Zone.NECROPOLIS]: { color: 0xffb81f, light: 0xfff0a8, accent: 0xb13bd0, sigil: 'sun', motes: 'whirl' }
 }
@@ -73,6 +74,11 @@ interface Lair {
   magic: LairMagic
   tree: Sprite | null
   textures: LairTextures | null
+}
+
+/** Whether a monument stands over that place, or right in front of it. */
+function covers({ texture, x, y }: MonumentSpot, px: number, py: number): boolean {
+  return Math.abs(px - x) < texture.width / 2 + 30 && py > y - texture.height && py < y + 40
 }
 
 export class WorldLairs {
@@ -129,7 +135,18 @@ export class WorldLairs {
       tree.position.set(spot[0], spot[1])
       lair.tree = tree
 
+      const monuments = this.monumentSpots(lair, textures.monuments, {
+        texture: textures.caged,
+        x: spot[0],
+        y: spot[1]
+      })
+
       for (const [x, y] of this.stoneSpots(lair, spot)) {
+        // A monument takes the place of the stones it would cover.
+        if (monuments.some((monument) => covers(monument, x, y))) {
+          continue
+        }
+
         const stone = new Sprite(textures.stone)
 
         stone.anchor.set(0.5, 0.96)
@@ -138,9 +155,7 @@ export class WorldLairs {
         scenery.add(stone)
       }
 
-      const standing = { texture: textures.caged, x: spot[0], y: spot[1] }
-
-      for (const { texture, x, y } of this.monumentSpots(lair, textures.monuments, standing)) {
+      for (const { texture, x, y } of monuments) {
         const monument = new Sprite(texture)
 
         monument.anchor.set(0.5, 0.96)
@@ -228,7 +243,9 @@ export class WorldLairs {
       const spot = RING_RADII.map((radius): [number, number] => [
         node.x + Math.cos(angle) * radius,
         node.y + Math.sin(angle) * radius * 0.78
-      ]).find(([x, y]) => Math.hypot(x - tree[0], y - tree[1]) > 150 && this.rests(node, x, y, 22))
+      ]).find(
+        ([x, y]) => Math.hypot(x - tree[0], y - tree[1]) > 150 && this.rests(node, x, y, 22, heightAt(this.tiles, x, y))
+      )
 
       if (spot) {
         spots.push(spot)
@@ -314,10 +331,14 @@ export class WorldLairs {
     })
   }
 
-  /** Whether a foot this wide rests at that place: on the level of the point, off trails and lakes. */
-  private rests(node: WorldNode, x: number, y: number, half: number): boolean {
-    const level = heightAt(this.tiles, node.x, node.y)
-
+  /** Whether a foot this wide rests at that place: on one level (that of the point, unless told), off trails and lakes. */
+  private rests(
+    node: WorldNode,
+    x: number,
+    y: number,
+    half: number,
+    level = heightAt(this.tiles, node.x, node.y)
+  ): boolean {
     return [-half, 0, half].every((dx) =>
       [-TRAIL_ROOM / 2, 0, TRAIL_ROOM / 4].every((dy) => {
         const px = x + dx

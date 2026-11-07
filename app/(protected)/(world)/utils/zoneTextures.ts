@@ -98,6 +98,17 @@ const FLAME_ORANGE: Recolor = { hue: 30, saturation: 1.2, lightness: 1.12 }
 const JACARANDA: Recolor = { hue: 272, saturation: 0.75, lightness: 1.1 }
 const MARSH_BLUE: Recolor = { hue: 176, saturation: 0.6, lightness: 0.78 }
 const JADE: Recolor = { hue: 166, saturation: 0.9, lightness: 0.72 }
+/** Shares of the mountains sheet: 6 pines then 2 spires of rock; 3 rocks, a bush; a tuft, pebbles, edelweiss, a flat stone. */
+const MOUNTAIN_PINES: [number, number] = [0, 0.75]
+const SPIRES: [number, number] = [0.75, 1]
+const BOULDERS: [number, number] = [0, 0.75]
+const MOUNTAIN_TUFT: [number, number] = [0, 0.25]
+const GREY_PEBBLES: [number, number] = [0.25, 0.5]
+const FLAT_STONE: [number, number] = [0.75, 1]
+/** Pines burned by the Colossus. */
+const CHARRED: Recolor = { hue: 24, saturation: 0.3, lightness: 0.42 }
+/** The cyan crystals and runes, turned to the molten amber of the Colossus. */
+const MOLTEN: Recolor = { hue: 34, saturation: 1, lightness: 1.02, from: [165, 215] }
 const LOOKS: Partial<Record<Zone, Look>> = {
   [Zone.AUTUMN]: {
     tall: [
@@ -247,6 +258,24 @@ const LOOKS: Partial<Record<Zone, Look>> = {
     ],
     ground: [{ share: SMALL_FERN, recolor: JADE }, { share: TUFT, recolor: JADE }, { share: FLOWERS }]
   },
+  [Zone.BASALT_HOLD]: {
+    tall: [
+      { share: SPIRES },
+      { share: SPIRES },
+      { share: MOUNTAIN_PINES, recolor: CHARRED },
+      { id: 'props/mountains/10', height: 130 }
+    ],
+    low: [
+      { share: BOULDERS },
+      { id: 'map/mountains/11', height: 84, recolor: MOLTEN },
+      { id: 'map/mountains/15', height: 92 },
+      { id: 'map/mountains/16', height: 100 },
+      { id: 'props/mountains/7', height: 62 },
+      { id: 'props/mountains/8', height: 66 },
+      { id: 'props/mountains/9', height: 54 }
+    ],
+    ground: [{ share: GREY_PEBBLES }, { share: FLAT_STONE }, { share: MOUNTAIN_TUFT, recolor: CHARRED }]
+  },
   [Zone.NECROPOLIS]: {
     tall: [
       { share: DEAD_TREES },
@@ -288,6 +317,21 @@ interface LairLook {
 }
 
 const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
+  [Zone.BASALT_HOLD]: {
+    stone: { id: 'props/mountains/11', height: 112, recolor: MOLTEN },
+    captive: 'heroes/ysolde/full',
+    tree: 'map/desert/scenery/tall-7@2x',
+    monuments: [
+      { id: 'battle/mountains/landmarks/1', height: 290 },
+      { id: 'battle/mountains/landmarks/4', height: 250 },
+      { id: 'battle/mountains/landmarks/6', height: 220, recolor: MOLTEN },
+      { id: 'battle/mountains/landmarks/5', height: 200 }
+    ],
+    branch: '#5a4034',
+    glow: '255, 170, 60',
+    spell: '#ffa51f',
+    spellLight: '#ffe9a0'
+  },
   [Zone.JADE_TEMPLE]: {
     stone: { id: 'map/tropical/16', height: 112 },
     captive: 'heroes/oren/full',

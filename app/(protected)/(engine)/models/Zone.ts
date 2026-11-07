@@ -26,6 +26,8 @@ export enum Zone {
   MARSH = 'marsh',
   /** Tropical: the lair of Xalqui, the Jade Serpent, where Oren is held: a jungle temple of jade over glowing moss. */
   JADE_TEMPLE = 'jadeTemple',
+  /** Mountains: the lair of the Basalt Colossus, where Ysolde is held: a dwarven hold in ruins over black basalt. */
+  BASALT_HOLD = 'basaltHold',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }
