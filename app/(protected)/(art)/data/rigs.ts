@@ -71,12 +71,15 @@ export interface RigString {
   color: number
 }
 
+export type RotationKeys = [number, number][]
+
 export interface Rig {
   /** The image (catalog id) each slot reads (a hero that shoots has no arm). */
   images: Partial<Record<Slot, string>>
   sizes: Partial<Record<Slot, SlotSize>>
   bones: RigBone[]
   string?: RigString
+  attack?: Partial<Record<BoneRole, RotationKeys>>
 }
 
 /** What a hero holds. */
@@ -117,7 +120,7 @@ const WEAPONS: Record<string, WeaponFit> = {
   // The bow images lie with the string on top: turned upright, the string faces the archer.
   // Fitted so body + bow match Sera's whole figure (heroes/sera/full) over each other.
   bow: { grip: 0.467, gripY: 0.592, length: 0.935, rest: -Math.PI / 2 + 0.245 },
-  axe: { grip: 0.3, length: 0.73 },
+  axe: { grip: 0.17, gripY: 0.43, length: 0.73, rest: -0.25 },
   dawnbrand: { grip: 0.18, length: 0.66 },
   mace: { grip: 0.15, length: 0.62 },
   // The other bows: the fist on the wrist at the same size and tilt as the first bow's
@@ -135,15 +138,15 @@ const WEAPONS: Record<string, WeaponFit> = {
   },
   // Both string ends of the body fall on its gold rings.
   'gale-bow': { grip: 0.4997, gripY: 0.714, length: 0.956, rest: -Math.PI / 2 + 0.213 },
-  maul: { grip: 0.25, length: 0.78 },
-  hatchets: { grip: 0.2, length: 0.44 },
-  'root-sickle': { grip: 0.2, length: 0.44 },
-  scythe: { grip: 0.4, length: 0.97 },
-  'thorn-sickle': { grip: 0.35, length: 0.73 },
+  maul: { grip: 0.16, gripY: 0.45, length: 0.78, rest: -0.25 },
+  hatchets: { grip: 0.13, gripY: 0.43, length: 0.73, rest: -0.25 },
+  'root-sickle': { grip: 0.26, gripY: 0.35, length: 0.88, rest: -0.32 },
+  scythe: { grip: 0.15, gripY: 0.34, length: 0.88, rest: -0.32 },
+  'thorn-sickle': { grip: 0.19, gripY: 0.34, length: 0.88, rest: -0.32 },
   // The grimoires float beside the hand: it "holds" them by their spine.
-  tome: { grip: 0.5, length: 0.39 },
-  codex: { grip: 0.5, length: 0.39 },
-  grimoire: { grip: 0.5, length: 0.39 }
+  tome: { grip: 0.5, gripY: 1.12, length: 0.29, rest: 0 },
+  codex: { grip: 0.5, gripY: 1.12, length: 0.29, rest: 0 },
+  grimoire: { grip: 0.5, gripY: 1.12, length: 0.29, rest: 0 }
 }
 
 /** How a weapon is held and how long it is (see WEAPONS), or null when it has no fit of its own: for /dev/heroes. */
@@ -171,7 +174,37 @@ interface ArmJoints {
 }
 
 const DEFAULT_ARM: ArmJoints = { shoulder: [0.67, 0.37], top: [0.28, 0.12], wrist: [1.12, 0.91] }
-const ARMS: Partial<Record<CharacterId, Partial<ArmJoints>>> = {}
+const BRANN_ARM: ArmJoints = { shoulder: [0.235, 0.317], top: [0.37, 0.15], wrist: [0.83, 0.89] }
+const OREN_ARM: ArmJoints = { shoulder: [0.24, 0.32], top: [0.45, 0.2], wrist: [0.86, 0.92] }
+const YSOLDE_ARM: ArmJoints = { shoulder: [0.675, 0.32], top: [0.11, 0.27], wrist: [0.82, 0.34] }
+const YSOLDE_ATTACK: NonNullable<Rig['attack']> = {
+  arm: [
+    [0, 0],
+    [0.45, -0.32],
+    [0.65, -0.16],
+    [1, 0]
+  ],
+  weapon: [
+    [0, 0],
+    [0.45, 0.25],
+    [0.65, 0.1],
+    [1, 0]
+  ]
+}
+const FOREGROUND_ATTACK: NonNullable<Rig['attack']> = {
+  arm: [
+    [0, 0],
+    [0.42, 0.52],
+    [0.63, -0.55],
+    [1, 0]
+  ],
+  weapon: [
+    [0, 0],
+    [0.42, -1.35],
+    [0.63, 0.65],
+    [1, 0]
+  ]
+}
 /**
  * Heroes that shoot: the wrist on the body image (share of its box from the
  * top-left corner) where the fist of the weapon image goes. Adjust a hero
@@ -199,13 +232,23 @@ const BOW_STRINGS: Partial<Record<CharacterId, { ends: [Share, Share]; width: nu
 }
 
 /** The hero skeleton, back to front: the arm, the weapon with its fist over it, and the body in front of both. */
-function heroBones(grip: number, arm: ArmJoints): RigBone[] {
-  return [
+function heroBones(weapon: WeaponFit, arm: ArmJoints, foreground: boolean): RigBone[] {
+  const body: RigBone = { role: 'body', slot: 'body', segment: 1, pivot: [0.5, 1], at: [0, 0] }
+  const held: RigBone[] = [
     { role: 'arm', slot: 'arm', segment: 1, parent: 'body', pivot: arm.top, at: arm.shoulder },
     // At rest the blade points up and forward, as in the whole figure.
-    { role: 'weapon', slot: 'weapon', segment: 1, parent: 'arm', pivot: [grip, 0.5], at: arm.wrist, rotation: -0.8 },
-    { role: 'body', slot: 'body', segment: 1, pivot: [0.5, 1], at: [0, 0] }
+    {
+      role: 'weapon',
+      slot: 'weapon',
+      segment: 1,
+      parent: 'arm',
+      pivot: [weapon.grip, weapon.gripY ?? 0.5],
+      at: arm.wrist,
+      rotation: weapon.rest ?? -0.8
+    }
   ]
+
+  return foreground ? [body, ...held] : [...held, body]
 }
 
 /** A hero that shoots, front to back: the body, and the weapon with its fist in front, at its wrist. */
@@ -226,6 +269,14 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
   const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 0.7 }
   const parts = heroParts(id)
   const ranged = isRangedCharacter(id)
+  const brann = id === CharacterId.BRANN
+  const oren = id === CharacterId.OREN
+  const ysolde = id === CharacterId.YSOLDE
+  const foreground = brann || oren
+  const arm = brann ? BRANN_ARM : oren ? OREN_ARM : ysolde ? YSOLDE_ARM : DEFAULT_ARM
+  const armSize: SlotSize = oren
+    ? { segment: 1, side: 'height', length: 0.34 }
+    : { ...SIZES.arm, length: brann ? 0.25 : ysolde ? 0.3 : SIZES.arm.length }
   const bowString = ranged ? BOW_STRINGS[id] : undefined
 
   return {
@@ -235,12 +286,13 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
     },
     sizes: {
       body: SIZES.body,
-      ...(ranged ? {} : { arm: SIZES.arm }),
+      ...(ranged ? {} : { arm: armSize }),
       weapon: { segment: 1, side: 'width', length: weapon.length }
     },
     bones: ranged
       ? shooterBones([weapon.grip, weapon.gripY ?? 0.5], weapon.rest ?? -Math.PI / 2, HANDS[id] ?? DEFAULT_HAND)
-      : heroBones(weapon.grip, { ...DEFAULT_ARM, ...ARMS[id] }),
+      : heroBones(weapon, arm, foreground),
+    ...(foreground || ysolde ? { attack: ysolde ? YSOLDE_ATTACK : FOREGROUND_ATTACK } : {}),
     ...(bowString && weapon.nocks
       ? { string: { body: bowString.ends, weapon: weapon.nocks, width: bowString.width, color: bowString.color } }
       : {})

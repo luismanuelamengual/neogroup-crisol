@@ -232,7 +232,8 @@ export const HERO_CLOTHES: Record<string, string> = {
 
 /** The hand each hero holds the weapon with (the shield, if any, goes on the other arm); right unless listed. */
 export const HERO_WEAPON_HAND: Record<string, 'left' | 'right'> = {
-  kael: 'left'
+  kael: 'left',
+  ysolde: 'left'
 }
 
 /** The weapons each hero can hold; the first one is the one they start with. */
@@ -258,18 +259,18 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
   },
   oren: {
     'root-sickle':
-      'Raíz Antigua, una hoz de una mano cuya empuñadura es una raíz viva y retorcida y cuya hoja curva de madera tiene un filo de corteza que brilla en verde, con raicitas que cuelgan del pomo',
+      'Raíz Antigua, una hoz de una mano cuya empuñadura es una raíz viva retorcida de madera ámbar con hojas frescas y cuya hoja ancha de madera tiene un filo verde lima, con raicitas que cuelgan del pomo',
     scythe:
       'Mediodía, una guadaña alta de madera blanca y oro cuya larga hoja curva brilla con cálida luz de sol, con un disco solar radiante donde la hoja se une al mango',
     'thorn-sickle':
-      'Última Cosecha, una hoz de mango largo de madera negra cuya hoja curva es una única espina enorme que gotea veneno verde'
+      'Última Cosecha, una hoz de mango largo de madera negra con ataduras violetas y una hoja estrecha, ganchuda y dentada que gotea veneno violeta'
   },
   ysolde: {
     tome: 'Trinidad, un grimorio grueso y abierto que flota junto a su mano, encuadernado en cuero azul profundo con tres sellos brillantes de fuego, hielo y rayo en la tapa',
     codex:
       'Voz del Trueno, un códice de tormenta abierto que flota junto a su mano, con refuerzos de hierro y broches de plata, y páginas que se agitan y chisporrotean con rayos blanco azulados',
     grimoire:
-      'Prisma del Ocaso, un libro abierto de páginas de cristal oscuro que flota junto a su mano, con un prisma engarzado en la tapa que divide la luz en rayos de arcoíris'
+      'Prisma del Ocaso, un libro abierto de páginas de cristal oscuro que flota junto a su mano, con un prisma multicolor engarzado en la tapa, sin emitir rayos'
   }
 }
 

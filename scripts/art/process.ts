@@ -14,6 +14,8 @@ import { styleText } from 'node:util'
 import sharp from 'sharp'
 import { MUSIC, SFX } from '@/app/(protected)/(art)/data/audio'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
+import { isRangedCharacter } from '@/app/(protected)/(engine)/data/weapons'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { BATCHES, buildCatalog, Piece, PieceKind } from '@/scripts/art/catalog'
 import {
   Box,
@@ -35,6 +37,7 @@ const EXTENSIONS = ['png', 'webp', 'jpg', 'jpeg']
 const MAX_SIDE: Record<PieceKind, number> = {
   hero: 720,
   heroPart: 720,
+  heroParts: 0,
   weapon: 1024,
   weaponArt: 320,
   portrait: 256,
@@ -122,6 +125,15 @@ async function writeWebp(
   return { width, height }
 }
 
+async function writeRigPart(image: RawImage, id: string, maxSide: number, manifest: ArtManifest): Promise<void> {
+  const box = opaqueBox(image)
+
+  if (box) {
+    manifest.images[id] = await writeWebp(image, box, id, maxSide)
+    manifest.parts[id] = [{ id, ...box }]
+  }
+}
+
 async function processPiece(piece: Piece, path: string, manifest: ArtManifest): Promise<void> {
   const image = await readRaw(path)
   const whole = { x: 0, y: 0, width: image.width, height: image.height }
@@ -148,6 +160,30 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
       piece.id,
       MAX_SIDE.tile
     )
+
+    return
+  }
+
+  if (piece.kind === 'heroParts') {
+    const hero = dirname(piece.id)
+    const slots = heroPartSlots(piece.id)
+    const half = Math.floor(image.width / 2)
+
+    for (const [index, slot] of slots.entries()) {
+      const left = half * index
+      const width = index === 0 ? half : image.width - half
+      const data = await sharp(image.data, { raw: { width: image.width, height: image.height, channels: 4 } })
+        .extract({ left, top: 0, width, height: image.height })
+        .raw()
+        .toBuffer()
+      const part = { data, width, height: image.height }
+
+      if (hasChromaBackground(part)) {
+        removeChroma(part)
+      }
+
+      await writeRigPart(part, `${hero}/${slot}`, MAX_SIDE.heroPart, manifest)
+    }
 
     return
   }
@@ -318,6 +354,12 @@ function copyAudio(kind: 'music' | 'sfx', names: readonly string[]): string[] {
   return found
 }
 
+function heroPartSlots(id: string): string[] {
+  const character = id.split('/')[1] as CharacterId
+
+  return isRangedCharacter(character) ? ['body'] : ['body', 'arm']
+}
+
 async function main(): Promise<void> {
   const catalog = buildCatalog()
   const manifest: ArtManifest = {
@@ -340,7 +382,27 @@ async function main(): Promise<void> {
 
     if (path) {
       await processPiece(piece, path, manifest)
-      found.add(piece.id)
+
+      if (piece.kind !== 'heroParts') {
+        found.add(piece.id)
+      }
+    }
+
+    if (piece.kind === 'heroParts') {
+      const ids = heroPartSlots(piece.id).map((slot) => `${dirname(piece.id)}/${slot}`)
+
+      // Older projects may still have the pieces as separate source files.
+      for (const id of ids.filter((id) => !manifest.parts[id])) {
+        const legacyPath = sourceOf(id)
+
+        if (legacyPath) {
+          await processPiece({ ...piece, id, kind: 'heroPart' }, legacyPath, manifest)
+        }
+      }
+
+      if (ids.every((id) => manifest.parts[id])) {
+        found.add(piece.id)
+      }
     }
   }
 
@@ -348,7 +410,13 @@ async function main(): Promise<void> {
   manifest.sfx = copyAudio('sfx', SFX)
   writeFileSync(join(OUTPUT, 'manifest.json'), `${JSON.stringify(manifest, null, 1)}\n`)
 
-  const known = new Set(catalog.map((piece) => piece.id))
+  const known = new Set(
+    catalog.flatMap((piece) =>
+      piece.kind === 'heroParts'
+        ? [piece.id, ...heroPartSlots(piece.id).map((slot) => `${dirname(piece.id)}/${slot}`)]
+        : [piece.id]
+    )
+  )
   const strays = existsSync(SOURCE)
     ? readdirSync(SOURCE, { recursive: true, encoding: 'utf8' })
         .filter((file) => EXTENSIONS.some((extension) => file.endsWith(`.${extension}`)))

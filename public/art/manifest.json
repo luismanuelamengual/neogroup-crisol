@@ -77,20 +77,20 @@
    "height": 256
   },
   "heroes/brann/full": {
-   "width": 548,
+   "width": 517,
    "height": 720
   },
   "heroes/brann/body": {
-   "width": 542,
+   "width": 467,
    "height": 720
   },
   "heroes/brann/arm": {
-   "width": 518,
+   "width": 498,
    "height": 720
   },
   "heroes/brann/weapons/axe": {
    "width": 1024,
-   "height": 379
+   "height": 383
   },
   "heroes/brann/weapons/maul": {
    "width": 1024,
@@ -98,7 +98,7 @@
   },
   "heroes/brann/weapons/hatchets": {
    "width": 1024,
-   "height": 325
+   "height": 283
   },
   "icons/weapons/axe": {
    "width": 320,
@@ -117,32 +117,32 @@
    "height": 256
   },
   "heroes/oren/full": {
-   "width": 539,
+   "width": 498,
    "height": 720
   },
   "heroes/oren/body": {
-   "width": 526,
+   "width": 479,
    "height": 720
   },
   "heroes/oren/arm": {
-   "width": 667,
+   "width": 422,
    "height": 720
   },
   "heroes/oren/weapons/root-sickle": {
    "width": 1024,
-   "height": 312
+   "height": 220
   },
   "heroes/oren/weapons/scythe": {
    "width": 1024,
-   "height": 305
+   "height": 299
   },
   "heroes/oren/weapons/thorn-sickle": {
    "width": 1024,
-   "height": 227
+   "height": 209
   },
   "icons/weapons/root-sickle": {
    "width": 320,
-   "height": 288
+   "height": 276
   },
   "icons/weapons/scythe": {
    "width": 320,
@@ -150,35 +150,35 @@
   },
   "icons/weapons/thorn-sickle": {
    "width": 320,
-   "height": 291
+   "height": 279
   },
   "heroes/oren/portrait": {
    "width": 256,
    "height": 256
   },
   "heroes/ysolde/full": {
-   "width": 515,
+   "width": 504,
    "height": 720
   },
   "heroes/ysolde/body": {
-   "width": 456,
+   "width": 389,
    "height": 720
   },
   "heroes/ysolde/arm": {
-   "width": 520,
-   "height": 720
+   "width": 720,
+   "height": 381
   },
   "heroes/ysolde/weapons/tome": {
-   "width": 1024,
-   "height": 395
+   "width": 753,
+   "height": 597
   },
   "heroes/ysolde/weapons/codex": {
-   "width": 1024,
-   "height": 361
+   "width": 832,
+   "height": 519
   },
   "heroes/ysolde/weapons/grimoire": {
-   "width": 1024,
-   "height": 358
+   "width": 745,
+   "height": 567
   },
   "icons/weapons/tome": {
    "width": 320,
@@ -190,7 +190,7 @@
   },
   "icons/weapons/grimoire": {
    "width": 320,
-   "height": 150
+   "height": 155
   },
   "heroes/ysolde/portrait": {
    "width": 256,
@@ -4333,28 +4333,28 @@
   "heroes/brann/body": [
    {
     "id": "heroes/brann/body",
-    "x": 17,
-    "y": 134,
-    "width": 1000,
-    "height": 1328
+    "x": 10,
+    "y": 76,
+    "width": 886,
+    "height": 1366
    }
   ],
   "heroes/brann/arm": [
    {
     "id": "heroes/brann/arm",
-    "x": 165,
-    "y": 44,
-    "width": 667,
-    "height": 927
+    "x": 143,
+    "y": 59,
+    "width": 632,
+    "height": 913
    }
   ],
   "heroes/brann/weapons/axe": [
    {
     "id": "heroes/brann/weapons/axe",
     "x": 354,
-    "y": 8,
+    "y": 5,
     "width": 1339,
-    "height": 496
+    "height": 501
    }
   ],
   "heroes/brann/weapons/maul": [
@@ -4369,100 +4369,100 @@
   "heroes/brann/weapons/hatchets": [
    {
     "id": "heroes/brann/weapons/hatchets",
-    "x": 339,
-    "y": 47,
-    "width": 1378,
-    "height": 437
+    "x": 324,
+    "y": 53,
+    "width": 1598,
+    "height": 442
    }
   ],
   "heroes/oren/body": [
    {
     "id": "heroes/oren/body",
-    "x": 103,
-    "y": 199,
-    "width": 911,
-    "height": 1247
+    "x": 33,
+    "y": 78,
+    "width": 937,
+    "height": 1408
    }
   ],
   "heroes/oren/arm": [
    {
     "id": "heroes/oren/arm",
-    "x": 146,
-    "y": 112,
-    "width": 750,
-    "height": 809
+    "x": 227,
+    "y": 51,
+    "width": 531,
+    "height": 905
    }
   ],
   "heroes/oren/weapons/root-sickle": [
    {
     "id": "heroes/oren/weapons/root-sickle",
-    "x": 284,
-    "y": 23,
-    "width": 1480,
-    "height": 451
+    "x": 294,
+    "y": 103,
+    "width": 1428,
+    "height": 307
    }
   ],
   "heroes/oren/weapons/scythe": [
    {
     "id": "heroes/oren/weapons/scythe",
-    "x": 272,
-    "y": 32,
-    "width": 1506,
-    "height": 448
+    "x": 273,
+    "y": 36,
+    "width": 1504,
+    "height": 439
    }
   ],
   "heroes/oren/weapons/thorn-sickle": [
    {
     "id": "heroes/oren/weapons/thorn-sickle",
-    "x": 287,
-    "y": 84,
-    "width": 1474,
-    "height": 327
+    "x": 290,
+    "y": 104,
+    "width": 1465,
+    "height": 299
    }
   ],
   "heroes/ysolde/body": [
    {
     "id": "heroes/ysolde/body",
-    "x": 7,
-    "y": 90,
-    "width": 894,
-    "height": 1411
+    "x": 49,
+    "y": 109,
+    "width": 728,
+    "height": 1347
    }
   ],
   "heroes/ysolde/arm": [
    {
     "id": "heroes/ysolde/arm",
-    "x": 189,
-    "y": 104,
-    "width": 597,
-    "height": 826
+    "x": 49,
+    "y": 288,
+    "width": 926,
+    "height": 490
    }
   ],
   "heroes/ysolde/weapons/tome": [
    {
     "id": "heroes/ysolde/weapons/tome",
-    "x": 420,
-    "y": 26,
-    "width": 1193,
-    "height": 460
+    "x": 135,
+    "y": 197,
+    "width": 753,
+    "height": 597
    }
   ],
   "heroes/ysolde/weapons/codex": [
    {
     "id": "heroes/ysolde/weapons/codex",
-    "x": 256,
-    "y": 0,
-    "width": 1454,
-    "height": 512
+    "x": 95,
+    "y": 214,
+    "width": 832,
+    "height": 519
    }
   ],
   "heroes/ysolde/weapons/grimoire": [
    {
     "id": "heroes/ysolde/weapons/grimoire",
-    "x": 256,
-    "y": 0,
-    "width": 1466,
-    "height": 512
+    "x": 132,
+    "y": 216,
+    "width": 745,
+    "height": 567
    }
   ],
   "bosses/morgrath-parts": [

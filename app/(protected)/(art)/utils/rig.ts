@@ -1,16 +1,13 @@
 import { Container, Graphics, Matrix, Point, Sprite, Texture } from 'pixi.js'
-import { BoneRole, Rig, RigBone, RigString } from '@/app/(protected)/(art)/data/rigs'
+import { BoneRole, Rig, RigBone, RigString, RotationKeys } from '@/app/(protected)/(art)/data/rigs'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 
 /** A move the puppet plays over its idle breathing. */
 export type RigMove = 'attack' | 'cast' | 'hit' | 'shoot'
 
-/** Angle offsets (radians) of a bone along a move: [progress, angle] keys. */
-type Keys = [number, number][]
-
 type Part = ArtManifest['parts'][string][number]
 
-const MOVES: Record<RigMove, Partial<Record<BoneRole, Keys>>> = {
+const MOVES: Record<RigMove, Partial<Record<BoneRole, RotationKeys>>> = {
   // The blade up in front of the face, then a slash forward and down.
   attack: {
     body: [
@@ -75,7 +72,7 @@ function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
 }
 
-function sample(keys: Keys, progress: number): number {
+function sample(keys: RotationKeys, progress: number): number {
   for (let index = 1; index < keys.length; index++) {
     const [end, to] = keys[index]
     const [start, from] = keys[index - 1]
@@ -121,7 +118,10 @@ export class RigFigure {
   private time = Math.random() * 10
   private move: { kind: RigMove; elapsed: number; duration: number } | null = null
 
-  private constructor(bones: RigBone[]) {
+  private constructor(
+    bones: RigBone[],
+    private readonly attack?: Rig['attack']
+  ) {
     for (const bone of bones) {
       this.bones.set(bone.role, bone)
     }
@@ -152,7 +152,7 @@ export class RigFigure {
       return null
     }
 
-    const figure = new RigFigure(rig.bones)
+    const figure = new RigFigure(rig.bones, rig.attack)
 
     for (const bone of rig.bones) {
       const part = partOf(rig, bone, parts)!
@@ -221,7 +221,10 @@ export class RigFigure {
       body: breath * 0.01,
       arm: breath * 0.04
     }
-    const keys = this.move ? MOVES[this.move.kind][role] : undefined
+    const keys =
+      this.move?.kind === 'attack'
+        ? (this.attack?.[role] ?? MOVES.attack[role])
+        : this.move && MOVES[this.move.kind][role]
     const move = keys && this.move ? sample(keys, this.move.elapsed / this.move.duration) : 0
 
     return (idle[role] ?? 0) + move
