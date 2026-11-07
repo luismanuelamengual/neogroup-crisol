@@ -71,6 +71,16 @@ const NIGHTSHADE: Recolor = { hue: 262, saturation: 0.4, lightness: 0.6 }
 /** The orange glowing mushrooms and the cyan runes, turned to the magenta of the witch. */
 const HEX_GLOW: Recolor = { hue: 312, saturation: 1, lightness: 1.05, from: [10, 60] }
 const HEX_RUNES: Recolor = { hue: 318, saturation: 1, lightness: 1.05, from: [150, 210] }
+/** Shares of the desert sheet: 5 cactuses then 3 dead trees; 2 rocks, a barrel cactus, a dry bush; a tuft, 2 pebbles, a bone, a sprout. */
+const CACTUSES: [number, number] = [0, 0.625]
+const DEAD_TREES: [number, number] = [0.625, 1]
+const SANDSTONE: [number, number] = [0, 0.5]
+const DRY_BUSH: [number, number] = [0.75, 1]
+const DRY_TUFT: [number, number] = [0, 0.2]
+const SAND_PEBBLES: [number, number] = [0.2, 0.6]
+const BONE: [number, number] = [0.6, 0.8]
+/** Cactuses dead on their feet, in the purple of the Scorpion King. */
+const VENOMED: Recolor = { hue: 296, saturation: 0.5, lightness: 0.62 }
 const LOOKS: Partial<Record<Zone, Look>> = {
   [Zone.AUTUMN]: {
     tall: [
@@ -144,11 +154,72 @@ const LOOKS: Partial<Record<Zone, Look>> = {
       { share: GRASS, recolor: WITHERED },
       { share: PEBBLES }
     ]
+  },
+  [Zone.NECROPOLIS]: {
+    tall: [
+      { share: DEAD_TREES },
+      { id: 'map/desert/11', height: 132 },
+      { id: 'props/desert/7', height: 150 },
+      { id: 'map/desert/16', height: 170 },
+      { id: 'props/desert/11', height: 170 },
+      { share: CACTUSES, recolor: VENOMED }
+    ],
+    low: [
+      { share: SANDSTONE },
+      { share: DRY_BUSH },
+      { id: 'map/desert/9', height: 58 },
+      { id: 'map/desert/10', height: 62 },
+      { id: 'map/desert/12', height: 66 },
+      { id: 'map/desert/14', height: 84 },
+      { id: 'props/desert/10', height: 62 },
+      { id: 'props/desert/12', height: 112 }
+    ],
+    ground: [{ share: DRY_TUFT }, { share: SAND_PEBBLES }, { share: BONE }, { share: BONE }]
   }
 }
-/** The pieces of the lairs: a standing stone of their ring and the tree of the cage (see LairTextures). */
-const LAIR_STONE: Extra = { id: 'props/forest/11', height: 92, recolor: HEX_RUNES }
-const CAPTIVE_ART = 'heroes/sera/full'
+
+/** How the pieces of a lair are made (see LairTextures). */
+interface LairLook {
+  /** A standing stone of its ring. */
+  stone: Extra
+  /** The hero in the cage. */
+  captive: string
+  /** The tree of the cage: this piece, or else the widest tree of the zone. */
+  tree?: string
+  /** Great pieces of its landmarks, standing further out than the ring, in order of importance. */
+  monuments?: Extra[]
+  /** Colors of the wood the cage hangs from, of the glow behind its bars (red, green, blue) and of the spell on its lock. */
+  branch: string
+  glow: string
+  spell: string
+  spellLight: string
+}
+
+const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
+  [Zone.WITCHWOOD]: {
+    stone: { id: 'props/forest/11', height: 92, recolor: HEX_RUNES },
+    captive: 'heroes/sera/full',
+    branch: '#4a3550',
+    glow: '255, 110, 210',
+    spell: '#ff4fc8',
+    spellLight: '#ffd6f4'
+  },
+  [Zone.NECROPOLIS]: {
+    stone: { id: 'props/desert/11', height: 128 },
+    captive: 'heroes/brann/full',
+    tree: 'map/desert/scenery/tall-7@2x',
+    monuments: [
+      { id: 'battle/desert/landmarks/1', height: 330 },
+      { id: 'battle/desert/landmarks/6', height: 210 },
+      { id: 'battle/desert/landmarks/4', height: 200 },
+      { id: 'battle/desert/landmarks/3', height: 290 }
+    ],
+    branch: '#6b3a22',
+    glow: '255, 196, 60',
+    spell: '#ffb81f',
+    spellLight: '#fff0a8'
+  }
+}
 
 /** Every piece of other sheets the zones and the lairs use. */
 export function zoneArtIds(): string[] {
@@ -156,7 +227,14 @@ export function zoneArtIds(): string[] {
     Object.values(look).flatMap((pieces) => pieces.flatMap((piece) => ('id' in piece ? [piece.id] : [])))
   )
 
-  return [...new Set([...extras, LAIR_STONE.id, CAPTIVE_ART])]
+  const lairs = Object.values(LAIR_LOOKS).flatMap(({ stone, captive, tree, monuments = [] }) => [
+    stone.id,
+    captive,
+    ...(tree ? [tree] : []),
+    ...monuments.map(({ id }) => id)
+  ])
+
+  return [...new Set([...extras, ...lairs])]
 }
 
 export async function loadZoneArt(): Promise<Map<string, Texture>> {
@@ -341,43 +419,56 @@ function toRgb(h: number, s: number, l: number): [number, number, number] {
 }
 
 /**
- * The pieces of a lair: one of its standing stones, with glowing runes, and
- * the tree where the captive hangs in a cage (and the same tree with the cage
- * open and empty, once freed). Their base is at the bottom middle.
+ * The pieces of a lair: one of its standing stones, the tree where the
+ * captive hangs in a cage (and the same tree with the cage open and empty,
+ * once freed) and its great monuments, if any. Their base is at the bottom
+ * middle.
  */
 export interface LairTextures {
   stone: Texture
   caged: Texture
   freed: Texture
+  monuments: Texture[]
 }
 
 /** World size of the tree of the cage. */
 const LAIR_TREE_HEIGHT = 300
 
 export function buildLairTextures(zones: ZoneTextures, extras: Map<string, Texture>, zone: Zone): LairTextures | null {
+  const look = LAIR_LOOKS[zone]
   const trees = zones[zone]?.tall ?? []
-  // The widest tree of the zone (an oak: its branches hold the cage).
-  const tree = [...trees].sort((a, b) => b.width / b.height - a.width / a.height)[0]
-  const stoneArt = extras.get(LAIR_STONE.id)
+  // Its own tree, or the widest one of the zone (an oak: its branches hold the cage).
+  const tree =
+    (look?.tree && extras.get(look.tree)) ?? [...trees].sort((a, b) => b.width / b.height - a.width / a.height)[0]
 
-  if (!tree) {
+  if (!look || !tree) {
     return null
   }
 
-  const captive = extras.get(CAPTIVE_ART)
-  const stone = stoneArt ? redraw(stoneArt, LAIR_STONE.recolor, LAIR_STONE.height) : paintStone()
+  const stoneArt = extras.get(look.stone.id)
+  const captive = extras.get(look.captive)
+  const stone = stoneArt ? redraw(stoneArt, look.stone.recolor, look.stone.height) : paintStone(look)
+  const monuments = (look.monuments ?? []).flatMap(({ id, height, recolor }) => {
+    const art = extras.get(id)
 
-  return { stone, caged: paintCageTree(tree, captive, true), freed: paintCageTree(tree, captive, false) }
+    return art ? [redraw(art, recolor, height)] : []
+  })
+
+  return {
+    stone,
+    caged: paintCageTree(tree, captive, look, true),
+    freed: paintCageTree(tree, captive, look, false),
+    monuments
+  }
 }
 
 const OUTLINE = '#1a120c'
 const IRON = '#3b3046'
 const IRON_LIGHT = '#8a7a9e'
 const GOLD_TRIM = '#e8b84a'
-const HEX = '#ff4fc8'
 
 /** A provisional standing stone with a glowing rune, while its art does not exist. */
-function paintStone(): Texture {
+function paintStone({ spell }: LairLook): Texture {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')!
 
@@ -396,7 +487,7 @@ function paintStone(): Texture {
   context.stroke()
   context.fillStyle = '#7d7488'
   context.fill()
-  context.strokeStyle = HEX
+  context.strokeStyle = spell
   context.lineWidth = 6
   context.beginPath()
   context.arc(42, 92, 16, 0, Math.PI * 1.5)
@@ -410,7 +501,7 @@ function paintStone(): Texture {
  * its branches on a chain, the captive inside (or the door open, empty).
  * Drawn at twice its world size.
  */
-function paintCageTree(tree: Texture, captive: Texture | undefined, caged: boolean): Texture {
+function paintCageTree(tree: Texture, captive: Texture | undefined, look: LairLook, caged: boolean): Texture {
   const art = pixelsOf(tree)
   const height = LAIR_TREE_HEIGHT * 2
   const treeWidth = Math.round((art.width / art.height) * height)
@@ -441,16 +532,16 @@ function paintCageTree(tree: Texture, captive: Texture | undefined, caged: boole
   context.moveTo(treeWidth * 0.55, hook + 26)
   context.quadraticCurveTo(treeWidth * 0.78, hook - 14, cx + 6, hook)
   context.stroke()
-  context.strokeStyle = '#4a3550'
+  context.strokeStyle = look.branch
   context.lineWidth = 12
   context.stroke()
   chain(context, cx, hook + 4, top - 18)
 
-  // Behind the bars: a soft magenta glow and the captive.
+  // Behind the bars: a soft glow and the captive.
   const glow = context.createRadialGradient(cx, (top + bottom) / 2, 4, cx, (top + bottom) / 2, cageWidth * 0.75)
 
-  glow.addColorStop(0, caged ? 'rgba(255, 110, 210, 0.55)' : 'rgba(255, 220, 140, 0.25)')
-  glow.addColorStop(1, 'rgba(255, 110, 210, 0)')
+  glow.addColorStop(0, caged ? `rgba(${look.glow}, 0.55)` : 'rgba(255, 220, 140, 0.25)')
+  glow.addColorStop(1, `rgba(${look.glow}, 0)`)
   context.fillStyle = glow
   context.fillRect(cx - cageWidth, top - 20, cageWidth * 2, cageHeight + 40)
 
@@ -462,7 +553,7 @@ function paintCageTree(tree: Texture, captive: Texture | undefined, caged: boole
     context.drawImage(figure, cx - figureWidth / 2, bottom - 10 - figureHeight, figureWidth, figureHeight)
   }
 
-  cage(context, cx, top, bottom, cageWidth, caged)
+  cage(context, cx, top, bottom, cageWidth, look, caged)
 
   return textureOf(canvas, 2)
 }
@@ -490,6 +581,7 @@ function cage(
   top: number,
   bottom: number,
   width: number,
+  { spell, spellLight }: LairLook,
   closed: boolean
 ): void {
   const half = width / 2
@@ -566,7 +658,7 @@ function cage(
   context.stroke()
 
   if (closed) {
-    // A padlock with a magenta spell on the door.
+    // A padlock with a spell on the door.
     const lx = cx - half * 0.55
     const ly = (shoulder + bottom) / 2
 
@@ -574,11 +666,11 @@ function cage(
     context.beginPath()
     context.arc(lx, ly, 15, 0, Math.PI * 2)
     context.fill()
-    context.fillStyle = HEX
+    context.fillStyle = spell
     context.beginPath()
     context.arc(lx, ly, 10, 0, Math.PI * 2)
     context.fill()
-    context.fillStyle = '#ffd6f4'
+    context.fillStyle = spellLight
     context.beginPath()
     context.arc(lx - 3, ly - 3, 4, 0, Math.PI * 2)
     context.fill()

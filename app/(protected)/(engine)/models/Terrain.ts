@@ -38,5 +38,7 @@ export enum Terrain {
   /** Rusty brown pine needles: the floor of the pinewoods. */
   NEEDLES = 'needles',
   /** Sickly dark moss with glowing spores: the lair of the Moss Witch. */
-  BLIGHT = 'blight'
+  BLIGHT = 'blight',
+  /** Deep red sand: the necropolis of the Scorpion King. */
+  REDSAND = 'redsand'
 }

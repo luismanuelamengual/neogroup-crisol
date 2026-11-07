@@ -1,4 +1,4 @@
-import { Graphics, Sprite } from 'pixi.js'
+import { Graphics, Sprite, Texture } from 'pixi.js'
 import { LAKES } from '@/app/(protected)/(engine)/data/terrains'
 import { LAIRS } from '@/app/(protected)/(engine)/data/zones'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
@@ -13,10 +13,11 @@ import { LairTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
 /**
  * The lairs of the captors on the world map (see LAIRS in data/zones.ts), so
  * that the place where a hero is held reads from far: a ring of standing
- * stones with glowing runes around the point, the tree where the captive
- * hangs in a cage beside it, and, while the captive waits, a spell circle
- * turning on the ground, motes of magic rising and a beam of light over the
- * fog. Once freed, the cage hangs open and empty and the magic is gone.
+ * stones around the point, the tree where the captive hangs in a cage beside
+ * it, great monuments further out if the lair has them, and, while the
+ * captive waits, a spell circle turning on the ground, motes of magic moving
+ * and a beam of light over the fog, in the colors of its captor (LAIR_MAGIC).
+ * Once freed, the cage hangs open and empty and the magic is gone.
  */
 
 /** Where the tree of the cage stands from the point (world pixels), the ring of stones, and how many stones at most. */
@@ -31,15 +32,42 @@ const CIRCLE_RADIUS = 150
 const BEAM_HEIGHT = 900
 const BEAM_WIDTH = 70
 const MOTES = 18
-const HEX = 0xff4fc8
-const HEX_LIGHT = 0xffc2f0
-const SPORE = 0xb6f05a
+const SWIRL_MOTES = 34
+/** How far the monuments stand from the point, and the room kept between them. */
+const MONUMENT_NEAREST = 380
+const MONUMENT_FARTHEST = 1100
+const MONUMENT_STEP = 40
+const MONUMENT_ROOM = 40
+
+/** The magic of a lair while its captive waits. */
+interface LairMagic {
+  color: number
+  light: number
+  /** A third of the motes are of this color. */
+  accent: number
+  /** What crosses the inner ring of the spell circle: a star or the rays of a sun. */
+  sigil: 'star' | 'sun'
+  /** The motes rise and fade, or whirl up like a storm of sand. */
+  motes: 'rise' | 'whirl'
+}
+
+const LAIR_MAGIC: Partial<Record<Zone, LairMagic>> = {
+  [Zone.WITCHWOOD]: { color: 0xff4fc8, light: 0xffc2f0, accent: 0xb6f05a, sigil: 'star', motes: 'rise' },
+  [Zone.NECROPOLIS]: { color: 0xffb81f, light: 0xfff0a8, accent: 0xb13bd0, sigil: 'sun', motes: 'whirl' }
+}
+
+interface MonumentSpot {
+  texture: Texture
+  x: number
+  y: number
+}
 
 interface Lair {
   node: WorldNode
   /** Directions of the trails leaving the point (radians). */
   trails: number[]
   zone: Zone
+  magic: LairMagic
   tree: Sprite | null
   textures: LairTextures | null
 }
@@ -68,6 +96,7 @@ export class WorldLairs {
           return other ? [Math.atan2(other.y - node.y, other.x - node.x)] : []
         }),
         zone: LAIRS[node.biome]!.zone,
+        magic: LAIR_MAGIC[LAIRS[node.biome]!.zone]!,
         tree: null,
         textures: null
       }))
@@ -106,6 +135,16 @@ export class WorldLairs {
         scenery.add(stone)
       }
 
+      for (const { texture, x, y } of this.monumentSpots(lair, textures.monuments)) {
+        const monument = new Sprite(texture)
+
+        monument.anchor.set(0.5, 0.96)
+        monument.position.set(x, y)
+        // The drawings look to the right: towards the point.
+        monument.scale.set(x > lair.node.x ? -1 : 1, 1)
+        scenery.add(monument)
+      }
+
       scenery.add(tree)
     }
   }
@@ -127,11 +166,17 @@ export class WorldLairs {
     this.motes.clear()
     this.beams.clear()
 
-    for (const { node } of this.lairs) {
+    for (const { node, magic } of this.lairs) {
       if (!this.freed.has(node.id)) {
-        this.drawCircle(node, elapsed)
-        this.drawMotes(node, elapsed)
-        this.drawBeam(node, elapsed)
+        this.drawCircle(node, magic, elapsed)
+
+        if (magic.motes === 'whirl') {
+          this.drawWhirl(node, magic, elapsed)
+        } else {
+          this.drawMotes(node, magic, elapsed)
+        }
+
+        this.drawBeam(node, magic, elapsed)
       }
     }
   }
@@ -185,6 +230,68 @@ export class WorldLairs {
     return spots
   }
 
+  /**
+   * Past the ring, each one at the closest place where it stands on flat
+   * ground, hides no trail or point and touches no other monument.
+   */
+  private monumentSpots({ node }: Lair, textures: Texture[]): MonumentSpot[] {
+    const placed: MonumentSpot[] = []
+
+    for (const texture of textures) {
+      const spot = this.monumentSpot(node, texture, placed)
+
+      if (spot) {
+        placed.push(spot)
+      }
+    }
+
+    return placed
+  }
+
+  private monumentSpot(node: WorldNode, texture: Texture, placed: MonumentSpot[]): MonumentSpot | null {
+    for (let distance = MONUMENT_NEAREST; distance <= MONUMENT_FARTHEST; distance += MONUMENT_STEP) {
+      for (let angle = 0; angle < 36; angle++) {
+        const x = node.x + Math.cos((angle * Math.PI) / 18) * distance
+        const y = node.y + Math.sin((angle * Math.PI) / 18) * distance * 0.78
+        const apart = placed.every(
+          (other) =>
+            Math.abs(other.x - x) > (other.texture.width + texture.width) / 2 + MONUMENT_ROOM ||
+            other.y < y - texture.height - MONUMENT_ROOM ||
+            y < other.y - other.texture.height - MONUMENT_ROOM
+        )
+
+        if (apart && this.standsClear(x, y, texture.width, texture.height)) {
+          return { texture, x, y }
+        }
+      }
+    }
+
+    return null
+  }
+
+  /** Whether a piece this big rests on one level, inside the world, with no trail or lake under it or behind it. */
+  private standsClear(x: number, y: number, width: number, height: number): boolean {
+    const level = heightAt(this.tiles, x, y)
+
+    if (x - width / 2 <= 0 || x + width / 2 >= this.world.width || y - height <= 0 || y >= this.world.height) {
+      return false
+    }
+
+    for (let dx = -width / 2; dx <= width / 2; dx += 30) {
+      if (heightAt(this.tiles, x + dx, y) !== level) {
+        return false
+      }
+
+      for (let dy = -height; dy <= 30; dy += 30) {
+        if (isPaved(this.tiles, x + dx, y + dy) || LAKES.has(terrainAt(this.tiles, x + dx, y + dy))) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+
   private awayFromTrails(trails: number[], angle: number, share: number): boolean {
     return trails.every((trail) => {
       const difference = Math.abs(Math.atan2(Math.sin(angle - trail), Math.cos(angle - trail)))
@@ -216,19 +323,19 @@ export class WorldLairs {
   }
 
   /** Two rings turning opposite ways, with runes between them, breathing. */
-  private drawCircle({ x, y }: WorldNode, elapsed: number): void {
+  private drawCircle({ x, y }: WorldNode, { color, light, sigil }: LairMagic, elapsed: number): void {
     const breath = (Math.sin(elapsed * 2) + 1) / 2
     const g = this.circles
     const squash = 0.62
 
     g.ellipse(x, y, CIRCLE_RADIUS * 1.25, CIRCLE_RADIUS * 1.25 * squash).fill({
-      color: HEX,
+      color,
       alpha: 0.1 + breath * 0.06
     })
-    g.ellipse(x, y, CIRCLE_RADIUS, CIRCLE_RADIUS * squash).stroke({ width: 7, color: HEX, alpha: 0.55 + breath * 0.3 })
+    g.ellipse(x, y, CIRCLE_RADIUS, CIRCLE_RADIUS * squash).stroke({ width: 7, color, alpha: 0.55 + breath * 0.3 })
     g.ellipse(x, y, CIRCLE_RADIUS * 0.72, CIRCLE_RADIUS * 0.72 * squash).stroke({
       width: 4,
-      color: HEX_LIGHT,
+      color: light,
       alpha: 0.45 + breath * 0.3
     })
 
@@ -240,24 +347,45 @@ export class WorldLairs {
       const size = 9
 
       g.poly([rx, ry - size, rx + size * 0.6, ry, rx, ry + size, rx - size * 0.6, ry]).fill({
-        color: HEX_LIGHT,
+        color: light,
         alpha: 0.6 + breath * 0.35
       })
     }
 
-    // A star of lines across the inner ring, turning the other way.
-    for (let index = 0; index < 5; index++) {
-      const a = -elapsed * 0.25 + (index / 5) * Math.PI * 2
-      const b = a + (Math.PI * 4) / 5
+    // Across the inner ring, turning the other way: a star of lines or the rays of a sun.
+    const lines = sigil === 'sun' ? 12 : 5
 
-      g.moveTo(x + Math.cos(a) * CIRCLE_RADIUS * 0.72, y + Math.sin(a) * CIRCLE_RADIUS * 0.72 * squash)
-        .lineTo(x + Math.cos(b) * CIRCLE_RADIUS * 0.72, y + Math.sin(b) * CIRCLE_RADIUS * 0.72 * squash)
-        .stroke({ width: 3, color: HEX, alpha: 0.35 + breath * 0.25 })
+    for (let index = 0; index < lines; index++) {
+      const a = -elapsed * 0.25 + (index / lines) * Math.PI * 2
+      const b = a + (Math.PI * 4) / 5
+      const inner = CIRCLE_RADIUS * (index % 2 ? 0.3 : 0.2)
+      const [fromX, fromY, toX, toY] =
+        sigil === 'sun'
+          ? [
+              Math.cos(a) * inner,
+              Math.sin(a) * inner,
+              Math.cos(a) * CIRCLE_RADIUS * 0.72,
+              Math.sin(a) * CIRCLE_RADIUS * 0.72
+            ]
+          : [
+              Math.cos(a) * CIRCLE_RADIUS * 0.72,
+              Math.sin(a) * CIRCLE_RADIUS * 0.72,
+              Math.cos(b) * CIRCLE_RADIUS * 0.72,
+              Math.sin(b) * CIRCLE_RADIUS * 0.72
+            ]
+
+      g.moveTo(x + fromX, y + fromY * squash)
+        .lineTo(x + toX, y + toY * squash)
+        .stroke({ width: 3, color, alpha: 0.35 + breath * 0.25 })
+    }
+
+    if (sigil === 'sun') {
+      g.ellipse(x, y, CIRCLE_RADIUS * 0.18, CIRCLE_RADIUS * 0.18 * squash).fill({ color, alpha: 0.4 + breath * 0.3 })
     }
   }
 
   /** Motes of magic and spores rising from the ring and fading. */
-  private drawMotes({ x, y }: WorldNode, elapsed: number): void {
+  private drawMotes({ x, y }: WorldNode, { color, light, accent }: LairMagic, elapsed: number): void {
     for (let index = 0; index < MOTES; index++) {
       const life = (elapsed * 0.22 + ((index * 0.618) % 1)) % 1
       const angle = index * 2.399
@@ -267,13 +395,29 @@ export class WorldLairs {
       const alpha = Math.sin(life * Math.PI) * 0.85
       const size = 4 + (index % 3) * 2
 
-      this.motes.circle(mx, my, size * 2.2).fill({ color: index % 3 ? HEX : SPORE, alpha: alpha * 0.25 })
-      this.motes.circle(mx, my, size).fill({ color: index % 3 ? HEX_LIGHT : SPORE, alpha })
+      this.motes.circle(mx, my, size * 2.2).fill({ color: index % 3 ? color : accent, alpha: alpha * 0.25 })
+      this.motes.circle(mx, my, size).fill({ color: index % 3 ? light : accent, alpha })
+    }
+  }
+
+  /** Grains of cursed sand whirling up around the point, closing in as they rise, and fading. */
+  private drawWhirl({ x, y }: WorldNode, { color, light, accent }: LairMagic, elapsed: number): void {
+    for (let index = 0; index < SWIRL_MOTES; index++) {
+      const life = (elapsed * 0.16 + ((index * 0.618) % 1)) % 1
+      const angle = index * 2.399 + elapsed * 1.2 + life * 5
+      const reach = RING_RADII[0] * (1.05 - life * 0.75) * (0.8 + (index % 5) * 0.08)
+      const mx = x + Math.cos(angle) * reach
+      const my = y + Math.sin(angle) * reach * 0.5 - life * 300
+      const alpha = Math.sin(life * Math.PI) * 0.9
+      const size = 3 + (index % 3) * 2
+
+      this.motes.circle(mx, my, size * 2).fill({ color: index % 3 ? color : accent, alpha: alpha * 0.25 })
+      this.motes.circle(mx, my, size).fill({ color: index % 3 ? light : accent, alpha })
     }
   }
 
   /** A soft beam of light up from the point, seen over the fog: someone waits there. */
-  private drawBeam({ x, y }: WorldNode, elapsed: number): void {
+  private drawBeam({ x, y }: WorldNode, { color, light }: LairMagic, elapsed: number): void {
     const breath = (Math.sin(elapsed * 1.6) + 1) / 2
     const steps = 14
 
@@ -284,11 +428,11 @@ export class WorldLairs {
 
       this.beams
         .rect(x - width / 2, y - 40 - (share + 1 / steps) * BEAM_HEIGHT, width, BEAM_HEIGHT / steps)
-        .fill({ color: HEX, alpha })
+        .fill({ color, alpha })
     }
 
     this.beams
       .ellipse(x, y - 40, BEAM_WIDTH * 0.7, BEAM_WIDTH * 0.25)
-      .fill({ color: HEX_LIGHT, alpha: 0.12 + breath * 0.1 })
+      .fill({ color: light, alpha: 0.12 + breath * 0.1 })
   }
 }

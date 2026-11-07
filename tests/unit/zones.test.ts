@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BIOMES_ORDER, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { getZoneDefinition, LAIRS, ZONES, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { Zone } from '@/app/(protected)/(engine)/models/Zone'
@@ -55,6 +56,16 @@ describe('zones of the biomes', () => {
     expect(ZONES_ORDER[map.zones[row * map.columns + column] - 1]).toBe(LAIRS[Biome.FOREST]!.zone)
   })
 
+  it('surround the captor of the desert with its necropolis of red sand', () => {
+    const captor = world.nodes.find((node) => node.biome === Biome.DESERT && node.bossKind === BossKind.CAPTOR)!
+    const index = Math.floor(captor.y / map.tileSize) * map.columns + Math.floor(captor.x / map.tileSize)
+    const necropolis = ZONES_ORDER.indexOf(Zone.NECROPOLIS) + 1
+    const tiles = map.terrains.filter((terrain, tile) => map.zones[tile] === necropolis)
+
+    expect(ZONES_ORDER[map.zones[index] - 1]).toBe(Zone.NECROPOLIS)
+    expect(tiles.some((terrain) => TERRAINS[terrain] === Terrain.REDSAND)).toBe(true)
+  })
+
   it('give their ground to their tiles', () => {
     const autumn = ZONES_ORDER.indexOf(Zone.AUTUMN) + 1
     const leaves = map.terrains.filter(
@@ -62,6 +73,15 @@ describe('zones of the biomes', () => {
     )
 
     expect(leaves.length).toBeGreaterThan(0)
+  })
+
+  it('let no tree hide the point of a lair', () => {
+    const captor = world.nodes.find((node) => node.biome === Biome.DESERT && node.bossKind === BossKind.CAPTOR)!
+    const hiding = placeScenery(world, map).filter(
+      ({ layer, x, y }) => layer === 'tall' && y > captor.y && y < captor.y + 200 && Math.abs(x - captor.x) < 100
+    )
+
+    expect(hiding).toEqual([])
   })
 
   it('mark the scenery that grows in them', () => {

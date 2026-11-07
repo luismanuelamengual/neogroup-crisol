@@ -104,7 +104,8 @@ const LOOKS: Record<Terrain, Look> = {
     light: [96, 74, 110],
     pattern: 'speckles',
     glow: [150, 230, 90]
-  }
+  },
+  [Terrain.REDSAND]: { base: [176, 72, 44], dark: [122, 40, 32], light: [216, 112, 64], pattern: 'ripples' }
 }
 
 /** The provisional textures. */

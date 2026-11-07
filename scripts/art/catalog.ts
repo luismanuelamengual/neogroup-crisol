@@ -108,7 +108,9 @@ const TILES: Record<Terrain, string> = {
   [Terrain.NEEDLES]:
     'suelo de pinar cubierto de agujas de pino secas marrón rojizo, con piñas pequeñas y algo de musgo',
   [Terrain.BLIGHT]:
-    'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes'
+    'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes',
+  [Terrain.REDSAND]:
+    'arena rojo profundo de desierto maldito con suaves ondas de viento, sombras carmesí y algunas piedritas oscuras'
 }
 /**
  * Where each hero joins: their pieces go with that biome's batch. Kael starts

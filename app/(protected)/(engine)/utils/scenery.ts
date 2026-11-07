@@ -1,6 +1,7 @@
 import { SCENERY_DENSITY } from '@/app/(protected)/(engine)/data/scenery'
 import { BIOME_TERRAINS, BIOMES_ORDER, LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
-import { getZoneDefinition, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
+import { getZoneDefinition, LAIRS, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
+import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { SceneryItem } from '@/app/(protected)/(engine)/models/SceneryItem'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -35,6 +36,8 @@ const FOOT = { tall: 16, low: 34, ground: 10 }
 /** Least room between a bush or a rock and any other standing piece (trees may crowd each other: woods). */
 const LOW_ROOM = 52
 const SCALE_RANGE = [0.82, 1.18]
+/** How far in front of the point of a lair (below it, to its sides) no tree grows. */
+const LAIR_VIEW = { below: 240, side: 130 }
 
 export function placeScenery(world: World, map: TileMap): SceneryItem[] {
   const { columns, rows, tileSize, terrains, heights, biomes, nearSeal, zones } = map
@@ -156,7 +159,18 @@ export function placeScenery(world: World, map: TileMap): SceneryItem[] {
     }
   }
 
-  return clearVillages(items, world, map)
+  return clearLairs(clearVillages(items, world, map), world)
+}
+
+/** The scenery without the trees right in front of the point of a lair, which would hide it. */
+function clearLairs(items: SceneryItem[], world: World): SceneryItem[] {
+  const lairs = world.nodes.filter((node) => node.bossKind === BossKind.CAPTOR && LAIRS[node.biome])
+
+  return items.filter(
+    ({ x, y, layer }) =>
+      layer !== 'tall' ||
+      lairs.every((lair) => y < lair.y || y > lair.y + LAIR_VIEW.below || Math.abs(x - lair.x) > LAIR_VIEW.side)
+  )
 }
 
 /** Room kept between a tree, a bush or a rock and a piece of a village, besides the width of the piece. */

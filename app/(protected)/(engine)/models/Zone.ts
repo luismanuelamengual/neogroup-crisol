@@ -12,6 +12,8 @@ export enum Zone {
   BLOSSOM = 'blossom',
   /** Forest: the lair of Morgrath, the Moss Witch, where Sera is held: withered violet trees over blighted ground. */
   WITCHWOOD = 'witchwood',
+  /** Desert: the lair of Sahrak, the Scorpion King, where Brann is held: a ruined necropolis over red sand. */
+  NECROPOLIS = 'necropolis',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }
