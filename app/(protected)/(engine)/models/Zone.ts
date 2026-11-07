@@ -28,6 +28,10 @@ export enum Zone {
   JADE_TEMPLE = 'jadeTemple',
   /** Mountains: the lair of the Basalt Colossus, where Ysolde is held: a dwarven hold in ruins over black basalt. */
   BASALT_HOLD = 'basaltHold',
+  /** Wastelands: a mire of dark mud and murky pools among rotten trees. */
+  MIRE = 'mire',
+  /** Wastelands: poisoned lands with lakes of acid, broken pipes and slimy ruins. */
+  TOXIC = 'toxic',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }

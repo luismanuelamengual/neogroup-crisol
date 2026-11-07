@@ -109,6 +109,18 @@ const FLAT_STONE: [number, number] = [0.75, 1]
 const CHARRED: Recolor = { hue: 24, saturation: 0.3, lightness: 0.42 }
 /** The cyan crystals and runes, turned to the molten amber of the Colossus. */
 const MOLTEN: Recolor = { hue: 34, saturation: 1, lightness: 1.02, from: [165, 215] }
+/** Shares of the wastelands sheet: 6 dead trees then 2 broken pillars; 2 rocks, a thorn bush, a sword; a tuft, 2 pebbles, a skull, bones. */
+const GREY_TREES: [number, number] = [0, 0.75]
+const BROKEN_PILLARS: [number, number] = [0.75, 1]
+const WASTE_ROCKS: [number, number] = [0, 0.5]
+const THORNS: [number, number] = [0.5, 0.75]
+const DRY_TUFT_WASTE: [number, number] = [0, 0.2]
+const WASTE_PEBBLES: [number, number] = [0.2, 0.6]
+const SKULL_AND_BONES: [number, number] = [0.6, 1]
+/** The slime and the tufts, gone dull in the mire. */
+const ROTTEN: Recolor = { hue: 96, saturation: 0.5, lightness: 0.62 }
+/** The orange of the dead wood and the dry tufts, soaked dark. */
+const SOAKED: Recolor = { hue: 34, saturation: 0.55, lightness: 0.62, from: [8, 48] }
 const LOOKS: Partial<Record<Zone, Look>> = {
   [Zone.AUTUMN]: {
     tall: [
@@ -275,6 +287,47 @@ const LOOKS: Partial<Record<Zone, Look>> = {
       { id: 'props/mountains/9', height: 54 }
     ],
     ground: [{ share: GREY_PEBBLES }, { share: FLAT_STONE }, { share: MOUNTAIN_TUFT, recolor: CHARRED }]
+  },
+  [Zone.MIRE]: {
+    tall: [
+      { id: 'props/wastelands/1', height: 160, recolor: SOAKED },
+      { id: 'props/wastelands/2', height: 150, recolor: SOAKED },
+      { id: 'map/wastelands/2', height: 140, recolor: ROTTEN },
+      { id: 'map/wastelands/4', height: 140, recolor: ROTTEN },
+      { share: GREY_TREES }
+    ],
+    low: [
+      { id: 'map/tropical/15', height: 66, recolor: ROTTEN },
+      { id: 'props/tropical/12', height: 42, recolor: ROTTEN },
+      { id: 'props/wastelands/10', height: 64, recolor: SOAKED },
+      { id: 'props/wastelands/8', height: 42 },
+      { id: 'map/wastelands/8', height: 62, recolor: ROTTEN },
+      { share: WASTE_ROCKS }
+    ],
+    ground: [
+      { share: DRY_TUFT_WASTE, recolor: SOAKED },
+      { id: 'map/tropical/scenery/ground-4@2x', height: 24, recolor: ROTTEN },
+      { share: WASTE_PEBBLES }
+    ]
+  },
+  [Zone.TOXIC]: {
+    tall: [
+      { share: GREY_TREES },
+      { share: BROKEN_PILLARS },
+      { id: 'battle/wastelands/landmarks/3', height: 170 },
+      { id: 'battle/wastelands/landmarks/4', height: 160 },
+      { id: 'battle/wastelands/landmarks/2', height: 190 },
+      { id: 'battle/wastelands/landmarks/5', height: 170 }
+    ],
+    low: [
+      { id: 'map/wastelands/16', height: 60 },
+      { id: 'map/wastelands/16', height: 74 },
+      { id: 'battle/wastelands/landmarks/7', height: 66 },
+      { id: 'battle/wastelands/landmarks/1', height: 96 },
+      { id: 'map/wastelands/7', height: 66 },
+      { share: THORNS }
+    ],
+    ground: [{ share: SKULL_AND_BONES }, { share: WASTE_PEBBLES }]
   },
   [Zone.NECROPOLIS]: {
     tall: [

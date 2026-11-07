@@ -19,6 +19,9 @@ export interface ZoneDefinition {
   /** Its ground and patches, instead of the ones of the biome (BIOME_TERRAINS). */
   ground?: Terrain
   patches?: Terrain
+  /** Its lakes, instead of the biome's, and how little noise makes one (lower: more lakes; see BiomeTerrains). */
+  lake?: Terrain
+  lakes?: number
   /** How thick its scenery grows, instead of the biome's (SCENERY_DENSITY). */
   density?: SceneryDensity
 }
@@ -117,6 +120,26 @@ export const ZONES: ZoneDefinition[] = [
     ground: Terrain.BASALT,
     patches: Terrain.ROCK,
     density: { tall: 0.45, low: 0.4, ground: 1.1 }
+  },
+  {
+    zone: Zone.MIRE,
+    biome: Biome.WASTELANDS,
+    weight: 2.2,
+    ground: Terrain.MUD,
+    patches: Terrain.MOSS,
+    lake: Terrain.MURK,
+    lakes: 0.5,
+    density: { tall: 0.5, low: 0.3, ground: 1.3 }
+  },
+  {
+    zone: Zone.TOXIC,
+    biome: Biome.WASTELANDS,
+    weight: 2.2,
+    ground: Terrain.BLIGHT,
+    patches: Terrain.ASH,
+    lake: Terrain.ACID,
+    lakes: 0.5,
+    density: { tall: 0.3, low: 0.34, ground: 1.1 }
   },
   {
     zone: Zone.VILLAGE,

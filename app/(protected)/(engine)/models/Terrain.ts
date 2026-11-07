@@ -42,5 +42,11 @@ export enum Terrain {
   /** Deep red sand: the necropolis of the Scorpion King. */
   REDSAND = 'redsand',
   /** Dark teal moss with glowing jade specks: the temple of the Jade Serpent. */
-  JADEMOSS = 'jademoss'
+  JADEMOSS = 'jademoss',
+  /** Dark wet mud: the mires of the wastelands. */
+  MUD = 'mud',
+  /** Murky green water of the mires. */
+  MURK = 'murk',
+  /** Glowing green acid of the poisoned lands of the wastelands. */
+  ACID = 'acid'
 }

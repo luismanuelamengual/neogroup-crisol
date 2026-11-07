@@ -96,6 +96,22 @@ describe('zones of the biomes', () => {
     expect(ZONES_ORDER[map.zones[index] - 1]).toBe(Zone.BASALT_HOLD)
   })
 
+  it('split the wastelands into mires and poisoned lands, each with its own lakes', () => {
+    const wastelands = BIOMES_ORDER.indexOf(Biome.WASTELANDS)
+    const tiles = [...map.zones.keys()].filter((index) => map.biomes[index] === wastelands)
+    const of = (zone: Zone) => tiles.filter((index) => map.zones[index] === ZONES_ORDER.indexOf(zone) + 1)
+
+    expect(tiles.filter((index) => !map.zones[index]).length / tiles.length).toBeGreaterThan(0.15)
+
+    for (const [zone, lake] of [
+      [Zone.MIRE, Terrain.MURK],
+      [Zone.TOXIC, Terrain.ACID]
+    ] as const) {
+      expect(of(zone).length / tiles.length).toBeGreaterThan(0.1)
+      expect(of(zone).some((index) => TERRAINS[map.terrains[index]] === lake)).toBe(true)
+    }
+  })
+
   it('give their ground to their tiles', () => {
     const autumn = ZONES_ORDER.indexOf(Zone.AUTUMN) + 1
     const leaves = map.terrains.filter(

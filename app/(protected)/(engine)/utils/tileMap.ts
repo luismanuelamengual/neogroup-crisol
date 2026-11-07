@@ -217,9 +217,15 @@ function withZone(terrains: BiomeTerrains, zone: number): BiomeTerrains {
     return terrains
   }
 
-  const { ground, patches } = getZoneDefinition(ZONES_ORDER[zone - 1])
+  const { ground, patches, lake, lakes } = getZoneDefinition(ZONES_ORDER[zone - 1])
 
-  return { ...terrains, ground: ground ?? terrains.ground, patches: patches ?? terrains.patches }
+  return {
+    ...terrains,
+    ground: ground ?? terrains.ground,
+    patches: patches ?? terrains.patches,
+    lake: lake ?? terrains.lake,
+    lakes: lakes ?? terrains.lakes
+  }
 }
 
 /** The Seal of each biome that changes on the way to it, and how far from it its farthest point lies. */

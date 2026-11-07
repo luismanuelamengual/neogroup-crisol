@@ -112,6 +112,9 @@ const LOOKS: Record<Terrain, Look> = {
     pattern: 'speckles',
     glow: [110, 255, 200]
   },
+  [Terrain.MUD]: { base: [72, 64, 42], dark: [40, 36, 26], light: [106, 98, 60], pattern: 'speckles' },
+  [Terrain.MURK]: { base: [54, 96, 64], dark: [26, 58, 44], light: [128, 158, 92], pattern: 'waves' },
+  [Terrain.ACID]: { base: [122, 232, 40], dark: [38, 132, 34], light: [228, 255, 120], pattern: 'flow' },
   [Terrain.REDSAND]: { base: [176, 72, 44], dark: [122, 40, 32], light: [216, 112, 64], pattern: 'ripples' }
 }
 

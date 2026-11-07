@@ -111,6 +111,9 @@ const TILES: Record<Terrain, string> = {
     'musgo enfermo verde oliva muy oscuro y violáceo, con manchas de moho y diminutas esporas verde ácido brillantes',
   [Terrain.JADEMOSS]:
     'musgo espeso verde azulado muy oscuro con diminutas motas de luz color jade brillante y algunas raíces finas',
+  [Terrain.MUD]: 'barro oscuro y húmedo de pantano, marrón verdoso, con charquitos, burbujas y restos de raíces',
+  [Terrain.MURK]: 'agua turbia de pantano verde oscuro con reflejos apagados, algas y lentejas de agua, sin orilla',
+  [Terrain.ACID]: 'ácido líquido verde brillante con burbujas y remolinos de luz amarilla, sin orilla',
   [Terrain.REDSAND]:
     'arena rojo profundo de desierto maldito con suaves ondas de viento, sombras carmesí y algunas piedritas oscuras'
 }

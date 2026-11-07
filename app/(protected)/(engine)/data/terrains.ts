@@ -18,6 +18,7 @@ export const TERRAINS: Terrain[] = [
   Terrain.GLOOM,
   Terrain.BLIGHT,
   Terrain.JADEMOSS,
+  Terrain.MUD,
   Terrain.NEEDLES,
   Terrain.DIRT,
   Terrain.ROCK,
@@ -31,11 +32,13 @@ export const TERRAINS: Terrain[] = [
   Terrain.RUNESTONE,
   Terrain.WATER,
   Terrain.LAVA,
-  Terrain.ICHOR
+  Terrain.ICHOR,
+  Terrain.MURK,
+  Terrain.ACID
 ]
 
 /** Terrains of the lakes (frozen in the snow), kept away from points and trails. */
-export const LAKES = new Set([Terrain.WATER, Terrain.LAVA, Terrain.ICE, Terrain.ICHOR])
+export const LAKES = new Set([Terrain.WATER, Terrain.LAVA, Terrain.ICE, Terrain.ICHOR, Terrain.MURK, Terrain.ACID])
 
 /** Every biome, in the order TileMap.biomes refers to them. */
 export const BIOMES_ORDER = Object.values(Biome)
