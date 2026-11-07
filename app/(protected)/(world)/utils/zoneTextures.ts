@@ -121,7 +121,18 @@ const SKULL_AND_BONES: [number, number] = [0.6, 1]
 const ROTTEN: Recolor = { hue: 96, saturation: 0.5, lightness: 0.62 }
 /** The orange of the dead wood and the dry tufts, soaked dark. */
 const SOAKED: Recolor = { hue: 34, saturation: 0.55, lightness: 0.62, from: [8, 48] }
+/** The violets and magentas of the Abyss, turned to the embers of the forge of Crisol. */
+const VIOLETS: [number, number] = [250, 335]
+const EMBER: Recolor = { hue: 22, saturation: 1.1, lightness: 1.04, from: VIOLETS }
+/** The same for great stonework: dark burned iron, its glow still ember. */
+const FORGE_STONE: Recolor = { hue: 12, saturation: 0.62, lightness: 0.78, from: VIOLETS }
+const WHOLE: [number, number] = [0, 1]
 const LOOKS: Partial<Record<Zone, Look>> = {
+  [Zone.CRUCIBLE]: {
+    tall: [{ share: WHOLE, recolor: EMBER }],
+    low: [{ share: WHOLE, recolor: EMBER }],
+    ground: [{ share: WHOLE, recolor: EMBER }]
+  },
   [Zone.AUTUMN]: {
     tall: [
       { share: OAKS, recolor: ORANGE },
@@ -423,13 +434,40 @@ const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
     spellLight: '#fff0a8'
   }
 }
+/** The great pieces of the door of the Abyss and of the fortress of Crisol. */
+const ABYSS_LOOK = {
+  ring: { id: 'battle/abyss/landmarks/6', height: 580 },
+  pillar: { id: 'props/abyss/5', height: 190 },
+  brazier: { id: 'props/abyss/9', height: 120 },
+  keep: { id: 'battle/abyss/landmarks/5', height: 268, recolor: FORGE_STONE },
+  tower: { id: 'battle/abyss/landmarks/5', height: 235, recolor: FORGE_STONE },
+  crag: { id: 'props/abyss/1', height: 170 },
+  fang: { id: 'props/abyss/2', height: 140 },
+  boulder: { id: 'props/abyss/10', height: 105, recolor: EMBER },
+  shard: { id: 'props/abyss/2', height: 72 },
+  heart: { id: 'battle/abyss/landmarks/8', height: 300, recolor: EMBER },
+  island: { id: 'battle/abyss/landmarks/1', height: 210, recolor: FORGE_STONE },
+  islet: { id: 'battle/abyss/landmarks/3', height: 150, recolor: FORGE_STONE }
+} satisfies Record<string, Extra>
+
+export type AbyssTextures = Record<keyof typeof ABYSS_LOOK, Texture>
+
+/** The drawings of ABYSS_LOOK, or nothing while some are missing. */
+export function buildAbyssTextures(extras: Map<string, Texture>): AbyssTextures | null {
+  const entries = Object.entries(ABYSS_LOOK).map(([name, { id, height, ...rest }]) => {
+    const art = extras.get(id)
+
+    return [name, art && redraw(art, 'recolor' in rest ? rest.recolor : undefined, height)] as const
+  })
+
+  return entries.every(([, texture]) => texture) ? (Object.fromEntries(entries) as AbyssTextures) : null
+}
 
 /** Every piece of other sheets the zones and the lairs use. */
 export function zoneArtIds(): string[] {
   const extras = Object.values(LOOKS).flatMap((look) =>
     Object.values(look).flatMap((pieces) => pieces.flatMap((piece) => ('id' in piece ? [piece.id] : [])))
   )
-
   const lairs = Object.values(LAIR_LOOKS).flatMap(({ stone, captive, tree, monuments = [] }) => [
     stone.id,
     captive,
@@ -437,7 +475,7 @@ export function zoneArtIds(): string[] {
     ...monuments.map(({ id }) => id)
   ])
 
-  return [...new Set([...extras, ...lairs])]
+  return [...new Set([...extras, ...lairs, ...Object.values(ABYSS_LOOK).map(({ id }) => id)])]
 }
 
 export async function loadZoneArt(): Promise<Map<string, Texture>> {

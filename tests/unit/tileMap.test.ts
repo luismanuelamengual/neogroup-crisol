@@ -1,13 +1,19 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { BIOME_TERRAINS, LAKES, LEVELS, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
+import { getZoneDefinition, ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import type { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { buildTileMap, distanceToSegment, heightAt, isPaved, terrainAt } from '@/app/(protected)/(engine)/utils/tileMap'
 import { makeSeamless } from '@/scripts/art/images'
 
 const world: World = JSON.parse(readFileSync('public/world/world.json', 'utf8'))
 const map = buildTileMap(world)
+
+function zoneOf({ columns, tileSize, zones }: TileMap, x: number, y: number) {
+  return ZONES_ORDER[zones[Math.floor(y / tileSize) * columns + Math.floor(x / tileSize)] - 1]
+}
 
 describe('tile map of the world', () => {
   it('covers the whole world', () => {
@@ -21,9 +27,12 @@ describe('tile map of the world', () => {
     expect(buildTileMap(world).terrains).toEqual(map.terrains)
   })
 
-  it('puts every point on the paving of its biome', () => {
+  it('puts every point on the paving of its biome, or of its zone if it has its own', () => {
     for (const node of world.nodes) {
-      expect(terrainAt(map, node.x, node.y)).toBe(BIOME_TERRAINS[node.biome].trail)
+      const zone = zoneOf(map, node.x, node.y)
+      const trail = (zone && getZoneDefinition(zone).trail) ?? BIOME_TERRAINS[node.biome].trail
+
+      expect(terrainAt(map, node.x, node.y)).toBe(trail)
     }
   })
 

@@ -187,6 +187,9 @@ export function buildTileMap(world: World): TileMap {
   }
 
   const heights = buildHeights(world, columns, rows, rise)
+
+  digMoats(columns, rows, zones, paved, terrains, grounds, terrainIndex)
+
   // A lake next to a change of level would spill over a cliff: there it is dry ground.
   const lakes = new Set(TERRAINS.flatMap((terrain, index) => (LAKES.has(terrain) ? [index] : [])))
 
@@ -211,18 +214,71 @@ export function buildTileMap(world: World): TileMap {
   return map
 }
 
+/** The shore and the band of lake along the edge of the zones that have a moat, leaving room around the trails. */
+function digMoats(
+  columns: number,
+  rows: number,
+  zones: Uint8Array,
+  paved: Uint8Array,
+  terrains: Uint8Array,
+  grounds: Uint8Array,
+  terrainIndex: Map<Terrain, number>
+): void {
+  // How many tiles from a tile to the closest one around it that passes, up to a reach.
+  const closest = (column: number, row: number, reach: number, passes: (index: number) => boolean) => {
+    let best = Infinity
+
+    for (let dy = -reach; dy <= reach; dy++) {
+      for (let dx = -reach; dx <= reach; dx++) {
+        const x = column + dx
+        const y = row + dy
+
+        if (x >= 0 && y >= 0 && x < columns && y < rows && passes(y * columns + x)) {
+          best = Math.min(best, Math.hypot(dx, dy))
+        }
+      }
+    }
+
+    return best
+  }
+
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      const index = row * columns + column
+      const zone = zones[index]
+      const definition = zone ? getZoneDefinition(ZONES_ORDER[zone - 1]) : undefined
+
+      if (!definition?.moat || paved[index]) {
+        continue
+      }
+
+      const { shore, width } = definition.moat
+      const edge = closest(column, row, width + 2, (other) => zones[other] !== zone)
+
+      if (edge < 2) {
+        terrains[index] = terrainIndex.get(shore)!
+      } else if (edge < width + 2 && closest(column, row, 1, (other) => paved[other] === 1) === Infinity) {
+        terrains[index] = terrainIndex.get(definition.lake!)!
+        // Where a cliff keeps the lake from lying, the shore goes on.
+        grounds[index] = terrainIndex.get(shore)!
+      }
+    }
+  }
+}
+
 /** The terrains of a biome in one of its zones (its index in ZONES_ORDER plus one; 0 leaves them as they are). */
 function withZone(terrains: BiomeTerrains, zone: number): BiomeTerrains {
   if (!zone) {
     return terrains
   }
 
-  const { ground, patches, lake, lakes } = getZoneDefinition(ZONES_ORDER[zone - 1])
+  const { ground, patches, trail, lake, lakes } = getZoneDefinition(ZONES_ORDER[zone - 1])
 
   return {
     ...terrains,
     ground: ground ?? terrains.ground,
     patches: patches ?? terrains.patches,
+    trail: trail ?? terrains.trail,
     lake: lake ?? terrains.lake,
     lakes: lakes ?? terrains.lakes
   }

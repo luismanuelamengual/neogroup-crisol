@@ -1,5 +1,6 @@
 import { SceneryDensity } from '@/app/(protected)/(engine)/data/scenery'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { Zone } from '@/app/(protected)/(engine)/models/Zone'
 
@@ -19,11 +20,19 @@ export interface ZoneDefinition {
   /** Its ground and patches, instead of the ones of the biome (BIOME_TERRAINS). */
   ground?: Terrain
   patches?: Terrain
+  /** Its paved trails, instead of the biome's. */
+  trail?: Terrain
   /** Its lakes, instead of the biome's, and how little noise makes one (lower: more lakes; see BiomeTerrains). */
   lake?: Terrain
   lakes?: number
   /** How thick its scenery grows, instead of the biome's (SCENERY_DENSITY). */
   density?: SceneryDensity
+  /**
+   * What closes it off: all along its edge a shore of this terrain, one tile
+   * wide, and inside it a band of its lake this many tiles wide, crossed only
+   * by the trails.
+   */
+  moat?: { shore: Terrain; width: number }
 }
 
 /** Weight of the plain look of a biome that has zones, against its zones. */
@@ -142,6 +151,25 @@ export const ZONES: ZoneDefinition[] = [
     density: { tall: 0.3, low: 0.34, ground: 1.1 }
   },
   {
+    zone: Zone.THRESHOLD,
+    biome: Biome.ABYSS,
+    weight: 0,
+    ground: Terrain.RUNESTONE,
+    patches: Terrain.GLOOM,
+    density: { tall: 0.12, low: 0.18, ground: 0.8 }
+  },
+  {
+    zone: Zone.CRUCIBLE,
+    biome: Biome.ABYSS,
+    weight: 0,
+    ground: Terrain.MAGMA,
+    patches: Terrain.SCORCHED,
+    trail: Terrain.FIRESTONE,
+    lake: Terrain.LAVA,
+    density: { tall: 0.22, low: 0.34, ground: 1.2 },
+    moat: { shore: Terrain.BASALT, width: 2 }
+  },
+  {
     zone: Zone.VILLAGE,
     biome: Biome.MEADOWS,
     weight: 0,
@@ -164,6 +192,12 @@ export const LAIRS: Partial<Record<Biome, LairDefinition>> = {
   [Biome.DESERT]: { zone: Zone.NECROPOLIS, radius: 1150 },
   [Biome.TROPICAL]: { zone: Zone.JADE_TEMPLE, radius: 1150 },
   [Biome.MOUNTAINS]: { zone: Zone.BASALT_HOLD, radius: 1150 }
+}
+
+/** The zones around the door of the Abyss and around Crisol (see WorldAbyss in the world map). */
+export const ABYSS_PLACES: Partial<Record<NodeType, LairDefinition>> = {
+  [NodeType.ABYSS_GATE]: { zone: Zone.THRESHOLD, radius: 620 },
+  [NodeType.FINAL_BOSS]: { zone: Zone.CRUCIBLE, radius: 1050 }
 }
 
 /**

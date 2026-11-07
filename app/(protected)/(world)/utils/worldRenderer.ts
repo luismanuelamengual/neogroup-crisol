@@ -10,11 +10,17 @@ import { darken, markerOf, MarkerStyle } from '@/app/(protected)/(world)/utils/m
 import { loadMerchantHouses } from '@/app/(protected)/(world)/utils/merchantHouses'
 import { loadSceneryArt, paintSceneryTextures, paintShadow } from '@/app/(protected)/(world)/utils/sceneryTextures'
 import { loadGroundArt, paintGroundTextures } from '@/app/(protected)/(world)/utils/terrainTextures'
+import { WorldAbyss } from '@/app/(protected)/(world)/utils/worldAbyss'
 import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
 import { WorldLairs } from '@/app/(protected)/(world)/utils/worldLairs'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
 import { addVillages, loadVillageTextures, paintContactShadow } from '@/app/(protected)/(world)/utils/worldVillages'
-import { buildLairTextures, buildZoneTextures, loadZoneArt } from '@/app/(protected)/(world)/utils/zoneTextures'
+import {
+  buildAbyssTextures,
+  buildLairTextures,
+  buildZoneTextures,
+  loadZoneArt
+} from '@/app/(protected)/(world)/utils/zoneTextures'
 
 /** What the map shows: it comes from the game state (see WorldMap). */
 export interface MapView {
@@ -82,6 +88,7 @@ export class WorldRenderer {
   private readonly ground: WorldGround
   private readonly scenery: WorldScenery
   private readonly lairs: WorldLairs
+  private readonly abyss: WorldAbyss
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
@@ -129,6 +136,7 @@ export class WorldRenderer {
     this.drawHero()
     this.scenery = new WorldScenery(world.width, this.hero, paintShadow())
     this.lairs = new WorldLairs(world, this.tiles)
+    this.abyss = new WorldAbyss(world, this.tiles)
 
     const provisional = paintSceneryTextures()
 
@@ -139,6 +147,7 @@ export class WorldRenderer {
       this.ground,
       this.scenery.ground,
       this.lairs.circles,
+      this.abyss.ground,
       this.trails,
       this.route,
       this.outOfReach,
@@ -146,8 +155,10 @@ export class WorldRenderer {
       this.scenery.shadows,
       this.scenery.standing,
       this.lairs.motes,
+      this.abyss.air,
       fog,
       this.lairs.beams,
+      this.abyss.sky,
       this.beacons,
       this.lostXp,
       this.selection
@@ -259,6 +270,7 @@ export class WorldRenderer {
     this.scenery.setItems(placeScenery(this.world, this.tiles), art, zones)
 
     this.lairs.setTextures((zone) => buildLairTextures(zones, extras, zone), this.scenery)
+    this.abyss.setTextures(buildAbyssTextures(extras), this.scenery)
   }
 
   /** The final art of the terrains, as far as it exists (the provisional textures stay otherwise). */
@@ -283,6 +295,7 @@ export class WorldRenderer {
     // The scenery first, keeping its textures: they are shared through the asset cache.
     this.scenery.destroy()
     this.lairs.destroy()
+    this.abyss.destroy()
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true, texture: true })
   }
@@ -295,6 +308,7 @@ export class WorldRenderer {
 
     if (!previous || previous.cleared !== view.cleared || previous.respawned !== view.respawned) {
       this.lairs.setFreed(view.cleared)
+      this.abyss.setCleared(view.cleared)
       this.drawTrails(view)
       this.drawMarkers(view)
       this.drawFog(view)
@@ -720,6 +734,7 @@ export class WorldRenderer {
     this.ground.update(visible)
     this.scenery.update(visible, this.elapsed)
     this.lairs.update(this.elapsed)
+    this.abyss.update(this.elapsed)
     this.hero.scale.set(1 + pulse * 0.04)
     this.drawBeacons(pulse)
     this.drawLostXp()

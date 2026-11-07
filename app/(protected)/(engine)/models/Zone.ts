@@ -32,6 +32,10 @@ export enum Zone {
   MIRE = 'mire',
   /** Wastelands: poisoned lands with lakes of acid, broken pipes and slimy ruins. */
   TOXIC = 'toxic',
+  /** Abyss: the forecourt of the door, paved in black slabs with glowing joints, around the great ring of the portal. */
+  THRESHOLD = 'threshold',
+  /** Abyss: the forge of Crisol, cooled lava and burning ground around its fortress, with lakes of fire. */
+  CRUCIBLE = 'crucible',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }

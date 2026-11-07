@@ -1,4 +1,5 @@
 import {
+  ABYSS_PLACES,
   BIOME_PLAIN_WEIGHT,
   LAIRS,
   VILLAGES,
@@ -52,7 +53,11 @@ export function createZoneFinder(world: World): ZoneFinder {
   const villages = world.nodes.flatMap((node) =>
     node.merchant && VILLAGES[node.biome] ? [{ biome: node.biome, x: node.x, y: node.y, ...VILLAGES[node.biome]! }] : []
   )
-  const places = [...lairs, ...villages]
+  // The door of the Abyss and the forge of Crisol, around their points.
+  const abyss = world.nodes.flatMap((node) =>
+    ABYSS_PLACES[node.type] ? [{ biome: node.biome, x: node.x, y: node.y, ...ABYSS_PLACES[node.type]! }] : []
+  )
+  const places = [...lairs, ...villages, ...abyss]
 
   // A number in [0, 1) for each cell and biome, always the same.
   const hash = (column: number, row: number, extra: number) => {

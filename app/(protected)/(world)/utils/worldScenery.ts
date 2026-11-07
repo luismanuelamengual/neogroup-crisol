@@ -34,6 +34,8 @@ interface Standing {
   sways: boolean
   /** Added apart (see add), kept when the pieces are placed again. */
   landmark: boolean
+  /** Never turns see-through: the hero is meant to stand inside it. */
+  solid?: boolean
 }
 
 interface Chunk {
@@ -105,9 +107,10 @@ export class WorldScenery {
 
   /**
    * A landmark (a windmill, a well...): it stands like the trees, but does not sway. It may bring its own shadow,
-   * drawn like the sprite (same scale, anchored by its texture) instead of the round one.
+   * drawn like the sprite (same scale, anchored by its texture) instead of the round one. A solid one never turns
+   * see-through.
    */
-  add(sprite: Sprite, shadow?: Texture): void {
+  add(sprite: Sprite, shadow?: Texture, solid = false): void {
     const room = Math.max(LANDMARK_ROOM, Math.abs(sprite.width) * 0.5)
 
     for (const key of this.keysAround(sprite.x, sprite.y)) {
@@ -133,7 +136,32 @@ export class WorldScenery {
       this.shown.delete(key)
     }
 
-    this.stand(sprite, 'low', false, true, shadow)
+    this.stand(sprite, 'low', false, true, shadow, solid)
+  }
+
+  /** Takes away the trees, bushes and rocks around a point (the landmarks stay). */
+  clearAround(x: number, y: number, radius: number): void {
+    for (const key of this.keysAround(x, y)) {
+      const chunk = this.chunks.get(key)
+
+      if (!chunk) {
+        continue
+      }
+
+      chunk.standing = chunk.standing.filter((standing) => {
+        const inside = !standing.landmark && Math.hypot(standing.sprite.x - x, standing.sprite.y - y) < radius
+
+        if (inside) {
+          this.standing.removeChild(standing.sprite)
+          this.shadows.removeChild(standing.shadow)
+          standing.sprite.destroy()
+          standing.shadow.destroy()
+        }
+
+        return !inside
+      })
+      this.shown.delete(key)
+    }
   }
 
   private nearLandmark(x: number, y: number): boolean {
@@ -152,7 +180,14 @@ export class WorldScenery {
     return [...new Set(keys)]
   }
 
-  private stand(sprite: Sprite, layer: 'tall' | 'low', sways: boolean, landmark: boolean, own?: Texture): void {
+  private stand(
+    sprite: Sprite,
+    layer: 'tall' | 'low',
+    sways: boolean,
+    landmark: boolean,
+    own?: Texture,
+    solid = false
+  ): void {
     const shadow = new Sprite(own ?? this.shadow)
 
     if (own) {
@@ -169,7 +204,7 @@ export class WorldScenery {
     }
 
     sprite.zIndex = sprite.y
-    this.chunkAt(sprite.x, sprite.y).standing.push({ sprite, shadow, sways, landmark })
+    this.chunkAt(sprite.x, sprite.y).standing.push({ sprite, shadow, sways, landmark, solid })
     this.shown.delete(this.keyAt(sprite.x, sprite.y))
   }
 
@@ -217,14 +252,17 @@ export class WorldScenery {
 
     this.hero.zIndex = y
 
-    for (const { sprite, sways } of this.visible) {
+    for (const { sprite, sways, solid } of this.visible) {
       if (sways) {
         sprite.skew.x = Math.sin(elapsed * SWAY_SPEED + sprite.x * 0.013 + sprite.y * 0.007) * SWAY
       }
 
       // In front of the hero and over it: see-through.
       const hides =
-        sprite.y > y && Math.abs(sprite.x - x) < Math.abs(sprite.width) * 0.4 && sprite.y - sprite.height * 0.9 < y
+        !solid &&
+        sprite.y > y &&
+        Math.abs(sprite.x - x) < Math.abs(sprite.width) * 0.4 &&
+        sprite.y - sprite.height * 0.9 < y
 
       sprite.alpha = hides ? SEE_THROUGH : 1
     }
