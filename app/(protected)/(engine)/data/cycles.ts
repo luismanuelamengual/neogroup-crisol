@@ -8,7 +8,7 @@ import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
  */
 
 /** Levels the enemies of every point gain per cycle (on top of their stronger attributes, see data/enemies.ts). */
-export const CYCLE_LEVELS = 45
+export const CYCLE_LEVELS = 90
 /** A captor with nobody left to free gives Echoes and stones of its biome instead, more each cycle. */
 export const CAPTOR_ECHOES = 12
 export const CAPTOR_STONES = 6

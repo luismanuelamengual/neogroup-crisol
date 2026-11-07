@@ -42,7 +42,7 @@ export const BIOMES: BiomeDefinition[] = [
   {
     biome: Biome.MEADOWS,
     levelMin: 1,
-    levelMax: 8,
+    levelMax: 10,
     nodes: 140,
     anchors: [
       [8000, 7600],
@@ -58,8 +58,8 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.FOREST,
-    levelMin: 6,
-    levelMax: 14,
+    levelMin: 8,
+    levelMax: 20,
     nodes: 130,
     anchors: [
       [3200, 9600],
@@ -75,8 +75,8 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.DESERT,
-    levelMin: 10,
-    levelMax: 18,
+    levelMin: 18,
+    levelMax: 30,
     nodes: 120,
     anchors: [
       [12600, 10200],
@@ -92,15 +92,32 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#e8c25a'
   },
   {
+    biome: Biome.TROPICAL,
+    levelMin: 28,
+    levelMax: 40,
+    nodes: 120,
+    anchors: [
+      [13000, 6600],
+      [10800, 5600]
+    ],
+    captor: { bossId: 'xalqui', captive: CharacterId.OREN },
+    minibossCamps: 3,
+    sanctuaries: 6,
+    runeTier: RuneTier.GREATER,
+    tear: true,
+    chests: 2,
+    color: '#18c3a4'
+  },
+  {
     biome: Biome.MOUNTAINS,
-    levelMin: 14,
-    levelMax: 22,
+    levelMin: 38,
+    levelMax: 50,
     nodes: 120,
     anchors: [
       [3200, 5800],
       [5400, 5000]
     ],
-    captor: { bossId: 'colossus', captive: CharacterId.OREN },
+    captor: { bossId: 'colossus', captive: CharacterId.YSOLDE },
     minibossCamps: 3,
     sanctuaries: 7,
     runeTier: RuneTier.GREATER,
@@ -110,26 +127,9 @@ export const BIOMES: BiomeDefinition[] = [
     color: '#9a8f86'
   },
   {
-    biome: Biome.TROPICAL,
-    levelMin: 18,
-    levelMax: 26,
-    nodes: 120,
-    anchors: [
-      [13000, 6600],
-      [10800, 5600]
-    ],
-    captor: { bossId: 'xalqui', captive: CharacterId.YSOLDE },
-    minibossCamps: 3,
-    sanctuaries: 6,
-    runeTier: RuneTier.GREATER,
-    tear: true,
-    chests: 2,
-    color: '#18c3a4'
-  },
-  {
     biome: Biome.WASTELANDS,
-    levelMin: 22,
-    levelMax: 30,
+    levelMin: 48,
+    levelMax: 60,
     nodes: 120,
     anchors: [
       [8000, 4000],
@@ -146,8 +146,8 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.SNOW,
-    levelMin: 26,
-    levelMax: 34,
+    levelMin: 58,
+    levelMax: 70,
     nodes: 110,
     anchors: [
       [2600, 2400],
@@ -165,8 +165,8 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.VOLCANIC,
-    levelMin: 30,
-    levelMax: 38,
+    levelMin: 68,
+    levelMax: 80,
     nodes: 110,
     anchors: [
       [13400, 2400],
@@ -183,8 +183,8 @@ export const BIOMES: BiomeDefinition[] = [
   },
   {
     biome: Biome.ABYSS,
-    levelMin: 40,
-    levelMax: 50,
+    levelMin: 78,
+    levelMax: 90,
     nodes: 50,
     anchors: [[8000, 1300]],
     minibossCamps: 2,
@@ -215,6 +215,20 @@ export const BIOME_LINKS: [Biome, Biome][] = [
   [Biome.MOUNTAINS, Biome.SNOW],
   [Biome.WASTELANDS, Biome.VOLCANIC],
   [Biome.WASTELANDS, Biome.ABYSS]
+]
+
+/** A side of a biome. */
+export type BiomeSide = 'north' | 'south' | 'west'
+
+/**
+ * The passes that are not left to chance: the border trail of the link that
+ * lies farthest towards a side of the world.
+ */
+export const BIOME_PASSES: { link: [Biome, Biome]; side: BiomeSide }[] = [
+  { link: [Biome.MEADOWS, Biome.DESERT], side: 'south' },
+  { link: [Biome.MEADOWS, Biome.TROPICAL], side: 'north' },
+  // Far from Sahrak, who waits at the deepest point of the desert.
+  { link: [Biome.DESERT, Biome.TROPICAL], side: 'west' }
 ]
 
 export function getBiomeDefinition(biome: Biome): BiomeDefinition {

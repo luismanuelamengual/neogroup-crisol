@@ -71,8 +71,14 @@ const GROWTH_PER_LEVEL = 0.11
 const ELITE_HEALTH = 1.5
 const ELITE_POWER = 1.25
 /** Multiplier of the attributes per New Game+ cycle (speed grows less). */
-const CYCLE_POWER = 0.25
+const CYCLE_POWER = 0.4
 const CYCLE_SPEED = 0.1
+/**
+ * Past the level of Crisol the heroes grow faster than a straight line (points,
+ * skills, veteran bonus): the enemies of New Game+ grow as (level / this) ** VETERAN_GROWTH on top.
+ */
+const VETERAN_LEVEL = 90
+const VETERAN_GROWTH = 0.6
 /** How much of the gap to the scale of the last biome the first ones close in New Game+ (0..1). */
 const CYCLE_CATCH_UP = 0.7
 /**
@@ -82,24 +88,24 @@ const CYCLE_CATCH_UP = 0.7
 const BIOME_HEALTH: Record<Biome, number> = {
   [Biome.MEADOWS]: 1,
   [Biome.FOREST]: 1,
-  [Biome.TROPICAL]: 2.6,
   [Biome.DESERT]: 2.6,
-  [Biome.MOUNTAINS]: 5,
-  [Biome.SNOW]: 5.5,
-  [Biome.VOLCANIC]: 8,
+  [Biome.TROPICAL]: 5,
+  [Biome.MOUNTAINS]: 8,
   [Biome.WASTELANDS]: 12,
-  [Biome.ABYSS]: 14
+  [Biome.SNOW]: 11,
+  [Biome.VOLCANIC]: 14,
+  [Biome.ABYSS]: 22
 }
 const BIOME_POWER: Record<Biome, number> = {
   [Biome.MEADOWS]: 1,
   [Biome.FOREST]: 1,
-  [Biome.TROPICAL]: 1.8,
   [Biome.DESERT]: 1.8,
-  [Biome.MOUNTAINS]: 2.7,
-  [Biome.SNOW]: 2.8,
-  [Biome.VOLCANIC]: 3.4,
+  [Biome.TROPICAL]: 2.7,
+  [Biome.MOUNTAINS]: 3.4,
   [Biome.WASTELANDS]: 4.3,
-  [Biome.ABYSS]: 4.7
+  [Biome.SNOW]: 4.1,
+  [Biome.VOLCANIC]: 4.7,
+  [Biome.ABYSS]: 5.6
 }
 /** A lone boss takes this power of the biome scale (a group of commons takes all of it). */
 const BOSS_BIOME_SCALE = 0.9
@@ -839,7 +845,7 @@ const BOSSES: EnemySpecies[] = [
     0x44403c,
     {
       rarity: 'boss',
-      strength: 2.6,
+      strength: 2.45,
       bars: 2,
       size: 2.3
     }
@@ -853,7 +859,7 @@ const BOSSES: EnemySpecies[] = [
     0x1f2937,
     {
       rarity: 'boss',
-      strength: 3,
+      strength: 4,
       bars: 2,
       size: 2
     }
@@ -1354,7 +1360,7 @@ export function getEnemyStats(speciesId: string, level: number, elite = false, c
   const { archetype, strength, biome } = getSpecies(speciesId)
   const base = ARCHETYPE_STATS[archetype]
   const levelFactor = 1 + GROWTH_PER_LEVEL * (level - 1)
-  const cycleFactor = 1 + CYCLE_POWER * cycle
+  const cycleFactor = (1 + CYCLE_POWER * cycle) * Math.max(1, level / VETERAN_LEVEL) ** VETERAN_GROWTH
   const biomeScale = strength > 1 ? BOSS_BIOME_SCALE : 1
   // In New Game+ the whole party fights from the start: the first biomes get closer to the last one.
   const catchUp = (table: Record<Biome, number>) =>
@@ -1388,7 +1394,7 @@ export function getEnemyRewards(
 ): { xp: number; gold: number } {
   const { strength, bars } = getSpecies(speciesId)
   const boss = strength > 1
-  const multiplier = (elite ? 2 : 1) * (boss ? strength * bars * 2 : 1) * (1 + 0.75 * cycle)
+  const multiplier = (elite ? 2 : 1) * (boss ? strength * bars * 2 : 1)
 
   return {
     xp: Math.round((2 + 1.1 * level) * multiplier),

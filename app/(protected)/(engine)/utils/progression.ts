@@ -7,9 +7,9 @@ import { getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
  * the common pool (see utils/heroes.ts).
  */
 
-/** Experience needed to go from a level to the next one: it always grows, but never stops. */
+/** Experience needed to go from a level to the next one: quick at first, then it grows steadily and never stops. */
 export function xpToNextLevel(level: number): number {
-  return Math.round(18 * Math.pow(level, 1.5))
+  return Math.round((50 * level * level) / (level + 2))
 }
 
 /** A character gains experience: it can go up several levels, and gains the health of each one. */

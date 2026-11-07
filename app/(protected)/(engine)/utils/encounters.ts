@@ -26,7 +26,7 @@ import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
 /** How often each rarity shows up in the fights of its biome. */
 const RARITY_WEIGHTS = { common: 6, uncommon: 3, rare: 1, boss: 0 }
 /** From this level on, the mini bosses of one bar come with an escort. */
-const ESCORT_LEVEL = 12
+const ESCORT_LEVEL = 18
 
 /** A number from a text (FNV-1a), to seed the encounter of a node. */
 export function hashText(text: string): number {
@@ -104,7 +104,7 @@ function encounterPhases(node: WorldNode, encounter: Encounter): EnemySpawn[][] 
 
   switch (encounter.kind) {
     case EncounterKind.COMBAT: {
-      const maxPhases = level <= 3 ? 1 : level <= 7 ? 2 : 3
+      const maxPhases = level <= 4 ? 1 : level <= 8 ? 2 : 3
       const phases = Math.min(
         maxPhases,
         weighted(random, [
@@ -113,7 +113,7 @@ function encounterPhases(node: WorldNode, encounter: Encounter): EnemySpawn[][] 
           [3, 10]
         ])
       )
-      const maxEnemies = level <= 2 ? 2 : 3
+      const maxEnemies = level <= 3 ? 2 : 3
 
       return Array.from({ length: phases }, () =>
         commonPhase(

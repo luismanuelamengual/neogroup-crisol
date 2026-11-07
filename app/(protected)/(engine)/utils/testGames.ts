@@ -37,27 +37,27 @@ export interface TestGame {
 
 const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
 
-/** The test games, by number. Positions come from public/world/world.json (WORLD_VERSION 10). */
+/** The test games, by number. Positions come from public/world/world.json (WORLD_VERSION 11). */
 export const TEST_GAMES: Record<number, TestGame> = {
   // In the forest, right after freeing Sera from Morgrath.
   1: {
     biomes: [Biome.MEADOWS, Biome.FOREST],
     campId: 'n912',
-    levels: { [KAEL]: 16, [SERA]: 12 },
+    levels: { [KAEL]: 24, [SERA]: 14 },
     gold: 800
   },
   // In the desert, right after freeing Brann from Sahrak.
   2: {
     biomes: [Biome.MEADOWS, Biome.FOREST, Biome.DESERT],
-    campId: 'n1007',
-    levels: { [KAEL]: 20, [SERA]: 18, [BRANN]: 14 },
+    campId: 'n894',
+    levels: { [KAEL]: 35, [SERA]: 33, [BRANN]: 24 },
     gold: 2500
   },
-  // In the tropical jungle, right after freeing Ysolde from Xalqui (Oren freed in the mountains).
+  // In the mountains, right after freeing Ysolde from the Colossus (Oren freed in the tropical jungle).
   3: {
-    biomes: [Biome.MEADOWS, Biome.FOREST, Biome.DESERT, Biome.MOUNTAINS, Biome.TROPICAL],
-    campId: 'n672',
-    levels: { [KAEL]: 28, [SERA]: 27, [BRANN]: 26, [OREN]: 24, [YSOLDE]: 20 },
+    biomes: [Biome.MEADOWS, Biome.FOREST, Biome.DESERT, Biome.TROPICAL, Biome.MOUNTAINS],
+    campId: 'n581',
+    levels: { [KAEL]: 55, [SERA]: 54, [BRANN]: 52, [OREN]: 48, [YSOLDE]: 44 },
     gold: 6000
   }
 }
@@ -68,7 +68,7 @@ const CASTERS = [OREN, YSOLDE]
 
 /** A hero at a level built as a player would: attribute points and skill points spent, weapons upgraded. */
 function buildHero(character: CharacterState, level: number): CharacterState {
-  const weaponLevel = Math.min(MAX_WEAPON_LEVEL, Math.floor(level / 3))
+  const weaponLevel = Math.min(MAX_WEAPON_LEVEL, Math.floor(level / 6))
   let built: CharacterState = {
     ...character,
     level,

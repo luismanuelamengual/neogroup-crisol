@@ -29,12 +29,12 @@ const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
 const PARTIES: Record<Biome, CharacterId[]> = {
   [Biome.MEADOWS]: [KAEL],
   [Biome.FOREST]: [KAEL],
-  [Biome.TROPICAL]: [KAEL, SERA],
   [Biome.DESERT]: [KAEL, SERA],
-  [Biome.MOUNTAINS]: [KAEL, SERA, BRANN],
-  [Biome.SNOW]: [KAEL, SERA, BRANN],
-  [Biome.VOLCANIC]: [KAEL, SERA, BRANN, OREN],
+  [Biome.TROPICAL]: [KAEL, SERA, BRANN],
+  [Biome.MOUNTAINS]: [KAEL, SERA, BRANN, OREN],
   [Biome.WASTELANDS]: [KAEL, SERA, BRANN, OREN, YSOLDE],
+  [Biome.SNOW]: [KAEL, SERA, BRANN, OREN, YSOLDE],
+  [Biome.VOLCANIC]: [KAEL, SERA, BRANN, OREN, YSOLDE],
   [Biome.ABYSS]: [KAEL, SERA, BRANN, OREN, YSOLDE]
 }
 const only = process.argv[2] as Biome | undefined
@@ -75,7 +75,7 @@ for (const biome of Object.values(Biome).filter((candidate) => !only || candidat
           heroes:
             cycle > 0
               ? PARTIES[Biome.ABYSS].map((id, slot) => buildVeteran(id, level, cycle, slot))
-              : PARTIES[biome].map((id) => buildCharacter(id, level, Math.min(20, Math.floor(level / 3)))),
+              : PARTIES[biome].map((id) => buildCharacter(id, level, Math.min(20, Math.floor(level / 6)))),
           phases,
           biome,
           cycle,

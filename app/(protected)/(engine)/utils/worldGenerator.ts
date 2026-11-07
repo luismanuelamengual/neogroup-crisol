@@ -1,8 +1,10 @@
 import Delaunator from 'delaunator'
 import {
   BIOME_LINKS,
+  BIOME_PASSES,
   BiomeDefinition,
   BIOMES,
+  BiomeSide,
   getBiomeDefinition,
   WORLD_HEIGHT,
   WORLD_WIDTH
@@ -153,6 +155,23 @@ function createBiomeField(random: Random): (x: number, y: number) => Biome {
   }
 }
 
+/**
+ * The order the biomes take their points in: the one the map was drawn with
+ * (the Mountains before the Tropics, unlike BIOMES). Another order gives every
+ * biome other points, and the whole map changes.
+ */
+const SCATTER_ORDER = [
+  Biome.MEADOWS,
+  Biome.FOREST,
+  Biome.DESERT,
+  Biome.MOUNTAINS,
+  Biome.TROPICAL,
+  Biome.WASTELANDS,
+  Biome.SNOW,
+  Biome.VOLCANIC,
+  Biome.ABYSS
+]
+
 /** 2. The points of every biome, spread evenly inside its region. */
 function scatterPoints(random: Random, biomeAt: (x: number, y: number) => Biome): Point[] {
   const cells = new Map<Biome, [number, number][]>(BIOMES.map((definition) => [definition.biome, []]))
@@ -166,7 +185,7 @@ function scatterPoints(random: Random, biomeAt: (x: number, y: number) => Biome)
   const points: Point[] = []
   const grid = new SpatialGrid(200)
 
-  for (const definition of BIOMES) {
+  for (const definition of SCATTER_ORDER.map(getBiomeDefinition)) {
     const biomeCells = cells.get(definition.biome)!
     const area = biomeCells.length * AREA_CELL * AREA_CELL
     let spacing = Math.sqrt(area / definition.nodes) * 0.85
@@ -319,6 +338,13 @@ function buildTrails(random: Random, points: Point[], candidates: Candidate[]): 
       continue
     }
 
+    const pass = BIOME_PASSES.find(({ link }) => linkKey(link[0], link[1]) === linkKey(first, second))
+
+    if (pass) {
+      add(maxBy(options, (candidate) => towards(pass.side, points[candidate.a], points[candidate.b])))
+      continue
+    }
+
     add(options[Math.floor(pick * options.length)])
   }
 
@@ -338,6 +364,14 @@ function buildTrails(random: Random, points: Point[], candidates: Candidate[]): 
   }
 
   return edges
+}
+
+/** How far a trail lies towards a side of the world. */
+function towards(side: BiomeSide, a: Point, b: Point): number {
+  const x = (a.x + b.x) / 2
+  const y = (a.y + b.y) / 2
+
+  return side === 'north' ? -y : side === 'south' ? y : -x
 }
 
 function median(values: number[]): number {

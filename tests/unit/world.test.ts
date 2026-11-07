@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import { WORLD_SEED } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import type { World } from '@/app/(protected)/(engine)/models/World'
 import { buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
@@ -69,6 +72,70 @@ describe('stored world', () => {
 
     expect(world.nodes.length).toBeGreaterThanOrEqual(1000)
     expect(camps).toHaveLength(31)
+  })
+})
+
+describe('difficulty and passes of the biomes', () => {
+  const byId = new Map(world.nodes.map((node) => [node.id, node]))
+
+  const pass = (first: Biome, second: Biome) => {
+    const [a, b] = world.edges.find(
+      ([one, other]) => [byId.get(one)!.biome, byId.get(other)!.biome].sort().join() === [first, second].sort().join()
+    )!
+
+    return [byId.get(a)!, byId.get(b)!].sort((one) => (one.biome === first ? -1 : 1))
+  }
+
+  const members = (biome: Biome) => world.nodes.filter((node) => node.biome === biome)
+
+  it('goes up in levels from biome to biome, each one starting before the previous one ends', () => {
+    expect(BIOMES.map(({ biome }) => biome)).toEqual([
+      Biome.MEADOWS,
+      Biome.FOREST,
+      Biome.DESERT,
+      Biome.TROPICAL,
+      Biome.MOUNTAINS,
+      Biome.WASTELANDS,
+      Biome.SNOW,
+      Biome.VOLCANIC,
+      Biome.ABYSS
+    ])
+
+    BIOMES.slice(1).forEach((definition, position) => {
+      expect(definition.levelMin).toBeGreaterThan(BIOMES[position].levelMin)
+      expect(definition.levelMin).toBeLessThan(BIOMES[position].levelMax)
+    })
+  })
+
+  it('holds Oren in the tropics and Ysolde, the hardest to free, in the mountains', () => {
+    const captors = world.nodes.filter((node) => node.bossKind === BossKind.CAPTOR)
+    const holding = (captive: CharacterId) => captors.find((node) => node.captive === captive)!
+
+    expect(holding(CharacterId.OREN).biome).toBe(Biome.TROPICAL)
+    expect(holding(CharacterId.YSOLDE).biome).toBe(Biome.MOUNTAINS)
+    expect(Math.max(...captors.map((node) => node.level!))).toBe(holding(CharacterId.YSOLDE).level)
+  })
+
+  it('leaves the Meadows for the Desert by their south and for the Tropics by their north', () => {
+    const meadows = members(Biome.MEADOWS).map((node) => node.y)
+
+    expect(pass(Biome.MEADOWS, Biome.DESERT)[0].y).toBe(Math.max(...meadows))
+    expect(pass(Biome.MEADOWS, Biome.TROPICAL)[0].y).toBeLessThan(Math.min(...meadows) + 200)
+  })
+
+  it('joins the Desert and the Tropics far to the west, away from Sahrak', () => {
+    const sahrak = world.nodes.find((node) => node.bossId === 'sahrak')!
+    const [desert] = pass(Biome.DESERT, Biome.TROPICAL)
+    const hops = hopDistances(
+      buildAdjacency(
+        world.nodes.map((node) => node.id),
+        world.edges
+      ),
+      [sahrak.id]
+    )
+
+    expect(sahrak.x - desert.x).toBeGreaterThan(4000)
+    expect(hops.get(desert.id)!).toBeGreaterThan(20)
   })
 })
 
