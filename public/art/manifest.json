@@ -130,7 +130,7 @@
   },
   "heroes/oren/weapons/root-sickle": {
    "width": 1024,
-   "height": 220
+   "height": 168
   },
   "heroes/oren/weapons/scythe": {
    "width": 1024,
@@ -4396,10 +4396,10 @@
   "heroes/oren/weapons/root-sickle": [
    {
     "id": "heroes/oren/weapons/root-sickle",
-    "x": 294,
-    "y": 103,
-    "width": 1428,
-    "height": 307
+    "x": 289,
+    "y": 139,
+    "width": 1441,
+    "height": 237
    }
   ],
   "heroes/oren/weapons/scythe": [

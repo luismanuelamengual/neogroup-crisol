@@ -140,8 +140,8 @@ const WEAPONS: Record<string, WeaponFit> = {
   'gale-bow': { grip: 0.4997, gripY: 0.714, length: 0.956, rest: -Math.PI / 2 + 0.213 },
   maul: { grip: 0.16, gripY: 0.45, length: 0.78, rest: -0.25 },
   hatchets: { grip: 0.13, gripY: 0.43, length: 0.73, rest: -0.25 },
-  'root-sickle': { grip: 0.26, gripY: 0.35, length: 0.88, rest: -0.32 },
-  scythe: { grip: 0.15, gripY: 0.34, length: 0.88, rest: -0.32 },
+  'root-sickle': { grip: 0.196, gripY: 0.331, length: 0.88, rest: -0.32 },
+  scythe: { grip: 0.194, gripY: 0.351, length: 0.88, rest: -0.32 },
   'thorn-sickle': { grip: 0.19, gripY: 0.34, length: 0.88, rest: -0.32 },
   // The grimoires float beside the hand: it "holds" them by their spine.
   tome: { grip: 0.5, gripY: 1.12, length: 0.29, rest: 0 },
@@ -175,7 +175,7 @@ interface ArmJoints {
 
 const DEFAULT_ARM: ArmJoints = { shoulder: [0.67, 0.37], top: [0.28, 0.12], wrist: [1.12, 0.91] }
 const BRANN_ARM: ArmJoints = { shoulder: [0.235, 0.317], top: [0.37, 0.15], wrist: [0.83, 0.89] }
-const OREN_ARM: ArmJoints = { shoulder: [0.24, 0.32], top: [0.45, 0.2], wrist: [0.86, 0.92] }
+const OREN_ARM: ArmJoints = { shoulder: [0.24, 0.32], top: [0.45, 0.2], wrist: [0.815, 0.89] }
 const YSOLDE_ARM: ArmJoints = { shoulder: [0.675, 0.32], top: [0.11, 0.27], wrist: [0.82, 0.34] }
 const YSOLDE_ATTACK: NonNullable<Rig['attack']> = {
   arm: [
