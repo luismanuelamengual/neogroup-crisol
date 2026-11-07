@@ -157,11 +157,11 @@
    "height": 256
   },
   "heroes/ysolde/full": {
-   "width": 504,
+   "width": 471,
    "height": 720
   },
   "heroes/ysolde/body": {
-   "width": 389,
+   "width": 367,
    "height": 720
   },
   "heroes/ysolde/arm": {
@@ -4423,10 +4423,10 @@
   "heroes/ysolde/body": [
    {
     "id": "heroes/ysolde/body",
-    "x": 49,
-    "y": 109,
-    "width": 728,
-    "height": 1347
+    "x": 45,
+    "y": 20,
+    "width": 731,
+    "height": 1435
    }
   ],
   "heroes/ysolde/arm": [

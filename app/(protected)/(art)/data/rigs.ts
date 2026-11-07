@@ -176,7 +176,7 @@ interface ArmJoints {
 const DEFAULT_ARM: ArmJoints = { shoulder: [0.67, 0.37], top: [0.28, 0.12], wrist: [1.12, 0.91] }
 const BRANN_ARM: ArmJoints = { shoulder: [0.235, 0.317], top: [0.37, 0.15], wrist: [0.83, 0.89] }
 const OREN_ARM: ArmJoints = { shoulder: [0.24, 0.32], top: [0.45, 0.2], wrist: [0.815, 0.89] }
-const YSOLDE_ARM: ArmJoints = { shoulder: [0.675, 0.32], top: [0.11, 0.27], wrist: [0.82, 0.34] }
+const YSOLDE_ARM: ArmJoints = { shoulder: [0.678, 0.362], top: [0.11, 0.27], wrist: [0.82, 0.34] }
 const YSOLDE_ATTACK: NonNullable<Rig['attack']> = {
   arm: [
     [0, 0],
@@ -276,7 +276,7 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
   const arm = brann ? BRANN_ARM : oren ? OREN_ARM : ysolde ? YSOLDE_ARM : DEFAULT_ARM
   const armSize: SlotSize = oren
     ? { segment: 1, side: 'height', length: 0.34 }
-    : { ...SIZES.arm, length: brann ? 0.25 : ysolde ? 0.3 : SIZES.arm.length }
+    : { ...SIZES.arm, length: brann ? 0.25 : ysolde ? 0.282 : SIZES.arm.length }
   const bowString = ranged ? BOW_STRINGS[id] : undefined
 
   return {
