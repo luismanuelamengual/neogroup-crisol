@@ -17,6 +17,42 @@ interface ViewBox {
 }
 
 const MIN_ZOOM_WIDTH = 1200
+/** Pointer travel (screen px) below which a press counts as a click, not a drag. */
+const CLICK_TOLERANCE = 6
+
+/**
+ * Copies text to the clipboard. Falls back to execCommand when the Clipboard
+ * API is missing (e.g. a phone opening the dev server over plain http).
+ */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+
+      return true
+    }
+  } catch {
+    // Falls through to the legacy method.
+  }
+
+  const textarea = document.createElement('textarea')
+
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  textarea.setSelectionRange(0, text.length)
+
+  try {
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    document.body.removeChild(textarea)
+  }
+}
 
 /** Marker of each kind of point: color and radius. */
 function markerOf(node: WorldNode): { color: string; radius: number; label: string } {
@@ -70,7 +106,8 @@ const LEGEND: { type: NodeType; bossKind?: BossKind; label: string }[] = [
 /**
  * Development view of the generated world (public/world/world.json): the
  * biomes, the trails and every point of interest, with zoom (wheel) and pan
- * (drag). Hovering a point shows its data.
+ * (drag). Hovering a point shows its data; clicking (or tapping) it copies
+ * its id to the clipboard.
  */
 export default function WorldDebugMap() {
   const [world, setWorld] = useState<World | null>(null)
@@ -78,7 +115,11 @@ export default function WorldDebugMap() {
   const [hovered, setHovered] = useState<WorldNode | null>(null)
   const [showLevels, setShowLevels] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
-  const dragRef = useRef<{ x: number; y: number; view: ViewBox } | null>(null)
+  const dragRef = useRef<{ x: number; y: number; view: ViewBox; nodeId: string | null; moved: boolean } | null>(null)
+  const [copied, setCopied] = useState<{ id: string; ok: boolean } | null>(null)
+  const copiedTimerRef = useRef<number | undefined>(undefined)
+
+  useEffect(() => () => window.clearTimeout(copiedTimerRef.current), [])
 
   useEffect(() => {
     fetch('/world/world.json')
@@ -131,7 +172,15 @@ export default function WorldDebugMap() {
   }
 
   const handlePointerDown = (event: PointerEvent<SVGSVGElement>) => {
-    dragRef.current = { x: event.clientX, y: event.clientY, view }
+    const target = (event.target as Element).closest('[data-node-id]')
+
+    dragRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      view,
+      nodeId: target?.getAttribute('data-node-id') ?? null,
+      moved: false
+    }
     svgRef.current?.setPointerCapture(event.pointerId)
   }
 
@@ -141,6 +190,12 @@ export default function WorldDebugMap() {
     if (!drag) {
       return
     }
+
+    if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < CLICK_TOLERANCE) {
+      return
+    }
+
+    drag.moved = true
 
     const rect = svgRef.current!.getBoundingClientRect()
 
@@ -152,7 +207,28 @@ export default function WorldDebugMap() {
   }
 
   const handlePointerUp = () => {
+    const drag = dragRef.current
+
     dragRef.current = null
+
+    if (drag && !drag.moved && drag.nodeId) {
+      copyNodeId(drag.nodeId)
+    }
+  }
+
+  const copyNodeId = (id: string) => {
+    const node = byId.get(id)
+
+    if (node) {
+      // On touch screens there is no hover: the tap also shows the point's data.
+      setHovered(node)
+    }
+
+    copyToClipboard(id).then((ok) => {
+      window.clearTimeout(copiedTimerRef.current)
+      setCopied({ id, ok })
+      copiedTimerRef.current = window.setTimeout(() => setCopied(null), 1600)
+    })
   }
 
   return (
@@ -166,6 +242,9 @@ export default function WorldDebugMap() {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={() => {
+          dragRef.current = null
+        }}
       >
         <rect x={0} y={0} width={world.width} height={world.height} fill="#0d0d14" />
         <g className="regions">
@@ -205,7 +284,21 @@ export default function WorldDebugMap() {
             const marker = markerOf(node)
 
             return (
-              <g key={node.id} onPointerEnter={() => setHovered(node)} onPointerLeave={() => setHovered(null)}>
+              <g
+                key={node.id}
+                className="point"
+                data-node-id={node.id}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === 'mouse') {
+                    setHovered(node)
+                  }
+                }}
+                onPointerLeave={(event) => {
+                  if (event.pointerType === 'mouse') {
+                    setHovered(null)
+                  }
+                }}
+              >
                 <circle
                   cx={node.x}
                   cy={node.y}
@@ -261,6 +354,17 @@ export default function WorldDebugMap() {
           </div>
         )}
       </aside>
+      {copied && (
+        <div key={`${copied.id}-${copied.ok}`} className={`copied${copied.ok ? '' : ' failed'}`} role="status">
+          {copied.ok ? (
+            <>
+              Copied <strong>{copied.id}</strong>
+            </>
+          ) : (
+            <>Could not copy {copied.id}</>
+          )}
+        </div>
+      )}
     </div>
   )
 }

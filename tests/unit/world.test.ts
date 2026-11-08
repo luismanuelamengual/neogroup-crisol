@@ -116,26 +116,48 @@ describe('difficulty and passes of the biomes', () => {
     expect(Math.max(...captors.map((node) => node.level!))).toBe(holding(CharacterId.YSOLDE).level)
   })
 
-  it('leaves the Meadows for the Desert by their south and for the Tropics by their north', () => {
+  it('leaves the Meadows for the Desert by the trail set for it and for the Tropics by their north', () => {
     const meadows = members(Biome.MEADOWS).map((node) => node.y)
+    const [meadow, desert] = pass(Biome.MEADOWS, Biome.DESERT)
 
-    expect(pass(Biome.MEADOWS, Biome.DESERT)[0].y).toBe(Math.max(...meadows))
+    expect([meadow.x, meadow.y]).toEqual([8925, 10666])
+    expect([desert.x, desert.y]).toEqual([9428, 10427])
     expect(pass(Biome.MEADOWS, Biome.TROPICAL)[0].y).toBeLessThan(Math.min(...meadows) + 200)
   })
 
-  it('joins the Desert and the Tropics far to the west, away from Sahrak', () => {
-    const sahrak = world.nodes.find((node) => node.bossId === 'sahrak')!
-    const [desert] = pass(Biome.DESERT, Biome.TROPICAL)
-    const hops = hopDistances(
-      buildAdjacency(
-        world.nodes.map((node) => node.id),
-        world.edges
-      ),
-      [sahrak.id]
+  it('has a camp in the middle of the north of the Meadows and two towards the south', () => {
+    const start = world.nodes.find((node) => node.type === NodeType.START)!
+    const camps = members(Biome.MEADOWS).filter((node) => node.type === NodeType.CAMP_BOSS)
+    const north = camps.filter((node) => node.y < start.y)
+    const south = camps.filter((node) => node.y > start.y)
+
+    expect(north).toHaveLength(1)
+    expect(south).toHaveLength(2)
+    expect(Math.abs(north[0].x - 8000)).toBeLessThan(500)
+    expect(south[0].x < 8000).not.toBe(south[1].x < 8000)
+  })
+
+  it('ends every dead end in a prize', () => {
+    const adjacency = buildAdjacency(
+      world.nodes.map((node) => node.id),
+      world.edges
     )
 
-    expect(sahrak.x - desert.x).toBeGreaterThan(4000)
-    expect(hops.get(desert.id)!).toBeGreaterThan(20)
+    expect(world.nodes.filter((node) => adjacency.get(node.id)!.length === 1 && node.type === NodeType.COMBAT)).toEqual(
+      []
+    )
+  })
+
+  it('does not join the Desert and the Tropics any more', () => {
+    expect(
+      world.edges
+        .filter(([one, other]) =>
+          [byId.get(one)!.biome, byId.get(other)!.biome].every((biome) =>
+            [Biome.DESERT, Biome.TROPICAL].includes(biome)
+          )
+        )
+        .filter(([one, other]) => byId.get(one)!.biome !== byId.get(other)!.biome)
+    ).toEqual([])
   })
 })
 
@@ -187,6 +209,16 @@ describe('world validation', () => {
     const outside = broken.nodes.find((node) => node.biome !== Biome.ABYSS && node.type === NodeType.COMBAT)!
 
     broken.edges.push([abyss.id, outside.id])
+
+    expect(validateWorld(broken).length).toBeGreaterThan(0)
+  })
+
+  it('detects a dead end without a prize', () => {
+    const broken = cloneWorld()
+    const chest = broken.nodes.find((node) => node.guarded)!
+
+    chest.type = NodeType.COMBAT
+    delete chest.guarded
 
     expect(validateWorld(broken).length).toBeGreaterThan(0)
   })

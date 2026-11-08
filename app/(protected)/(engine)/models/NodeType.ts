@@ -12,7 +12,7 @@ export enum NodeType {
   MERCHANT = 'merchant',
   /** A Tear of Oblivion (resets the skill points of a character), behind an elite fight. */
   TEAR = 'tear',
-  /** A small chest with gold or smithing stones, behind a fight. */
+  /** A small chest in a dead end, free or guarded (see WorldNode.guarded). */
   CHEST = 'chest',
   /** A reliquary: a weapon of a character, guarded by a warden (only that character can claim it). */
   RELIQUARY = 'reliquary',

@@ -37,7 +37,7 @@ export function pointName(t: Translator, node: WorldNode, cleared: boolean, open
     case NodeType.TEAR:
       return t(cleared ? 'world.points.tearTaken' : 'world.points.tear')
     case NodeType.CHEST:
-      return t(cleared ? 'world.points.chestOpened' : 'world.points.chest')
+      return t(cleared ? 'world.points.chestOpened' : node.guarded ? 'world.points.chestGuarded' : 'world.points.chest')
     case NodeType.RELIQUARY:
       return t(cleared ? 'world.points.reliquaryTaken' : 'world.points.reliquary', {
         weapon: t(`weapons.${node.weaponId}.name` as MessageKey)

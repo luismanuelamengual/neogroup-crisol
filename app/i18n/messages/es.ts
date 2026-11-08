@@ -292,6 +292,7 @@ export const es = {
       tear: 'Lágrima del Olvido',
       tearTaken: 'Lágrima del Olvido (obtenida)',
       chest: 'Cofre',
+      chestGuarded: 'Cofre custodiado',
       chestOpened: 'Cofre abierto',
       gate: 'Puerta del Abismo',
       gateSealed: { one: 'Sellada: falta {count} Sello', other: 'Sellada: faltan {count} Sellos' },

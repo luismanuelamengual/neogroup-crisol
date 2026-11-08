@@ -288,6 +288,7 @@ export const en: Messages = {
       tear: 'Tear of Oblivion',
       tearTaken: 'Tear of Oblivion (taken)',
       chest: 'Chest',
+      chestGuarded: 'Guarded chest',
       chestOpened: 'Opened chest',
       gate: 'Door of the Abyss',
       gateSealed: { one: 'Sealed: {count} Seal left', other: 'Sealed: {count} Seals left' },

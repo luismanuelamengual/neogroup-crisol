@@ -1,4 +1,4 @@
-import { BIOME_LINKS, BIOMES } from '@/app/(protected)/(engine)/data/biomes'
+import { BIOME_LINKS, BIOMES, CLOSED_LINKS } from '@/app/(protected)/(engine)/data/biomes'
 import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { ABYSS_GATE_GUARDIAN, SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
@@ -7,6 +7,7 @@ import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
 import { World } from '@/app/(protected)/(engine)/models/World'
+import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 
 /** Minimum number of points of the world. */
@@ -101,8 +102,14 @@ export function validateWorld(world: World): string[] {
     }
   }
 
+  // A link closed by hand has no trail in the world it was closed on (with another seed it can keep it).
+  const closed = CLOSED_LINKS.map(([a, b]) => [a, b].sort().join('|'))
+
   for (const [key, count] of links) {
-    check(count >= 1 && count <= 2, `${count} border trails between ${key.replace('|', ' and ')}`)
+    check(
+      (count >= 1 || closed.includes(key)) && count <= 2,
+      `${count} border trails between ${key.replace('|', ' and ')}`
+    )
   }
 
   check(links.get([Biome.ABYSS, Biome.WASTELANDS].sort().join('|')) === 1, 'the Abyss has more than one entrance')
@@ -221,11 +228,20 @@ export function validateWorld(world: World): string[] {
     )
   }
 
-  // Dead ends: sanctuaries, Tears and chests are never on the way through.
+  // Dead ends: sanctuaries, Tears and chests are never on the way through (but a chest set by hand on its point can be),
+  // and no dead end is left without a prize.
+  const setByHand = (node: WorldNode) =>
+    BIOMES.some((definition) => definition.chestsAt?.some(([x, y]) => node.x === x && node.y === y))
+
   for (const node of world.nodes) {
-    if ([NodeType.SANCTUARY, NodeType.TEAR, NodeType.CHEST, NodeType.RELIQUARY].includes(node.type)) {
+    if (
+      [NodeType.SANCTUARY, NodeType.TEAR, NodeType.CHEST, NodeType.RELIQUARY].includes(node.type) &&
+      !(node.type === NodeType.CHEST && setByHand(node))
+    ) {
       check(adjacency.get(node.id)!.length === 1, `${node.id} (${node.type}) is not in a dead end`)
     }
+
+    check(node.type !== NodeType.COMBAT || adjacency.get(node.id)!.length > 1, `the dead end ${node.id} has no prize`)
   }
 
   // Reliquaries: one per weapon to find, in its biome.
@@ -260,7 +276,7 @@ export function validateWorld(world: World): string[] {
   for (const node of world.nodes) {
     const definition = BIOMES.find((item) => item.biome === node.biome)!
 
-    if (node.type === NodeType.COMBAT) {
+    if (node.type === NodeType.COMBAT || node.guarded) {
       check(
         node.level !== undefined && node.level >= definition.levelMin && node.level <= definition.levelMax,
         `${node.id} has level ${node.level} outside ${definition.biome}`

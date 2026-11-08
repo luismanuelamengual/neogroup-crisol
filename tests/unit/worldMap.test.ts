@@ -228,7 +228,7 @@ describe('fights', () => {
   })
 
   it('opens a chest without a fight: gold, stones and a potion of its biome', () => {
-    const chest = findNode((node) => node.type === NodeType.CHEST)
+    const chest = findNode((node) => node.type === NodeType.CHEST && !node.guarded)
     const { state, encounter, rewards } = arriveAt(index, nextTo(chest.id), chest.id)
     const stone = BIOME_STONE[chest.biome]
     const potion = BIOME_POTIONS[chest.biome][0]
@@ -242,6 +242,22 @@ describe('fights', () => {
     ])
     expect(state.gold).toBeGreaterThan(0)
     expect(state.inventory).toEqual({ [stone]: 2, [potion]: 1 })
+  })
+
+  it('opens a guarded chest by winning its fight, once: gold and a potion, no stones', () => {
+    const chest = findNode((node) => node.guarded === true)
+    const { state, encounter } = arriveAt(index, nextTo(chest.id), chest.id)
+
+    expect(encounter?.kind).toBe(EncounterKind.COMBAT)
+    expect(state.clearedNodeIds).not.toContain(chest.id)
+
+    const won = winEncounter(index, state, {})
+
+    expect(won.state.clearedNodeIds).toContain(chest.id)
+    expect(won.state.gold).toBeGreaterThan(state.gold)
+    expect(won.rewards.map((reward) => reward.type)).toEqual(['gold', 'item'])
+    expect(won.state.inventory[BIOME_STONE[chest.biome]]).toBeUndefined()
+    expect(getEncounter(index, won.state, chest.id)).toBeNull()
   })
 })
 

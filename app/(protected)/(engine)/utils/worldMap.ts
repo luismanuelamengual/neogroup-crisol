@@ -66,6 +66,8 @@ const RESCUED_LEVEL_GAP = 10
 const CHEST_BASE_GOLD = 30
 const CHEST_GOLD_PER_BIOME = 30
 const CHEST_STONES = 2
+/** A guarded chest has this share of the gold of a free one: there are many of them. */
+const GUARDED_CHEST_GOLD = 0.5
 
 export function indexWorld(world: World): WorldIndex {
   return {
@@ -223,7 +225,7 @@ export function getEncounter(index: WorldIndex, state: GameState, nodeId: string
   const node = getNode(index, nodeId)
   const respawned = state.respawnedNodeIds.includes(nodeId)
 
-  if ((isCleared(state, nodeId) && !respawned) || !FIGHT_TYPES.has(node.type)) {
+  if ((isCleared(state, nodeId) && !respawned) || !(FIGHT_TYPES.has(node.type) || node.guarded)) {
     return null
   }
 
@@ -284,23 +286,35 @@ export function arriveAt(
   let next: GameState = { ...moved, clearedNodeIds: [...moved.clearedNodeIds, nodeId] }
 
   if (node.type === NodeType.CHEST) {
-    // Gold, two stones and a potion of its biome.
-    const amount =
-      CHEST_BASE_GOLD + CHEST_GOLD_PER_BIOME * BIOMES.findIndex((definition) => definition.biome === node.biome)
-    const added = addItems(
-      { ...next, gold: next.gold + amount },
-      { [BIOME_STONE[node.biome]]: CHEST_STONES, [BIOME_POTIONS[node.biome][0]]: 1 }
-    )
-
-    next = added.state
-    rewards.push({ type: 'gold', amount })
-
-    for (const [itemId, count] of Object.entries(added.kept)) {
-      rewards.push({ type: 'item', itemId, count })
-    }
+    next = openChest(next, node, rewards)
   }
 
   return { state: next, encounter: null, rewards }
+}
+
+/**
+ * The content of a chest: gold and a potion of its biome. A free one also has
+ * two stones; the guarded ones (most of the dead ends) have less gold and no
+ * stones, so the economy holds, but their potion can be any one of the biome.
+ */
+function openChest(state: GameState, node: WorldNode, rewards: Reward[]): GameState {
+  const biomeGold =
+    CHEST_BASE_GOLD + CHEST_GOLD_PER_BIOME * BIOMES.findIndex((definition) => definition.biome === node.biome)
+  const amount = node.guarded ? Math.round(biomeGold * GUARDED_CHEST_GOLD) : biomeGold
+  const potions = BIOME_POTIONS[node.biome]
+  const potion = node.guarded ? potions[Number(node.id.slice(1)) % potions.length] : potions[0]
+  const added = addItems(
+    { ...state, gold: state.gold + amount },
+    node.guarded ? { [potion]: 1 } : { [BIOME_STONE[node.biome]]: CHEST_STONES, [potion]: 1 }
+  )
+
+  rewards.push({ type: 'gold', amount })
+
+  for (const [itemId, count] of Object.entries(added.kept)) {
+    rewards.push({ type: 'item', itemId, count })
+  }
+
+  return added.state
 }
 
 /**
@@ -324,7 +338,7 @@ export function winEncounter(
     health: Math.min(getMaxHealth(character), Math.max(1, Math.round(health[character.id] ?? character.health)))
   }))
   let openCampIds = state.openCampIds
-  let { runes, tears, echoes, inventory } = state
+  let { runes, tears, echoes, inventory, gold } = state
 
   if (!wasCleared && node.type === NodeType.CAMP_BOSS) {
     openCampIds = [...openCampIds, nodeId]
@@ -393,6 +407,13 @@ export function winEncounter(
     tears++
   }
 
+  if (!wasCleared && node.type === NodeType.CHEST) {
+    const opened = openChest({ ...state, inventory }, node, rewards)
+
+    gold = opened.gold
+    inventory = opened.inventory
+  }
+
   if (!wasCleared && node.type === NodeType.FINAL_BOSS) {
     rewards.push({ type: 'crisolDefeated' })
   }
@@ -405,6 +426,7 @@ export function winEncounter(
     tears,
     echoes,
     inventory,
+    gold,
     clearedNodeIds: wasCleared ? state.clearedNodeIds : [...state.clearedNodeIds, nodeId],
     respawnedNodeIds: state.respawnedNodeIds.filter((id) => id !== nodeId),
     restsSinceCleared: Object.fromEntries(Object.entries(state.restsSinceCleared).filter(([id]) => id !== nodeId))

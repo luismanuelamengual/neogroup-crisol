@@ -29,6 +29,8 @@ export interface WorldNode {
   guardianId?: string
   /** RELIQUARY: the weapon it keeps (data/weapons.ts). */
   weaponId?: string
+  /** CHEST: whether enemies wait around it (opened by winning the fight; otherwise it is free). */
+  guarded?: boolean
   /** MERCHANT. */
   merchant?: MerchantId
 }

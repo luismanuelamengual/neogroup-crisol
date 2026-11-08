@@ -1,11 +1,14 @@
 import Delaunator from 'delaunator'
 import {
+  ADDED_TRAILS,
   BIOME_LINKS,
   BIOME_PASSES,
   BiomeDefinition,
   BIOMES,
   BiomeSide,
   getBiomeDefinition,
+  REMOVED_TRAILS,
+  TrailEnds,
   WORLD_HEIGHT,
   WORLD_WIDTH
 } from '@/app/(protected)/(engine)/data/biomes'
@@ -49,6 +52,8 @@ import {
  *      the rune sanctuaries, Tears of Oblivion and chests (in dead ends), the
  *      merchants (in a dead end right off a camp), the reliquaries of the weapons (in the
  *      deepest dead ends), the door of the Abyss (guarded by a boss) and Crisol.
+ *      The empty dead ends left open up into new trails, and the few that can
+ *      not get a guarded chest: no dead end stays without a prize.
  *      The captors and the Seals wait at the deepest point of their biome.
  *   5. Levels: from the entrance of each biome to its deepest point.
  *
@@ -124,7 +129,7 @@ export function generateAttempt(seed: number): World | null {
     return null
   }
 
-  return placeContent(random, seed, points, edges)
+  return placeContent(random, seed, points, edges, candidates)
 }
 
 /** 1. Which biome each position of the world belongs to. */
@@ -340,8 +345,33 @@ function buildTrails(random: Random, points: Point[], candidates: Candidate[]): 
 
     const pass = BIOME_PASSES.find(({ link }) => linkKey(link[0], link[1]) === linkKey(first, second))
 
+    if (pass?.between) {
+      // A trail set by hand: the border candidate whose ends are the closest to the two places.
+      const [first, second] = pass.between
+      const fitting = border.filter(
+        (candidate) =>
+          linkKey(points[candidate.a].biome, points[candidate.b].biome) === linkKey(...pass.link) && fits(candidate)
+      )
+      const ends = (candidate: Candidate) =>
+        Math.min(
+          distanceTo(first, points[candidate.a], points[candidate.a]) +
+            distanceTo(second, points[candidate.b], points[candidate.b]),
+          distanceTo(second, points[candidate.a], points[candidate.a]) +
+            distanceTo(first, points[candidate.b], points[candidate.b])
+        )
+
+      add(minBy(fitting, ends))
+      continue
+    }
+
     if (pass) {
-      add(maxBy(options, (candidate) => towards(pass.side, points[candidate.a], points[candidate.b])))
+      const { side, at } = pass
+
+      add(
+        at
+          ? minBy(options, (candidate) => distanceTo(at, points[candidate.a], points[candidate.b]))
+          : maxBy(options, (candidate) => towards(side!, points[candidate.a], points[candidate.b]))
+      )
       continue
     }
 
@@ -363,7 +393,35 @@ function buildTrails(random: Random, points: Point[], candidates: Candidate[]): 
     }
   }
 
-  return edges
+  // The trails set by hand (only in the world they were drawn on: with another seed there are no points at their ends).
+  const removed = REMOVED_TRAILS.map((ends) => trailKey(points, ends))
+  const kept = edges.filter(([a, b]) => !removed.includes(`${Math.min(a, b)}:${Math.max(a, b)}`))
+
+  for (const ends of ADDED_TRAILS) {
+    const [a, b] = ends.map((place) => pointAt(points, place))
+
+    if (
+      a !== null &&
+      b !== null &&
+      !kept.some(([first, second]) => (first === a && second === b) || (first === b && second === a))
+    ) {
+      kept.push([a, b])
+    }
+  }
+
+  return kept
+}
+
+/** The point exactly at a place, or null when there is none. */
+function pointAt(points: Point[], [x, y]: [number, number]): number | null {
+  return points.find((point) => point.x === x && point.y === y)?.index ?? null
+}
+
+/** Key of a trail by its two ends, whichever the order (null when one of them is not a point of this world). */
+function trailKey(points: Point[], ends: TrailEnds): string | null {
+  const [a, b] = ends.map((place) => pointAt(points, place))
+
+  return a === null || b === null ? null : `${Math.min(a, b)}:${Math.max(a, b)}`
 }
 
 /** How far a trail lies towards a side of the world. */
@@ -374,6 +432,11 @@ function towards(side: BiomeSide, a: Point, b: Point): number {
   return side === 'north' ? -y : side === 'south' ? y : -x
 }
 
+/** How far the middle of a trail is from a place. */
+function distanceTo([x, y]: [number, number], a: Point, b: Point): number {
+  return Math.hypot((a.x + b.x) / 2 - x, (a.y + b.y) / 2 - y)
+}
+
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b)
 
@@ -381,7 +444,13 @@ function median(values: number[]): number {
 }
 
 /** 4 and 5. Ids, the starting camp, the points of interest and the levels. */
-function placeContent(random: Random, seed: number, points: Point[], trailIndexes: [number, number][]): World | null {
+function placeContent(
+  random: Random,
+  seed: number,
+  points: Point[],
+  trailIndexes: [number, number][],
+  candidates: Candidate[]
+): World | null {
   // Stable ids, from north-west to south-east.
   const order = [...points].sort((a, b) => a.y - b.y || a.x - b.x)
   const ids = new Map<number, string>(order.map((point, position) => [point.index, `n${position + 1}`]))
@@ -531,6 +600,19 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       }
     }
 
+    // The camps of a biome with their places set go there instead.
+    if (definition.campsAt) {
+      goals.splice(
+        0,
+        goals.length,
+        ...definition.campsAt.map(
+          ([x, y]) =>
+            (options: WorldNode[]) =>
+              minBy(options, (candidate) => Math.hypot(candidate.x - x, candidate.y - y))
+        )
+      )
+    }
+
     // A biome where the camps do not fit keeping their distance tries again without its last goals (the near
     // camp of the captor or the Seal is always kept).
     const placeAll = (biomeGoals: typeof goals): boolean => {
@@ -541,8 +623,16 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
           adjacency,
           camps().map((camp) => camp.id)
         )
+        // A camp set by hand on a point of this world can also wait on a corridor: the dead ends that open up later make
+        // it a crossroads (the validation checks it).
+        const fits = (node: WorldNode) =>
+          canBeCamp(node) ||
+          (definition.campsAt?.some(([x, y]) => node.x === x && node.y === y) === true &&
+            isFree(node) &&
+            !isBorder(node) &&
+            adjacency.get(node.id)!.filter((other) => !isLeaf(byId.get(other)!)).length >= 2)
         let options = members.filter(
-          (node) => canBeCamp(node) && (fromCamps.get(node.id) ?? Infinity) >= MIN_STEPS_BETWEEN_CAMPS
+          (node) => fits(node) && (fromCamps.get(node.id) ?? Infinity) >= MIN_STEPS_BETWEEN_CAMPS
         )
         // In a biome with a merchant, the camps leave room for it (a free dead end beside) until one does.
         const hasRoom = (camp: WorldNode) => deadEndsBeside(camp, nodes, adjacency).length > 0
@@ -609,10 +699,25 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     }
   }
 
-  // Sanctuaries, Tears and chests: in dead ends, never on the way through.
-  for (const definition of BIOMES) {
+  // Sanctuaries, Tears and chests: in dead ends, never on the way through. Each biome draws its chests with its own
+  // random numbers, so a change in one biome does not move the chests of the others.
+  for (const [biomeIndex, definition] of BIOMES.entries()) {
     const deadEnds = () => biomeNodes(definition).filter((node) => isFree(node) && isLeaf(node))
     const sanctuaries: WorldNode[] = []
+    // The chests set by hand first, so the sanctuaries leave their dead ends free.
+    const chestsAt = definition.chestsAt ?? []
+
+    for (const [x, y] of chestsAt) {
+      // On a point of this world it goes right there, even on the way through; otherwise, to the closest dead end.
+      const exact = biomeNodes(definition).find((node) => isFree(node) && node.x === x && node.y === y)
+      const options = deadEnds()
+
+      if (!exact && options.length === 0) {
+        return null
+      }
+
+      ;(exact ?? minBy(options, (candidate) => Math.hypot(candidate.x - x, candidate.y - y))).type = NodeType.CHEST
+    }
 
     for (let index = 0; index < definition.sanctuaries; index++) {
       const spread = hopDistances(
@@ -625,7 +730,10 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
         return null
       }
 
-      const node = maxBy(options, (candidate) => spread.get(candidate.id) ?? 0)
+      const place = definition.sanctuariesAt?.[index]
+      const node = place
+        ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
+        : maxBy(options, (candidate) => spread.get(candidate.id) ?? 0)
 
       node.type = NodeType.SANCTUARY
       node.runeTier = definition.runeTier
@@ -656,7 +764,9 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       maxBy(options, (candidate) => fromStart.get(candidate.id)!).type = NodeType.TEAR
     }
 
-    for (const node of shuffle(random, deadEnds()).slice(0, definition.chests)) {
+    const chestRandom = createRandom(seed + 1000 * (biomeIndex + 1))
+
+    for (const node of shuffle(chestRandom, deadEnds()).slice(0, definition.chests - chestsAt.length)) {
       node.type = NodeType.CHEST
     }
   }
@@ -686,10 +796,35 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
       return null
     }
 
-    const node = maxBy(options, (candidate) => fromStart.get(candidate.id)! + (spread.get(candidate.id) ?? 0))
+    const definition = getBiomeDefinition(weapon.biome!)
+    const place = definition.reliquariesAt?.[reliquaries.filter((item) => item.biome === weapon.biome).length]
+    const node = place
+      ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
+      : maxBy(options, (candidate) => fromStart.get(candidate.id)! + (spread.get(candidate.id) ?? 0))
 
     Object.assign(node, { type: NodeType.RELIQUARY, weaponId: weapon.id })
     reliquaries.push(node)
+  }
+
+  // The dead ends left without a prize open up into new trails, so few remain beyond the ones with something to find.
+  const typicalLength = median(candidates.map((candidate) => candidate.length))
+  const removedTrails = REMOVED_TRAILS.map((ends) => trailKey(points, ends))
+  const shortcuts = candidates
+    .filter(
+      (candidate) => candidate.length < typicalLength * 2.2 && points[candidate.a].biome === points[candidate.b].biome
+    )
+    .filter(
+      (candidate) =>
+        !removedTrails.includes(`${Math.min(candidate.a, candidate.b)}:${Math.max(candidate.a, candidate.b)}`)
+    )
+    .map(({ a, b }): [string, string] => [ids.get(a)!, ids.get(b)!])
+
+  closeDeadEnds(nodes, edges, adjacency, shortcuts)
+
+  // Any dead end that could not open ends in a prize too: a chest with the enemies of the point around it, so going
+  // there pays and the fights (and the experience) of the world stay the same.
+  for (const node of nodes.filter((item) => isFree(item) && isLeaf(item))) {
+    Object.assign(node, { type: NodeType.CHEST, guarded: true })
   }
 
   assignLevels(nodes, fromStart)
@@ -704,6 +839,57 @@ function placeContent(random: Random, seed: number, points: Point[], trailIndexe
     startNodeId: START_NODE_ID,
     gateNodeId: gate.id,
     finalBossNodeId: finalBoss.id
+  }
+}
+
+/**
+ * Turns the empty dead ends into ways through with a new trail. The new trail
+ * goes, among the candidates, to another empty dead end if it can (one trail
+ * opens both) and otherwise to the point that closes the widest loop. It never
+ * touches a dead end with a prize, and never brings two camps too close.
+ */
+function closeDeadEnds(
+  nodes: WorldNode[],
+  edges: [string, string][],
+  adjacency: Adjacency,
+  shortcuts: [string, string][]
+): void {
+  const byId = new Map(nodes.map((node) => [node.id, node]))
+  const campIds = nodes
+    .filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS)
+    .map((node) => node.id)
+  const trails = (id: string) => adjacency.get(id)!
+  const isEmptyDeadEnd = (id: string) => byId.get(id)!.type === NodeType.COMBAT && trails(id).length === 1
+  const canReceive = (id: string) =>
+    trails(id).length < MAX_DEGREE && (trails(id).length > 1 || byId.get(id)!.type === NodeType.COMBAT)
+
+  for (const node of nodes) {
+    if (!isEmptyDeadEnd(node.id)) {
+      continue
+    }
+
+    const fromNode = hopDistances(adjacency, [node.id])
+    const options = shortcuts
+      .filter(([a, b]) => a === node.id || b === node.id)
+      .map(([a, b]) => (a === node.id ? b : a))
+      .filter((id) => canReceive(id) && !trails(node.id).includes(id))
+      .filter((id) => {
+        const fromOther = hopDistances(adjacency, [id])
+
+        return campIds.every((first) =>
+          campIds.every(
+            (second) => first === second || fromNode.get(first)! + 1 + fromOther.get(second)! >= MIN_STEPS_BETWEEN_CAMPS
+          )
+        )
+      })
+
+    if (options.length > 0) {
+      const other = maxBy(options, (id) => fromNode.get(id)! + (isEmptyDeadEnd(id) ? 1000 : 0))
+
+      edges.push([node.id, other])
+      trails(node.id).push(other)
+      trails(other).push(node.id)
+    }
   }
 }
 
@@ -746,6 +932,12 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
       switch (node.type) {
         case NodeType.COMBAT:
           node.level = level
+          break
+        case NodeType.CHEST:
+          if (node.guarded) {
+            node.level = level
+          }
+
           break
         case NodeType.CAMP_BOSS:
           node.level =
