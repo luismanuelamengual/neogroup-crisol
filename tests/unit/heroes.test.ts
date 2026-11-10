@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { MAX_BASIC_POTIONS, MAX_CONSUMABLES } from '@/app/(protected)/(engine)/data/items'
-import { getRune, RUNE_MASTERY_WINS, RUNES } from '@/app/(protected)/(engine)/data/runes'
+import { getRune, RUNE_COUNT, RUNE_MASTERY_WINS, RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getSkillNode, getSkillTree, getTreeCost, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import {
@@ -246,10 +246,10 @@ describe('weapons', () => {
 })
 
 describe('runes and echoes', () => {
-  it('has 60 runes with echo costs within the range of their tier', () => {
+  it('has one rune per sanctuary with echo costs within the range of their tier', () => {
     const ranges = { lesser: [1, 8], greater: [6, 20], ancestral: [15, 35], abyssal: [30, 50] }
 
-    expect(RUNES).toHaveLength(60)
+    expect(RUNES).toHaveLength(69)
 
     for (const rune of RUNES) {
       const [min, max] = ranges[rune.tier]
@@ -259,7 +259,7 @@ describe('runes and echoes', () => {
     }
 
     expect(getRune(1)).toMatchObject({ tier: RuneTier.LESSER, echoCost: 1 })
-    expect(getRune(60)).toMatchObject({ tier: RuneTier.ABYSSAL, echoCost: 50 })
+    expect(getRune(RUNE_COUNT)).toMatchObject({ tier: RuneTier.ABYSSAL, echoCost: 50 })
   })
 
   it('wears up to three runes, never the same one on two characters', () => {

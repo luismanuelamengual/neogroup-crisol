@@ -1,4 +1,5 @@
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /** What happened in a step of a battle: the scene animates them in order. */
@@ -30,3 +31,5 @@ export type BattleEvent =
   | { type: 'phase'; phase: number; enemyIds: string[] }
   | { type: 'reserves'; heroIds: string[] }
   | { type: 'end'; outcome: 'victory' | 'defeat' | 'retreat' }
+  /** The effect of a rune of a fighter acted (its name floats over it). */
+  | { type: 'perk'; targetId: string; perk: Perk }

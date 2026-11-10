@@ -1,5 +1,6 @@
 import { getBaseStats, getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { FLASK_BASE_CHARGES } from '@/app/(protected)/(engine)/data/flask'
+import { RUNE_COUNT } from '@/app/(protected)/(engine)/data/runes'
 import { getSkillTree, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import { getStartingWeapon, MAX_WEAPON_LEVEL, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
@@ -201,7 +202,8 @@ export function isGameState(value: unknown): value is GameState {
   const isCount = (item: unknown) => Number.isInteger(item) && (item as number) >= 0
   const isCountMap = (item: unknown) =>
     !!item && typeof item === 'object' && !Array.isArray(item) && Object.values(item).every(isCount)
-  const isRuneIndex = (item: unknown) => Number.isInteger(item) && (item as number) >= 1 && (item as number) <= 60
+  const isRuneIndex = (item: unknown) =>
+    Number.isInteger(item) && (item as number) >= 1 && (item as number) <= RUNE_COUNT
   const characterIds = Object.values(CharacterId) as string[]
   // Nothing waiting, or a point with what each character lost there.
   const isLostXp = (item: unknown) =>

@@ -11,4 +11,10 @@
     object-fit: contain;
     filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
   }
+
+  // A rune glows with the color of the attribute it raises.
+  &.rune img,
+  &.rune svg {
+    filter: drop-shadow(0 0 4px var(--rune-color)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+  }
 }

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_BASIC_POTIONS, victoryPotionChance } from '@/app/(protected)/(engine)/data/items'
+import { RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
+import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import {
   canRetreat,
@@ -444,7 +447,7 @@ describe('items, bonuses and loot', () => {
   })
 
   it('heals with lifesteal and avoids damage with guard', () => {
-    const leech = { ...kael, runes: [1] }
+    const leech = { ...kael, runes: [RUNES.find((rune) => rune.id === 'blood-echo')!.index] }
     const state = turnOf(hurtHero(field([leech]), 20), 'h-kael')
     const { events } = performAction(state, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
 
@@ -641,5 +644,84 @@ describe('New Game+ battles', () => {
 
     expect(second.stats.maxHealth).toBeGreaterThan(first.stats.maxHealth)
     expect(second.skills).toEqual([...first.skills, 'war-cry'])
+  })
+})
+
+describe('rune effects', () => {
+  const wearing = (...ids: string[]): CharacterState => ({
+    ...kael,
+    runes: ids.map((id) => RUNES.find((rune) => rune.id === id)!.index)
+  })
+  const field = (hero: CharacterState, level = 30) =>
+    createBattle({
+      heroes: [hero],
+      phases: [[{ speciesId: 'thorn-boar', level }]],
+      seed: 7,
+      biome: Biome.MEADOWS,
+      canRetreat: true,
+      items: { 'health-potion': 1 }
+    }).state
+  const withHealth = (state: BattleState, health: number): BattleState => ({
+    ...state,
+    combatants: state.combatants.map((combatant) => (combatant.side === 'hero' ? { ...combatant, health } : combatant))
+  })
+  const gored = (state: BattleState) =>
+    performAction(turnOf(state, 'e1-1'), { type: 'skill', skillId: 'gore', targetIds: ['h-kael'] })
+  const struck = (state: BattleState) =>
+    performAction(turnOf(state, 'h-kael'), { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+  it('gives every rune its own effect and text id', () => {
+    expect(new Set(RUNES.map((rune) => rune.id)).size).toBe(RUNES.length)
+    expect(RUNES.every((rune) => Object.keys(rune.effect).length > 0)).toBe(true)
+  })
+
+  it('stops the first hit with a barrier', () => {
+    const first = gored(field(wearing('barrier')))
+
+    expect(first.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.BARRIER })
+    expect(first.events.some((event) => event.type === 'damage')).toBe(false)
+    expect(gored(first.state).events.some((event) => event.type === 'damage')).toBe(true)
+  })
+
+  it('survives a deadly hit once per battle', () => {
+    const first = gored(withHealth(field(wearing('endurance'), 60), 2))
+
+    expect(getCombatant(first.state, 'h-kael').health).toBe(1)
+    expect(first.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.SURVIVE })
+    expect(getCombatant(gored(first.state).state, 'h-kael').health).toBe(0)
+  })
+
+  it('acts twice in a row with the twin rune', () => {
+    const twin = struck(field(wearing('twin')))
+
+    expect(nextTurn(twin.state).state.actorId).toBe('h-kael')
+  })
+
+  it('turns the weapon attack into an element', () => {
+    const { events } = struck(field(wearing('burning-iron')))
+
+    expect(events).toContainEqual(expect.objectContaining({ type: 'damage', damageType: DamageType.FIRE, weak: true }))
+  })
+
+  it('makes the specials cheaper', () => {
+    const cost = (hero: CharacterState) =>
+      getUsableSkills(turnOf(field(hero), 'h-kael'), 'h-kael').find((skill) => skill.id === 'kael-flame-edge')!.cost
+
+    expect(cost(wearing('thrift'))).toBeLessThan(cost(kael))
+  })
+
+  it('cannot be healed with pride, and takes less damage', () => {
+    const damage = (hero: CharacterState) =>
+      (gored(field(hero)).events.find((event) => event.type === 'damage') as { amount: number }).amount
+
+    expect(damage(wearing('pride'))).toBeLessThan(damage(kael))
+
+    const proud = performAction(withHealth(turnOf(field(wearing('pride')), 'h-kael'), 10), {
+      type: 'item',
+      itemId: 'health-potion',
+      targetIds: ['h-kael']
+    })
+
+    expect(getCombatant(proud.state, 'h-kael').health).toBe(10)
   })
 })

@@ -1,6 +1,7 @@
 import { ADDED_TRAILS, BIOME_LINKS, BIOMES, CLOSED_LINKS } from '@/app/(protected)/(engine)/data/biomes'
 import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
 import { AMBER_EMBER_PLACES, AMBER_FLASK_PLACES } from '@/app/(protected)/(engine)/data/flask'
+import { RUNE_COUNT } from '@/app/(protected)/(engine)/data/runes'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { ABYSS_GATE_GUARDIAN, SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
@@ -30,7 +31,7 @@ export const KEY_BOSS_CAMP_MAX_STEPS = 10
 /** Every camp but the captors and Seals is a crossroads: at least this many of its trails do not end in a dead end. */
 export const MIN_CAMP_TRAILS = 3
 
-const TOTAL_SANCTUARIES = 60
+const TOTAL_SANCTUARIES = RUNE_COUNT
 const TOTAL_MERCHANTS = 5
 const TOTAL_TEARS = 5
 const TIER_ORDER = [RuneTier.LESSER, RuneTier.GREATER, RuneTier.ANCESTRAL, RuneTier.ABYSSAL]
@@ -208,7 +209,7 @@ export function validateWorld(world: World): string[] {
   check(sanctuaries.length === TOTAL_SANCTUARIES, `${sanctuaries.length} sanctuaries`)
   check(
     sanctuaries.every((node, position) => node.runeIndex === position + 1),
-    'the runes are not numbered 1..60'
+    `the runes are not numbered 1..${RUNE_COUNT}`
   )
 
   for (const definition of BIOMES) {

@@ -923,21 +923,138 @@ export const es = {
     turns: '+{value} turno de estados'
   },
   runes: {
-    name: 'Runa {family} {rank}',
-    families: {
-      leech: 'de la Sanguijuela',
-      ember: 'de la Brasa',
-      wellspring: 'del Manantial',
-      edge: 'del Filo',
-      ward: 'del Resguardo',
-      frost: 'de la Escarcha',
-      vigor: 'del Vigor',
-      haste: 'de la Prisa',
-      venom: 'del Veneno',
-      fury: 'de la Furia',
-      storm: 'de la Tormenta',
-      hunter: 'del Cazador'
-    }
+    'first-cut': { name: 'Runa del Primer Tajo', text: 'El primer golpe que da en cada batalla hace +50% de daño.' },
+    breath: { name: 'Runa del Aliento', text: 'Empieza cada batalla con +30% de concentración.' },
+    sprout: { name: 'Runa del Brote', text: 'Durante sus 3 primeros turnos recupera 5% de vida al empezar el turno.' },
+    'light-step': { name: 'Runa del Paso Ligero', text: 'Empieza la batalla con velocidad aumentada por 3 turnos.' },
+    carapace: { name: 'Runa de la Coraza', text: 'Empieza la batalla con defensa aumentada por 3 turnos.' },
+    impetus: { name: 'Runa del Ímpetu', text: 'Empieza la batalla con ataque aumentado por 3 turnos.' },
+    'live-ember': { name: 'Runa de la Brasa Viva', text: '+25% de daño a enemigos quemados.' },
+    finisher: { name: 'Runa del Remate', text: 'Al derrotar a un enemigo recupera 15% de vida.' },
+    'true-pulse': {
+      name: 'Runa del Pulso Certero',
+      text: 'Cada crítico le devuelve 10% de concentración (una vez por turno).'
+    },
+    fang: { name: 'Runa del Colmillo', text: 'El ataque con arma tiene 20% de envenenar por 3 turnos.' },
+    pause: { name: 'Runa de la Pausa', text: 'Al usar un objeto recupera 15% de concentración.' },
+    'whole-body': { name: 'Runa del Cuerpo Entero', text: '+20% de daño mientras tiene la vida llena.' },
+    'double-edge': { name: 'Runa del Doble Filo', text: 'El ataque con arma golpea dos veces, cada golpe al 60%.' },
+    'stubborn-ember': { name: 'Runa del Ascua Terca', text: 'Las quemaduras que deja duran 2 turnos más.' },
+    contagion: {
+      name: 'Runa del Contagio',
+      text: 'Dejarle un estado a un enemigo le devuelve 10% de concentración (una vez por turno).'
+    },
+    'warm-up': { name: 'Runa del Calentamiento', text: '+5% de daño por cada turno propio, hasta +25%.' },
+    'untouched-skin': { name: 'Runa de la Piel Intacta', text: '+30% de daño hasta que recibe el primer golpe.' },
+    'last-breath': { name: 'Runa del Último Aliento', text: '+50% de daño con menos del 15% de vida.' },
+    'right-moment': {
+      name: 'Runa del Momento Justo',
+      text: '+30% de probabilidad de crítico con menos del 30% de vida.'
+    },
+    rescue: {
+      name: 'Runa del Socorro',
+      text: 'La primera vez que baja del 50% de vida gana defensa aumentada por 3 turnos.'
+    },
+    'clean-blow': {
+      name: 'Runa del Golpe Seco',
+      text: 'Sus golpes a enemigos aturdidos o congelados son siempre críticos.'
+    },
+    icebreaker: { name: 'Runa del Rompehielo', text: '+40% de daño a enemigos congelados.' },
+    'open-wound': { name: 'Runa de la Herida Abierta', text: 'Sus críticos dejan sangrado por 3 turnos.' },
+    'full-healing': { name: 'Runa de la Sanación Plena', text: 'Las curaciones que recibe curan el doble.' },
+    'generous-hand': {
+      name: 'Runa de la Mano Generosa',
+      text: 'Al curar a un aliado, también se cura el 30% de esa curación.'
+    },
+    cheer: { name: 'Runa del Ánimo', text: 'Al curar a alguien le da ataque aumentado por 2 turnos.' },
+    harvest: { name: 'Runa de la Cosecha', text: 'Al derrotar a un enemigo recupera 30% de concentración.' },
+    'hunter-eye': {
+      name: 'Runa del Ojo del Cazador',
+      text: '+25% de probabilidad de crítico contra enemigos con algún estado negativo.'
+    },
+    'burning-iron': {
+      name: 'Runa del Hierro Ardiente',
+      text: 'El ataque con arma hace daño de fuego en vez de físico.'
+    },
+    'frozen-iron': { name: 'Runa del Hierro Gélido', text: 'El ataque con arma hace daño de hielo en vez de físico.' },
+    'thunder-iron': {
+      name: 'Runa del Hierro Tronante',
+      text: 'El ataque con arma hace daño de rayo en vez de físico.'
+    },
+    reprisal: { name: 'Runa del Escarmiento', text: 'Al recibir un golpe tiene 25% de contraatacar con el arma.' },
+    'clean-blood': { name: 'Runa de la Sangre Limpia', text: 'No puede ser envenenado, quemado ni sangrar.' },
+    temper: { name: 'Runa del Temple', text: 'No puede ser congelado ni aturdido.' },
+    'clear-sight': {
+      name: 'Runa de la Mirada Clara',
+      text: 'No puede quedar ciego ni recibir bajas de ataque, defensa o velocidad.'
+    },
+    glass: { name: 'Runa del Cristal', text: '+35% de daño hecho y +25% de daño recibido.' },
+    pride: { name: 'Runa del Orgullo', text: 'Recibe 40% menos de daño, pero no puede ser curado.' },
+    recklessness: { name: 'Runa de la Temeridad', text: '+35% de daño, pero no puede ser curado.' },
+    coin: { name: 'Runa de la Moneda', text: 'Cada golpe hace la mitad o el doble de daño, mitad y mitad.' },
+    endurance: { name: 'Runa del Aguante', text: 'Una vez por batalla sobrevive a un golpe mortal con 1 de vida.' },
+    'second-flame': { name: 'Runa de la Segunda Llama', text: 'Una vez por batalla, al caer revive con 50% de vida.' },
+    martyr: { name: 'Runa del Mártir', text: 'Al caer, cura 40% de vida a sus aliados.' },
+    'posthumous-wrath': {
+      name: 'Runa de la Ira Póstuma',
+      text: 'Al caer, sus aliados ganan ataque aumentado por 3 turnos.'
+    },
+    'final-blast': {
+      name: 'Runa del Estallido Final',
+      text: 'Al caer, daña a todos los enemigos con el doble de su ataque.'
+    },
+    'lone-wolf': {
+      name: 'Runa del Lobo Solitario',
+      text: 'Si es el único héroe en pie: +50% de daño y velocidad aumentada.'
+    },
+    company: { name: 'Runa de la Compañía', text: '+12% de daño mientras los tres héroes del frente siguen en pie.' },
+    frenzy: {
+      name: 'Runa del Frenesí',
+      text: 'Cada especial seguido, sin un ataque con arma en el medio, hace +15% más, hasta +60%.'
+    },
+    thrift: { name: 'Runa de la Economía', text: 'Los especiales cuestan 15% menos de concentración.' },
+    spring: { name: 'Runa del Manantial', text: 'Al empezar cada turno recupera 8% de concentración.' },
+    dawn: { name: 'Runa del Albor', text: 'Siempre actúa primero al empezar la batalla.' },
+    lightning: { name: 'Runa del Relámpago', text: 'Al derrotar a un enemigo, su próximo turno llega antes.' },
+    'third-blow': { name: 'Runa del Tercer Golpe', text: 'Cada tercer especial hace el doble de daño.' },
+    counterpoint: {
+      name: 'Runa del Contrapunto',
+      text: 'Después de un crítico, el siguiente golpe que no sea crítico hace el doble.'
+    },
+    fever: { name: 'Runa de la Fiebre', text: 'El veneno, la quemadura y el sangrado que deja hacen 50% más de daño.' },
+    plague: { name: 'Runa de la Plaga', text: 'Al derrotar a un enemigo envenenado, el veneno pasa a otro enemigo.' },
+    barrier: { name: 'Runa de la Barrera', text: 'Empieza la batalla con una barrera que anula el primer golpe.' },
+    aegis: { name: 'Runa de la Égida', text: 'Al curar a alguien le da una barrera que anula el próximo golpe.' },
+    'blood-echo': {
+      name: 'Runa del Eco de Sangre',
+      text: 'Se cura el 12% de todo el daño que hace, especiales incluidos.'
+    },
+    breach: { name: 'Runa de la Brecha', text: 'Golpear una debilidad le baja la defensa al enemigo por 2 turnos.' },
+    persistence: {
+      name: 'Runa del Ahínco',
+      text: 'Los aumentos de ataque, defensa y velocidad que recibe duran 2 turnos más.'
+    },
+    'full-cup': {
+      name: 'Runa del Cáliz Lleno',
+      text: 'Con la concentración llena, sus especiales hacen +30% de daño.'
+    },
+    twin: { name: 'Runa del Desdoble', text: 'Siempre actúa dos veces seguidas, pero hace 40% menos de daño.' },
+    'abyss-edge': { name: 'Runa del Filo del Abismo', text: 'Su vida máxima baja un 70%, pero hace +80% de daño.' },
+    'perfect-instant': {
+      name: 'Runa del Instante Perfecto',
+      text: 'Si no recibió daño desde su turno anterior, al empezar el turno recupera toda la vida.'
+    },
+    void: {
+      name: 'Runa del Vacío',
+      text: 'Sus golpes ignoran las resistencias: lo resistido pega normal y lo inmune pega a la mitad.'
+    },
+    crucible: { name: 'Runa del Crisol', text: '+15% de daño por cada estado, bueno o malo, que tenga encima.' },
+    eclipse: {
+      name: 'Runa del Eclipse',
+      text: 'Al derrotar a un enemigo vuelve a actuar en el acto (una vez por turno).'
+    },
+    legacy: { name: 'Runa de la Herencia', text: 'Al caer, sus aliados recuperan toda la vida y la concentración.' },
+    judgment: { name: 'Runa del Juicio', text: 'Cada quinto golpe hace +300% de daño.' }
   },
   items: {
     'health-potion': { name: 'Poción de vida', text: 'Cura el 35% de la vida de un aliado.' },

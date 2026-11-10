@@ -18,6 +18,7 @@ import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { paintSceneryTextures, SceneryTextures } from '@/app/(protected)/(world)/utils/sceneryTextures'
@@ -33,6 +34,8 @@ export interface BattleLabels {
   immune: string
   miss: string
   transform: string
+  /** The name of the rune whose effect acted. */
+  perk: (perk: Perk) => string
 }
 
 /** One fighter drawn on the stage. */
@@ -646,6 +649,17 @@ export class BattleRenderer {
         this.drawHealth(figure)
         this.float(figure, `+${event.amount}`, 0x84f06b, 22)
         await wait(ms(260))
+        break
+      }
+
+      case 'perk': {
+        const figure = this.figures.get(event.targetId)
+
+        if (figure) {
+          this.float(figure, this.labels.perk(event.perk), 0xffd23c, 14, -30)
+        }
+
+        await wait(ms(240))
         break
       }
 

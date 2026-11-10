@@ -865,7 +865,7 @@ function placeContent(
 
   assignLevels(nodes, fromStart)
 
-  // Runes 1..60, from the weakest to the strongest: by tier and, within it, by the level of its sanctuary (so a
+  // Runes 1..RUNE_COUNT, from the weakest to the strongest: by tier and, within it, by the level of its sanctuary (so a
   // stronger rune is never easier to win), then by how far it is from the start.
   nodes
     .filter((node) => node.type === NodeType.SANCTUARY)

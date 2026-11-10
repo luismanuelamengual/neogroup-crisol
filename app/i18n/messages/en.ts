@@ -918,21 +918,108 @@ export const en: Messages = {
     turns: '+{value} status turn'
   },
   runes: {
-    name: '{family} Rune {rank}',
-    families: {
-      leech: 'Leech',
-      ember: 'Ember',
-      wellspring: 'Wellspring',
-      edge: 'Edge',
-      ward: 'Ward',
-      frost: 'Frost',
-      vigor: 'Vigor',
-      haste: 'Haste',
-      venom: 'Venom',
-      fury: 'Fury',
-      storm: 'Storm',
-      hunter: 'Hunter'
-    }
+    'first-cut': { name: 'First Cut Rune', text: 'Its first hit of each battle deals +50% damage.' },
+    breath: { name: 'Breath Rune', text: 'Starts each battle with +30% focus.' },
+    sprout: { name: 'Sprout Rune', text: 'Recovers 5% health at the start of each of its first 3 turns.' },
+    'light-step': { name: 'Light Step Rune', text: 'Starts the battle with raised speed for 3 turns.' },
+    carapace: { name: 'Carapace Rune', text: 'Starts the battle with raised defense for 3 turns.' },
+    impetus: { name: 'Impetus Rune', text: 'Starts the battle with raised attack for 3 turns.' },
+    'live-ember': { name: 'Live Ember Rune', text: '+25% damage to burning enemies.' },
+    finisher: { name: 'Finisher Rune', text: 'Defeating an enemy restores 15% health.' },
+    'true-pulse': { name: 'True Pulse Rune', text: 'Each critical hit restores 10% focus (once per turn).' },
+    fang: { name: 'Fang Rune', text: 'The weapon attack has a 20% chance to poison for 3 turns.' },
+    pause: { name: 'Pause Rune', text: 'Using an item restores 15% focus.' },
+    'whole-body': { name: 'Whole Body Rune', text: '+20% damage while at full health.' },
+    'double-edge': { name: 'Double Edge Rune', text: 'The weapon attack hits twice, each hit at 60%.' },
+    'stubborn-ember': { name: 'Stubborn Ember Rune', text: 'The burns it leaves last 2 more turns.' },
+    contagion: { name: 'Contagion Rune', text: 'Leaving a status on an enemy restores 10% focus (once per turn).' },
+    'warm-up': { name: 'Warm-Up Rune', text: '+5% damage for each of its turns, up to +25%.' },
+    'untouched-skin': { name: 'Untouched Skin Rune', text: '+30% damage until it takes its first hit.' },
+    'last-breath': { name: 'Last Breath Rune', text: '+50% damage below 15% health.' },
+    'right-moment': { name: 'Right Moment Rune', text: '+30% critical chance below 30% health.' },
+    rescue: {
+      name: 'Rescue Rune',
+      text: 'The first time it falls below 50% health it gains raised defense for 3 turns.'
+    },
+    'clean-blow': { name: 'Clean Blow Rune', text: 'Its hits on stunned or frozen enemies are always critical.' },
+    icebreaker: { name: 'Icebreaker Rune', text: '+40% damage to frozen enemies.' },
+    'open-wound': { name: 'Open Wound Rune', text: 'Its critical hits leave bleeding for 3 turns.' },
+    'full-healing': { name: 'Full Healing Rune', text: 'The healing it receives is doubled.' },
+    'generous-hand': { name: 'Generous Hand Rune', text: 'Healing an ally also heals itself for 30% of it.' },
+    cheer: { name: 'Cheer Rune', text: 'Healing someone gives them raised attack for 2 turns.' },
+    harvest: { name: 'Harvest Rune', text: 'Defeating an enemy restores 30% focus.' },
+    'hunter-eye': { name: 'Hunter Eye Rune', text: '+25% critical chance against enemies with a harmful status.' },
+    'burning-iron': { name: 'Burning Iron Rune', text: 'The weapon attack deals fire damage instead of physical.' },
+    'frozen-iron': { name: 'Frozen Iron Rune', text: 'The weapon attack deals ice damage instead of physical.' },
+    'thunder-iron': {
+      name: 'Thunder Iron Rune',
+      text: 'The weapon attack deals lightning damage instead of physical.'
+    },
+    reprisal: { name: 'Reprisal Rune', text: 'When hit, it has a 25% chance to strike back with its weapon.' },
+    'clean-blood': { name: 'Clean Blood Rune', text: 'It cannot be poisoned, burned or made to bleed.' },
+    temper: { name: 'Temper Rune', text: 'It cannot be frozen or stunned.' },
+    'clear-sight': {
+      name: 'Clear Sight Rune',
+      text: 'It cannot be blinded nor have its attack, defense or speed lowered.'
+    },
+    glass: { name: 'Glass Rune', text: '+35% damage dealt and +25% damage taken.' },
+    pride: { name: 'Pride Rune', text: 'Takes 40% less damage, but cannot be healed.' },
+    recklessness: { name: 'Recklessness Rune', text: '+35% damage, but cannot be healed.' },
+    coin: { name: 'Coin Rune', text: 'Each hit deals half or double damage, at even odds.' },
+    endurance: { name: 'Endurance Rune', text: 'Once per battle it survives a deadly hit with 1 health.' },
+    'second-flame': {
+      name: 'Second Flame Rune',
+      text: 'Once per battle, when it falls it rises again with 50% health.'
+    },
+    martyr: { name: 'Martyr Rune', text: 'When it falls, its allies recover 40% health.' },
+    'posthumous-wrath': {
+      name: 'Posthumous Wrath Rune',
+      text: 'When it falls, its allies gain raised attack for 3 turns.'
+    },
+    'final-blast': { name: 'Final Blast Rune', text: 'When it falls, it strikes every enemy with twice its attack.' },
+    'lone-wolf': { name: 'Lone Wolf Rune', text: 'While it is the only hero standing: +50% damage and raised speed.' },
+    company: { name: 'Company Rune', text: '+12% damage while the three heroes of the front stand.' },
+    frenzy: {
+      name: 'Frenzy Rune',
+      text: 'Each special in a row, with no weapon attack in between, deals 15% more, up to +60%.'
+    },
+    thrift: { name: 'Thrift Rune', text: 'Specials cost 15% less focus.' },
+    spring: { name: 'Spring Rune', text: 'Restores 8% focus at the start of each turn.' },
+    dawn: { name: 'Dawn Rune', text: 'It always acts first at the start of the battle.' },
+    lightning: { name: 'Lightning Rune', text: 'Defeating an enemy brings its next turn sooner.' },
+    'third-blow': { name: 'Third Blow Rune', text: 'Every third special deals double damage.' },
+    counterpoint: {
+      name: 'Counterpoint Rune',
+      text: 'After a critical hit, the next hit that is not critical deals double damage.'
+    },
+    fever: { name: 'Fever Rune', text: 'The poison, burns and bleeding it leaves deal 50% more damage.' },
+    plague: { name: 'Plague Rune', text: 'Defeating a poisoned enemy passes the poison to another enemy.' },
+    barrier: { name: 'Barrier Rune', text: 'Starts the battle with a barrier that stops the first hit.' },
+    aegis: { name: 'Aegis Rune', text: 'Healing someone gives them a barrier that stops the next hit.' },
+    'blood-echo': {
+      name: 'Blood Echo Rune',
+      text: 'Heals itself for 12% of all the damage it deals, specials included.'
+    },
+    breach: { name: 'Breach Rune', text: "Hitting a weakness lowers the enemy's defense for 2 turns." },
+    persistence: {
+      name: 'Persistence Rune',
+      text: 'The attack, defense and speed raises it receives last 2 more turns.'
+    },
+    'full-cup': { name: 'Full Cup Rune', text: 'With full focus, its specials deal +30% damage.' },
+    twin: { name: 'Twin Rune', text: 'It always acts twice in a row, but deals 40% less damage.' },
+    'abyss-edge': { name: 'Abyss Edge Rune', text: 'Its maximum health drops by 70%, but it deals +80% damage.' },
+    'perfect-instant': {
+      name: 'Perfect Instant Rune',
+      text: 'If it took no damage since its last turn, it recovers all its health when its turn starts.'
+    },
+    void: {
+      name: 'Void Rune',
+      text: 'Its hits ignore resistances: resisted hits deal normal damage and immune ones half.'
+    },
+    crucible: { name: 'Crucible Rune', text: '+15% damage for each status, good or bad, on it.' },
+    eclipse: { name: 'Eclipse Rune', text: 'Defeating an enemy lets it act again right away (once per turn).' },
+    legacy: { name: 'Legacy Rune', text: 'When it falls, its allies recover all their health and focus.' },
+    judgment: { name: 'Judgment Rune', text: 'Every fifth hit deals +300% damage.' }
   },
   items: {
     'health-potion': { name: 'Health Potion', text: 'Heals 35% of the health of an ally.' },

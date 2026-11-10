@@ -1,5 +1,6 @@
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /** A status that the weapon attacks can leave on a hit. */
@@ -47,6 +48,8 @@ export interface Bonuses {
   statusChance: number
   onHit: OnHitStatus[]
   upgrades: Record<string, SkillUpgrade>
+  /** The special effects of the runes and echoes (see Perk). */
+  perks: Partial<Record<Perk, number>>
 }
 
 export function emptyBonuses(): Bonuses {
@@ -61,14 +64,16 @@ export function emptyBonuses(): Bonuses {
     weakness: 0,
     statusChance: 0,
     onHit: [],
-    upgrades: {}
+    upgrades: {},
+    perks: {}
   }
 }
 
 /** A part of the bonuses, as the catalogs write them. */
-export type BonusesPart = Partial<Omit<Bonuses, 'onHit' | 'upgrades'>> & {
+export type BonusesPart = Partial<Omit<Bonuses, 'onHit' | 'upgrades' | 'perks'>> & {
   onHit?: OnHitStatus[]
   upgrades?: Record<string, SkillUpgrade>
+  perks?: Partial<Record<Perk, number>>
 }
 
 /** Adds some bonuses to others (in place) and returns them. */
@@ -100,6 +105,10 @@ export function addBonuses(total: Bonuses, part: BonusesPart): Bonuses {
   total.weakness += part.weakness ?? 0
   total.statusChance += part.statusChance ?? 0
   total.onHit.push(...(part.onHit ?? []))
+
+  for (const [perk, value] of Object.entries(part.perks ?? {}) as [Perk, number][]) {
+    total.perks[perk] = (total.perks[perk] ?? 0) + value
+  }
 
   return total
 }

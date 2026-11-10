@@ -18,11 +18,12 @@ import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
-import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
+import { Combatant, RuneState } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 import { Item, ItemTarget, StoneId } from '@/app/(protected)/(engine)/models/Item'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
@@ -95,6 +96,35 @@ const SAP_HEALING = 0.6
 const CHARGE_POWER = 0.08
 const CHARGE_SPEND = 0.5
 const CHARGING = [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]
+/** Runes (see Perk): how long or how far their conditions reach. */
+const OPENING_TURNS = 3
+const WARM_UP_TURNS = 5
+const MAX_FRENZY = 4
+const LOW_HEALTH = 0.3
+const LAST_BREATH_HEALTH = 0.15
+const SOS_HEALTH = 0.5
+const JUDGMENT_EVERY = 5
+const PLAGUE_TURNS = 3
+const LONE_WOLF_TURNS = 2
+/** The buffs a rune can start the battle with. */
+const START_BUFFS: [Perk, StatusType][] = [
+  [Perk.START_ATTACK_UP, StatusType.ATTACK_UP],
+  [Perk.START_DEFENSE_UP, StatusType.DEFENSE_UP],
+  [Perk.START_SPEED_UP, StatusType.SPEED_UP]
+]
+const BUFFS = new Set([StatusType.ATTACK_UP, StatusType.DEFENSE_UP, StatusType.SPEED_UP])
+/** The statuses each immunity of the runes keeps away. */
+const IMMUNITIES: [Perk, StatusType[]][] = [
+  [Perk.IMMUNE_DOTS, [StatusType.POISON, StatusType.BURN, StatusType.BLEED]],
+  [Perk.IMMUNE_CONTROL, [StatusType.FREEZE, StatusType.STUN]],
+  [Perk.IMMUNE_BLIND, [StatusType.BLIND, StatusType.ATTACK_DOWN, StatusType.DEFENSE_DOWN, StatusType.SPEED_DOWN]]
+]
+/** The element a rune turns the weapon attack into. */
+const WEAPON_ELEMENTS: [Perk, DamageType][] = [
+  [Perk.FIRE_WEAPON, DamageType.FIRE],
+  [Perk.ICE_WEAPON, DamageType.ICE],
+  [Perk.LIGHTNING_WEAPON, DamageType.LIGHTNING]
+]
 
 export interface BattleSetup {
   heroes: CharacterState[]
@@ -247,6 +277,10 @@ export function createBattle(setup: BattleSetup): BattleStep {
 
   state.combatants = [...heroes, ...spawnEnemies(state, 0)]
 
+  for (const hero of heroes.filter((candidate) => !candidate.reserve)) {
+    startRunes(hero)
+  }
+
   return {
     state,
     events: [{ type: 'phase', phase: 0, enemyIds: state.combatants.filter((c) => c.side === 'enemy').map((c) => c.id) }]
@@ -255,6 +289,351 @@ export function createBattle(setup: BattleSetup): BattleStep {
 
 function hasStatus(combatant: Combatant, type: StatusType): boolean {
   return combatant.statuses.some((status) => status.type === type)
+}
+
+/** The value of a perk of the runes and echoes of a fighter (0 when it has none). */
+function perkOf(combatant: Combatant, perk: Perk): number {
+  return combatant.bonuses?.perks[perk] ?? 0
+}
+
+function emptyRuneState(): RuneState {
+  return {
+    turns: 0,
+    hits: 0,
+    specials: 0,
+    streak: 0,
+    struck: false,
+    hurt: false,
+    damagedSinceTurn: false,
+    afterCrit: false,
+    survived: false,
+    rose: false,
+    sos: false,
+    critFocus: false,
+    statusFocus: false,
+    eclipse: false,
+    bonus: false,
+    inBonus: false,
+    actAgain: false
+  }
+}
+
+function runeStateOf(combatant: Combatant): RuneState {
+  combatant.runeState ??= emptyRuneState()
+
+  return combatant.runeState
+}
+
+function triggerPerk(combatant: Combatant, perk: Perk, events: BattleEvent[]): void {
+  events.push({ type: 'perk', targetId: combatant.id, perk })
+}
+
+/** Gives a fighter back a share of its maximum focus. */
+function restoreFocus(combatant: Combatant, share: number, events: BattleEvent[]): void {
+  const restored = Math.min(combatant.stats.maxFocus - combatant.focus, Math.ceil(combatant.stats.maxFocus * share))
+
+  if (restored > 0) {
+    combatant.focus += restored
+    events.push({ type: 'focus', targetId: combatant.id, amount: restored })
+  }
+}
+
+/** A hero steps onto the field: what its runes give it at the start (focus, a barrier, the first turn, buffs). */
+function startRunes(hero: Combatant): void {
+  if (!hero.bonuses) {
+    return
+  }
+
+  hero.runeState = emptyRuneState()
+
+  const focus = perkOf(hero, Perk.START_FOCUS)
+
+  if (focus) {
+    hero.focus = Math.min(hero.stats.maxFocus, hero.focus + Math.round(hero.stats.maxFocus * focus))
+  }
+
+  if (perkOf(hero, Perk.DAWN)) {
+    hero.initiative = INITIATIVE_FULL
+  }
+
+  if (perkOf(hero, Perk.BARRIER)) {
+    hero.barrier = true
+  }
+
+  for (const [perk, type] of START_BUFFS) {
+    const turns = perkOf(hero, perk)
+
+    if (turns) {
+      addStatus(hero, type, turns, [], hero)
+    }
+  }
+}
+
+/** The start of a turn of a hero: what its runes do then. */
+function beginRuneTurn(state: BattleState, actor: Combatant, events: BattleEvent[]): void {
+  const runes = runeStateOf(actor)
+
+  runes.turns++
+  runes.critFocus = false
+  runes.statusFocus = false
+  runes.eclipse = false
+
+  if (
+    perkOf(actor, Perk.PERFECT_INSTANT) &&
+    runes.turns > 1 &&
+    !runes.damagedSinceTurn &&
+    actor.health < actor.stats.maxHealth
+  ) {
+    triggerPerk(actor, Perk.PERFECT_INSTANT, events)
+    heal(actor, actor.stats.maxHealth, events)
+  }
+
+  runes.damagedSinceTurn = false
+
+  const opening = perkOf(actor, Perk.OPENING_REGEN)
+
+  if (opening && runes.turns <= OPENING_TURNS && actor.health < actor.stats.maxHealth) {
+    heal(actor, Math.ceil(actor.stats.maxHealth * opening), events)
+  }
+
+  const focus = perkOf(actor, Perk.TURN_FOCUS)
+
+  if (focus) {
+    restoreFocus(actor, focus, events)
+  }
+
+  if (
+    perkOf(actor, Perk.LONE_WOLF) &&
+    getFighters(state, 'hero').length === 1 &&
+    !hasStatus(actor, StatusType.SPEED_UP)
+  ) {
+    triggerPerk(actor, Perk.LONE_WOLF, events)
+    addStatus(actor, StatusType.SPEED_UP, LONE_WOLF_TURNS, events, actor)
+  }
+}
+
+/** The end of an action of a hero: its runes can give it another one right away. */
+function endRuneAction(actor: Combatant): void {
+  const runes = actor.runeState
+
+  if (!runes || !isAlive(actor)) {
+    return
+  }
+
+  if (runes.actAgain || (perkOf(actor, Perk.TWIN) && !runes.inBonus)) {
+    runes.actAgain = false
+    runes.bonus = true
+    actor.initiative = INITIATIVE_FULL
+  }
+}
+
+/** The power a special gets from the runes of its user (in a row, every third one, with full focus). */
+function runeSkillPower(actor: Combatant, skill: Skill, weaponAttack: boolean, events: BattleEvent[]): number {
+  if (!actor.runeState) {
+    return 1
+  }
+
+  const runes = actor.runeState
+
+  if (weaponAttack) {
+    runes.streak = 0
+
+    return 1
+  }
+
+  if (skill.cost <= 0) {
+    return 1
+  }
+
+  runes.specials++
+  runes.streak++
+
+  let power = 1 + perkOf(actor, Perk.FRENZY) * Math.min(MAX_FRENZY, runes.streak - 1)
+
+  if (perkOf(actor, Perk.THIRD_SPECIAL) && runes.specials % 3 === 0) {
+    triggerPerk(actor, Perk.THIRD_SPECIAL, events)
+    power *= 2
+  }
+
+  if (perkOf(actor, Perk.FULL_CUP) && actor.focus >= actor.stats.maxFocus) {
+    power *= 1 + perkOf(actor, Perk.FULL_CUP)
+  }
+
+  return power
+}
+
+/** How much the runes of a hero change the damage of a hit. */
+function runeDamage(
+  state: BattleState,
+  actor: Combatant,
+  target: Combatant,
+  critical: boolean,
+  events: BattleEvent[]
+): number {
+  if (!actor.runeState) {
+    return 1
+  }
+
+  const runes = actor.runeState
+  const health = actor.health / actor.stats.maxHealth
+  const heroes = getFighters(state, 'hero')
+  let bonus = perkOf(actor, Perk.DAMAGE_DEALT) + perkOf(actor, Perk.WARM_UP) * Math.min(WARM_UP_TURNS, runes.turns)
+
+  if (!runes.struck) {
+    bonus += perkOf(actor, Perk.FIRST_STRIKE)
+  }
+
+  if (health >= 1) {
+    bonus += perkOf(actor, Perk.FULL_HEALTH)
+  }
+
+  if (!runes.hurt) {
+    bonus += perkOf(actor, Perk.UNTOUCHED)
+  }
+
+  if (health < LAST_BREATH_HEALTH) {
+    bonus += perkOf(actor, Perk.LAST_BREATH)
+  }
+
+  if (actor.side === 'hero' && heroes.length === 1) {
+    bonus += perkOf(actor, Perk.LONE_WOLF)
+  }
+
+  if (heroes.length >= ACTIVE_HEROES) {
+    bonus += perkOf(actor, Perk.TEAMWORK)
+  }
+
+  if (hasStatus(target, StatusType.BURN)) {
+    bonus += perkOf(actor, Perk.BURN_HUNTER)
+  }
+
+  if (hasStatus(target, StatusType.FREEZE)) {
+    bonus += perkOf(actor, Perk.FROST_BREAKER)
+  }
+
+  bonus += perkOf(actor, Perk.CRUCIBLE) * actor.statuses.length
+
+  let factor = Math.max(0.1, 1 + bonus) * (1 - perkOf(actor, Perk.TWIN))
+
+  if (perkOf(actor, Perk.COUNTERPOINT)) {
+    if (critical) {
+      runes.afterCrit = true
+    } else if (runes.afterCrit) {
+      runes.afterCrit = false
+      triggerPerk(actor, Perk.COUNTERPOINT, events)
+      factor *= 2
+    }
+  }
+
+  runes.hits++
+  runes.struck = true
+
+  if (perkOf(actor, Perk.JUDGMENT) && runes.hits % JUDGMENT_EVERY === 0) {
+    triggerPerk(actor, Perk.JUDGMENT, events)
+    factor *= 1 + perkOf(actor, Perk.JUDGMENT)
+  }
+
+  if (perkOf(actor, Perk.COIN)) {
+    factor *= roll(state) < 0.5 ? 0.5 : 2
+  }
+
+  return factor
+}
+
+/** A hero defeated an enemy: what its runes give it for it. */
+function onKill(state: BattleState, actor: Combatant, poisoned: boolean, events: BattleEvent[]): void {
+  if (!actor.runeState || state.outcome || !isAlive(actor)) {
+    return
+  }
+
+  const runes = actor.runeState
+  const healing = perkOf(actor, Perk.KILL_HEAL)
+  const focus = perkOf(actor, Perk.KILL_FOCUS)
+  const initiative = perkOf(actor, Perk.LIGHTNING)
+
+  if (healing) {
+    heal(actor, Math.ceil(actor.stats.maxHealth * healing), events)
+  }
+
+  if (focus) {
+    restoreFocus(actor, focus, events)
+  }
+
+  if (initiative) {
+    actor.initiative = Math.min(INITIATIVE_FULL - 1, actor.initiative + initiative)
+  }
+
+  if (perkOf(actor, Perk.ECLIPSE) && !runes.eclipse) {
+    runes.eclipse = true
+    runes.actAgain = true
+    triggerPerk(actor, Perk.ECLIPSE, events)
+  }
+
+  const others = getFighters(state, 'enemy').filter((enemy) => !hasStatus(enemy, StatusType.POISON))
+
+  if (perkOf(actor, Perk.PLAGUE) && poisoned && others.length > 0) {
+    const victim = others[Math.floor(roll(state) * others.length)]
+
+    triggerPerk(actor, Perk.PLAGUE, events)
+    addStatus(victim, StatusType.POISON, PLAGUE_TURNS, events, actor)
+  }
+}
+
+/** A hero fell for good: what its runes leave to its allies. */
+function onHeroFall(state: BattleState, hero: Combatant, events: BattleEvent[]): void {
+  if (!hero.bonuses) {
+    return
+  }
+
+  const allies = getFighters(state, 'hero')
+  const martyr = perkOf(hero, Perk.MARTYR)
+  const wrath = perkOf(hero, Perk.WRATH)
+  const blast = perkOf(hero, Perk.LAST_BLAST)
+
+  if (perkOf(hero, Perk.LEGACY) && allies.length > 0) {
+    triggerPerk(hero, Perk.LEGACY, events)
+
+    for (const ally of allies) {
+      heal(ally, ally.stats.maxHealth, events)
+      restoreFocus(ally, 1, events)
+    }
+  } else if (martyr && allies.length > 0) {
+    triggerPerk(hero, Perk.MARTYR, events)
+
+    for (const ally of allies) {
+      heal(ally, Math.round(ally.stats.maxHealth * martyr), events)
+    }
+  }
+
+  if (wrath && allies.length > 0) {
+    triggerPerk(hero, Perk.WRATH, events)
+
+    for (const ally of allies) {
+      addStatus(ally, StatusType.ATTACK_UP, wrath, events, hero)
+    }
+  }
+
+  if (blast) {
+    const weapon = getSkill(hero.skills[0])
+    const burst: Skill = {
+      id: 'final-blast',
+      cost: 0,
+      target: TargetType.ALL_ENEMIES,
+      power: blast,
+      stat: 'attack',
+      damageType: weapon.damageType
+    }
+
+    triggerPerk(hero, Perk.LAST_BLAST, events)
+
+    for (const enemy of getFighters(state, 'enemy')) {
+      if (state.outcome) {
+        break
+      }
+
+      strike(state, hero, enemy, burst, events, true)
+    }
+  }
 }
 
 /** An attribute with the buffs and debuffs of the fighter. */
@@ -371,18 +750,35 @@ export function nextTurn(battle: BattleState): BattleStep {
     actor.initiative = 0
     events.push({ type: 'turn', actorId: actor.id })
 
-    if (actor.bonuses?.regen && actor.health < actor.stats.maxHealth) {
-      heal(actor, Math.ceil(actor.stats.maxHealth * actor.bonuses.regen), events)
+    // An extra action given by a rune is not a new turn: no regeneration, damage over time nor turn effects.
+    const bonus = actor.runeState?.bonus ?? false
+
+    if (actor.runeState) {
+      actor.runeState.bonus = false
+      actor.runeState.inBonus = bonus
     }
 
-    for (const status of actor.statuses) {
-      const share = DOT_SHARE[status.type]
+    if (!bonus) {
+      if (actor.runeState) {
+        beginRuneTurn(state, actor, events)
+      }
 
-      if (share) {
-        const amount = Math.max(1, Math.round(actor.stats.maxHealth * share * (isBoss(actor) ? BOSS_DOT_FACTOR : 1)))
+      if (actor.bonuses?.regen && actor.health < actor.stats.maxHealth) {
+        heal(actor, Math.ceil(actor.stats.maxHealth * actor.bonuses.regen), events)
+      }
 
-        events.push({ type: 'statusTick', targetId: actor.id, status: status.type, amount })
-        hurt(state, actor, amount, events)
+      for (const status of actor.statuses) {
+        const share = DOT_SHARE[status.type]
+
+        if (share) {
+          const amount = Math.max(
+            1,
+            Math.round(actor.stats.maxHealth * share * (status.power ?? 1) * (isBoss(actor) ? BOSS_DOT_FACTOR : 1))
+          )
+
+          events.push({ type: 'statusTick', targetId: actor.id, status: status.type, amount })
+          hurt(state, actor, amount, events)
+        }
       }
     }
 
@@ -411,6 +807,23 @@ export function nextTurn(battle: BattleState): BattleStep {
 
 /** A skill as a fighter uses it: with the levels it has in its skill tree. */
 function skillOf(combatant: Combatant, skillId: string): Skill {
+  let skill = upgradedSkill(combatant, skillId)
+  const economy = perkOf(combatant, Perk.ECONOMY)
+  const element = skillId === combatant.skills[0] && WEAPON_ELEMENTS.find(([perk]) => perkOf(combatant, perk) > 0)
+
+  if (economy && skill.cost > 0) {
+    skill = { ...skill, cost: Math.max(1, Math.round(skill.cost * (1 - economy))) }
+  }
+
+  if (element && PHYSICAL.has(skill.damageType)) {
+    skill = { ...skill, damageType: element[1] }
+  }
+
+  return skill
+}
+
+/** A skill with the levels its user has in its skill tree. */
+function upgradedSkill(combatant: Combatant, skillId: string): Skill {
   const skill = getSkill(skillId)
   const upgrade = combatant.bonuses?.upgrades[skillId]
 
@@ -506,10 +919,15 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   if (action.type === 'item') {
     applyItem(state, actor, action.itemId, action.targetIds, events)
 
-    if (!state.outcome && isAlive(actor)) {
+    if (perkOf(actor, Perk.ITEM_FOCUS) && !state.outcome && isAlive(actor)) {
+      restoreFocus(actor, perkOf(actor, Perk.ITEM_FOCUS), events)
+    }
+
+    if (!state.outcome && isAlive(actor) && !actor.runeState?.inBonus) {
       tickStatuses(actor, events)
     }
 
+    endRuneAction(actor)
     state.actorId = null
 
     return { state, events }
@@ -544,7 +962,9 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
       : base.consumes === 'charges'
         ? 1 + (actor.charges?.length ?? 0) * CHARGE_SPEND
         : 1
-  const skill = spent > 1 ? { ...base, power: base.power * spent } : base
+  // The runes add power to the specials (in a row, every third one, with full focus).
+  const runePower = base.heal ? 1 : runeSkillPower(actor, base, base.id === actor.skills[0], events)
+  const skill = spent * runePower !== 1 ? { ...base, power: base.power * spent * runePower } : base
   const valid = getTargets(state, actor.id, skill)
   const single = skill.target === TargetType.ENEMY || skill.target === TargetType.ALLY
   const targetIds = single ? action.targetIds.filter((id) => valid.includes(id)).slice(0, 1) : valid
@@ -611,10 +1031,22 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
       if (skill.heal) {
         const sap = actor.trait === Trait.SAP ? 1 + SAP_HEALING * (1 - target.health / target.stats.maxHealth) : 1
         const amount = Math.round(skill.power * effective(actor, 'special') * sap * (0.95 + roll(state) * 0.1))
+        const healed = heal(target, amount, events)
 
-        heal(target, amount, events)
-      } else if (!strike(state, actor, target, skill, events)) {
-        continue
+        afterHeal(actor, target, healed, events)
+      } else {
+        // A rune can make the weapon attack hit twice, each hit with part of the power.
+        const double = skill.id === actor.skills[0] ? perkOf(actor, Perk.DOUBLE_STRIKE) : 0
+        const hit = double ? { ...skill, power: skill.power * double } : skill
+        let landed = strike(state, actor, target, hit, events)
+
+        if (double && isAlive(target) && isAlive(actor) && !state.outcome) {
+          landed = strike(state, actor, target, hit, events) || landed
+        }
+
+        if (!landed) {
+          continue
+        }
       }
     }
 
@@ -629,13 +1061,37 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
     actor.charges = [...new Set([...actor.charges, skill.damageType])]
   }
 
-  if (!state.outcome && isAlive(actor)) {
+  if (!state.outcome && isAlive(actor) && !actor.runeState?.inBonus) {
     tickStatuses(actor, events)
   }
 
+  endRuneAction(actor)
   state.actorId = null
 
   return { state, events }
+}
+
+/** A hero healed someone: what its runes add (a share of the healing for itself, a buff, a barrier). */
+function afterHeal(actor: Combatant, target: Combatant, healed: number, events: BattleEvent[]): void {
+  if (!actor.runeState || !isAlive(target)) {
+    return
+  }
+
+  const share = perkOf(actor, Perk.HEAL_SHARE)
+  const buff = perkOf(actor, Perk.HEAL_BUFF)
+
+  if (share && target !== actor && healed > 0) {
+    heal(actor, Math.max(1, Math.round(healed * share)), events)
+  }
+
+  if (buff) {
+    addStatus(target, StatusType.ATTACK_UP, buff, events, actor)
+  }
+
+  if (perkOf(actor, Perk.AEGIS) && !target.barrier) {
+    target.barrier = true
+    triggerPerk(target, Perk.AEGIS, events)
+  }
 }
 
 /** The statuses a skill can leave, on its target or on its user. */
@@ -654,21 +1110,54 @@ function applyStatuses(
       (CONTROL.has(effect.type) && isBoss(bearer) ? BOSS_CONTROL_FACTOR : 1)
 
     if (isAlive(bearer) && roll(state) < chance) {
-      addStatus(bearer, effect.type, effect.turns, events)
+      addStatus(bearer, effect.type, effect.turns, events, actor)
     }
   }
 }
 
-function addStatus(bearer: Combatant, type: StatusType, turns: number, events: BattleEvent[]): void {
+/**
+ * Leaves a status on a fighter, unless a rune makes it immune. The runes of
+ * whoever leaves it can make it last longer or hurt more, and the ones of
+ * the bearer make its buffs last longer.
+ */
+function addStatus(
+  bearer: Combatant,
+  type: StatusType,
+  turns: number,
+  events: BattleEvent[],
+  source?: Combatant
+): void {
+  if (IMMUNITIES.some(([perk, types]) => types.includes(type) && perkOf(bearer, perk) > 0)) {
+    events.push({ type: 'immune', targetId: bearer.id })
+
+    return
+  }
+
+  const lasting =
+    turns +
+    (type === StatusType.BURN && source ? perkOf(source, Perk.LONG_BURN) : 0) +
+    (BUFFS.has(type) ? perkOf(bearer, Perk.PERSISTENCE) : 0)
+  const power = source && DOT_SHARE[type] ? 1 + perkOf(source, Perk.FEVER) : 1
   const existing = bearer.statuses.find((status) => status.type === type)
 
   if (existing) {
-    existing.turns = Math.max(existing.turns, turns)
+    existing.turns = Math.max(existing.turns, lasting)
+
+    if (power > (existing.power ?? 1)) {
+      existing.power = power
+    }
   } else {
-    bearer.statuses.push({ type, turns })
+    bearer.statuses.push(power > 1 ? { type, turns: lasting, power } : { type, turns: lasting })
   }
 
-  events.push({ type: 'status', targetId: bearer.id, status: type, turns })
+  events.push({ type: 'status', targetId: bearer.id, status: type, turns: lasting })
+
+  const focus = source ? perkOf(source, Perk.STATUS_FOCUS) : 0
+
+  if (focus && source && source.side !== bearer.side && HARMFUL.has(type) && !runeStateOf(source).statusFocus) {
+    runeStateOf(source).statusFocus = true
+    restoreFocus(source, focus, events)
+  }
 }
 
 /** A hero uses a consumable of the party on its targets. */
@@ -755,8 +1244,15 @@ function cure(target: Combatant, events: BattleEvent[]): void {
   target.statuses = target.statuses.filter((status) => !HARMFUL.has(status.type))
 }
 
-/** A damaging hit: false when it missed or did nothing. */
-function strike(state: BattleState, actor: Combatant, target: Combatant, skill: Skill, events: BattleEvent[]): boolean {
+/** A damaging hit: false when it missed or did nothing. A counterattack (or a blast) cannot be countered. */
+function strike(
+  state: BattleState,
+  actor: Combatant,
+  target: Combatant,
+  skill: Skill,
+  events: BattleEvent[],
+  counter = false
+): boolean {
   if (PHYSICAL.has(skill.damageType) && skill.stat === 'attack' && hasStatus(actor, StatusType.BLIND)) {
     if (roll(state) < BLIND_MISS_CHANCE) {
       events.push({ type: 'miss', targetId: target.id })
@@ -765,16 +1261,33 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
     }
   }
 
-  const affinity = target.affinities[skill.damageType] ?? Affinity.NORMAL
+  if (target.barrier) {
+    target.barrier = false
+    triggerPerk(target, Perk.BARRIER, events)
 
-  if (affinity === Affinity.IMMUNE) {
+    return false
+  }
+
+  // A rune can ignore resistances: what is resisted hits as normal, what is immune or absorbs takes half.
+  const natural = target.affinities[skill.damageType] ?? Affinity.NORMAL
+  const pierce = perkOf(actor, Perk.VOID_PIERCE) > 0
+  const affinity = pierce && natural === Affinity.RESIST ? Affinity.NORMAL : natural
+  const halved = pierce && (natural === Affinity.IMMUNE || natural === Affinity.ABSORB)
+
+  if (affinity === Affinity.IMMUNE && !halved) {
     events.push({ type: 'immune', targetId: target.id })
 
     return false
   }
 
   const marks = actor.marks?.[target.id] ?? 0
-  const critical = roll(state) < actor.stats.critChance + (skill.critBonus ?? 0) + marks * MARK_CRIT
+  const controlled = hasStatus(target, StatusType.FREEZE) || hasStatus(target, StatusType.STUN)
+  const runeCrit =
+    (actor.health < actor.stats.maxHealth * LOW_HEALTH ? perkOf(actor, Perk.LOW_HEALTH_CRIT) : 0) +
+    (target.statuses.some((status) => HARMFUL.has(status.type)) ? perkOf(actor, Perk.CRIT_VS_DEBUFFED) : 0)
+  const critical =
+    (controlled && perkOf(actor, Perk.CONTROLLED_CRIT) > 0) ||
+    roll(state) < actor.stats.critChance + (skill.critBonus ?? 0) + marks * MARK_CRIT + runeCrit
 
   if (actor.marks) {
     actor.marks[target.id] = critical ? 0 : Math.min(MAX_MARKS, marks + 1)
@@ -787,16 +1300,18 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
       skill.power *
         effective(actor, skill.stat) *
         (100 / (100 + effective(target, 'defense'))) *
-        Math.abs(AFFINITY_MULTIPLIER[affinity]) *
+        (halved ? 0.5 : Math.abs(AFFINITY_MULTIPLIER[affinity])) *
         (critical ? actor.stats.critDamage : 1) *
         (1 + (actor.bonuses?.damage[skill.damageType] ?? 0)) *
         (weak ? 1 + (actor.bonuses?.weakness ?? 0) : 1) *
         (1 - Math.min(MAX_GUARD, target.bonuses?.guard ?? 0)) *
+        runeDamage(state, actor, target, critical, events) *
+        Math.max(0.1, 1 + perkOf(target, Perk.DAMAGE_TAKEN)) *
         (0.95 + roll(state) * 0.1)
     )
   )
 
-  if (affinity === Affinity.ABSORB) {
+  if (affinity === Affinity.ABSORB && !halved) {
     heal(target, amount, events)
 
     return true
@@ -811,6 +1326,12 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
     weak,
     resisted: affinity === Affinity.RESIST
   })
+  const poisoned = hasStatus(target, StatusType.POISON)
+
+  if (target.runeState) {
+    target.runeState.hurt = true
+  }
+
   hurt(state, target, amount, events)
 
   if (actor.bonuses?.lifesteal && isAlive(actor) && !state.outcome) {
@@ -823,23 +1344,104 @@ function strike(state: BattleState, actor: Combatant, target: Combatant, skill: 
       const chance = effect.chance * (CONTROL.has(effect.type) && isBoss(target) ? BOSS_CONTROL_FACTOR : 1)
 
       if (roll(state) < chance) {
-        addStatus(target, effect.type, effect.turns, events)
+        addStatus(target, effect.type, effect.turns, events, actor)
       }
     }
+  }
+
+  if (actor.runeState) {
+    afterStrike(state, actor, target, { critical, weak, poisoned }, events)
+  }
+
+  // A rune can strike back with the weapon.
+  const reprisal = perkOf(target, Perk.COUNTER)
+
+  if (
+    reprisal &&
+    !counter &&
+    target.side !== actor.side &&
+    isAlive(target) &&
+    isAlive(actor) &&
+    !state.outcome &&
+    !target.statuses.some((status) => CONTROL.has(status.type)) &&
+    roll(state) < reprisal
+  ) {
+    triggerPerk(target, Perk.COUNTER, events)
+    strike(state, target, actor, skillOf(target, target.skills[0]), events, true)
   }
 
   return true
 }
 
-function heal(target: Combatant, amount: number, events: BattleEvent[]): void {
-  const healed = Math.min(amount, target.stats.maxHealth - target.health)
+/** What the runes of a hero do after it hits: on a kill, a critical hit or a weakness. */
+function afterStrike(
+  state: BattleState,
+  actor: Combatant,
+  target: Combatant,
+  hit: { critical: boolean; weak: boolean; poisoned: boolean },
+  events: BattleEvent[]
+): void {
+  const runes = runeStateOf(actor)
+
+  if (!isAlive(target) && target.side !== actor.side) {
+    onKill(state, actor, hit.poisoned, events)
+  }
+
+  if (state.outcome) {
+    return
+  }
+
+  if (hit.critical) {
+    const focus = perkOf(actor, Perk.CRIT_FOCUS)
+    const bleed = perkOf(actor, Perk.CRIT_BLEED)
+
+    if (focus && !runes.critFocus && isAlive(actor)) {
+      runes.critFocus = true
+      restoreFocus(actor, focus, events)
+    }
+
+    if (bleed && isAlive(target)) {
+      addStatus(target, StatusType.BLEED, bleed, events, actor)
+    }
+  }
+
+  const breach = perkOf(actor, Perk.BREACH)
+
+  if (breach && hit.weak && isAlive(target)) {
+    addStatus(target, StatusType.DEFENSE_DOWN, breach, events, actor)
+  }
+}
+
+/** Heals a fighter (its runes can double it or forbid it) and returns how much. */
+function heal(target: Combatant, amount: number, events: BattleEvent[]): number {
+  if (perkOf(target, Perk.NO_HEALING)) {
+    return 0
+  }
+
+  const boosted = Math.round(amount * (1 + perkOf(target, Perk.HEALING_RECEIVED)))
+  const healed = Math.min(boosted, target.stats.maxHealth - target.health)
 
   target.health += healed
   events.push({ type: 'heal', targetId: target.id, amount: healed })
+
+  return healed
 }
 
 /** Takes health from a fighter and handles its fall: next health bar, next phase, reserves or the end. */
 function hurt(state: BattleState, target: Combatant, amount: number, events: BattleEvent[]): void {
+  const runes = target.runeState
+
+  if (runes) {
+    runes.damagedSinceTurn = true
+
+    // Once per battle a rune keeps the hero standing with 1 health.
+    if (perkOf(target, Perk.SURVIVE) && !runes.survived && target.health > 1 && amount >= target.health) {
+      runes.survived = true
+      amount = target.health - 1
+      triggerPerk(target, Perk.SURVIVE, events)
+    }
+  }
+
   target.health = Math.max(0, target.health - amount)
 
   if (target.fury !== undefined) {
@@ -847,6 +1449,22 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
   }
 
   if (target.health > 0) {
+    if (runes && perkOf(target, Perk.SOS) && !runes.sos && target.health < target.stats.maxHealth * SOS_HEALTH) {
+      runes.sos = true
+      triggerPerk(target, Perk.SOS, events)
+      addStatus(target, StatusType.DEFENSE_UP, perkOf(target, Perk.SOS), events, target)
+    }
+
+    return
+  }
+
+  // Once per battle a rune makes the hero rise again.
+  if (runes && perkOf(target, Perk.SECOND_FLAME) && !runes.rose) {
+    runes.rose = true
+    target.health = Math.max(1, Math.round(target.stats.maxHealth * perkOf(target, Perk.SECOND_FLAME)))
+    triggerPerk(target, Perk.SECOND_FLAME, events)
+    events.push({ type: 'heal', targetId: target.id, amount: target.health })
+
     return
   }
 
@@ -897,7 +1515,13 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
         events.push({ type: 'end', outcome: 'victory' })
       }
     }
-  } else if (getFighters(state, 'hero').length === 0) {
+  } else {
+    onHeroFall(state, target, events)
+
+    if (state.outcome || getFighters(state, 'hero').length > 0) {
+      return
+    }
+
     const reserves = state.combatants.filter((combatant) => combatant.reserve && isAlive(combatant))
 
     if (reserves.length > 0) {
@@ -906,6 +1530,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
         reserve.reserve = false
         reserve.fought = true
         reserve.initiative = 0
+        startRunes(reserve)
       }
 
       events.push({ type: 'reserves', heroIds: reserves.map((reserve) => reserve.id) })

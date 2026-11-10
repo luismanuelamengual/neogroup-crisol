@@ -1,11 +1,12 @@
 import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import { ENEMIES } from '@/app/(protected)/(engine)/data/enemies'
 import { ITEMS } from '@/app/(protected)/(engine)/data/items'
-import { RUNE_FAMILIES } from '@/app/(protected)/(engine)/data/runes'
+import { RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { isRangedCharacter, weaponArtId } from '@/app/(protected)/(engine)/data/weapons'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { RuneStat } from '@/app/(protected)/(engine)/models/Rune'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import {
   ENEMY_LOOKS,
@@ -399,20 +400,87 @@ const SKILL_ICONS: [string, string][] = [
   ['debuff', 'un escudo agrietado con una flecha violeta hacia abajo'],
   ['revive', 'una pluma de fénix que brilla en ámbar']
 ]
-/** Rune icons: one per family (the frame of the game shows the rank). */
+/** Rune icons: one per rune, the symbol of its effect carved on a stone of the color of the attribute it raises. */
 const RUNE_ICONS: Record<string, string> = {
-  leech: 'un colmillo rojo sangre que gotea en una copa',
-  ember: 'un carbón encendido brillante',
-  wellspring: 'un manantial de agua azul que brota',
-  edge: 'el filo de una hoja afilada que destella',
-  ward: 'un escudo protector redondo de luz',
-  frost: 'un cristal de copo de nieve congelado',
-  vigor: 'un corazón verde que late, con hojas',
-  haste: 'una sandalia alada',
-  venom: 'una gota de veneno verde con una calavera',
-  fury: 'el ojo rojo de una bestia rugiente',
-  storm: 'una nube de tormenta con rayos',
-  hunter: 'una diana con una flecha'
+  'first-cut': 'un tajo diagonal de espada con una chispa en la punta',
+  breath: 'una ráfaga de aire en espiral que sale de unos labios',
+  sprout: 'un brote verde de dos hojas que nace de la piedra',
+  'light-step': 'una huella de pie con pequeñas alas',
+  carapace: 'el caparazón redondo de una tortuga',
+  impetus: 'un puño que avanza con líneas de velocidad',
+  'live-ember': 'una brasa encendida con una pequeña llama viva',
+  finisher: 'una espada clavada en el suelo junto a un corazón',
+  'true-pulse': 'un ojo con una diana en la pupila',
+  fang: 'un colmillo del que cae una gota de veneno verde',
+  pause: 'un reloj de arena con un frasquito al lado',
+  'whole-body': 'un corazón entero, lleno y brillante',
+  'double-edge': 'dos espadas paralelas cruzando juntas',
+  'stubborn-ember': 'un carbón que sigue ardiendo bajo la lluvia',
+  contagion: 'una nube violeta que se reparte en tres gotitas',
+  'warm-up': 'un termómetro que sube con flechas hacia arriba',
+  'untouched-skin': 'una pluma blanca intacta dentro de un círculo',
+  'last-breath': 'una vela casi consumida con una llama enorme',
+  'right-moment': 'un reloj con las agujas apuntando a una estrella',
+  rescue: 'una boya salvavidas con una cruz',
+  'clean-blow': 'un martillo golpeando un cristal de hielo que se quiebra',
+  icebreaker: 'un pico rompiendo un bloque de hielo',
+  'open-wound': 'tres zarpazos rojos con gotas',
+  'full-healing': 'dos corazones superpuestos con un signo más',
+  'generous-hand': 'una mano abierta que reparte una luz verde',
+  cheer: 'un estandarte con una flecha hacia arriba',
+  harvest: 'una hoz junto a una espiga brillante',
+  'hunter-eye': 'un ojo de halcón con una mira',
+  'burning-iron': 'una espada envuelta en llamas',
+  'frozen-iron': 'una espada cubierta de escarcha y cristales',
+  'thunder-iron': 'una espada atravesada por un rayo',
+  reprisal: 'dos flechas curvas que se devuelven contra un escudo',
+  'clean-blood': 'una gota de sangre limpia dentro de un escudo',
+  temper: 'un yunque con un martillo encima',
+  'clear-sight': 'un ojo abierto con rayos de luz alrededor',
+  glass: 'un cristal facetado con una grieta',
+  pride: 'una corona sobre un escudo cerrado',
+  recklessness: 'una calavera sonriente con una llama en la cabeza',
+  coin: 'una moneda girando con una cara sonriente y otra triste',
+  endurance: 'una raíz gruesa que sostiene una roca',
+  'second-flame': 'una pluma de fénix que vuelve a encenderse',
+  martyr: 'un corazón con alas que se eleva',
+  'posthumous-wrath': 'una espada rota de la que sale fuego',
+  'final-blast': 'una estrella que estalla en pedazos',
+  'lone-wolf': 'la cabeza de un lobo aullando a la luna',
+  company: 'tres escudos pequeños unidos en triángulo',
+  frenzy: 'un remolino de chispas en espiral',
+  thrift: 'un frasco de concentración con la mitad marcada',
+  spring: 'una fuente de agua que brota hacia arriba',
+  dawn: 'un sol que asoma sobre el horizonte',
+  lightning: 'un rayo en zigzag con una flecha hacia adelante',
+  'third-blow': 'tres marcas talladas, la tercera brillante',
+  counterpoint: 'dos notas musicales unidas, una dorada',
+  fever: 'un frasco burbujeante con humo verde y naranja',
+  plague: 'una calavera de la que salen esporas violetas',
+  barrier: 'una cúpula de luz sobre un escudo',
+  aegis: 'un escudo con una hoja verde en el centro',
+  'blood-echo': 'una copa con un remolino rojo',
+  breach: 'una muralla con una grieta abierta en el centro',
+  persistence: 'un nudo apretado de cuerda dorada',
+  'full-cup': 'un cáliz desbordando luz azul',
+  twin: 'dos siluetas idénticas espalda con espalda',
+  'abyss-edge': 'una daga negra sobre un abismo violeta',
+  'perfect-instant': 'un reloj de arena detenido con un destello',
+  void: 'un agujero negro en espiral que traga la luz',
+  crucible: 'un crisol con metal fundido brillante',
+  eclipse: 'un sol negro con un anillo de fuego',
+  legacy: 'un árbol con raíces que abrazan a tres figuras',
+  judgment: 'una balanza con una espada como fiel'
+}
+/** The stone and the glow of a rune, by the attribute it raises (see runeColors in the party screens). */
+const RUNE_COLORS: Record<RuneStat, string> = {
+  attack: 'rojo intenso (#FF4D4D)',
+  special: 'violeta (#B06CFF)',
+  defense: 'naranja (#FF9A2E)',
+  speed: 'verde (#6FD85A)',
+  maxHealth: 'rosa (#FF7FC4)',
+  maxFocus: 'azul (#3D8BFF)',
+  critChance: 'dorado (#FFD23C)'
 }
 const ITEM_ICONS: Record<string, string> = {
   'health-potion': 'un frasquito redondo de poción roja',
@@ -780,8 +848,13 @@ export function buildCatalog(): Piece[] {
     icon(`icons/skills/${id}`, what)
   }
 
-  for (const family of RUNE_FAMILIES) {
-    icon(`icons/runes/${family}`, `una piedra rúnica tallada que muestra ${RUNE_ICONS[family]}`)
+  for (const rune of RUNES) {
+    const color = RUNE_COLORS[rune.gain]
+
+    icon(
+      `icons/runes/${rune.id}`,
+      `una piedra rúnica redondeada de color ${color}, con ${RUNE_ICONS[rune.id]} tallado en el frente que brilla en ${color}`
+    )
   }
 
   for (const [id, what] of Object.entries(ITEM_ICONS)) {

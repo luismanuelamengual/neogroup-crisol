@@ -16,6 +16,7 @@ import { playMusic } from '@/app/(protected)/(art)/utils/sound'
 import XpChange from '@/app/(protected)/(battle)/components/XpChange'
 import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
 import { combatantName } from '@/app/(protected)/(battle)/utils/names'
+import { getRuneOfPerk } from '@/app/(protected)/(engine)/data/runes'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
@@ -24,6 +25,7 @@ import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
+import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
@@ -52,7 +54,7 @@ import {
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
 import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 import XpBar from '@/app/(protected)/(party)/components/XpBar'
-import { itemName } from '@/app/(protected)/(party)/utils/describe'
+import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -221,7 +223,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         resist: t('battle.resist'),
         immune: t('battle.immune'),
         miss: t('battle.miss'),
-        transform: t('battle.transform')
+        transform: t('battle.transform'),
+        perk: (perk: Perk) => {
+          const rune = getRuneOfPerk(perk)
+
+          return rune ? runeName(t, rune) : ''
+        }
       }
       const instance = await BattleRenderer.create(
         stage.current!,

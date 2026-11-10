@@ -21,7 +21,7 @@ export interface WorldNode {
   bossId?: string
   /** CAMP_BOSS of kind CAPTOR: the character it holds. */
   captive?: CharacterId
-  /** SANCTUARY: the rune (1..60, ordered by power) and whether a mini boss guards it (an elite fight otherwise). */
+  /** SANCTUARY: the rune (1..RUNE_COUNT, ordered by power) and whether a mini boss guards it (an elite fight otherwise). */
   runeIndex?: number
   runeTier?: RuneTier
   guardian?: boolean

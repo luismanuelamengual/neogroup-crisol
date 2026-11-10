@@ -196,18 +196,13 @@ export function describeLevelGain(t: Translator, skillId: string, level: number)
   return parts.join(' · ')
 }
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V']
-
 export function runeName(t: Translator, rune: Rune): string {
-  return t('runes.name', {
-    family: t(`runes.families.${rune.family}` as MessageKey),
-    rank: ROMAN[rune.rank - 1] ?? String(rune.rank)
-  })
+  return t(`runes.${rune.id}.name` as MessageKey)
 }
 
 /** The effect of a rune, and (equipped, not as an echo) its attribute shifts. */
 export function describeRune(t: Translator, rune: Rune, withStats = true): string[] {
-  return [...describeBonuses(t, rune.effect), ...(withStats ? describeBonuses(t, { stats: rune.stats }) : [])]
+  return [t(`runes.${rune.id}.text` as MessageKey), ...(withStats ? describeBonuses(t, { stats: rune.stats }) : [])]
 }
 
 export function itemName(t: Translator, itemId: string): string {

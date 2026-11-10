@@ -9,6 +9,7 @@ import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import classNames from 'classnames'
+import { CSSProperties } from 'react'
 import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
 import { artUrl } from '@/app/(protected)/(art)/utils/art'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
@@ -22,6 +23,7 @@ import {
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
+import { Rune } from '@/app/(protected)/(engine)/models/Rune'
 import { ACTIVE_HEROES } from '@/app/(protected)/(engine)/utils/battle'
 import {
   assignEchoes,
@@ -55,6 +57,7 @@ import {
 } from '@/app/(protected)/(engine)/utils/heroes'
 import { xpToNextLevel } from '@/app/(protected)/(engine)/utils/progression'
 import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
+import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
 import SkillIcon from '@/app/(protected)/(party)/components/SkillIcon'
 import SkillTree from '@/app/(protected)/(party)/components/SkillTree'
 import WeaponArt from '@/app/(protected)/(party)/components/WeaponArt'
@@ -68,6 +71,7 @@ import {
   skillCost,
   skillName
 } from '@/app/(protected)/(party)/utils/describe'
+import { runeColor } from '@/app/(protected)/(party)/utils/runeColors'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -100,6 +104,11 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
 ]
 
 /** The portrait of a hero (its bust, see `yarn art`). */
+/** A rune card is tinted with the color of the attribute the rune raises. */
+function runeStyle(rune: Rune): CSSProperties {
+  return { '--rune-color': runeColor(rune) } as CSSProperties
+}
+
 function portraitArtId(id: string): string {
   return `heroes/${id}/portrait`
 }
@@ -422,7 +431,7 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
             {state.runes.length === 0 ? (
               <p className="lines">{t('party.noRunes')}</p>
             ) : (
-              <ul className="cards">
+              <ul className="cards runes">
                 {[...state.runes]
                   .sort((a, b) => a - b)
                   .map((index) => {
@@ -431,29 +440,33 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
                     const wearer = owner(index)
 
                     return (
-                      <li key={index} className={classNames({ worn })}>
-                        <div className="titles">
-                          <span className="name">{runeName(t, rune)}</span>
-                          <span className="tag">
-                            {isRuneMastered(state, index)
-                              ? t('party.mastered')
-                              : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
-                          </span>
+                      <li key={index} className={classNames({ worn })} style={runeStyle(rune)}>
+                        <ItemIcon subject={{ type: 'rune', index }} size={56} className="rune-icon" />
+                        <div className="rune-body">
+                          <div className="titles">
+                            <span className="name">{runeName(t, rune)}</span>
+                            <span className="tag">
+                              {isRuneMastered(state, index)
+                                ? t('party.mastered')
+                                : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
+                            </span>
+                          </div>
+                          <span className="rune-stat">{t(`attributes.${rune.gain}`)}</span>
+                          <p className="lines">{describeRune(t, rune).join(' · ')}</p>
+                          {wearer && !worn && (
+                            <p className="lines">
+                              {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
+                            </p>
+                          )}
+                          <GameButton
+                            size="small"
+                            color={worn ? 'ghost' : 'cyan'}
+                            disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
+                            onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
+                          >
+                            {t(worn ? 'party.unequip' : 'party.equip')}
+                          </GameButton>
                         </div>
-                        <p className="lines">{describeRune(t, rune).join(' · ')}</p>
-                        {wearer && !worn && (
-                          <p className="lines">
-                            {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
-                          </p>
-                        )}
-                        <GameButton
-                          size="small"
-                          color={worn ? 'ghost' : 'cyan'}
-                          disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
-                          onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
-                        >
-                          {t(worn ? 'party.unequip' : 'party.equip')}
-                        </GameButton>
                       </li>
                     )
                   })}
@@ -481,26 +494,29 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
             {mastered.length === 0 ? (
               <p className="lines">{t('party.noEchoes')}</p>
             ) : (
-              <ul className="cards">
+              <ul className="cards runes">
                 {mastered.map((index) => {
                   const rune = getRune(index)
                   const worn = character.echoes.includes(index)
 
                   return (
-                    <li key={index} className={classNames({ worn })}>
-                      <div className="titles">
-                        <span className="name">{runeName(t, rune)}</span>
-                        <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
+                    <li key={index} className={classNames({ worn })} style={runeStyle(rune)}>
+                      <ItemIcon subject={{ type: 'rune', index }} size={56} className="rune-icon" />
+                      <div className="rune-body">
+                        <div className="titles">
+                          <span className="name">{runeName(t, rune)}</span>
+                          <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
+                        </div>
+                        <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
+                        <GameButton
+                          size="small"
+                          color={worn ? 'ghost' : 'magenta'}
+                          disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
+                          onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
+                        >
+                          {t(worn ? 'party.unequip' : 'party.equip')}
+                        </GameButton>
                       </div>
-                      <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
-                      <GameButton
-                        size="small"
-                        color={worn ? 'ghost' : 'magenta'}
-                        disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
-                        onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
-                      >
-                        {t(worn ? 'party.unequip' : 'party.equip')}
-                      </GameButton>
                     </li>
                   )
                 })}

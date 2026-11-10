@@ -3280,6 +3280,10 @@
    "width": 256,
    "height": 256
   },
+  "tiles/redsand": {
+   "width": 256,
+   "height": 256
+  },
   "tiles/ash": {
    "width": 256,
    "height": 256
@@ -3297,6 +3301,14 @@
    "height": 256
   },
   "tiles/blight": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/jademoss": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/mud": {
    "width": 256,
    "height": 256
   },
@@ -3356,6 +3368,14 @@
    "width": 256,
    "height": 256
   },
+  "tiles/murk": {
+   "width": 256,
+   "height": 256
+  },
+  "tiles/acid": {
+   "width": 256,
+   "height": 256
+  },
   "icons/skills/slash": {
    "width": 128,
    "height": 117
@@ -3408,52 +3428,280 @@
    "width": 115,
    "height": 128
   },
-  "icons/runes/leech": {
-   "width": 110,
+  "icons/runes/first-cut": {
+   "width": 121,
    "height": 128
   },
-  "icons/runes/ember": {
-   "width": 118,
+  "icons/runes/breath": {
+   "width": 128,
+   "height": 118
+  },
+  "icons/runes/sprout": {
+   "width": 126,
    "height": 128
   },
-  "icons/runes/wellspring": {
+  "icons/runes/light-step": {
    "width": 125,
    "height": 128
   },
-  "icons/runes/edge": {
-   "width": 117,
+  "icons/runes/carapace": {
+   "width": 123,
    "height": 128
   },
-  "icons/runes/ward": {
+  "icons/runes/impetus": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/live-ember": {
    "width": 122,
    "height": 128
   },
-  "icons/runes/frost": {
-   "width": 121,
+  "icons/runes/finisher": {
+   "width": 128,
+   "height": 113
+  },
+  "icons/runes/true-pulse": {
+   "width": 119,
    "height": 128
   },
-  "icons/runes/vigor": {
-   "width": 121,
-   "height": 128
-  },
-  "icons/runes/haste": {
-   "width": 124,
-   "height": 128
-  },
-  "icons/runes/venom": {
-   "width": 118,
-   "height": 128
-  },
-  "icons/runes/fury": {
-   "width": 121,
-   "height": 128
-  },
-  "icons/runes/storm": {
+  "icons/runes/fang": {
    "width": 120,
    "height": 128
   },
-  "icons/runes/hunter": {
+  "icons/runes/pause": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/whole-body": {
+   "width": 123,
+   "height": 128
+  },
+  "icons/runes/double-edge": {
    "width": 121,
+   "height": 128
+  },
+  "icons/runes/stubborn-ember": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/contagion": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/runes/warm-up": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/untouched-skin": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/last-breath": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/right-moment": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/rescue": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/runes/clean-blow": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/runes/icebreaker": {
+   "width": 128,
+   "height": 120
+  },
+  "icons/runes/open-wound": {
+   "width": 126,
+   "height": 128
+  },
+  "icons/runes/full-healing": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/generous-hand": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/cheer": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/harvest": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/hunter-eye": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/burning-iron": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/runes/frozen-iron": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/thunder-iron": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/reprisal": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/clean-blood": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/runes/temper": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/clear-sight": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/glass": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/runes/pride": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/runes/recklessness": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/runes/coin": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/endurance": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/second-flame": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/martyr": {
+   "width": 126,
+   "height": 128
+  },
+  "icons/runes/posthumous-wrath": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/final-blast": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/lone-wolf": {
+   "width": 123,
+   "height": 128
+  },
+  "icons/runes/company": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/frenzy": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/runes/thrift": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/runes/spring": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/dawn": {
+   "width": 126,
+   "height": 128
+  },
+  "icons/runes/lightning": {
+   "width": 123,
+   "height": 128
+  },
+  "icons/runes/third-blow": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/counterpoint": {
+   "width": 128,
+   "height": 128
+  },
+  "icons/runes/fever": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/runes/plague": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/runes/barrier": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/aegis": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/blood-echo": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/breach": {
+   "width": 124,
+   "height": 128
+  },
+  "icons/runes/persistence": {
+   "width": 123,
+   "height": 128
+  },
+  "icons/runes/full-cup": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/runes/twin": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/runes/abyss-edge": {
+   "width": 125,
+   "height": 128
+  },
+  "icons/runes/perfect-instant": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/runes/void": {
+   "width": 123,
+   "height": 128
+  },
+  "icons/runes/crucible": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/runes/eclipse": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/runes/legacy": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/runes/judgment": {
+   "width": 124,
    "height": 128
   },
   "icons/items/health-potion": {

@@ -2,12 +2,14 @@
 
 import './index.scss'
 import classNames from 'classnames'
+import { CSSProperties } from 'react'
 import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
 import { artUrl } from '@/app/(protected)/(art)/utils/art'
 import { getItem } from '@/app/(protected)/(engine)/data/items'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
+import { runeColor } from '@/app/(protected)/(party)/utils/runeColors'
 
 /** What an icon shows: an item of the inventory, a rune (by index) or one of the special things. */
 export type IconSubject = { type: 'item'; id: string } | { type: 'rune'; index: number } | { type: 'tear' }
@@ -24,7 +26,7 @@ function artIdOf(subject: IconSubject): string {
     case 'item':
       return `icons/items/${subject.id}`
     case 'rune':
-      return `icons/runes/${getRune(subject.index).family}`
+      return `icons/runes/${getRune(subject.index).id}`
     case 'tear':
       return 'icons/items/tear'
   }
@@ -45,11 +47,12 @@ const STONE_COLORS: Record<string, string> = {
   'arcane-stone': '#b06cff',
   'abyssal-stone': '#5a2a8a'
 }
-const RUNE_COLORS: Record<RuneTier, string> = {
-  [RuneTier.LESSER]: '#7ee05a',
-  [RuneTier.GREATER]: '#4fc3ff',
-  [RuneTier.ANCESTRAL]: '#ffc93c',
-  [RuneTier.ABYSSAL]: '#b06cff'
+/** The stone of a rune by its tier (its glyph has the color of the attribute it raises). */
+const RUNE_STONES: Record<RuneTier, string> = {
+  [RuneTier.LESSER]: '#8a8f9a',
+  [RuneTier.GREATER]: '#5a5f9a',
+  [RuneTier.ANCESTRAL]: '#7a5a3a',
+  [RuneTier.ABYSSAL]: '#3a2460'
 }
 const OUTLINE = '#3a2410'
 
@@ -71,11 +74,20 @@ function Placeholder({ subject }: { subject: IconSubject }) {
 
   if (subject.type === 'rune') {
     const rune = getRune(subject.index)
-    const color = RUNE_COLORS[rune.tier]
+    const color = runeColor(rune)
 
     return (
       <svg viewBox="0 0 64 64" aria-hidden>
-        <rect x="12" y="8" width="40" height="48" rx="12" fill="#5a5f9a" stroke={OUTLINE} strokeWidth="3" />
+        <rect
+          x="12"
+          y="8"
+          width="40"
+          height="48"
+          rx="12"
+          fill={RUNE_STONES[rune.tier]}
+          stroke={OUTLINE}
+          strokeWidth="3"
+        />
         <path d="M32 18 L32 46 M22 26 L42 38 M42 26 L22 38" stroke={color} strokeWidth="4" strokeLinecap="round" />
         <circle cx="32" cy="32" r="5" fill={color} />
       </svg>
@@ -149,9 +161,14 @@ function Placeholder({ subject }: { subject: IconSubject }) {
 export default function ItemIcon({ subject, size = 48, className }: ItemIconProps) {
   const images = useArtImages()
   const artId = artIdOf(subject)
+  const style: CSSProperties = { width: size, height: size }
+
+  if (subject.type === 'rune') {
+    Object.assign(style, { '--rune-color': runeColor(getRune(subject.index)) })
+  }
 
   return (
-    <span className={classNames('item-icon', className)} style={{ width: size, height: size }}>
+    <span className={classNames('item-icon', { rune: subject.type === 'rune' }, className)} style={style}>
       {images[artId] ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- the art is already a sized webp */}
