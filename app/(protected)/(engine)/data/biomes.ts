@@ -78,13 +78,12 @@ export const BIOMES: BiomeDefinition[] = [
     runeTier: RuneTier.LESSER,
     merchant: MerchantId.PEDDLER,
     tear: false,
-    chests: 3,
-    // The chest of the old rune in the north, and the two that were already there (the old way to the desert stays
-    // free to open up into a new trail).
+    chests: 2,
+    // The chest of the old rune in the north, and one that was already there (the old way to the desert stays free to
+    // open up into a new trail; the third one gave its place to an Amber Ember).
     chestsAt: [
       [7900, 6340],
-      [9150, 9550],
-      [6590, 10980]
+      [9150, 9550]
     ],
     color: '#7bd36b'
   },
@@ -107,18 +106,17 @@ export const BIOMES: BiomeDefinition[] = [
     sanctuaries: 5,
     sanctuariesAt: [
       [3549, 8398],
-      [6925, 8061],
+      [5032, 6219],
       [844, 8219],
       [2989, 11350],
       [322, 11627]
     ],
-    reliquariesAt: [[5067, 11634]],
+    reliquariesAt: [[6925, 8061]],
     runeTier: RuneTier.LESSER,
     tear: true,
     tearAt: [2721, 11696],
-    chests: 5,
+    chests: 4,
     chestsAt: [
-      [5032, 6219],
       [3079, 9593],
       [1543, 8342],
       [833, 9674],
@@ -146,7 +144,7 @@ export const BIOMES: BiomeDefinition[] = [
     sanctuaries: 6,
     sanctuariesAt: [
       [15625, 9241],
-      [11982, 8723],
+      [11754, 11576],
       [13295, 9891],
       [9059, 11630],
       [14014, 11243],
@@ -186,7 +184,7 @@ export const BIOMES: BiomeDefinition[] = [
       [12124, 5521],
       [12254, 8335],
       [9928, 6917],
-      [13714, 5122],
+      [12972, 6413],
       [14579, 8402]
     ],
     reliquariesAt: [[15618, 8769]],
@@ -223,7 +221,7 @@ export const BIOMES: BiomeDefinition[] = [
       [6956, 5186],
       [1163, 4669],
       [4584, 4716],
-      [733, 4935],
+      [2211, 6211],
       [3573, 5316],
       [3343, 7460]
     ],
@@ -427,6 +425,36 @@ export type TrailEnds = [[number, number], [number, number]]
 
 /** Trails taken away from the maze by hand (and never opened again by the generator). */
 export const REMOVED_TRAILS: TrailEnds[] = [
+  // With the Amber Flasks and Embers: n972–n998 and n969–n1001 (Desert), n665–n645 (Tropics), n280–n316, n273–n306
+  // and n284–n294 (Snow); then n761–n737.
+  [
+    [8595, 8899],
+    [8903, 8635]
+  ],
+  [
+    [11498, 11311],
+    [11754, 11576]
+  ],
+  [
+    [12313, 11292],
+    [12154, 11614]
+  ],
+  [
+    [12887, 7753],
+    [13560, 7479]
+  ],
+  [
+    [2627, 3198],
+    [2608, 3547]
+  ],
+  [
+    [3331, 3125],
+    [3504, 3450]
+  ],
+  [
+    [4254, 3234],
+    [4678, 3331]
+  ],
   // Forest: n644–n624, n678–n676, n721–n676, n721–n689 (the rune of n689 at the end of a dead end), n779–n812 and
   // n855–n886; then n745–n702, n988–n978 and n995–n1014. Desert: n943–n975, n979–n1017, n748–n725, n743–n789,
   // n782–n757 and n728–n682 (the way to the Tropics, closed; see CLOSED_LINKS); then n947–n961 (the way from the
@@ -670,6 +698,28 @@ export const REMOVED_TRAILS: TrailEnds[] = [
 
 /** Trails added to the maze by hand. */
 export const ADDED_TRAILS: TrailEnds[] = [
+  // With the Amber Flasks and Embers: n665–n700 (Tropics) and n263–n284 (Snow), plus n316–n330 (the way to the Amber
+  // Flask of n316), n1001–n998 (the way to the rune of n998) and n1002–n1004, kept as they were.
+  [
+    [2608, 3547],
+    [3110, 3755]
+  ],
+  [
+    [12154, 11614],
+    [11754, 11576]
+  ],
+  [
+    [13331, 11614],
+    [12657, 11629]
+  ],
+  [
+    [12887, 7753],
+    [13083, 8186]
+  ],
+  [
+    [3868, 3060],
+    [4254, 3234]
+  ],
   // Tropics: n566–n550 (the way from the Meadows), n454–n433 (the way to the rune of n454), n404–n433 (the only way to
   // them now), n575–n585, n562–n524 and n620–n651. Forest and Mountains: n552–n544 (the way to the chest of n544),
   // n590–n551, n551–n514 (the way between them), n434–n399 (the way to the Smith) and n418–n411; then n499–n530 and

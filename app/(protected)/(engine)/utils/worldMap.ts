@@ -6,7 +6,6 @@ import {
   SANCTUARY_ECHO_SHARE
 } from '@/app/(protected)/(engine)/data/cycles'
 import {
-  EMBER_MINIBOSS_IDS,
   FLASK_BASE_CHARGES,
   FLASK_BASE_POTENCY,
   FLASK_EMBER_POTENCY,
@@ -56,6 +55,8 @@ const FIGHT_TYPES = new Set([
   NodeType.CAMP_BOSS,
   NodeType.SANCTUARY,
   NodeType.TEAR,
+  NodeType.AMBER_FLASK,
+  NodeType.AMBER_EMBER,
   NodeType.RELIQUARY,
   NodeType.ABYSS_GATE,
   NodeType.FINAL_BOSS
@@ -251,6 +252,8 @@ function encounterKindOf(node: WorldNode): EncounterKind {
     case NodeType.SANCTUARY:
       return node.guardian ? EncounterKind.GUARDIAN : EncounterKind.ELITE
     case NodeType.TEAR:
+    case NodeType.AMBER_FLASK:
+    case NodeType.AMBER_EMBER:
       return EncounterKind.ELITE
     case NodeType.RELIQUARY:
       return EncounterKind.WARDEN
@@ -521,24 +524,24 @@ export function teleport(state: GameState, campId: string): GameState {
   return { ...state, positionNodeId: campId }
 }
 
-/** Charges, maximum and potency of the Amber Flask, from the bosses defeated in this cycle. */
+/** Charges, maximum and potency of the Amber Flask, from the Amber Flasks and Embers found in this cycle. */
 export function getFlask(index: WorldIndex, state: GameState): Flask {
+  let flasks = 0
   let embers = 0
 
   for (const id of state.clearedNodeIds) {
-    const node = index.nodes.get(id)
+    const type = index.nodes.get(id)?.type
 
-    if (node?.bossKind === BossKind.CAPTOR || (node?.bossId && EMBER_MINIBOSS_IDS.includes(node.bossId))) {
+    if (type === NodeType.AMBER_FLASK) {
+      flasks++
+    } else if (type === NodeType.AMBER_EMBER) {
       embers++
     }
   }
 
   return {
     charges: state.flaskCharges,
-    maxCharges: Math.min(
-      FLASK_MAX_CHARGES,
-      FLASK_BASE_CHARGES + countDefeatedSeals(index, state) + (isCleared(state, index.world.gateNodeId) ? 1 : 0)
-    ),
+    maxCharges: Math.min(FLASK_MAX_CHARGES, FLASK_BASE_CHARGES + flasks),
     potency: Math.min(FLASK_MAX_POTENCY, FLASK_BASE_POTENCY + FLASK_EMBER_POTENCY * embers)
   }
 }

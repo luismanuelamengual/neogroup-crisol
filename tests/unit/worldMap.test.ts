@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CAPTOR_ECHOES, CAPTOR_STONES, CYCLE_LEVELS } from '@/app/(protected)/(engine)/data/cycles'
-import { EMBER_MINIBOSS_IDS } from '@/app/(protected)/(engine)/data/flask'
+import { FLASK_MAX_CHARGES, FLASK_MAX_POTENCY } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { getStartingWeapon, getWeapon, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
@@ -336,16 +336,48 @@ describe('camp bosses and the Amber Flask', () => {
     expect(won.characters[1]).toMatchObject({ level: 10 })
     expect(rewards).toEqual([
       { type: 'camp', nodeId: captor.id },
-      { type: 'character', characterId: captor.captive, level: 10 },
-      { type: 'flaskPotency', potency: 15 }
+      { type: 'character', characterId: captor.captive, level: 10 }
     ])
   })
 
-  it('gives a filled flask charge for each Seal', () => {
-    const { state, rewards } = winEncounter(index, arriveAt(index, nextTo(seals[0].id), seals[0].id).state, {})
+  const flasks = world.nodes.filter((node) => node.type === NodeType.AMBER_FLASK)
+  const embers = world.nodes.filter((node) => node.type === NodeType.AMBER_EMBER)
+
+  it('keeps two Amber Flasks and five Amber Embers on the map, each behind an elite fight', () => {
+    expect(flasks).toHaveLength(2)
+    expect(embers).toHaveLength(5)
+
+    for (const node of [...flasks, ...embers]) {
+      expect(getEncounter(index, nextTo(node.id), node.id)).toMatchObject({ kind: EncounterKind.ELITE })
+    }
+  })
+
+  it('gives a filled flask charge for each Amber Flask, up to three', () => {
+    const { state, rewards } = winEncounter(index, arriveAt(index, nextTo(flasks[0].id), flasks[0].id).state, {})
 
     expect(getFlask(index, state)).toEqual({ charges: 2, maxCharges: 2, potency: 10 })
     expect(rewards).toContainEqual({ type: 'flaskCharge', maxCharges: 2 })
+
+    const all = nextTo(flasks[0].id, { clearedNodeIds: [world.startNodeId, ...flasks.map((node) => node.id)] })
+
+    expect(getFlask(index, all).maxCharges).toBe(FLASK_MAX_CHARGES)
+  })
+
+  it('heals 10% more for each Amber Ember, up to 60%', () => {
+    const { state, rewards } = winEncounter(index, arriveAt(index, nextTo(embers[0].id), embers[0].id).state, {})
+
+    expect(getFlask(index, state).potency).toBe(20)
+    expect(rewards).toContainEqual({ type: 'flaskPotency', potency: 20 })
+
+    const all = nextTo(embers[0].id, { clearedNodeIds: [world.startNodeId, ...embers.map((node) => node.id)] })
+
+    expect(getFlask(index, all).potency).toBe(FLASK_MAX_POTENCY)
+  })
+
+  it('does not grow the flask with bosses any more', () => {
+    const { state } = winEncounter(index, arriveAt(index, nextTo(seals[0].id), seals[0].id).state, {})
+
+    expect(getFlask(index, state)).toMatchObject({ maxCharges: 1, potency: 10 })
   })
 
   it('heals the whole party with the flask and refills it when resting', () => {
@@ -417,13 +449,6 @@ describe('camp bosses and the Amber Flask', () => {
     const won = winEncounter(index, arrived.state, {}).state
 
     expect(won.clearedNodeIds).toContain(world.gateNodeId)
-    expect(getFlask(index, won).maxCharges).toBe(4)
-  })
-
-  it('has its Amber Embers on real mini bosses', () => {
-    for (const bossId of EMBER_MINIBOSS_IDS) {
-      expect(findNode((node) => node.bossId === bossId)?.bossKind).toBe(BossKind.MINIBOSS)
-    }
   })
 })
 

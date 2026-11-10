@@ -25,6 +25,8 @@ export interface ZoneDefinition {
   /** Its lakes, instead of the biome's, and how little noise makes one (lower: more lakes; see BiomeTerrains). */
   lake?: Terrain
   lakes?: number
+  /** How little noise makes a patch, instead of the usual (lower: more of its patches; see PATCH_THRESHOLD in tileMap). */
+  patchy?: number
   /** How thick its scenery grows, instead of the biome's (SCENERY_DENSITY). */
   density?: SceneryDensity
   /**
@@ -168,6 +170,29 @@ export const ZONES: ZoneDefinition[] = [
     lake: Terrain.LAVA,
     density: { tall: 0.22, low: 0.34, ground: 1.2 },
     moat: { shore: Terrain.BASALT, width: 2 }
+  },
+  {
+    zone: Zone.FARMLAND,
+    biome: Biome.MEADOWS,
+    weight: 2,
+    patches: Terrain.DIRT,
+    patchy: 0.5,
+    density: { tall: 0.14, low: 0.36, ground: 1.6 }
+  },
+  {
+    zone: Zone.WILDFLOWERS,
+    biome: Biome.MEADOWS,
+    weight: 2,
+    patches: Terrain.MOSS,
+    density: { tall: 0.32, low: 0.3, ground: 3 }
+  },
+  {
+    zone: Zone.HEATH,
+    biome: Biome.MEADOWS,
+    weight: 1.8,
+    patches: Terrain.ROCK,
+    patchy: 0.54,
+    density: { tall: 0.16, low: 0.42, ground: 2 }
   },
   {
     zone: Zone.VILLAGE,

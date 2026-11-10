@@ -78,6 +78,8 @@ export interface BiomeTerrains {
   trail: Terrain
   lake: Terrain | null
   lakes?: number
+  /** How little noise makes a patch (see PATCH_THRESHOLD in tileMap); its zone may change it. */
+  patchy?: number
   rivers?: number
   seal?: { from: number; ground: Terrain; patches: Terrain; lakes: number; rivers: number }
 }

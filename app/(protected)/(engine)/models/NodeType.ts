@@ -14,6 +14,10 @@ export enum NodeType {
   TEAR = 'tear',
   /** A small chest in a dead end, free or guarded (see WorldNode.guarded). */
   CHEST = 'chest',
+  /** An Amber Flask (one more charge of the flask), behind an elite fight. */
+  AMBER_FLASK = 'amberFlask',
+  /** An Amber Ember (the flask heals more), behind an elite fight. */
+  AMBER_EMBER = 'amberEmber',
   /** A reliquary: a weapon of a character, guarded by a warden (only that character can claim it). */
   RELIQUARY = 'reliquary',
   /** The door of the Abyss: it opens once the three Seals are defeated. */

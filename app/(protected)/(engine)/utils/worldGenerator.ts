@@ -13,6 +13,7 @@ import {
   WORLD_WIDTH
 } from '@/app/(protected)/(engine)/data/biomes'
 import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
+import { AMBER_EMBER_PLACES, AMBER_FLASK_PLACES } from '@/app/(protected)/(engine)/data/flask'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { ABYSS_GATE_GUARDIAN, START_NODE_ID, WORLD_SEED, WORLD_VERSION } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
@@ -711,6 +712,23 @@ function placeContent(
     }
   }
 
+  // The Amber Flasks and Embers, at their points (with another seed, at the free dead end closest to each place).
+  for (const [type, places] of [
+    [NodeType.AMBER_FLASK, AMBER_FLASK_PLACES],
+    [NodeType.AMBER_EMBER, AMBER_EMBER_PLACES]
+  ] as const) {
+    for (const [x, y] of places) {
+      const exact = nodes.find((node) => isFree(node) && node.x === x && node.y === y)
+      const options = nodes.filter((node) => isFree(node) && isLeaf(node) && node.biome !== Biome.ABYSS)
+
+      if (!exact && options.length === 0) {
+        return null
+      }
+
+      ;(exact ?? minBy(options, (node) => Math.hypot(node.x - x, node.y - y))).type = type
+    }
+  }
+
   // Sanctuaries, Tears and chests: in dead ends, never on the way through. Each biome draws its chests with its own
   // random numbers, so a change in one biome does not move the chests of the others.
   for (const [biomeIndex, definition] of BIOMES.entries()) {
@@ -978,6 +996,8 @@ function assignLevels(nodes: WorldNode[], fromStart: Map<string, number>): void 
           node.level = level + (node.guardian ? GUARDIAN_EXTRA_LEVELS : ELITE_EXTRA_LEVELS) + TREASURE_EXTRA_LEVELS
           break
         case NodeType.TEAR:
+        case NodeType.AMBER_FLASK:
+        case NodeType.AMBER_EMBER:
           node.level = level + ELITE_EXTRA_LEVELS
           break
         case NodeType.RELIQUARY:

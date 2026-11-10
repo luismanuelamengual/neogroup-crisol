@@ -77,6 +77,10 @@ function markerOf(node: WorldNode): { color: string; radius: number; label: stri
       return { color: '#3b82f6', radius: 75, label: 'Tear of Oblivion' }
     case NodeType.CHEST:
       return { color: '#b7793b', radius: 55, label: 'Chest' }
+    case NodeType.AMBER_FLASK:
+      return { color: '#ffa62b', radius: 85, label: 'Amber Flask (elite)' }
+    case NodeType.AMBER_EMBER:
+      return { color: '#ff7a1a', radius: 80, label: 'Amber Ember (elite)' }
     case NodeType.RELIQUARY:
       return { color: '#e2e8f0', radius: 90, label: `Reliquary ${node.weaponId}` }
     case NodeType.ABYSS_GATE:
@@ -97,6 +101,8 @@ const LEGEND: { type: NodeType; bossKind?: BossKind; label: string }[] = [
   { type: NodeType.MERCHANT, label: 'Merchant' },
   { type: NodeType.TEAR, label: 'Tear of Oblivion' },
   { type: NodeType.CHEST, label: 'Chest' },
+  { type: NodeType.AMBER_FLASK, label: 'Amber Flask (elite)' },
+  { type: NodeType.AMBER_EMBER, label: 'Amber Ember (elite)' },
   { type: NodeType.RELIQUARY, label: 'Weapon reliquary (warden)' },
   { type: NodeType.ABYSS_GATE, label: 'Door of the Abyss' },
   { type: NodeType.FINAL_BOSS, label: 'Crisol' },

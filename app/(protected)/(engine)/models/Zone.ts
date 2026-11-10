@@ -36,6 +36,12 @@ export enum Zone {
   THRESHOLD = 'threshold',
   /** Abyss: the forge of Crisol, cooled lava and burning ground around its fortress, with lakes of fire. */
   CRUCIBLE = 'crucible',
+  /** Meadows: farmland of golden stubble, with wheat plots, hay bales, fences, scarecrows and a windmill, and few trees. */
+  FARMLAND = 'farmland',
+  /** Meadows: meadows in bloom, birches and spring oaks among flowering bushes and a carpet of wildflowers. */
+  WILDFLOWERS = 'wildflowers',
+  /** Meadows: rocky heath of violet heather and grey boulders, few trees and an old ruined watchtower here and there. */
+  HEATH = 'heath',
   /** Meadows: the village around its merchant, with cottages, a well, fences and fields, and fewer trees. */
   VILLAGE = 'village'
 }

@@ -126,8 +126,110 @@ const VIOLETS: [number, number] = [250, 335]
 const EMBER: Recolor = { hue: 22, saturation: 1.1, lightness: 1.04, from: VIOLETS }
 /** The same for great stonework: dark burned iron, its glow still ember. */
 const FORGE_STONE: Recolor = { hue: 12, saturation: 0.62, lightness: 0.78, from: VIOLETS }
+/** Shares of the meadows sheet: 6 oaks and beeches then 2 poplars; 2 bushes, a flowering bush, a rock; 2 tufts, yellow flowers, pebbles. */
+const MEADOW_OAKS: [number, number] = [0, 0.75]
+const POPLARS: [number, number] = [0.75, 1]
+const MEADOW_BUSHES: [number, number] = [0, 0.5]
+const MEADOW_BLOOM: [number, number] = [0.5, 0.75]
+const MEADOW_ROCK: [number, number] = [0.75, 1]
+const MEADOW_TUFTS: [number, number] = [0, 0.5]
+const YELLOW_FLOWERS: [number, number] = [0.5, 0.75]
+const MEADOW_PEBBLES: [number, number] = [0.75, 1]
+/** The yellows of the flowers, turned to other blooms. */
+const YELLOWS: [number, number] = [30, 70]
+const LILAC_BLOOM: Recolor = { hue: 285, saturation: 0.9, lightness: 1.1, from: YELLOWS }
+const PINK_BLOOM: Recolor = { hue: 335, saturation: 0.95, lightness: 1.12, from: YELLOWS }
+const WHITE_FLOWERS: Recolor = { hue: 50, saturation: 0.15, lightness: 1.5, from: YELLOWS }
+/** The pink flowers of the bushes, turned white or lilac. */
+const PINKS: [number, number] = [320, 360]
+const WHITE_BUSH: Recolor = { hue: 40, saturation: 0.12, lightness: 1.45, from: PINKS }
+const LILAC_BUSH: Recolor = { hue: 280, saturation: 0.9, lightness: 1.05, from: PINKS }
+/** Wheat stubble: the green of the tufts gone golden. */
+const STUBBLE: Recolor = { hue: 46, saturation: 1.1, lightness: 1.2 }
+/** Heather: the greens of the bushes and tufts turned violet, and a dry olive for the trees of the heath. */
+const HEATHER: Recolor = { hue: 286, saturation: 0.5, lightness: 0.9 }
+const HEATHER_LIGHT: Recolor = { hue: 300, saturation: 0.55, lightness: 1.08 }
+const MOOR: Recolor = { hue: 78, saturation: 0.65, lightness: 0.86 }
 const WHOLE: [number, number] = [0, 1]
 const LOOKS: Partial<Record<Zone, Look>> = {
+  [Zone.FARMLAND]: {
+    tall: [
+      { share: MEADOW_OAKS },
+      { share: POPLARS },
+      { id: 'map/meadows/13', height: 118 },
+      { id: 'props/meadows/13', height: 92 }
+    ],
+    low: [
+      { id: 'map/meadows/5', height: 48 },
+      { id: 'map/meadows/6', height: 48 },
+      { id: 'props/meadows/4', height: 40 },
+      { id: 'map/meadows/11', height: 58 },
+      { id: 'map/meadows/12', height: 58 },
+      { id: 'map/meadows/11', height: 52 },
+      { id: 'map/meadows/12', height: 52 },
+      { id: 'map/meadows/7', height: 46 },
+      { id: 'map/meadows/8', height: 46 },
+      { id: 'map/meadows/16', height: 52 },
+      { id: 'props/meadows/13', height: 70 }
+    ],
+    ground: [
+      { share: MEADOW_TUFTS, recolor: STUBBLE },
+      { share: MEADOW_TUFTS, recolor: STUBBLE },
+      { share: MEADOW_TUFTS },
+      { share: YELLOW_FLOWERS },
+      { share: MEADOW_PEBBLES }
+    ]
+  },
+  [Zone.WILDFLOWERS]: {
+    tall: [
+      { id: 'props/meadows/3', height: 130 },
+      { id: 'props/meadows/3', height: 112 },
+      { share: MEADOW_OAKS, recolor: SPRING },
+      { share: POPLARS, recolor: SPRING },
+      { share: MEADOW_OAKS, recolor: WHITE_BLOOM },
+      { share: MEADOW_OAKS, recolor: PINK }
+    ],
+    low: [
+      { share: MEADOW_BLOOM },
+      { share: MEADOW_BLOOM, recolor: WHITE_BUSH },
+      { share: MEADOW_BLOOM, recolor: LILAC_BUSH },
+      { id: 'props/meadows/9', height: 48 },
+      { share: MEADOW_BUSHES, recolor: SPRING }
+    ],
+    ground: [
+      { share: YELLOW_FLOWERS },
+      { share: YELLOW_FLOWERS, recolor: PINK_BLOOM },
+      { share: YELLOW_FLOWERS, recolor: LILAC_BLOOM },
+      { share: YELLOW_FLOWERS, recolor: WHITE_FLOWERS },
+      { share: MEADOW_TUFTS, recolor: SPRING }
+    ]
+  },
+  [Zone.HEATH]: {
+    tall: [
+      { share: MEADOW_OAKS, recolor: MOOR },
+      { share: POPLARS, recolor: MOOR },
+      { id: 'props/meadows/3', height: 110, recolor: MOOR },
+      { share: MEADOW_OAKS },
+      { id: 'battle/meadows/landmarks/2', height: 150 }
+    ],
+    low: [
+      { id: 'map/meadows/9', height: 54 },
+      { id: 'map/meadows/10', height: 54 },
+      { id: 'props/meadows/7', height: 42 },
+      { id: 'props/meadows/8', height: 46 },
+      { share: MEADOW_ROCK },
+      { share: MEADOW_BUSHES, recolor: HEATHER },
+      { share: MEADOW_BUSHES, recolor: HEATHER_LIGHT },
+      { id: 'props/meadows/12', height: 40 }
+    ],
+    ground: [
+      { share: MEADOW_TUFTS, recolor: HEATHER },
+      { share: MEADOW_TUFTS, recolor: HEATHER_LIGHT },
+      { share: YELLOW_FLOWERS, recolor: LILAC_BLOOM },
+      { share: MEADOW_PEBBLES },
+      { share: MEADOW_PEBBLES }
+    ]
+  },
   [Zone.CRUCIBLE]: {
     tall: [{ share: WHOLE, recolor: EMBER }],
     low: [{ share: WHOLE, recolor: EMBER }],

@@ -169,7 +169,7 @@ export function buildTileMap(world: World): TileMap {
           (biome.rivers !== undefined && Math.abs(riverNoise(x / RIVER_SCALE, y / RIVER_SCALE) - 0.5) < biome.rivers))
       ) {
         terrain = biome.lake
-      } else if (patchNoise(x / PATCH_SCALE, y / PATCH_SCALE) > PATCH_THRESHOLD) {
+      } else if (patchNoise(x / PATCH_SCALE, y / PATCH_SCALE) > (biome.patchy ?? PATCH_THRESHOLD)) {
         terrain = biome.patches
       } else {
         terrain = biome.ground
@@ -272,7 +272,7 @@ function withZone(terrains: BiomeTerrains, zone: number): BiomeTerrains {
     return terrains
   }
 
-  const { ground, patches, trail, lake, lakes } = getZoneDefinition(ZONES_ORDER[zone - 1])
+  const { ground, patches, trail, lake, lakes, patchy } = getZoneDefinition(ZONES_ORDER[zone - 1])
 
   return {
     ...terrains,
@@ -280,7 +280,8 @@ function withZone(terrains: BiomeTerrains, zone: number): BiomeTerrains {
     patches: patches ?? terrains.patches,
     trail: trail ?? terrains.trail,
     lake: lake ?? terrains.lake,
-    lakes: lakes ?? terrains.lakes
+    lakes: lakes ?? terrains.lakes,
+    patchy: patchy ?? terrains.patchy
   }
 }
 

@@ -112,6 +112,25 @@ describe('zones of the biomes', () => {
     }
   })
 
+  it('split the meadows into farmland, wildflowers and heath around their village', () => {
+    const meadows = BIOMES_ORDER.indexOf(Biome.MEADOWS)
+    const tiles = [...map.zones.keys()].filter((index) => map.biomes[index] === meadows)
+    const of = (zone: Zone) => tiles.filter((index) => map.zones[index] === ZONES_ORDER.indexOf(zone) + 1)
+
+    expect(tiles.filter((index) => !map.zones[index]).length / tiles.length).toBeGreaterThan(0.15)
+
+    for (const [zone, patches] of [
+      [Zone.FARMLAND, Terrain.DIRT],
+      [Zone.WILDFLOWERS, Terrain.MOSS],
+      [Zone.HEATH, Terrain.ROCK]
+    ] as const) {
+      expect(of(zone).length / tiles.length).toBeGreaterThan(0.08)
+      expect(of(zone).some((index) => TERRAINS[map.terrains[index]] === patches)).toBe(true)
+    }
+
+    expect(of(Zone.VILLAGE).length).toBeGreaterThan(0)
+  })
+
   it('give their ground to their tiles', () => {
     const autumn = ZONES_ORDER.indexOf(Zone.AUTUMN) + 1
     const leaves = map.terrains.filter(

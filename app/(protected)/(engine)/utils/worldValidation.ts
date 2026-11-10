@@ -1,5 +1,6 @@
 import { ADDED_TRAILS, BIOME_LINKS, BIOMES, CLOSED_LINKS } from '@/app/(protected)/(engine)/data/biomes'
 import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
+import { AMBER_EMBER_PLACES, AMBER_FLASK_PLACES } from '@/app/(protected)/(engine)/data/flask'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { ABYSS_GATE_GUARDIAN, SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
@@ -298,6 +299,14 @@ export function validateWorld(world: World): string[] {
     'a merchant is not in a dead end right off a camp'
   )
   check(world.nodes.filter((node) => node.type === NodeType.TEAR).length === TOTAL_TEARS, 'not five Tears')
+  check(
+    world.nodes.filter((node) => node.type === NodeType.AMBER_FLASK).length === AMBER_FLASK_PLACES.length,
+    'not every Amber Flask is on the map'
+  )
+  check(
+    world.nodes.filter((node) => node.type === NodeType.AMBER_EMBER).length === AMBER_EMBER_PLACES.length,
+    'not every Amber Ember is on the map'
+  )
 
   // Levels.
   for (const node of world.nodes) {
