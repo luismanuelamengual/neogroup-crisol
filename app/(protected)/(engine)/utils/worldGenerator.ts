@@ -692,7 +692,19 @@ function placeContent(
 
   for (const definition of BIOMES) {
     if (definition.merchant) {
-      Object.assign(deadEndsBeside(merchantCamps.get(definition.biome)!, nodes, adjacency)[0], {
+      const { merchantAt } = definition
+      const setByHand = merchantAt
+        ? nodes.find(
+            (node) =>
+              node.x === merchantAt[0] &&
+              node.y === merchantAt[1] &&
+              isFree(node) &&
+              isLeaf(node) &&
+              isCamp(byId.get(adjacency.get(node.id)![0])!)
+          )
+        : undefined
+
+      Object.assign(setByHand ?? deadEndsBeside(merchantCamps.get(definition.biome)!, nodes, adjacency)[0], {
         type: NodeType.MERCHANT,
         merchant: definition.merchant
       })
@@ -730,13 +742,19 @@ function placeContent(
         return null
       }
 
+      // A sanctuary set by hand on a point of this world goes right there, even on the way through.
       const place = definition.sanctuariesAt?.[index]
-      const node = place
-        ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
-        : maxBy(options, (candidate) => spread.get(candidate.id) ?? 0)
+      const exact =
+        place && biomeNodes(definition).find((item) => isFree(item) && item.x === place[0] && item.y === place[1])
+      const node =
+        exact ||
+        (place
+          ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
+          : maxBy(options, (candidate) => spread.get(candidate.id) ?? 0))
 
       node.type = NodeType.SANCTUARY
-      node.runeTier = definition.runeTier
+      // A rune brought from another biome keeps its tier, on its own point.
+      node.runeTier = (exact && place?.[2]) || definition.runeTier
       sanctuaries.push(node)
     }
 
@@ -761,7 +779,12 @@ function placeContent(
         return null
       }
 
-      maxBy(options, (candidate) => fromStart.get(candidate.id)!).type = NodeType.TEAR
+      const { tearAt } = definition
+
+      ;(tearAt
+        ? minBy(options, (candidate) => Math.hypot(candidate.x - tearAt[0], candidate.y - tearAt[1]))
+        : maxBy(options, (candidate) => fromStart.get(candidate.id)!)
+      ).type = NodeType.TEAR
     }
 
     const chestRandom = createRandom(seed + 1000 * (biomeIndex + 1))
@@ -797,10 +820,16 @@ function placeContent(
     }
 
     const definition = getBiomeDefinition(weapon.biome!)
+    // A reliquary set by hand on a point of this world goes right there, even on the way through.
     const place = definition.reliquariesAt?.[reliquaries.filter((item) => item.biome === weapon.biome).length]
-    const node = place
-      ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
-      : maxBy(options, (candidate) => fromStart.get(candidate.id)! + (spread.get(candidate.id) ?? 0))
+    const exact =
+      place &&
+      nodes.find((item) => item.biome === weapon.biome && isFree(item) && item.x === place[0] && item.y === place[1])
+    const node =
+      exact ||
+      (place
+        ? minBy(options, (candidate) => Math.hypot(candidate.x - place[0], candidate.y - place[1]))
+        : maxBy(options, (candidate) => fromStart.get(candidate.id)! + (spread.get(candidate.id) ?? 0)))
 
     Object.assign(node, { type: NodeType.RELIQUARY, weaponId: weapon.id })
     reliquaries.push(node)

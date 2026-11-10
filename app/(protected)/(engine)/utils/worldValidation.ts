@@ -1,4 +1,4 @@
-import { BIOME_LINKS, BIOMES, CLOSED_LINKS } from '@/app/(protected)/(engine)/data/biomes'
+import { ADDED_TRAILS, BIOME_LINKS, BIOMES, CLOSED_LINKS } from '@/app/(protected)/(engine)/data/biomes'
 import { GUARDIAN_SPECIES } from '@/app/(protected)/(engine)/data/enemies'
 import { WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { ABYSS_GATE_GUARDIAN, SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
@@ -14,7 +14,7 @@ import { Adjacency, buildAdjacency, hopDistances } from '@/app/(protected)/(engi
 export const MIN_NODES = 1000
 
 /** Camps of the world: the starting one plus one per camp boss. */
-export const TOTAL_CAMPS = 31
+export const TOTAL_CAMPS = 29
 
 /** No point is farther than this many trail steps from a camp (or from the boss that opens one). */
 export const MAX_STEPS_TO_CAMP = 40
@@ -76,9 +76,13 @@ export function validateWorld(world: World): string[] {
   }
 
   const adjacency = buildAdjacency(ids, world.edges)
+  // At most four trails per point; a point at the end of a trail added by hand can have one more.
+  const handEnds = ADDED_TRAILS.flat()
 
   for (const node of world.nodes) {
-    check(adjacency.get(node.id)!.length <= 4, `${node.id} has more than 4 trails`)
+    const limit = handEnds.some(([x, y]) => node.x === x && node.y === y) ? 5 : 4
+
+    check(adjacency.get(node.id)!.length <= limit, `${node.id} has more than ${limit} trails`)
     check(adjacency.get(node.id)!.length >= 1, `${node.id} has no trails`)
   }
 
@@ -148,14 +152,22 @@ export function validateWorld(world: World): string[] {
   check(new Set(captors.map((node) => node.captive)).size === 4 && captors.length === 4, 'not four captors')
   check(seals.length === SEALS_TO_OPEN_ABYSS, `${seals.length} Seals`)
 
+  const isHandCamp = (camp: WorldNode) =>
+    BIOMES.some((definition) => definition.campsAt?.some(([x, y]) => camp.x === x && camp.y === y))
+
   for (const camp of camps) {
     const fromCamp = hopDistances(adjacency, [camp.id])
     const others = camps.filter((other) => other !== camp).map((other) => fromCamp.get(other.id) ?? Infinity)
     const closest = Math.min(...others)
+    // Captors and Seals can wait at the end of a dead end; the other camps are crossroads, but a camp set by hand on its
+    // point can also be on a corridor (two trails).
+    const setByHand = isHandCamp(camp)
 
-    // Captors and Seals can wait at the end of a dead end; the other camps are crossroads.
     check(
-      camp.bossKind === BossKind.CAPTOR || camp.bossKind === BossKind.SEAL || isJunction(camp.id, adjacency),
+      camp.bossKind === BossKind.CAPTOR ||
+        camp.bossKind === BossKind.SEAL ||
+        isJunction(camp.id, adjacency) ||
+        (setByHand && adjacency.get(camp.id)!.filter((other) => adjacency.get(other)!.length > 1).length >= 2),
       `the camp ${camp.id} is not a crossroads`
     )
     check(closest >= MIN_STEPS_BETWEEN_CAMPS, `the camp ${camp.id} is ${closest} steps away from another camp`)
@@ -223,20 +235,35 @@ export function validateWorld(world: World): string[] {
 
     check(found.length === definition.sanctuaries, `${definition.biome} has ${found.length} sanctuaries`)
     check(
-      found.every((node) => node.runeTier === definition.runeTier),
+      // A rune brought by hand from another biome keeps its tier.
+      found.every(
+        (node) =>
+          node.runeTier ===
+          (definition.sanctuariesAt?.find(([x, y]) => node.x === x && node.y === y)?.[2] ?? definition.runeTier)
+      ),
       `a rune of ${definition.biome} has the wrong tier`
     )
   }
 
-  // Dead ends: sanctuaries, Tears and chests are never on the way through (but a chest set by hand on its point can be),
+  // Dead ends: sanctuaries, Tears and chests are never on the way through (but a chest, sanctuary or reliquary set by
+  // hand on its point can be),
   // and no dead end is left without a prize.
   const setByHand = (node: WorldNode) =>
-    BIOMES.some((definition) => definition.chestsAt?.some(([x, y]) => node.x === x && node.y === y))
+    BIOMES.some((definition) =>
+      (node.type === NodeType.CHEST
+        ? definition.chestsAt
+        : node.type === NodeType.SANCTUARY
+          ? definition.sanctuariesAt
+          : node.type === NodeType.RELIQUARY
+            ? definition.reliquariesAt
+            : []
+      )?.some(([x, y]) => node.x === x && node.y === y)
+    )
 
   for (const node of world.nodes) {
     if (
       [NodeType.SANCTUARY, NodeType.TEAR, NodeType.CHEST, NodeType.RELIQUARY].includes(node.type) &&
-      !(node.type === NodeType.CHEST && setByHand(node))
+      !setByHand(node)
     ) {
       check(adjacency.get(node.id)!.length === 1, `${node.id} (${node.type}) is not in a dead end`)
     }

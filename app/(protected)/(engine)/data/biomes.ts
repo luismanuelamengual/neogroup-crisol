@@ -29,12 +29,19 @@ export interface BiomeDefinition {
   /** Where they go, in order: at the crossroads closest to each place (otherwise, spread out by the generator). */
   campsAt?: [number, number][]
   sanctuaries: number
-  /** Where the first sanctuaries go: at the dead end closest to each place (the rest are spread out). */
-  sanctuariesAt?: [number, number][]
+  /**
+   * Where the first sanctuaries go: at the dead end closest to each place (the rest are spread out). A third value
+   * keeps the tier of a rune brought from another biome.
+   */
+  sanctuariesAt?: ([number, number] | [number, number, RuneTier])[]
   runeTier: RuneTier
   merchant?: MerchantId
+  /** Where the merchant waits: at this point, a dead end right off a camp (otherwise, beside the camp chosen for it). */
+  merchantAt?: [number, number]
   /** Whether a Tear of Oblivion is hidden in the biome. */
   tear: boolean
+  /** Where it is: at the dead end closest to this place (otherwise, at its deepest one). */
+  tearAt?: [number, number]
   chests: number
   /** Where the reliquaries of its weapons go, in the order of WEAPONS: at the dead end closest to each place. */
   reliquariesAt?: [number, number][]
@@ -103,13 +110,16 @@ export const BIOMES: BiomeDefinition[] = [
       [6925, 8061],
       [844, 8219],
       [2989, 11350],
-      [5067, 11634]
+      [322, 11627]
     ],
+    reliquariesAt: [[5067, 11634]],
     runeTier: RuneTier.LESSER,
     tear: true,
-    chests: 4,
+    tearAt: [2721, 11696],
+    chests: 5,
     chestsAt: [
-      [322, 11627],
+      [5032, 6219],
+      [3079, 9593],
       [1543, 8342],
       [833, 9674],
       [4297, 11667]
@@ -165,10 +175,29 @@ export const BIOMES: BiomeDefinition[] = [
     captor: { bossId: 'xalqui', captive: CharacterId.OREN },
     captorAt: [WORLD_WIDTH, 3800],
     minibossCamps: 3,
+    campsAt: [
+      [14015, 6589],
+      [10190, 5577],
+      [11784, 7488]
+    ],
     sanctuaries: 6,
+    sanctuariesAt: [
+      [11960, 4086],
+      [12124, 5521],
+      [12254, 8335],
+      [9928, 6917],
+      [13714, 5122],
+      [14579, 8402]
+    ],
+    reliquariesAt: [[15618, 8769]],
     runeTier: RuneTier.GREATER,
     tear: true,
+    tearAt: [15109, 8537],
     chests: 2,
+    chestsAt: [
+      [15684, 6230],
+      [14858, 8085]
+    ],
     color: '#18c3a4'
   },
   {
@@ -181,12 +210,36 @@ export const BIOMES: BiomeDefinition[] = [
       [5400, 5000]
     ],
     captor: { bossId: 'colossus', captive: CharacterId.YSOLDE },
+    captorAt: [1389, 6704],
     minibossCamps: 3,
+    campsAt: [
+      [2199, 5104],
+      [5623, 4903],
+      [2164, 7808]
+    ],
     sanctuaries: 7,
+    sanctuariesAt: [
+      [5581, 3855],
+      [6956, 5186],
+      [1163, 4669],
+      [4584, 4716],
+      [733, 4935],
+      [3573, 5316],
+      [3343, 7460]
+    ],
+    reliquariesAt: [
+      [4510, 5416],
+      [493, 7975]
+    ],
     runeTier: RuneTier.GREATER,
     merchant: MerchantId.SMITH,
+    merchantAt: [5645, 4458],
     tear: false,
     chests: 2,
+    chestsAt: [
+      [1995, 4397],
+      [4279, 4944]
+    ],
     color: '#9a8f86'
   },
   {
@@ -200,11 +253,37 @@ export const BIOMES: BiomeDefinition[] = [
       [9600, 2600]
     ],
     minibossCamps: 2,
-    sanctuaries: 9,
+    campsAt: [
+      [9543, 2296],
+      [6782, 3087]
+    ],
+    sanctuaries: 8,
+    sanctuariesAt: [
+      [10923, 3306],
+      [5508, 1160],
+      [5038, 2829],
+      [5708, 3093],
+      [10646, 2474],
+      [10033, 3804],
+      [7869, 5611],
+      [8525, 5491]
+    ],
     runeTier: RuneTier.ANCESTRAL,
+    reliquariesAt: [
+      [5876, 964],
+      [10640, 761]
+    ],
     merchant: MerchantId.THRESHOLD,
+    merchantAt: [9632, 2816],
     tear: true,
-    chests: 2,
+    tearAt: [5425, 3522],
+    chests: 4,
+    chestsAt: [
+      [7545, 2977],
+      [5965, 2089],
+      [6312, 848],
+      [6864, 4869]
+    ],
     color: '#8a6f5a'
   },
   {
@@ -218,12 +297,32 @@ export const BIOMES: BiomeDefinition[] = [
     ],
     sealId: 'vorneth',
     sealAt: [0, 0],
-    minibossCamps: 3,
-    sanctuaries: 7,
+    minibossCamps: 2,
+    campsAt: [
+      [3021, 1271],
+      [1324, 3558]
+    ],
+    sanctuaries: 9,
+    sanctuariesAt: [
+      [5430, 755],
+      [422, 1043],
+      [4964, 1673],
+      [2040, 2118],
+      [1607, 2635],
+      [393, 4037],
+      [302, 4673],
+      // The rune of n261, brought from the Wastelands, and the one of n45, from the Abyss (where its chest was).
+      [4678, 3331],
+      [512, 2148, RuneTier.ABYSSAL]
+    ],
+    reliquariesAt: [[4567, 380]],
     runeTier: RuneTier.ANCESTRAL,
     merchant: MerchantId.SCHOLAR,
+    merchantAt: [978, 3185],
     tear: true,
-    chests: 2,
+    tearAt: [5053, 1138],
+    chests: 1,
+    chestsAt: [[3091, 2531]],
     color: '#dff3ff'
   },
   {
@@ -238,10 +337,32 @@ export const BIOMES: BiomeDefinition[] = [
     sealId: 'ignaroth',
     sealAt: [WORLD_WIDTH, 0],
     minibossCamps: 2,
-    sanctuaries: 8,
+    campsAt: [
+      [14852, 3193],
+      [11614, 1574]
+    ],
+    sanctuaries: 9,
+    sanctuariesAt: [
+      [10525, 301],
+      [13618, 1646],
+      [14466, 307],
+      [12442, 505],
+      [13638, 964],
+      [12041, 1886],
+      [11279, 3425],
+      [12997, 3444],
+      // The rune of n187, brought from the Abyss.
+      [14298, 4355, RuneTier.ABYSSAL]
+    ],
+    reliquariesAt: [[12870, 4957]],
     runeTier: RuneTier.ANCESTRAL,
     tear: true,
+    tearAt: [15203, 360],
     chests: 2,
+    chestsAt: [
+      [10985, 848],
+      [10957, 2722]
+    ],
     color: '#ff5a2c'
   },
   {
@@ -250,8 +371,18 @@ export const BIOMES: BiomeDefinition[] = [
     levelMax: 90,
     nodes: 50,
     anchors: [[8000, 1300]],
-    minibossCamps: 2,
-    sanctuaries: 8,
+    minibossCamps: 1,
+    campsAt: [[8121, 1174]],
+    sanctuaries: 6,
+    sanctuariesAt: [
+      [10004, 325],
+      [8484, 344],
+      [8816, 357],
+      [9719, 965],
+      [8336, 1883],
+      [9066, 1932]
+    ],
+    reliquariesAt: [[10247, 666]],
     runeTier: RuneTier.ABYSSAL,
     tear: false,
     chests: 0,
@@ -300,7 +431,145 @@ export const REMOVED_TRAILS: TrailEnds[] = [
   // n855–n886; then n745–n702, n988–n978 and n995–n1014. Desert: n943–n975, n979–n1017, n748–n725, n743–n789,
   // n782–n757 and n728–n682 (the way to the Tropics, closed; see CLOSED_LINKS); then n947–n961 (the way from the
   // Meadows, moved to n920–n903), n903–n923, n885–n865, n885–n895 and n856–n821; then n941–n964, n964–n982 and
-  // n770–n814; then n814–n830.
+  // n770–n814; then n814–n830. Tropics: n507–n496 (the way from the Meadows, moved to n566–n550), n483–n454, n433–n444,
+  // n645–n610 and n555–n585; then n575–n555 and n667–n672. Forest and Mountains: n523–n551 (the way between them,
+  // moved to n551–n514), n551–n544, n544–n587, n552–n587, n403–n399 and n399–n369; then n591–n593, n637–n622 and
+  // n435–n464. Mountains and Wastelands: n461–n437 (the way between them, moved to n356–n342). Wastelands: n291–n292,
+  // n456–n497 and n223–n209. Snow: n235–n206, n278–n235, n278–n307, n324–n340 and n207–n171; then n60–n19.
+  // Wastelands and Volcanic: n143–n169 (the way between them, moved to n123–n95). Volcanic: n78–n49 and n163–n134; then
+  // n346–n388, n370–n375 and n344–n375. Abyss: n86–n126 (so the camp of n86 keeps its distance to the others).
+  [
+    [8121, 1174],
+    [8174, 1575]
+  ],
+  [
+    [14469, 3889],
+    [14298, 4355]
+  ],
+  [
+    [14761, 4139],
+    [15306, 4212]
+  ],
+  [
+    [15084, 3863],
+    [15306, 4212]
+  ],
+  [
+    [4369, 863],
+    [4567, 380]
+  ],
+  [
+    [10731, 1759],
+    [11341, 2059]
+  ],
+  [
+    [12433, 1049],
+    [12731, 762]
+  ],
+  [
+    [13450, 1982],
+    [13618, 1646]
+  ],
+  [
+    [1275, 2730],
+    [831, 2396]
+  ],
+  [
+    [978, 3185],
+    [1275, 2730]
+  ],
+  [
+    [978, 3185],
+    [765, 3457]
+  ],
+  [
+    [388, 3682],
+    [703, 3847]
+  ],
+  [
+    [2371, 2419],
+    [2539, 2064]
+  ],
+  [
+    [6956, 5186],
+    [7200, 4944]
+  ],
+  [
+    [10561, 3279],
+    [10923, 3306]
+  ],
+  [
+    [7898, 5129],
+    [7869, 5611]
+  ],
+  [
+    [10223, 2571],
+    [10646, 2474]
+  ],
+  [
+    [733, 4935],
+    [862, 5239]
+  ],
+  [
+    [2778, 6785],
+    [3289, 6791]
+  ],
+  [
+    [411, 7380],
+    [711, 7186]
+  ],
+  [
+    [4161, 5972],
+    [4625, 6298]
+  ],
+  [
+    [4625, 6298],
+    [5032, 6219]
+  ],
+  [
+    [5032, 6219],
+    [5082, 6748]
+  ],
+  [
+    [5487, 6310],
+    [5082, 6748]
+  ],
+  [
+    [5325, 4540],
+    [5645, 4458]
+  ],
+  [
+    [5645, 4458],
+    [5866, 4133]
+  ],
+  [
+    [14015, 6589],
+    [14495, 6330]
+  ],
+  [
+    [14624, 7776],
+    [15153, 7845]
+  ],
+  [
+    [8513, 5831],
+    [9136, 5599]
+  ],
+  [
+    [13255, 5462],
+    [13714, 5122]
+  ],
+  [
+    [14072, 4897],
+    [14673, 5037]
+  ],
+  [
+    [13560, 7479],
+    [13762, 7064]
+  ],
+  [
+    [14495, 6330],
+    [14417, 6722]
+  ],
   [
     [10529, 9542],
     [10989, 9686]
@@ -401,6 +670,198 @@ export const REMOVED_TRAILS: TrailEnds[] = [
 
 /** Trails added to the maze by hand. */
 export const ADDED_TRAILS: TrailEnds[] = [
+  // Tropics: n566–n550 (the way from the Meadows), n454–n433 (the way to the rune of n454), n404–n433 (the only way to
+  // them now), n575–n585, n562–n524 and n620–n651. Forest and Mountains: n552–n544 (the way to the chest of n544),
+  // n590–n551, n551–n514 (the way between them), n434–n399 (the way to the Smith) and n418–n411; then n499–n530 and
+  // n530–n549, plus n530–n561, n600–n629 and n480–n521 so the generator does not draw them elsewhere; then n442–n479,
+  // and n479–n489 kept. Mountains and Wastelands: n356–n342 (the way between them). Wastelands: n309–n335, n209–n251
+  // and n292–n327 (the ways to the runes of n209 and n292). Snow: n249–n266 and n386–n340, plus n144–n216, n188–n201,
+  // n266–n324 and n253–n294, kept as they were (without them that part of the snow is cut off); then n34–n19.
+  // Wastelands and Volcanic: n123–n95 (the way between them). Volcanic: n130–n95 and n105–n153, kept as they were
+  // (without them that part of the volcanic lands is cut off). Abyss: n187–n160 and n45–n22. Volcanic: n314–n366,
+  // n375–n396 and n165–n191, kept as they were. Abyss: n126–n103.
+  [
+    [8174, 1575],
+    [8392, 1319]
+  ],
+  [
+    [15560, 3543],
+    [15693, 4079]
+  ],
+  [
+    [15306, 4212],
+    [15001, 4440]
+  ],
+  [
+    [7988, 2032],
+    [7730, 2255]
+  ],
+  [
+    [8532, 2218],
+    [8695, 1911]
+  ],
+  [
+    [7891, 752],
+    [7563, 398]
+  ],
+  [
+    [11231, 1607],
+    [11099, 1247]
+  ],
+  [
+    [13835, 1346],
+    [14154, 1852]
+  ],
+  [
+    [5120, 572],
+    [4567, 380]
+  ],
+  [
+    [10556, 1514],
+    [11099, 1247]
+  ],
+  [
+    [451, 1782],
+    [361, 2522]
+  ],
+  [
+    [1705, 2219],
+    [1217, 2355]
+  ],
+  [
+    [569, 3071],
+    [388, 3682]
+  ],
+  [
+    [4535, 2916],
+    [4678, 3331]
+  ],
+  [
+    [882, 2844],
+    [569, 3071]
+  ],
+  [
+    [635, 4346],
+    [703, 3847]
+  ],
+  [
+    [10646, 2474],
+    [10606, 2894]
+  ],
+  [
+    [10923, 3306],
+    [10457, 3718]
+  ],
+  [
+    [6259, 4005],
+    [6563, 3858]
+  ],
+  [
+    [7154, 3479],
+    [7365, 3796]
+  ],
+  [
+    [3015, 5443],
+    [3349, 5521]
+  ],
+  [
+    [3213, 5021],
+    [3015, 5443]
+  ],
+  [
+    [1412, 6068],
+    [1612, 6420]
+  ],
+  [
+    [1939, 6922],
+    [1545, 7260]
+  ],
+  [
+    [5727, 5453],
+    [5827, 5941]
+  ],
+  [
+    [1581, 5677],
+    [1412, 6068]
+  ],
+  [
+    [1412, 6068],
+    [1005, 6255]
+  ],
+  [
+    [5487, 6310],
+    [5032, 6219]
+  ],
+  [
+    [4450, 6769],
+    [4625, 6298]
+  ],
+  [
+    [4625, 6298],
+    [4844, 5888]
+  ],
+  [
+    [5623, 4903],
+    [5645, 4458]
+  ],
+  [
+    [2724, 4715],
+    [3087, 4625]
+  ],
+  [
+    [15689, 7170],
+    [15690, 7608]
+  ],
+  [
+    [15270, 6435],
+    [15315, 5978]
+  ],
+  [
+    [14641, 4558],
+    [14072, 4897]
+  ],
+  [
+    [8835, 6491],
+    [9274, 6272]
+  ],
+  [
+    [13714, 5122],
+    [14072, 4897]
+  ],
+  [
+    [14015, 6589],
+    [14417, 6722]
+  ],
+  // Tropics and Wastelands: n368–n377, n484–n524, n469–n508, n623–n627, n636–n657 and n657–n665, kept as they were
+  // when n560–n515 went away (the generator would draw them elsewhere), and n108–n79.
+  [
+    [10046, 1356],
+    [10240, 1057]
+  ],
+  [
+    [9861, 4089],
+    [9369, 4235]
+  ],
+  [
+    [15615, 5470],
+    [15315, 5978]
+  ],
+  [
+    [12727, 5309],
+    [12662, 5854]
+  ],
+  [
+    [12621, 7190],
+    [13034, 7248]
+  ],
+  [
+    [12160, 7343],
+    [12416, 7655]
+  ],
+  [
+    [12416, 7655],
+    [12887, 7753]
+  ],
   // Forest: n624–n652 and n676–n689 (the way to the rune of n689, once its other trails are gone), n855–n901,
   // n786–n829 (the camp of n786 a crossroads), n709–n740, n717–n702 (the way to the rune of n702) and n1014–n978 (the
   // way to the rune of n978). Desert: n955–n979, n732–n725, n748–n771 and n757–n743; then n920–n903 (the way from
@@ -514,6 +975,7 @@ export const BIOME_PASSES: {
       [9050, 11170]
     ]
   },
+  // Drawn here so the rest of the map keeps its random numbers; moved by hand to n566–n550.
   { link: [Biome.MEADOWS, Biome.TROPICAL], side: 'north' },
   // Far from Sahrak, who waits at the deepest point of the desert.
   { link: [Biome.DESERT, Biome.TROPICAL], side: 'west' }

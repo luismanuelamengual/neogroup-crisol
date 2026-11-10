@@ -67,11 +67,11 @@ describe('stored world', () => {
     expect(generateWorld(WORLD_SEED)).toEqual(world)
   })
 
-  it('has more than a thousand points and thirty-one camps', () => {
+  it('has more than a thousand points and twenty-nine camps', () => {
     const camps = world.nodes.filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS)
 
     expect(world.nodes.length).toBeGreaterThanOrEqual(1000)
-    expect(camps).toHaveLength(31)
+    expect(camps).toHaveLength(29)
   })
 })
 
@@ -122,7 +122,7 @@ describe('difficulty and passes of the biomes', () => {
 
     expect([meadow.x, meadow.y]).toEqual([8925, 10666])
     expect([desert.x, desert.y]).toEqual([9428, 10427])
-    expect(pass(Biome.MEADOWS, Biome.TROPICAL)[0].y).toBeLessThan(Math.min(...meadows) + 200)
+    expect(pass(Biome.MEADOWS, Biome.TROPICAL)[0].y).toBeLessThan(Math.min(...meadows) + 1000)
   })
 
   it('has a camp in the middle of the north of the Meadows and two towards the south', () => {

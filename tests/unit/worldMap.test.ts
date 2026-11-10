@@ -269,7 +269,8 @@ describe('weapon reliquaries', () => {
       const node = reliquaryOf(weapon.id)
 
       expect(node).toMatchObject({ type: NodeType.RELIQUARY, biome: weapon.biome })
-      expect(neighborsOf(node.id)).toHaveLength(1)
+      // In a dead end, but one set by hand can be on the way through (two trails).
+      expect(neighborsOf(node.id).length).toBeLessThanOrEqual(2)
 
       const encounter = getEncounter(index, nextTo(node.id), node.id)!
 
