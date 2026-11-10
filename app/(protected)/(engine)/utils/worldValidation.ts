@@ -230,6 +230,15 @@ export function validateWorld(world: World): string[] {
     ),
     'a rune is weaker than the previous one'
   )
+  check(
+    sanctuaries.every(
+      (node, position) =>
+        position === 0 ||
+        node.runeTier !== sanctuaries[position - 1].runeTier ||
+        node.level! >= sanctuaries[position - 1].level!
+    ),
+    'a stronger rune of a tier is easier to win than a weaker one'
+  )
 
   for (const definition of BIOMES) {
     const found = sanctuaries.filter((node) => node.biome === definition.biome)

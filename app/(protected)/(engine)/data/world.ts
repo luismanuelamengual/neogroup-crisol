@@ -8,7 +8,7 @@ export const ABYSS_GATE_GUARDIAN = 'vael'
 export const WORLD_SEED = 1028
 
 /** Version of the world (see `saves.worldVersion`): increase it whenever public/world/world.json changes. */
-export const WORLD_VERSION = 37
+export const WORLD_VERSION = 38
 
 /** Id of the starting camp (the Glade of Awakening): the only one open from the start. */
 export const START_NODE_ID = 'start'
