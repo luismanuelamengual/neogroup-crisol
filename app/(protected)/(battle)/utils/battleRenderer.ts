@@ -6,8 +6,11 @@ import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(a
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
 import { ArrowKind, arrowKindOf, drawArrow, drawImpact, drawTrail } from '@/app/(protected)/(battle)/utils/arrows'
+import { ActorStyle, AttackEffect, attackEffectOf, LOOK_COLORS } from '@/app/(protected)/(battle)/utils/attackEffects'
+import { AttackVisuals, EffectTarget, HitOutcome } from '@/app/(protected)/(battle)/utils/attackVisuals'
 import { BattleScenery, FLOOR_LINE, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/utils/battleScenery'
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
+import { initialQuality, Particles, prefersReducedMotion } from '@/app/(protected)/(battle)/utils/particles'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
@@ -41,6 +44,7 @@ export interface BattleLabels {
 
 /** One fighter drawn on the stage. */
 interface Figure {
+  id: string
   root: Container
   body: Container
   healthBar: Graphics
@@ -49,8 +53,10 @@ interface Figure {
   side: Combatant['side']
   /** The puppet, when the figure is put together from a parts sheet. */
   rig: RigFigure | null
-  /** Its weapon shoots: it attacks from its spot, with an arrow (see shoot). */
-  ranged: boolean
+  /** How it fights: walking up to its target, shooting arrows from its spot (see shoot) or casting spells. */
+  style: ActorStyle
+  /** The elemental charges that go round it (Ysolde), one orb each. */
+  orbs: Container | null
   size: number
   /** Its shadow (data/shadows), in pixels of a fighter of size 1: the rings at its feet follow it. */
   shadow: ReturnType<typeof shadowOf>
@@ -105,6 +111,15 @@ export class BattleRenderer {
   private readonly world = new Container()
   private readonly fighters = new Container()
   private readonly effects = new Container()
+  /** The effects that go on the ground, under the fighters (rings, cracks, spikes). */
+  private readonly groundEffects = new Container()
+  /** A flash over the whole screen (lightning, a meteor); it does not move with the camera. */
+  private readonly flashLayer = new Graphics()
+  private readonly particles: Particles
+  private readonly visuals: AttackVisuals
+  private readonly reducedMotion = prefersReducedMotion()
+  /** Average time of a frame (ms): when it is slow the effects drop to their light quality. */
+  private frameTime = 16
   private readonly figures = new Map<string, Figure>()
   private readonly marker = new Graphics()
   private markedId: string | null = null
@@ -130,8 +145,35 @@ export class BattleRenderer {
     private readonly parts: ArtManifest['parts'],
     private readonly scenery: BattleScenery
   ) {
-    this.world.addChild(scenery.back, this.marker, this.fighters, this.effects, scenery.front)
-    this.stage.addChild(this.world)
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const host = this
+
+    this.particles = new Particles(app.renderer, initialQuality())
+    this.visuals = new AttackVisuals(
+      {
+        ms: (value) => value / this.speed,
+        tween: (duration, update) => this.tween(duration, update),
+        wait: (duration) => wait(duration),
+        get scale() {
+          return host.scale
+        },
+        flash: (color, alpha, duration) => this.flash(color, alpha, duration),
+        shake: (duration, strength) => void this.shake(duration, strength)
+      },
+      this.groundEffects,
+      this.effects,
+      this.particles
+    )
+    this.world.addChild(
+      scenery.back,
+      this.marker,
+      this.groundEffects,
+      this.fighters,
+      this.effects,
+      this.particles.view,
+      scenery.front
+    )
+    this.stage.addChild(this.world, this.flashLayer)
     app.stage.addChild(this.stage)
     app.ticker.add((ticker) => this.animate(ticker.deltaMS))
   }
@@ -233,6 +275,7 @@ export class BattleRenderer {
 
   destroy(): void {
     this.resizeObserver?.disconnect()
+    this.particles.destroy()
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true })
   }
@@ -401,6 +444,7 @@ export class BattleRenderer {
     root.on('pointertap', () => this.onTap(combatant.id))
 
     const figure: Figure = {
+      id: combatant.id,
       root,
       body,
       healthBar,
@@ -408,7 +452,8 @@ export class BattleRenderer {
       statusText,
       side: combatant.side,
       rig,
-      ranged: combatant.side === 'hero' && !!combatant.weaponId && !!getWeapon(combatant.weaponId).ranged,
+      style: styleOf(combatant),
+      orbs: null,
       size,
       shadow: shadowOf(artId),
       health: combatant.health,
@@ -459,6 +504,7 @@ export class BattleRenderer {
       figure.statusText.text = combatant.statuses.map((status) => this.labels.status(status.type)).join(' · ')
       this.drawHealth(figure)
       figure.healthBar.visible = combatant.health > 0
+      this.drawOrbs(figure, combatant.health > 0 ? (combatant.charges ?? []) : [])
     }
 
     this.placeAll(battle)
@@ -466,8 +512,8 @@ export class BattleRenderer {
 
   /** Animates the events of a step of the battle, in order. */
   async play(events: BattleEvent[], after: BattleState): Promise<void> {
-    for (const event of events) {
-      await this.playEvent(event, after)
+    for (const [index, event] of events.entries()) {
+      await this.playEvent(event, after, event.type === 'action' ? outcomesOf(events, index) : undefined)
     }
 
     this.focus(null)
@@ -481,7 +527,11 @@ export class BattleRenderer {
     this.camera.targetZoom = x === null ? 1 : zoom
   }
 
-  private async playEvent(event: BattleEvent, after: BattleState): Promise<void> {
+  private async playEvent(
+    event: BattleEvent,
+    after: BattleState,
+    outcomes = new Map<string, HitOutcome>()
+  ): Promise<void> {
     const ms = (value: number) => value / this.speed
     const sound = soundOf(event, 'targetId' in event ? (this.figures.get(event.targetId)?.side ?? null) : null)
 
@@ -508,38 +558,40 @@ export class BattleRenderer {
           break
         }
 
+        const skill = getSkill(event.skillId)
+        const effect = attackEffectOf(skill, actor.style, actor.side)
+        const targets = event.targetIds
+          .map((id) => this.figures.get(id))
+          .filter((figure): figure is Figure => !!figure && figure.root.visible)
+        const foes = targets.filter((figure) => figure.side !== actor.side)
+
         this.float(actor, this.labels.skill(event.skillId), 0xffffff, 15, -40)
         this.focus(target && target.side !== actor.side ? (actor.home.x + target.home.x) / 2 : actor.home.x)
 
-        if (target && target.side !== actor.side && actor.ranged) {
-          const skill = getSkill(event.skillId)
-          const targets = event.targetIds
-            .map((id) => this.figures.get(id))
-            .filter((figure): figure is Figure => !!figure && figure.side !== actor.side)
+        if (skill.consumes === 'charges') {
+          this.spendCharges(actor)
+        }
 
-          await this.shoot(actor, targets, arrowKindOf(skill), skill.target === TargetType.ALL_ENEMIES)
-        } else if (target && target.side !== actor.side) {
-          const dx = (target.home.x - actor.home.x) * 0.55
-          const dy = (target.home.y - actor.home.y) * 0.55
-
-          // A puppet winds up while it closes in and strikes on arrival.
-          actor.rig?.play('attack', ms(560))
-          await this.tween(ms(actor.rig ? 250 : 170), (t) =>
-            actor.root.position.set(actor.home.x + dx * ease(t), actor.home.y + dy * ease(t))
+        if (effect.delivery === 'aura' || foes.length === 0) {
+          await this.cast(actor, effect)
+          await this.visuals.deliver(
+            effect,
+            this.sourceOf(actor),
+            targets.map((figure) => this.effectTarget(figure)),
+            outcomes
           )
-
-          if (actor.rig) {
-            await wait(ms(110))
-          }
-
-          void this.tween(ms(220), (t) =>
-            actor.root.position.set(actor.home.x + dx * (1 - ease(t)), actor.home.y + dy * (1 - ease(t)))
-          )
-        } else if (actor.rig) {
-          actor.rig.play('cast', ms(420))
-          await wait(ms(320))
+        } else if (effect.approach === 'shoot') {
+          await this.shoot(actor, foes, arrowKindOf(skill), skill.target === TargetType.ALL_ENEMIES, effect, outcomes)
+        } else if (effect.approach === 'lunge') {
+          await this.lunge(actor, foes, effect, outcomes)
         } else {
-          await this.tween(ms(260), (t) => actor.body.scale.set(actor.size * (1 + Math.sin(t * Math.PI) * 0.12)))
+          await this.cast(actor, effect)
+          await this.visuals.deliver(
+            effect,
+            this.sourceOf(actor),
+            foes.map((figure) => this.effectTarget(figure)),
+            outcomes
+          )
         }
 
         break
@@ -556,6 +608,10 @@ export class BattleRenderer {
 
         figure.health = Math.max(0, figure.health - event.amount)
         this.drawHealth(figure)
+
+        if (event.type === 'statusTick') {
+          this.visuals.statusTick(event.status, this.effectTarget(figure))
+        }
 
         const critical = event.type === 'damage' && event.critical
         const color =
@@ -773,7 +829,14 @@ export class BattleRenderer {
    * fly to their targets, one after the other, high when they rain on every
    * enemy. It ends when the last one lands, so the damage shows on impact.
    */
-  private async shoot(actor: Figure, targets: Figure[], kind: ArrowKind, volley: boolean): Promise<void> {
+  private async shoot(
+    actor: Figure,
+    targets: Figure[],
+    kind: ArrowKind,
+    volley: boolean,
+    effect: AttackEffect,
+    outcomes: Map<string, HitOutcome>
+  ): Promise<void> {
     const ms = (value: number) => value / this.speed
     const direction = actor.side === 'hero' ? 1 : -1
 
@@ -799,7 +862,11 @@ export class BattleRenderer {
 
     await Promise.all(
       targets.map((target, index) =>
-        wait(ms(index * 70)).then(() => this.flyArrow(actor, target, kind, volley, direction))
+        wait(ms(index * 70)).then(() =>
+          this.flyArrow(actor, target, kind, volley, direction).then(() =>
+            this.visuals.impact(effect, this.effectTarget(target), outcomes.get(target.id), direction)
+          )
+        )
       )
     )
   }
@@ -857,6 +924,166 @@ export class BattleRenderer {
     }).then(() => arrow.destroy({ children: true }))
   }
 
+  /**
+   * A blow up close: the fighter closes in (a puppet winds up on the way), the
+   * mark of the blow lands on every target and it goes back to its spot.
+   */
+  private async lunge(
+    actor: Figure,
+    targets: Figure[],
+    effect: AttackEffect,
+    outcomes: Map<string, HitOutcome>
+  ): Promise<void> {
+    const ms = (value: number) => value / this.speed
+    const target = targets[0]
+    const dx = (target.home.x - actor.home.x) * 0.55
+    const dy = (target.home.y - actor.home.y) * 0.55
+
+    actor.rig?.play('attack', ms(560))
+    await this.tween(ms(actor.rig ? 250 : 170), (t) =>
+      actor.root.position.set(actor.home.x + dx * ease(t), actor.home.y + dy * ease(t))
+    )
+
+    if (actor.rig) {
+      await wait(ms(110))
+    }
+
+    await this.visuals.deliver(
+      effect,
+      this.sourceOf(actor),
+      targets.map((figure) => this.effectTarget(figure)),
+      outcomes
+    )
+    void this.tween(ms(220), (t) =>
+      actor.root.position.set(actor.home.x + dx * (1 - ease(t)), actor.home.y + dy * (1 - ease(t)))
+    )
+  }
+
+  /** A spell from its spot: the puppet raises its hands (or the figure swells) behind a circle of runes. */
+  private async cast(actor: Figure, effect: AttackEffect): Promise<void> {
+    const ms = (value: number) => value / this.speed
+    const source = this.sourceOf(actor)
+
+    if (effect.delivery !== 'aura' && effect.delivery !== 'breath') {
+      void this.visuals.castCircle(effect.look, source.hand, source.direction, effect.scale)
+    }
+
+    if (actor.rig) {
+      actor.rig.play('cast', ms(420))
+      await wait(ms(260))
+    } else {
+      await this.tween(ms(240), (t) => actor.body.scale.set(actor.size * (1 + Math.sin(t * Math.PI) * 0.12)))
+    }
+  }
+
+  /** Where the effects of a fighter leave from: its hand (or mouth), in front of it at chest height. */
+  private sourceOf(figure: Figure): { hand: { x: number; y: number }; direction: 1 | -1 } {
+    const direction = figure.side === 'hero' ? 1 : -1
+    const scale = figure.size * this.scale
+
+    return {
+      hand: {
+        x: figure.root.position.x + 30 * direction * scale,
+        y: figure.root.position.y - FIGURE_HEIGHT * scale * 0.6
+      },
+      direction
+    }
+  }
+
+  private effectTarget(figure: Figure): EffectTarget {
+    const height = FIGURE_HEIGHT * figure.size * this.scale
+
+    return {
+      id: figure.id,
+      chest: { x: figure.root.position.x, y: figure.root.position.y - height * 0.5 },
+      feet: { x: figure.root.position.x, y: figure.root.position.y },
+      height
+    }
+  }
+
+  /** A flash over the whole screen (soft when the player asked for less motion). */
+  private flash(color: number, alpha: number, duration: number): void {
+    const strength = Math.min(0.5, alpha) * (this.reducedMotion ? 0.35 : 1)
+
+    this.flashLayer.clear().rect(0, 0, this.width, this.height).fill({ color })
+    this.flashLayer.blendMode = 'add'
+    void this.tween(duration, (t) => {
+      this.flashLayer.alpha = strength * (1 - t)
+    })
+  }
+
+  /** The charges of the fighter fly into its spell, and their orbs go out until the next sync. */
+  private spendCharges(figure: Figure): void {
+    if (!figure.orbs) {
+      return
+    }
+
+    const hand = this.sourceOf(figure).hand
+
+    for (const orb of figure.orbs.children) {
+      const at = figure.root.toGlobal(orb.position)
+      const local = this.particles.view.toLocal(at)
+
+      this.visuals.stream(local, hand, Number(orb.label))
+    }
+
+    figure.orbs.removeChildren().forEach((orb) => orb.destroy())
+  }
+
+  /** One orb for each elemental charge, of its color, going round the fighter. */
+  private drawOrbs(figure: Figure, charges: DamageType[]): void {
+    if (!figure.orbs) {
+      if (charges.length === 0) {
+        return
+      }
+
+      figure.orbs = new Container()
+      figure.root.addChild(figure.orbs)
+    }
+
+    const colors = charges.map((charge) => LOOK_COLORS[charge].glow)
+    const current = figure.orbs.children.map((orb) => orb.label)
+
+    if (current.length === colors.length && current.every((label, index) => label === String(colors[index]))) {
+      return
+    }
+
+    figure.orbs.removeChildren().forEach((orb) => orb.destroy())
+
+    for (const color of colors) {
+      const orb = new Graphics()
+
+      orb.label = String(color)
+      orb.circle(0, 0, 14).fill({ color, alpha: 0.3 })
+      orb.circle(0, 0, 8.5).fill({ color }).stroke({ width: 2.5, color: OUTLINE })
+      orb.circle(-2.5, -2.5, 3).fill({ color: 0xffffff })
+      figure.orbs.addChild(orb)
+    }
+  }
+
+  /** The orbs go round the middle of the body, dimmer when they pass behind it. */
+  private moveOrbs(figure: Figure): void {
+    const orbs = figure.orbs?.children ?? []
+
+    orbs.forEach((orb, index) => {
+      const angle = this.elapsed * 2.2 + (index / orbs.length) * Math.PI * 2
+      const depth = Math.sin(angle)
+
+      orb.position.set(Math.cos(angle) * 40 * figure.size, -FIGURE_HEIGHT * figure.size * 0.55 + depth * 10)
+      orb.alpha = 0.55 + depth * 0.4
+      orb.scale.set(1 + depth * 0.2 + Math.sin(this.elapsed * 9 + index) * 0.06)
+    })
+  }
+
+  /** When the frames slow down for a while, the effects drop to their light quality (and stay there). */
+  private watchFrames(deltaMS: number): void {
+    this.frameTime = this.frameTime * 0.95 + Math.min(100, deltaMS) * 0.05
+
+    if (this.particles.quality === 'high' && this.frameTime > 24 && this.elapsed > 3) {
+      this.particles.quality = 'low'
+    }
+  }
+
   private hit(figure: Figure, duration: number): Promise<void> {
     const direction = figure.side === 'hero' ? -1 : 1
 
@@ -890,6 +1117,10 @@ export class BattleRenderer {
   }
 
   private shake(duration: number, strength: number): Promise<void> {
+    if (this.reducedMotion) {
+      return Promise.resolve()
+    }
+
     return this.tween(duration, (t) => {
       const amount = strength * (1 - t)
 
@@ -934,7 +1165,9 @@ export class BattleRenderer {
     this.camera.x += (this.camera.targetX + sway - this.camera.x) * ease
     this.camera.zoom += (this.camera.targetZoom - this.camera.zoom) * ease
     this.world.scale.set(this.camera.zoom)
-    this.fighters.x = this.marker.x = this.effects.x = -this.camera.x
+    this.fighters.x = this.marker.x = this.effects.x = this.groundEffects.x = this.particles.view.x = -this.camera.x
+    this.particles.update(deltaMS * this.speed)
+    this.watchFrames(deltaMS)
     this.scenery.update(deltaMS, this.camera.x)
 
     const marked = this.markedId ? this.figures.get(this.markedId) : null
@@ -985,6 +1218,8 @@ export class BattleRenderer {
     }
 
     for (const [, figure] of this.figures) {
+      this.moveOrbs(figure)
+
       if (figure.rig) {
         figure.rig.update(deltaMS)
       } else if (figure.root.alpha === 1) {
@@ -1157,4 +1392,36 @@ function provisionalScenery(): SceneryTextures {
   provisionalTextures ??= paintSceneryTextures(2)
 
   return provisionalTextures
+}
+
+/** How a fighter fights: Ysolde casts from her spot, the heroes with bows shoot, the rest walk up (see attackEffects). */
+function styleOf(combatant: Combatant): ActorStyle {
+  if (combatant.side !== 'hero') {
+    return 'melee'
+  }
+
+  if (combatant.characterId === CharacterId.YSOLDE) {
+    return 'mage'
+  }
+
+  return combatant.weaponId && getWeapon(combatant.weaponId).ranged ? 'archer' : 'melee'
+}
+
+/** What happened to each target of the action at `index`: the events that follow it until the next action. */
+function outcomesOf(events: BattleEvent[], index: number): Map<string, HitOutcome> {
+  const outcomes = new Map<string, HitOutcome>()
+
+  for (const event of events.slice(index + 1)) {
+    if (event.type === 'action' || event.type === 'turn' || event.type === 'item') {
+      break
+    }
+
+    if (event.type === 'damage' && !outcomes.has(event.targetId)) {
+      outcomes.set(event.targetId, { missed: false, critical: event.critical })
+    } else if ((event.type === 'miss' || event.type === 'immune') && !outcomes.has(event.targetId)) {
+      outcomes.set(event.targetId, { missed: true, critical: false })
+    }
+  }
+
+  return outcomes
 }

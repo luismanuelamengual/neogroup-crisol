@@ -1,0 +1,77 @@
+.effects-preview {
+  display: grid;
+  grid-template-rows: minmax(300px, 55dvh) 1fr;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 12px max(12px, env(safe-area-inset-right)) 32px max(12px, env(safe-area-inset-left));
+  width: 100%;
+  max-width: 1400px;
+
+  // On wide screens the stage on the left and the list of skills on the right.
+  @media (min-width: 960px) {
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: none;
+    height: calc(100dvh - 24px);
+  }
+
+  .stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    min-height: 300px;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  button {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--color-text);
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--color-panel);
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--color-gold);
+      color: var(--color-gold);
+    }
+  }
+
+  .skills {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+
+    button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      width: 100%;
+      text-align: left;
+    }
+
+    code {
+      color: var(--color-text-secondary);
+      font-weight: 400;
+      font-size: 11px;
+    }
+  }
+}
