@@ -1,7 +1,6 @@
-import { ATTRIBUTE_POINT, getBaseStats, getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
+import { ATTRIBUTE_POINT, getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { maxCarried } from '@/app/(protected)/(engine)/data/items'
 import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
-import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import {
   getLevelCost,
   getLinkedSkills,
@@ -121,9 +120,8 @@ export function getWeaponLevel(character: CharacterState, weaponId = character.w
 }
 
 /**
- * The skills a character knows besides its weapon attack and its secondary
- * actions: the specials of its tree it learned (its root from the start), in
- * the order of the tree.
+ * The skills a character knows besides its weapon attack: the specials of
+ * its tree it learned (its root from the start), in the order of the tree.
  */
 export function getKnownSkills(character: Pick<CharacterState, 'id' | 'skillLevels'>): string[] {
   return getSkillTree(character.id)
@@ -176,20 +174,11 @@ export function canLearnSkill(character: CharacterState, skillId: string): boole
   return getSkillLearnState(character, skillId) === 'ready'
 }
 
-/** Its secondary actions: always at hand, outside the six slots (Kael's change of stance). */
-export function getSecondaryActions(characterId: CharacterId): string[] {
-  return getCharacterDefinition(characterId).skills.filter((skill) => getSkill(skill).stance)
-}
-
-/** The skills a character takes into a battle: the attack of its weapon, the ones it equipped (up to six) and its secondary actions. */
+/** The skills a character takes into a battle: the attack of its weapon and the ones it equipped (up to six). */
 export function getCharacterSkills(character: CharacterState): string[] {
   const known = getKnownSkills(character)
 
-  return [
-    getWeapon(character.weaponId).attack,
-    ...character.skills.filter((skill) => known.includes(skill)),
-    ...getSecondaryActions(character.id)
-  ]
+  return [getWeapon(character.weaponId).attack, ...character.skills.filter((skill) => known.includes(skill))]
 }
 
 /** Equips a known skill in a free slot (at any time out of battle). */

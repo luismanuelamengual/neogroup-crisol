@@ -1,5 +1,6 @@
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Skill, SkillStatus } from '@/app/(protected)/(engine)/models/Skill'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 
@@ -39,7 +40,15 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.BLUNT,
     statuses: [{ type: StatusType.STUN, chance: 0.12, turns: 1 }]
   },
-  { id: 'kael-firm-cut', cost: 12, target: TargetType.ENEMY, power: 1.7, stat: 'attack', damageType: DamageType.SLASH },
+  {
+    id: 'kael-firm-cut',
+    cost: 12,
+    target: TargetType.ENEMY,
+    power: 1.7,
+    stat: 'attack',
+    damageType: DamageType.SLASH,
+    stance: Stance.OFFENSE
+  },
   {
     id: 'kael-flame-edge',
     cost: 15,
@@ -47,7 +56,8 @@ const HERO_SKILLS: Skill[] = [
     power: 1.4,
     stat: 'attack',
     damageType: DamageType.FIRE,
-    statuses: [{ type: StatusType.BURN, chance: 0.3, turns: 2 }]
+    statuses: [{ type: StatusType.BURN, chance: 0.3, turns: 2 }],
+    stance: Stance.OFFENSE
   },
   {
     id: 'kael-sweep',
@@ -55,7 +65,8 @@ const HERO_SKILLS: Skill[] = [
     target: TargetType.ALL_ENEMIES,
     power: 0.8,
     stat: 'attack',
-    damageType: DamageType.SLASH
+    damageType: DamageType.SLASH,
+    stance: Stance.OFFENSE
   },
   {
     id: 'kael-guard',
@@ -64,16 +75,8 @@ const HERO_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.SLASH,
-    statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }]
-  },
-  {
-    id: 'kael-stance',
-    cost: 0,
-    target: TargetType.SELF,
-    power: 0,
-    stat: 'attack',
-    damageType: DamageType.SLASH,
-    stance: true
+    statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }],
+    stance: Stance.DEFENSE
   },
   {
     id: 'kael-whirlwind',
@@ -82,7 +85,9 @@ const HERO_SKILLS: Skill[] = [
     power: 1.3,
     stat: 'attack',
     damageType: DamageType.SLASH,
-    statuses: [{ type: StatusType.BLEED, chance: 0.3, turns: 2 }]
+    statuses: [{ type: StatusType.BLEED, chance: 0.3, turns: 2 }],
+    stance: Stance.VIRTUOUS,
+    requires: [Stance.OFFENSE]
   },
   {
     id: 'kael-rally',
@@ -91,7 +96,8 @@ const HERO_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.LIGHT,
-    statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }]
+    statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }],
+    stance: Stance.DEFENSE
   },
   {
     id: 'kael-inferno',
@@ -100,7 +106,9 @@ const HERO_SKILLS: Skill[] = [
     power: 1.2,
     stat: 'attack',
     damageType: DamageType.FIRE,
-    statuses: [{ type: StatusType.BURN, chance: 0.45, turns: 2 }]
+    statuses: [{ type: StatusType.BURN, chance: 0.45, turns: 2 }],
+    stance: Stance.NONE,
+    requires: [Stance.VIRTUOUS]
   },
   // Sera: bow.
   { id: 'sera-shot', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.PIERCE },
@@ -305,7 +313,9 @@ const TREE_SKILLS: Skill[] = [
     power: 2.6,
     stat: 'attack',
     damageType: DamageType.SLASH,
-    critBonus: 0.15
+    critBonus: 0.15,
+    stance: Stance.NONE,
+    requires: [Stance.VIRTUOUS]
   },
   {
     id: 'kael-blade-dance',
@@ -314,7 +324,9 @@ const TREE_SKILLS: Skill[] = [
     power: 1.6,
     stat: 'attack',
     damageType: DamageType.SLASH,
-    statuses: [st('BLEED', 0.4, 2)]
+    statuses: [st('BLEED', 0.4, 2)],
+    stance: Stance.NONE,
+    requires: [Stance.VIRTUOUS]
   },
   {
     id: 'kael-shield-bash',
@@ -323,7 +335,9 @@ const TREE_SKILLS: Skill[] = [
     power: 1.2,
     stat: 'attack',
     damageType: DamageType.BLUNT,
-    statuses: [st('STUN', 0.35, 1)]
+    statuses: [st('STUN', 0.35, 1)],
+    stance: Stance.DEFENSE,
+    requires: [Stance.DEFENSE]
   },
   {
     id: 'kael-last-bastion',
@@ -332,7 +346,9 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.LIGHT,
-    statuses: [st('DEFENSE_UP', 1, 3), st('ATTACK_UP', 1, 3)]
+    statuses: [st('DEFENSE_UP', 1, 3), st('ATTACK_UP', 1, 3)],
+    stance: Stance.NONE,
+    requires: [Stance.DEFENSE]
   },
   {
     id: 'kael-phoenix-cut',
@@ -341,7 +357,8 @@ const TREE_SKILLS: Skill[] = [
     power: 2.0,
     stat: 'attack',
     damageType: DamageType.FIRE,
-    statuses: [st('BURN', 0.5, 2)]
+    statuses: [st('BURN', 0.5, 2)],
+    stance: Stance.OFFENSE
   },
   {
     id: 'kael-sunfall',
@@ -350,7 +367,9 @@ const TREE_SKILLS: Skill[] = [
     power: 2.0,
     stat: 'attack',
     damageType: DamageType.FIRE,
-    statuses: [st('BURN', 0.6, 3)]
+    statuses: [st('BURN', 0.6, 3)],
+    stance: Stance.NONE,
+    requires: [Stance.VIRTUOUS]
   },
   {
     id: 'sera-aimed-shot',
@@ -762,7 +781,9 @@ const TREE_SKILLS: Skill[] = [
     power: 1.3,
     stat: 'attack',
     damageType: DamageType.SLASH,
-    critBonus: 0.2
+    critBonus: 0.2,
+    stance: Stance.OFFENSE,
+    requires: [Stance.DEFENSE]
   },
   {
     id: 'kael-oath',
@@ -771,7 +792,8 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.LIGHT,
-    statuses: [st('ATTACK_UP', 1, 3), st('DEFENSE_UP', 1, 3)]
+    statuses: [st('ATTACK_UP', 1, 3), st('DEFENSE_UP', 1, 3)],
+    stance: Stance.DEFENSE
   },
   {
     id: 'kael-ember-slash',
@@ -780,7 +802,8 @@ const TREE_SKILLS: Skill[] = [
     power: 0.9,
     stat: 'attack',
     damageType: DamageType.FIRE,
-    statuses: [st('BURN', 0.35, 2)]
+    statuses: [st('BURN', 0.35, 2)],
+    stance: Stance.OFFENSE
   },
   {
     id: 'kael-sundering-blow',
@@ -789,7 +812,9 @@ const TREE_SKILLS: Skill[] = [
     power: 1.6,
     stat: 'attack',
     damageType: DamageType.BLUNT,
-    statuses: [st('DEFENSE_DOWN', 0.7, 3)]
+    statuses: [st('DEFENSE_DOWN', 0.7, 3)],
+    stance: Stance.VIRTUOUS,
+    requires: [Stance.OFFENSE]
   },
   {
     id: 'kael-dawn-strike',
@@ -798,7 +823,9 @@ const TREE_SKILLS: Skill[] = [
     power: 2.2,
     stat: 'attack',
     damageType: DamageType.LIGHT,
-    statuses: [st('BLIND', 0.4, 2)]
+    statuses: [st('BLIND', 0.4, 2)],
+    stance: Stance.VIRTUOUS,
+    requires: [Stance.OFFENSE]
   },
   {
     id: 'kael-war-banner',
@@ -807,7 +834,8 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.LIGHT,
-    statuses: [st('ATTACK_UP', 1, 3)]
+    statuses: [st('ATTACK_UP', 1, 3)],
+    stance: Stance.OFFENSE
   },
   {
     id: 'kael-crimson-edge',
@@ -817,7 +845,9 @@ const TREE_SKILLS: Skill[] = [
     stat: 'attack',
     damageType: DamageType.SLASH,
     critBonus: 0.1,
-    statuses: [st('BLEED', 0.6, 3)]
+    statuses: [st('BLEED', 0.6, 3)],
+    stance: Stance.NONE,
+    requires: [Stance.VIRTUOUS]
   },
   {
     id: 'sera-quick-shot',

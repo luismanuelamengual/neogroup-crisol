@@ -19,6 +19,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { paintSceneryTextures, SceneryTextures } from '@/app/(protected)/(world)/utils/sceneryTextures'
@@ -28,7 +29,7 @@ export interface BattleLabels {
   skill: (skillId: string) => string
   item: (itemId: string) => string
   status: (status: StatusType) => string
-  stance: (stance: 'offense' | 'defense') => string
+  stance: (stance: Stance) => string
   weak: string
   resist: string
   immune: string

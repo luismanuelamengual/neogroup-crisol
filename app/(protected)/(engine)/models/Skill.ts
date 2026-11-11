@@ -1,4 +1,5 @@
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 
@@ -32,8 +33,10 @@ export interface Skill {
   cure?: boolean
   /** Brings back a fallen ally (its heal is the health it comes back with). */
   revive?: boolean
-  /** Switches the stance of its user (Kael). */
-  stance?: boolean
+  /** Kael: the stance it leaves him in, after it hits. */
+  stance?: Stance
+  /** Kael: the stances in which it can be used (any when not set). */
+  requires?: Stance[]
   /** Spends the fury (Brann) or the elemental charges (Ysolde) of its user for more power. */
   consumes?: 'fury' | 'charges'
 }

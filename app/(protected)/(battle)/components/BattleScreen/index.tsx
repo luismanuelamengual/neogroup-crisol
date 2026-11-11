@@ -7,7 +7,6 @@ import BackpackIcon from '@mui/icons-material/Backpack'
 import CloseIcon from '@mui/icons-material/Close'
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'
 import FastForwardIcon from '@mui/icons-material/FastForward'
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import ButtonBase from '@mui/material/ButtonBase'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -27,6 +26,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
@@ -42,6 +42,7 @@ import {
   getTurnQueue,
   getUsableItems,
   isAlive,
+  isStanceMet,
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
@@ -54,7 +55,7 @@ import {
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
 import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 import XpBar from '@/app/(protected)/(party)/components/XpBar'
-import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
+import { itemName, runeName, stanceNames } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -218,7 +219,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         skill: (id: string) => t(`skills.${id}` as MessageKey),
         item: (id: string) => itemName(t, id),
         status: (status: StatusType) => t(`statuses.${status}`),
-        stance: (stance: 'offense' | 'defense') => t(`battle.traits.${stance}`),
+        stance: (stance: Stance) => t(`battle.traits.${stance}`),
         weak: t('battle.weak'),
         resist: t('battle.resist'),
         immune: t('battle.immune'),
@@ -419,12 +420,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   const usableItems = mode === 'choosing' || mode === 'items' ? getUsableItems(battle) : []
   const itemCount = Object.values(battle.items).reduce((sum, count) => sum + count, 0)
   const actorSkills = actor?.side === 'hero' ? getCombatantSkills(battle, actor.id) : []
-  const [attack, ...others] = actorSkills
-  // The six equipped skills go behind Special; the secondary actions (Kael's stance) get a button of their own.
-  const specials = others.filter((option) => !option.stance)
-  const secondary = others.filter((option) => option.stance)
+  const [attack, ...specials] = actorSkills
   const canUse = (option: Skill) =>
-    !!actor && option.cost <= actor.focus && getTargets(battle, actor.id, option).length > 0
+    !!actor &&
+    option.cost <= actor.focus &&
+    isStanceMet(actor, option) &&
+    getTargets(battle, actor.id, option).length > 0
   const choosing = mode === 'choosing' && actor?.side === 'hero'
 
   return (
@@ -462,22 +463,6 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                   {t('battle.special')}
                   <span className="count">{specials.filter(canUse).length}</span>
                 </ButtonBase>
-                {secondary.map((option) => (
-                  <ButtonBase
-                    key={option.id}
-                    className="option secondary"
-                    disabled={!canUse(option)}
-                    onClick={() => pickSkill(option)}
-                  >
-                    <SwapHorizIcon fontSize="small" />
-                    {t('battle.stance')}
-                    {actor?.stance && (
-                      <span className="count">
-                        → {t(`battle.stances.${actor.stance === 'offense' ? 'defense' : 'offense'}`)}
-                      </span>
-                    )}
-                  </ButtonBase>
-                ))}
                 <ButtonBase className="option" disabled={usableItems.length === 0} onClick={() => setMode('items')}>
                   <BackpackIcon fontSize="small" />
                   {t('battle.items')}
@@ -523,6 +508,28 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                       <span className="skill-meta">
                         <i className={classNames('element', option.damageType)} />
                         {t(`battle.reach.${option.target}`)}
+                        {option.requires && (
+                          <span
+                            className={classNames('stance-tag', 'needs', { unmet: !isStanceMet(actor, option) })}
+                            title={t('battle.stanceNeeds', { stances: stanceNames(t, option.requires) })}
+                          >
+                            {option.requires.map((stance) => t(`battle.stancesShort.${stance}`)).join('/')}
+                          </span>
+                        )}
+                        {option.stance &&
+                          option.stance !== actor.stance &&
+                          !option.requires?.includes(option.stance) && (
+                            <span
+                              className="stance-tag"
+                              title={
+                                option.stance === Stance.NONE
+                                  ? t('battle.stanceDrop')
+                                  : t('battle.stanceTo', { stance: stanceNames(t, [option.stance]) })
+                              }
+                            >
+                              →{t(`battle.stancesShort.${option.stance}`)}
+                            </span>
+                          )}
                         <span className={classNames('cost', { short: option.cost > actor.focus })}>{option.cost}</span>
                       </span>
                     </ButtonBase>

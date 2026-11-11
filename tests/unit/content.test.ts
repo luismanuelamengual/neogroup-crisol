@@ -11,6 +11,8 @@ import {
 import { getSkill, SKILLS } from '@/app/(protected)/(engine)/data/skills'
 import { getSkillTree } from '@/app/(protected)/(engine)/data/skillTrees'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
 import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
@@ -75,7 +77,6 @@ describe('skill trees', () => {
         expect(seen.has(node.skillId), node.skillId).toBe(false)
         seen.add(node.skillId)
         expect(node.skillId.startsWith(character.id), node.skillId).toBe(true)
-        expect(getSkill(node.skillId).stance).toBeFalsy()
         expect(node.cost > 0, node.skillId).toBe(node.skillId !== tree.root)
         expect(section('es', 'skills')[node.skillId], node.skillId).toBeTypeOf('string')
         expect(section('en', 'skills')[node.skillId], node.skillId).toBeTypeOf('string')
@@ -114,5 +115,33 @@ describe('bosses of the world', () => {
           .forEach((spawn) => getSpecies(spawn.speciesId))
       }
     }
+  })
+})
+
+describe('Kael’s stances', () => {
+  const tree = getSkillTree(CharacterId.KAEL).nodes.map((node) => getSkill(node.skillId))
+
+  it('moves only Kael between stances, with every stance reachable and the virtuous one only from the offensive', () => {
+    for (const skill of SKILLS) {
+      if (skill.stance || skill.requires) {
+        expect(skill.id.startsWith('kael-'), skill.id).toBe(true)
+      }
+
+      if (skill.stance === Stance.VIRTUOUS) {
+        expect(skill.requires, skill.id).toEqual([Stance.OFFENSE])
+      }
+    }
+
+    for (const stance of [Stance.DEFENSE, Stance.OFFENSE, Stance.VIRTUOUS]) {
+      expect(
+        tree.some((skill) => skill.stance === stance && !skill.requires?.includes(stance)),
+        stance
+      ).toBe(true)
+    }
+
+    // Its first special takes him out of having none, and the weapon attacks keep the stance.
+    expect(getSkill(getSkillTree(CharacterId.KAEL).root).requires).toBeUndefined()
+    expect(getSkill(getSkillTree(CharacterId.KAEL).root).stance).toBe(Stance.OFFENSE)
+    expect(getSkill('kael-strike').stance).toBeUndefined()
   })
 })

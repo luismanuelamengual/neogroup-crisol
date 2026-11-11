@@ -3,6 +3,7 @@ import { Bonuses } from '@/app/(protected)/(engine)/models/Bonuses'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { Trait } from '@/app/(protected)/(engine)/models/Trait'
 
@@ -74,7 +75,8 @@ export interface Combatant {
   runes?: number[]
   /** Heroes: their own mechanic and its state. */
   trait?: Trait
-  stance?: 'offense' | 'defense'
+  /** Kael: his current stance. */
+  stance?: Stance
   /** Sera: marks on each enemy, by id. */
   marks?: Record<string, number>
   /** Brann: 0..100. */

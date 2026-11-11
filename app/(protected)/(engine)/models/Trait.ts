@@ -1,6 +1,6 @@
 /** The mechanic of its own that each hero has in battle. */
 export enum Trait {
-  /** Kael: switches between an offensive and a defensive stance. */
+  /** Kael: his specials move him between stances (none, defensive, offensive and virtuous). */
   STANCE = 'stance',
   /** Sera: each hit marks the target; every mark adds critical chance against it, and a critical hit spends them. */
   MARKS = 'marks',

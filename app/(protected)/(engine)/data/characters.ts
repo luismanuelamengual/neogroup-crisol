@@ -36,7 +36,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.5
     },
     growth: { maxHealth: 12, maxFocus: 2, defense: 1.6, speed: 0.6, attack: 2, special: 1.4 },
-    skills: ['kael-strike', 'kael-firm-cut', 'kael-stance'],
+    skills: ['kael-strike', 'kael-firm-cut'],
     trait: Trait.STANCE,
     color: 0x3b82f6
   },

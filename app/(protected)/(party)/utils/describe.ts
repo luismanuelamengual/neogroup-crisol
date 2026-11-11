@@ -4,6 +4,7 @@ import { BonusesPart, SkillUpgrade } from '@/app/(protected)/(engine)/models/Bon
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Rune } from '@/app/(protected)/(engine)/models/Rune'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import type { MessageKey } from '@/app/i18n/messages'
 import type { Translator } from '@/app/i18n/translate'
@@ -160,7 +161,24 @@ export function describeSkill(t: Translator, skillId: string, level = 1): string
     lines.push(t(skill.consumes === 'fury' ? 'skillEffects.fury' : 'skillEffects.charges'))
   }
 
+  if (skill.requires) {
+    lines.push(t('skillEffects.stanceNeeds', { stances: stanceNames(t, skill.requires) }))
+  }
+
+  if (skill.stance) {
+    lines.push(
+      skill.stance === Stance.NONE
+        ? t('skillEffects.stanceDrop')
+        : t('skillEffects.stanceTo', { stance: stanceNames(t, [skill.stance]) })
+    )
+  }
+
   return lines
+}
+
+/** Stances as they go inside a sentence ("ofensiva / virtuosa"). */
+export function stanceNames(t: Translator, stances: Stance[]): string {
+  return stances.map((stance) => t(`battle.stances.${stance}`).toLowerCase()).join(' / ')
 }
 
 /** Focus a special costs at a level of the skill tree. */

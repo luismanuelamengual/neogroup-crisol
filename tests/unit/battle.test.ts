@@ -7,6 +7,7 @@ import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import {
   canRetreat,
@@ -562,19 +563,60 @@ describe('items, bonuses and loot', () => {
 describe('the mechanics of each hero', () => {
   const boar = [[{ speciesId: 'thorn-boar', level: 5 }]]
 
-  it('lets Kael switch between the offense and the defense stance', () => {
-    const state = turnOf(battle(boar), 'h-kael')
+  it('starts Kael without a stance and lets his specials move him from one to another', () => {
+    const fencer = withSkills(createCharacter(CharacterId.KAEL, 8), ['kael-sweep', 'kael-whirlwind', 'kael-guard'])
+    const tough = [[{ speciesId: 'thorn-boar', level: 30 }]]
+    let state = turnOf(battle(tough, [fencer]), 'h-kael')
+    const boarId = getFighters(state, 'enemy')[0].id
 
-    expect(getCombatant(state, 'h-kael').stance).toBe('offense')
+    const use = (skillId: string) => {
+      const step = performAction(turnOf(state, 'h-kael'), { type: 'skill', skillId, targetIds: [boarId] })
 
-    const { state: after, events } = performAction(state, {
-      type: 'skill',
-      skillId: 'kael-stance',
-      targetIds: ['h-kael']
+      state = step.state
+
+      return step.events
+    }
+
+    expect(getCombatant(state, 'h-kael').stance).toBe(Stance.NONE)
+
+    // The weapon attack keeps the stance.
+    expect(use('kael-strike').some((event) => event.type === 'stance')).toBe(false)
+    expect(getCombatant(state, 'h-kael').stance).toBe(Stance.NONE)
+
+    expect(use('kael-firm-cut')).toContainEqual({ type: 'stance', targetId: 'h-kael', stance: Stance.OFFENSE })
+    use('kael-whirlwind')
+    expect(getCombatant(state, 'h-kael').stance).toBe(Stance.VIRTUOUS)
+    use('kael-guard')
+    expect(getCombatant(state, 'h-kael').stance).toBe(Stance.DEFENSE)
+  })
+
+  it('keeps some specials of Kael for one stance', () => {
+    const fencer = withSkills(createCharacter(CharacterId.KAEL, 8), ['kael-sweep', 'kael-whirlwind', 'kael-execution'])
+    const tough = [[{ speciesId: 'thorn-boar', level: 30 }]]
+    const state = turnOf(battle(tough, [fencer]), 'h-kael')
+    const boarId = getFighters(state, 'enemy')[0].id
+    const usable = (from: BattleState) => getUsableSkills(from, 'h-kael').map((skill) => skill.id)
+    const inStance = (stance: Stance): BattleState => ({
+      ...state,
+      combatants: state.combatants.map((combatant) =>
+        combatant.id === 'h-kael' ? { ...combatant, stance } : combatant
+      )
     })
 
-    expect(getCombatant(after, 'h-kael').stance).toBe('defense')
-    expect(events).toContainEqual({ type: 'stance', targetId: 'h-kael', stance: 'defense' })
+    expect(usable(state)).not.toContain('kael-whirlwind')
+    expect(usable(state)).not.toContain('kael-execution')
+    expect(() => performAction(state, { type: 'skill', skillId: 'kael-execution', targetIds: [boarId] })).toThrow()
+
+    expect(usable(inStance(Stance.OFFENSE))).toContain('kael-whirlwind')
+    expect(usable(inStance(Stance.OFFENSE))).not.toContain('kael-execution')
+
+    const { state: after } = performAction(inStance(Stance.VIRTUOUS), {
+      type: 'skill',
+      skillId: 'kael-execution',
+      targetIds: [boarId]
+    })
+
+    expect(getCombatant(after, 'h-kael').stance).toBe(Stance.NONE)
   })
 
   it('charges Ysolde with the elements she casts, and spends them all at once', () => {

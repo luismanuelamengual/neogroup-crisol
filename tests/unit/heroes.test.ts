@@ -78,7 +78,7 @@ describe('attribute and skill points', () => {
   it('learns any special joined to a learned one, paying its cost, and leaves every way open', () => {
     const kael = kaelOf(game(10))
 
-    expect(getCharacterSkills(kael)).toEqual(['kael-strike', 'kael-firm-cut', 'kael-stance'])
+    expect(getCharacterSkills(kael)).toEqual(['kael-strike', 'kael-firm-cut'])
     expect(getSkillLearnState(kael, 'kael-whirlwind')).toBe('far')
     expect(getSkillLearnState(kaelOf(game(1)), 'kael-guard')).toBe('points')
 
@@ -131,18 +131,13 @@ describe('attribute and skill points', () => {
       state = equipSkill(state, KAEL, skill)
     }
 
-    expect(known).not.toContain('kael-stance')
-    expect(getCharacterSkills(kaelOf(state))).toEqual(['kael-strike', ...known.slice(0, SKILL_SLOTS), 'kael-stance'])
+    expect(getCharacterSkills(kaelOf(state))).toEqual(['kael-strike', ...known.slice(0, SKILL_SLOTS)])
     expect(() => equipSkill(state, KAEL, known[SKILL_SLOTS])).toThrow()
     expect(() => equipSkill(state, KAEL, 'sera-volley')).toThrow()
 
     state = equipSkill(unequipSkill(state, KAEL, known[0]), KAEL, known[SKILL_SLOTS])
 
-    expect(getCharacterSkills(kaelOf(state))).toEqual([
-      'kael-strike',
-      ...known.slice(1, SKILL_SLOTS + 1),
-      'kael-stance'
-    ])
+    expect(getCharacterSkills(kaelOf(state))).toEqual(['kael-strike', ...known.slice(1, SKILL_SLOTS + 1)])
   })
 
   it('puts a special just learned in a free slot, and only then', () => {

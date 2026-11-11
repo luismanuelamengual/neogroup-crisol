@@ -1,5 +1,6 @@
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /** What happened in a step of a battle: the scene animates them in order. */
@@ -25,7 +26,7 @@ export type BattleEvent =
   | { type: 'statusTick'; targetId: string; status: StatusType; amount: number }
   | { type: 'status'; targetId: string; status: StatusType; turns: number }
   | { type: 'statusEnd'; targetId: string; status: StatusType }
-  | { type: 'stance'; targetId: string; stance: 'offense' | 'defense' }
+  | { type: 'stance'; targetId: string; stance: Stance }
   | { type: 'fall'; targetId: string }
   | { type: 'nextBar'; targetId: string; bars: number }
   | { type: 'phase'; phase: number; enemyIds: string[] }

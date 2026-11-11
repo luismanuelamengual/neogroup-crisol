@@ -25,6 +25,7 @@ import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 import { Item, ItemTarget, StoneId } from '@/app/(protected)/(engine)/models/Item'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
+import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
 import { Trait } from '@/app/(protected)/(engine)/models/Trait'
@@ -83,7 +84,12 @@ const HARMFUL = new Set([
 /** Most of the damage a hero's guard can avoid. */
 const MAX_GUARD = 0.6
 /** Kael's stances: multipliers of attack and defense. */
-const STANCES = { offense: { attack: 1.15, defense: 0.9 }, defense: { attack: 0.9, defense: 1.3 } }
+const STANCES: Record<Stance, { attack: number; defense: number }> = {
+  [Stance.NONE]: { attack: 1, defense: 1 },
+  [Stance.DEFENSE]: { attack: 0.9, defense: 1.3 },
+  [Stance.OFFENSE]: { attack: 1.2, defense: 0.9 },
+  [Stance.VIRTUOUS]: { attack: 1.5, defense: 0.85 }
+}
 /** Sera: critical chance per mark on the target, and most marks. */
 const MARK_CRIT = 0.06
 const MAX_MARKS = 5
@@ -146,7 +152,7 @@ export interface BattleStep {
 function traitState(trait: Trait): Partial<Combatant> {
   switch (trait) {
     case Trait.STANCE:
-      return { trait, stance: 'offense' }
+      return { trait, stance: Stance.NONE }
     case Trait.MARKS:
       return { trait, marks: {} }
     case Trait.FURY:
@@ -850,11 +856,18 @@ export function getCombatantSkills(state: BattleState, combatantId: string): Ski
   return combatant.skills.map((id) => skillOf(combatant, id))
 }
 
-/** Skills a fighter can use now (enough focus). */
+/** Whether the stance of a fighter lets it use a skill (Kael: some only in one stance). */
+export function isStanceMet(combatant: Combatant, skill: Skill): boolean {
+  return !skill.requires || (!!combatant.stance && skill.requires.includes(combatant.stance))
+}
+
+/** Skills a fighter can use now (enough focus, and in the stance they ask for). */
 export function getUsableSkills(state: BattleState, combatantId: string): Skill[] {
   const combatant = getCombatant(state, combatantId)
 
-  return getCombatantSkills(state, combatantId).filter((skill) => skill.cost <= combatant.focus)
+  return getCombatantSkills(state, combatantId).filter(
+    (skill) => skill.cost <= combatant.focus && isStanceMet(combatant, skill)
+  )
 }
 
 /** Fallen heroes on the field (not in reserve): a revival potion can bring them back. */
@@ -951,7 +964,7 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
   const base = skillOf(actor, action.skillId)
 
-  if (base.cost > actor.focus) {
+  if (base.cost > actor.focus || !isStanceMet(actor, base)) {
     throw new Error(`${actor.id} cannot use ${base.id}`)
   }
 
@@ -987,11 +1000,6 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
       actor.focus += restored
       events.push({ type: 'focus', targetId: actor.id, amount: restored })
     }
-  }
-
-  if (skill.stance && actor.stance) {
-    actor.stance = actor.stance === 'offense' ? 'defense' : 'offense'
-    events.push({ type: 'stance', targetId: actor.id, stance: actor.stance })
   }
 
   if (skill.consumes === 'fury') {
@@ -1059,6 +1067,12 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
   if (actor.charges && skill.cost > 0 && CHARGING.includes(skill.damageType) && !skill.consumes) {
     actor.charges = [...new Set([...actor.charges, skill.damageType])]
+  }
+
+  // Kael: the skill hit in the stance he was in, and leaves him in its own.
+  if (skill.stance && actor.stance && actor.stance !== skill.stance && isAlive(actor)) {
+    actor.stance = skill.stance
+    events.push({ type: 'stance', targetId: actor.id, stance: actor.stance })
   }
 
   if (!state.outcome && isAlive(actor) && !actor.runeState?.inBonus) {
@@ -1491,6 +1505,11 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
   target.statuses = []
   target.initiative = 0
   events.push({ type: 'fall', targetId: target.id })
+
+  // Kael loses his stance when he falls.
+  if (target.stance) {
+    target.stance = Stance.NONE
+  }
 
   if (target.side === 'enemy') {
     const rewards = getEnemyRewards(target.speciesId!, target.level, target.elite, state.cycle)

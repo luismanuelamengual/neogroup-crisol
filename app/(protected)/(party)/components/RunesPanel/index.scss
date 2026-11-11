@@ -1,0 +1,225 @@
+// The runes of a hero: its slots on top and the grids of runes and echoes, using the whole width.
+.runes-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  // The three slots of the hero, on top.
+  .rune-slots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 6px 0 10px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    min-height: 104px;
+    padding: 10px 6px 8px;
+    border: 2px solid var(--rune-color);
+    border-radius: 14px;
+    background: radial-gradient(
+      circle at 50% 35%,
+      color-mix(in srgb, var(--rune-color) 30%, transparent) 0%,
+      rgba(18, 16, 58, 0.75) 70%
+    );
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+    color: var(--color-text);
+    cursor: pointer;
+
+    &.empty {
+      justify-content: center;
+      border: 2px dashed rgba(255, 255, 255, 0.25);
+      background: rgba(18, 16, 58, 0.45);
+      cursor: default;
+
+      .name {
+        color: var(--color-text-secondary);
+      }
+    }
+
+    .hole {
+      width: 40px;
+      height: 40px;
+      border: 2px dashed rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+    }
+  }
+
+  // The runes of the party (and the echoes), as a grid.
+  .rune-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+    gap: 8px;
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    height: 100%;
+    padding: 8px 4px 6px;
+    border: 1px solid #12103a;
+    border-bottom: 3px solid var(--rune-color);
+    border-radius: 10px;
+    background: rgba(18, 16, 58, 0.55);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+    color: var(--color-text);
+    cursor: pointer;
+
+    &.worn {
+      border-color: var(--color-gold);
+      border-bottom-color: var(--rune-color);
+    }
+
+    .badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: #12103a;
+      color: var(--color-gold-light);
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 18px;
+      text-align: center;
+    }
+  }
+
+  .slot,
+  .tile {
+    &:hover,
+    &:focus-visible,
+    &.chosen {
+      box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.6),
+        0 0 0 2px var(--rune-color),
+        0 0 12px color-mix(in srgb, var(--rune-color) 60%, transparent);
+    }
+
+    .name {
+      color: var(--color-gold-light);
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      line-height: 1.15;
+      text-align: center;
+    }
+  }
+
+  // Phones held sideways: smaller slots and tiles.
+  @media (max-height: 499px) {
+    .slot {
+      min-height: 84px;
+      padding: 6px 4px;
+    }
+
+    .rune-grid {
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    }
+  }
+}
+
+// The card of a rune, opened next to the tile clicked (outside the panel, in a popover).
+.rune-card-paper {
+  &.MuiPaper-root {
+    max-width: min(300px, calc(100vw - 16px));
+    border-radius: 14px;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.rune-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid var(--rune-color);
+  border-radius: 14px;
+  background: #1e1a5a;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    0 0 14px color-mix(in srgb, var(--rune-color) 45%, transparent);
+  color: var(--color-text);
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .titles {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .name {
+    color: var(--color-gold-light);
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .tier {
+    color: var(--color-text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .stat {
+    padding: 1px 8px;
+    border: 1px solid var(--rune-color);
+    border-radius: 999px;
+    color: var(--rune-color);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .lines {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  .tag {
+    margin: 0;
+    color: var(--color-gold);
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  // Phones held sideways: the card has little height, so its picture shrinks.
+  @media (max-height: 499px) {
+    gap: 6px;
+    padding: 10px;
+
+    .item-icon {
+      width: 52px !important;
+      height: 52px !important;
+    }
+
+    .lines {
+      font-size: 0.8rem;
+    }
+  }
+}

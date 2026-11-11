@@ -250,12 +250,8 @@
           0 0 14px rgba(116, 180, 255, 0.3);
       }
 
-      &:not(.special, .ghost, .secondary) {
+      &:not(.special, .ghost) {
         --tone: var(--color-lime);
-      }
-
-      &.secondary {
-        --tone: var(--color-gold);
       }
 
       &.ghost {
@@ -439,6 +435,27 @@
       &.pierce,
       &.blunt {
         background: #d8d0c0;
+      }
+    }
+
+    // Kael: the stance a special asks for, and the one it leaves him in.
+    .stance-tag {
+      flex-shrink: 0;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(255, 194, 51, 0.16);
+      color: var(--color-gold);
+      font-size: 0.6rem;
+      white-space: nowrap;
+
+      &.needs {
+        background: rgba(132, 240, 107, 0.16);
+        color: var(--color-lime);
+      }
+
+      &.unmet {
+        background: rgba(229, 83, 61, 0.3);
+        color: #ffb3a6;
       }
     }
 

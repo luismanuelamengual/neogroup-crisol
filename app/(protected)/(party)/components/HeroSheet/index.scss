@@ -409,56 +409,6 @@
     }
   }
 
-  // A rune (or its echo): its stone next to what it does, tinted with the color of the attribute it raises.
-  .cards.runes li {
-    flex-direction: row;
-    gap: 12px;
-    border-left: 4px solid var(--rune-color);
-
-    &.worn {
-      border-left-color: var(--rune-color);
-    }
-
-    .rune-icon {
-      padding: 4px;
-      border-radius: 12px;
-      background: radial-gradient(
-        circle at 50% 45%,
-        color-mix(in srgb, var(--rune-color) 45%, transparent) 0%,
-        transparent 70%
-      );
-    }
-
-    .rune-body {
-      display: flex;
-      flex: 1 1 auto;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .rune-stat {
-      padding: 1px 8px;
-      border: 1px solid var(--rune-color);
-      border-radius: 999px;
-      color: var(--rune-color);
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    @media (max-width: 599px), (max-height: 499px) {
-      gap: 10px;
-
-      .rune-icon {
-        width: 44px !important;
-        height: 44px !important;
-      }
-    }
-  }
-
   .camp-only {
     margin: 0;
     color: var(--color-gold);

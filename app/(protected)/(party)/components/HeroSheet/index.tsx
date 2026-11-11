@@ -9,10 +9,8 @@ import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import classNames from 'classnames'
-import { CSSProperties } from 'react'
 import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
 import { artUrl } from '@/app/(protected)/(art)/utils/art'
-import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import {
   getCharacterWeapons,
@@ -23,26 +21,19 @@ import {
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { Rune } from '@/app/(protected)/(engine)/models/Rune'
 import { ACTIVE_HEROES } from '@/app/(protected)/(engine)/utils/battle'
 import {
-  assignEchoes,
-  canEquipEcho,
   canForgetSkills,
   canUpgradeWeapon,
-  equipEcho,
-  equipRune,
   equipSkill,
   equipWeapon,
   getAttributePoints,
   getCharacterStats,
-  getEchoLoad,
   getKnownSkills,
   getMaxHealth,
   getSkillLevel,
   getSkillPoints,
   getWeaponLevel,
-  isRuneMastered,
   isTreeComplete,
   moveInFormation,
   SKILL_SLOTS,
@@ -50,28 +41,23 @@ import {
   spendTear,
   TRADE_ECHOES,
   tradeSkillPoint,
-  unequipEcho,
-  unequipRune,
   unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
 import { xpToNextLevel } from '@/app/(protected)/(engine)/utils/progression'
 import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
-import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
+import RunesPanel from '@/app/(protected)/(party)/components/RunesPanel'
 import SkillIcon from '@/app/(protected)/(party)/components/SkillIcon'
 import SkillTree from '@/app/(protected)/(party)/components/SkillTree'
 import WeaponArt from '@/app/(protected)/(party)/components/WeaponArt'
 import {
   describeBonuses,
-  describeRune,
   formatShare,
   formatStat,
   itemName,
-  runeName,
   skillCost,
   skillName
 } from '@/app/(protected)/(party)/utils/describe'
-import { runeColor } from '@/app/(protected)/(party)/utils/runeColors'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -104,11 +90,6 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
 ]
 
 /** The portrait of a hero (its bust, see `yarn art`). */
-/** A rune card is tinted with the color of the attribute the rune raises. */
-function runeStyle(rune: Rune): CSSProperties {
-  return { '--rune-color': runeColor(rune) } as CSSProperties
-}
-
 function portraitArtId(id: string): string {
   return `heroes/${id}/portrait`
 }
@@ -132,9 +113,6 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
   const stats = getCharacterStats(character)
   const attributePoints = getAttributePoints(character)
   const skillPoints = getSkillPoints(character)
-  const owner = (index: number) => state.characters.find((other) => other.runes.includes(index))
-  const mastered = state.runes.filter((index) => isRuneMastered(state, index)).sort((a, b) => a - b)
-  const echoLoad = getEchoLoad(character)
   const spare = getKnownSkills(character).filter((skill) => !character.skills.includes(skill))
   const costOf = (skillId: string) => skillCost(skillId, Math.max(1, getSkillLevel(character, skillId)))
 
@@ -420,111 +398,7 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
         </section>
       )}
 
-      {tab === 'runes' && (
-        <>
-          <section>
-            <h3>
-              {t('party.runes')}
-              <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
-            </h3>
-            {!atCamp && state.runes.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
-            {state.runes.length === 0 ? (
-              <p className="lines">{t('party.noRunes')}</p>
-            ) : (
-              <ul className="cards runes">
-                {[...state.runes]
-                  .sort((a, b) => a - b)
-                  .map((index) => {
-                    const rune = getRune(index)
-                    const worn = character.runes.includes(index)
-                    const wearer = owner(index)
-
-                    return (
-                      <li key={index} className={classNames({ worn })} style={runeStyle(rune)}>
-                        <ItemIcon subject={{ type: 'rune', index }} size={56} className="rune-icon" />
-                        <div className="rune-body">
-                          <div className="titles">
-                            <span className="name">{runeName(t, rune)}</span>
-                            <span className="tag">
-                              {isRuneMastered(state, index)
-                                ? t('party.mastered')
-                                : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
-                            </span>
-                          </div>
-                          <span className="rune-stat">{t(`attributes.${rune.gain}`)}</span>
-                          <p className="lines">{describeRune(t, rune).join(' · ')}</p>
-                          {wearer && !worn && (
-                            <p className="lines">
-                              {t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
-                            </p>
-                          )}
-                          <GameButton
-                            size="small"
-                            color={worn ? 'ghost' : 'cyan'}
-                            disabled={!atCamp || (!worn && character.runes.length >= RUNE_SLOTS)}
-                            onClick={() => onChange(worn ? unequipRune(state, id, index) : equipRune(state, id, index))}
-                          >
-                            {t(worn ? 'party.unequip' : 'party.equip')}
-                          </GameButton>
-                        </div>
-                      </li>
-                    )
-                  })}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3>
-              {t('party.echoes')}
-              <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
-            </h3>
-            {state.echoes > 0 && (
-              <div className="row">
-                <span className="lines">
-                  {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
-                </span>
-                <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
-                  {t('party.assign', { name })}
-                </GameButton>
-              </div>
-            )}
-            <p className="lines">{t('party.echoesHint')}</p>
-            {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
-            {mastered.length === 0 ? (
-              <p className="lines">{t('party.noEchoes')}</p>
-            ) : (
-              <ul className="cards runes">
-                {mastered.map((index) => {
-                  const rune = getRune(index)
-                  const worn = character.echoes.includes(index)
-
-                  return (
-                    <li key={index} className={classNames({ worn })} style={runeStyle(rune)}>
-                      <ItemIcon subject={{ type: 'rune', index }} size={56} className="rune-icon" />
-                      <div className="rune-body">
-                        <div className="titles">
-                          <span className="name">{runeName(t, rune)}</span>
-                          <span className="tag">{t('party.cost', { count: rune.echoCost })}</span>
-                        </div>
-                        <p className="lines">{describeRune(t, rune, false).join(' · ')}</p>
-                        <GameButton
-                          size="small"
-                          color={worn ? 'ghost' : 'magenta'}
-                          disabled={!atCamp || (!worn && !canEquipEcho(state, character, index))}
-                          onClick={() => onChange(worn ? unequipEcho(state, id, index) : equipEcho(state, id, index))}
-                        >
-                          {t(worn ? 'party.unequip' : 'party.equip')}
-                        </GameButton>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </section>
-        </>
-      )}
+      {tab === 'runes' && <RunesPanel state={state} character={character} atCamp={atCamp} onChange={onChange} />}
     </div>
   )
 }
