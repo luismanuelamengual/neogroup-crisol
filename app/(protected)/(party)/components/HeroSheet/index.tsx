@@ -326,13 +326,13 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
                     <WeaponArt weapon={weapon} held={held} />
                     <div className="weapon-body">
                       <div className="titles">
-                        <span className="name">{t(`weapons.${weapon.id}.name` as MessageKey)}</span>
-                        <span className="tag">{held ? t('party.weaponHeld') : `+${level}`}</span>
+                        <span className="name">
+                          {t(`weapons.${weapon.id}.name` as MessageKey)}
+                          {level > 0 && <span className="level">+{level}</span>}
+                        </span>
+                        {held && <span className="tag held">{t('party.weaponHeld')}</span>}
                       </div>
-                      <p className="lines kind">
-                        {t(`weapons.${weapon.id}.kind` as MessageKey)}
-                        {held && ` · +${level}`}
-                      </p>
+                      <p className="lines kind">{t(`weapons.${weapon.id}.kind` as MessageKey)}</p>
                       <p className="lines">
                         {t('party.weaponAttack', {
                           skill: skillName(t, attack.id),

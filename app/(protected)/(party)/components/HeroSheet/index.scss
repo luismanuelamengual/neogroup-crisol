@@ -404,8 +404,61 @@
       min-width: 0;
     }
 
+    // The name of the weapon with its upgrade right after it, as large as the name.
+    .titles {
+      align-items: center;
+    }
+
+    .name {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 6px;
+      min-width: 0;
+      font-size: 1.05rem;
+    }
+
+    .level {
+      color: var(--color-lime);
+      font-size: 1.05em;
+      font-weight: 800;
+      text-shadow: 0 0 6px rgba(126, 224, 90, 0.45);
+      white-space: nowrap;
+    }
+
+    // The held one: a pill, a thicker gold frame, a warmer backdrop and a stronger glow.
+    .tag.held {
+      flex: 0 0 auto;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--color-gold);
+      color: var(--color-night);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: 0 0 8px rgba(255, 201, 60, 0.55);
+    }
+
+    &.worn {
+      border-width: 2px;
+      background: linear-gradient(135deg, rgba(106, 79, 176, 0.55) 0%, rgba(42, 26, 90, 0.75) 100%);
+      box-shadow:
+        inset 0 0 12px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(255, 201, 60, 0.45);
+    }
+
     @media (max-width: 599px), (max-height: 499px) {
       gap: 10px;
+
+      .name {
+        font-size: 0.98rem;
+      }
+
+      .tag.held {
+        padding: 1px 7px;
+        font-size: 0.64rem;
+      }
     }
   }
 

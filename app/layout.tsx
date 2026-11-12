@@ -76,7 +76,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <ThemeRegistry>
             <I18nProvider locale={locale}>{children}</I18nProvider>
             <Toaster
-              position="bottom-center"
+              position="top-center"
+              // Below the top HUD row (location, gold, buttons) so it never covers it.
+              containerStyle={{ top: 'calc(70px + var(--safe-top))' }}
               toastOptions={{
                 style: {
                   background: 'var(--frame-background)',
