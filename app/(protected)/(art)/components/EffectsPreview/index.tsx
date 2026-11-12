@@ -10,19 +10,24 @@ import {
   PREVIEW_LINEUPS,
   previewEvents
 } from '@/app/(protected)/(battle)/utils/effectsPreview'
+import { STATUS_COLORS } from '@/app/(protected)/(battle)/utils/statusVisuals'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { useT } from '@/app/i18n/I18nProvider'
 import { MessageKey } from '@/app/i18n/messages'
 
 const SPEEDS = [1, 0.5, 0.25]
+const STATUSES = Object.keys(STATUS_COLORS) as StatusType[]
 
 /**
  * The attack effects one by one, on a real battle stage: pick who acts and
  * press a skill to see it (its look comes from attackEffects.ts). It also
- * shows Ysolde's charges going round her and the critical version of a blow.
+ * shows Ysolde's charges going round her, the critical version of a blow and
+ * every status on the fighter picked (see statusVisuals.ts).
  */
+
 export default function EffectsPreview() {
   const t = useT()
   const stage = useRef<HTMLDivElement>(null)
@@ -126,6 +131,60 @@ export default function EffectsPreview() {
     renderer.current.sync(battle.current, actorId)
   }
 
+  /** Puts a status on the fighter picked (as the battle would, with its label) or takes it off. */
+  const toggleStatus = async (status: StatusType) => {
+    if (!renderer.current || !battle.current || !actor || busy.current) {
+      return
+    }
+
+    const combatant = battle.current.combatants.find((other) => other.id === actor.id)!
+    const had = combatant.statuses.some((other) => other.type === status)
+
+    busy.current = true
+    combatant.statuses = had
+      ? combatant.statuses.filter((other) => other.type !== status)
+      : [...combatant.statuses, { type: status, turns: 3 }]
+
+    if (!had) {
+      await renderer.current.play([{ type: 'status', targetId: actor.id, status, turns: 3 }], battle.current)
+    }
+
+    renderer.current?.sync(battle.current, actor.id)
+    setState({ ...battle.current })
+    busy.current = false
+  }
+
+  /** Every status on every fighter on the field, or none. */
+  const setAllStatuses = (on: boolean) => {
+    if (!renderer.current || !battle.current || busy.current) {
+      return
+    }
+
+    battle.current.combatants
+      .filter((combatant) => !combatant.reserve)
+      .forEach((combatant, index) => {
+        // Two or three each, so they can be told apart.
+        combatant.statuses = on
+          ? STATUSES.filter((_, at) => at % 6 === index % 6).map((type) => ({ type, turns: 3 }))
+          : []
+      })
+    renderer.current.sync(battle.current, actorId)
+    setState({ ...battle.current })
+  }
+
+  /** The fighter picked loses its turn (frozen or stunned, it shudders). */
+  const skipTurn = async () => {
+    if (!renderer.current || !battle.current || !actor || busy.current) {
+      return
+    }
+
+    const status = actor.statuses.find((other) => other.type === StatusType.FREEZE)?.type ?? StatusType.STUN
+
+    busy.current = true
+    await renderer.current.play([{ type: 'skip', actorId: actor.id, status }], battle.current)
+    busy.current = false
+  }
+
   const nameOf = (id: string) => {
     const combatant = state?.combatants.find((other) => other.id === id)
 
@@ -164,6 +223,21 @@ export default function EffectsPreview() {
               {nameOf(combatant.id)}
             </button>
           ))}
+        </div>
+        <div className="row statuses">
+          {STATUSES.map((status) => (
+            <button
+              key={status}
+              className={actor?.statuses.some((other) => other.type === status) ? 'active' : undefined}
+              style={{ borderLeftColor: `#${STATUS_COLORS[status].main.toString(16).padStart(6, '0')}` }}
+              onClick={() => void toggleStatus(status)}
+            >
+              {t(`statuses.${status}`)}
+            </button>
+          ))}
+          <button onClick={() => setAllStatuses(true)}>Estados a todos</button>
+          <button onClick={() => setAllStatuses(false)}>Sin estados</button>
+          <button onClick={() => void skipTurn()}>Pierde el turno</button>
         </div>
         <ul className="skills">
           {actor &&

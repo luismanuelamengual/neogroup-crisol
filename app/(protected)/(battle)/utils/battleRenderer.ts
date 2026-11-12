@@ -11,6 +11,7 @@ import { AttackVisuals, EffectTarget, HitOutcome } from '@/app/(protected)/(batt
 import { BattleScenery, FLOOR_LINE, MAX_PAN, SceneryProp } from '@/app/(protected)/(battle)/utils/battleScenery'
 import { soundOf } from '@/app/(protected)/(battle)/utils/battleSounds'
 import { initialQuality, Particles, prefersReducedMotion } from '@/app/(protected)/(battle)/utils/particles'
+import { STATUS_COLORS, StatusAura } from '@/app/(protected)/(battle)/utils/statusVisuals'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
@@ -50,6 +51,8 @@ interface Figure {
   healthBar: Graphics
   barsText: Text | null
   statusText: Text
+  /** What its statuses look like on it (poison bubbles, ice, stars...), see statusVisuals.ts. */
+  aura: StatusAura
   side: Combatant['side']
   /** The puppet, when the figure is put together from a parts sheet. */
   rig: RigFigure | null
@@ -431,7 +434,18 @@ export class BattleRenderer {
     // Below the feet, so it never covers the numbers that rise over the head.
     statusText.anchor.set(0.5, 0)
     statusText.position.set(0, 10)
-    root.addChild(body, healthBar, statusText)
+    const aura = new StatusAura(
+      this.particles,
+      body,
+      FIGURE_HEIGHT * size * (combatant.side === 'hero' ? 1.1 : 1),
+      Math.max(26, shadowOf(artId).radiusX * size * 0.9),
+      combatant.side === 'hero' ? 1 : -1,
+      -FIGURE_HEIGHT * size - 18,
+      this.reducedMotion
+    )
+
+    aura.set(combatant.health > 0 ? combatant.statuses.map((status) => status.type) : [])
+    root.addChild(aura.back, body, aura.front, healthBar, statusText)
 
     if (barsText) {
       barsText.anchor.set(0, 0.5)
@@ -450,6 +464,7 @@ export class BattleRenderer {
       healthBar,
       barsText,
       statusText,
+      aura,
       side: combatant.side,
       rig,
       style: styleOf(combatant),
@@ -502,6 +517,7 @@ export class BattleRenderer {
       figure.maxHealth = combatant.stats.maxHealth
       figure.bars = combatant.bars
       figure.statusText.text = combatant.statuses.map((status) => this.labels.status(status.type)).join(' · ')
+      figure.aura.set(combatant.health > 0 ? combatant.statuses.map((status) => status.type) : [])
       this.drawHealth(figure)
       figure.healthBar.visible = combatant.health > 0
       this.drawOrbs(figure, combatant.health > 0 ? (combatant.charges ?? []) : [])
@@ -740,10 +756,25 @@ export class BattleRenderer {
         const figure = this.figures.get(id)
 
         if (figure) {
-          this.float(figure, this.labels.status(event.status), 0xc084fc, 14, -28)
+          this.float(figure, this.labels.status(event.status), STATUS_COLORS[event.status].light, 14, -28)
+
+          if (event.type === 'status') {
+            // It shows on the fighter from now on (the next sync confirms it).
+            figure.aura.add(event.status)
+          } else if (!this.reducedMotion) {
+            // Losing its turn: it shudders in its ice or reels under its stars.
+            await this.tween(ms(360), (t) => {
+              figure.body.position.x = Math.sin(t * Math.PI * 6) * 3 * (1 - t)
+            })
+          }
         }
 
         await wait(ms(event.type === 'skip' ? 420 : 200))
+        break
+      }
+
+      case 'statusEnd': {
+        this.figures.get(event.targetId)?.aura.remove(event.status)
         break
       }
 
@@ -753,6 +784,8 @@ export class BattleRenderer {
         if (!figure) {
           break
         }
+
+        figure.aura.set([])
 
         const direction = figure.side === 'hero' ? -1 : 1
 
@@ -1218,11 +1251,15 @@ export class BattleRenderer {
     }
 
     for (const [, figure] of this.figures) {
+      const pace = figure.aura.pace
+      const { x, y } = figure.root.position
+
       this.moveOrbs(figure)
+      figure.aura.update(deltaMS * this.speed, figure.root.visible ? { x, y, scale: this.scale } : null)
 
       if (figure.rig) {
-        figure.rig.update(deltaMS)
-      } else if (figure.root.alpha === 1) {
+        figure.rig.update(deltaMS * pace)
+      } else if (figure.root.alpha === 1 && pace > 0) {
         figure.body.scale.y = figure.size * (1 + Math.sin(this.elapsed * 2.4 + figure.home.x) * 0.015)
       }
     }

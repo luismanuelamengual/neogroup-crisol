@@ -50,6 +50,12 @@
     }
   }
 
+  .statuses button {
+    border-left-width: 5px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
   .skills {
     display: flex;
     flex-direction: column;
