@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_BASIC_POTIONS, victoryPotionChance } from '@/app/(protected)/(engine)/data/items'
+import {
+  BASIC_POTIONS,
+  BIOME_DROPS,
+  BOSS_ITEMS,
+  getItem,
+  ITEMS,
+  MAX_BASIC_POTIONS,
+  MERCHANT_STOCK,
+  victoryPotionChance
+} from '@/app/(protected)/(engine)/data/items'
 import { RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
@@ -15,9 +24,12 @@ import {
   createBattle,
   getCombatant,
   getFighters,
+  getItemsLeft,
   getTurnQueue,
   getUsableItems,
   getUsableSkills,
+  MAX_ITEMS_PER_TURN,
+  MAX_SHIELDS,
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
@@ -560,6 +572,252 @@ describe('items, bonuses and loot', () => {
   })
 })
 
+describe('items per turn, shields and the consumables', () => {
+  const field = (items: Record<string, number>, heroes = [kael], speciesId = 'thorn-boar', level = 5) =>
+    turnOf(
+      createBattle({
+        heroes,
+        phases: [[{ speciesId, level }]],
+        seed: 11,
+        biome: Biome.MEADOWS,
+        canRetreat: true,
+        items
+      }).state,
+      'h-kael'
+    )
+  const consume = (state: BattleState, itemId: string, targetIds = ['h-kael']) =>
+    performAction(state, { type: 'item', itemId, targetIds })
+  const enemyActs = (state: BattleState, skillId = 'gore') =>
+    performAction(
+      {
+        ...turnOf(state, 'e1-1'),
+        combatants: turnOf(state, 'e1-1').combatants.map((combatant) =>
+          combatant.id === 'e1-1' ? { ...combatant, skills: [...combatant.skills, skillId] } : combatant
+        )
+      },
+      { type: 'skill', skillId, targetIds: ['h-kael'] }
+    )
+
+  it('keeps the turn after an item, up to three, and ends it with the third', () => {
+    const start = field({ 'crusty-bread': 3, 'honey-cake': 1, 'might-tonic': 1 })
+    const one = consume(start, 'crusty-bread').state
+
+    expect(one.actorId).toBe('h-kael')
+    expect(getItemsLeft(one)).toBe(MAX_ITEMS_PER_TURN - 1)
+
+    const two = consume(one, 'honey-cake').state
+
+    expect(two.actorId).toBe('h-kael')
+    expect(getItemsLeft(two)).toBe(1)
+
+    // A third item ends the turn.
+    const three = consume(two, 'crusty-bread').state
+
+    expect(three.actorId).toBeNull()
+    expect(three.items['crusty-bread']).toBe(1)
+
+    // Or, after one or two, the hero can still attack (which ends the turn).
+    const attacked = performAction(two, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] }).state
+
+    expect(attacked.actorId).toBeNull()
+    expect(attacked.itemsUsed).toBe(0)
+
+    // The next turn of the hero starts with every item again.
+    const next = nextTurn({
+      ...three,
+      combatants: three.combatants.map((combatant) =>
+        combatant.side === 'hero' ? { ...combatant, initiative: 99.9 } : { ...combatant, initiative: 0 }
+      )
+    }).state
+
+    expect(next.actorId).toBe('h-kael')
+    expect(getItemsLeft(next)).toBe(MAX_ITEMS_PER_TURN)
+    expect(() => consume(three, 'crusty-bread')).toThrow()
+  })
+
+  it('stacks shields, and each one stops a whole hit', () => {
+    const start = field({ 'bulwark-crystal': 1, 'guard-seal': 1 })
+    const first = consume(start, 'bulwark-crystal')
+
+    expect(first.events).toContainEqual({ type: 'shields', targetId: 'h-kael', change: 2, shields: 2 })
+
+    let state = consume(first.state, 'guard-seal').state
+
+    expect(getCombatant(state, 'h-kael').shields).toBe(3)
+
+    for (const left of [2, 1, 0]) {
+      const hit = enemyActs(state)
+
+      expect(hit.events.some((event) => event.type === 'damage')).toBe(false)
+      expect(hit.events).toContainEqual({ type: 'shields', targetId: 'h-kael', change: -1, shields: left })
+      state = hit.state
+    }
+
+    expect(enemyActs(state).events.some((event) => event.type === 'damage')).toBe(true)
+  })
+
+  it('gives shields with skills too, to heroes and enemies, up to the most a fighter can carry', () => {
+    const guardian = withSkills(kael, ['kael-guard'])
+    const guard = performAction(field({}, [guardian]), { type: 'skill', skillId: 'kael-guard', targetIds: ['h-kael'] })
+
+    expect(getCombatant(guard.state, 'h-kael').shields).toBe(1)
+
+    const hardened = performAction(
+      {
+        ...turnOf(guard.state, 'e1-1'),
+        combatants: turnOf(guard.state, 'e1-1').combatants.map((combatant) =>
+          combatant.id === 'e1-1' ? { ...combatant, skills: [...combatant.skills, 'harden'] } : combatant
+        )
+      },
+      { type: 'skill', skillId: 'harden', targetIds: ['e1-1'] }
+    )
+
+    expect(getCombatant(hardened.state, 'e1-1').shields).toBe(1)
+
+    const full = field({ 'aegis-relic': 5 })
+    let state = full
+
+    for (let index = 0; index < 4; index++) {
+      state = turnOf(consume(state, 'aegis-relic').state, 'h-kael')
+    }
+
+    expect(getCombatant(state, 'h-kael').shields).toBe(MAX_SHIELDS)
+  })
+
+  it('throws a weapon at one enemy, some of them several times', () => {
+    const knife = consume(field({ 'throwing-knife': 1 }), 'throwing-knife', ['e1-1'])
+
+    expect(knife.events.filter((event) => event.type === 'damage')).toHaveLength(1)
+
+    const stars = consume(field({ shuriken: 1 }, [kael], 'thorn-boar', 30), 'shuriken', ['e1-1'])
+
+    expect(stars.events.filter((event) => event.type === 'damage' && event.targetId === 'e1-1')).toHaveLength(3)
+    expect(() => consume(field({ shuriken: 1 }), 'shuriken', ['h-kael'])).toThrow()
+  })
+
+  it('imbues the weapon with an element, one at a time', () => {
+    const oiled = consume(field({ 'fire-oil': 1, 'frost-oil': 1 }), 'fire-oil').state
+    const strike = performAction(oiled, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+    expect(strike.events).toContainEqual(expect.objectContaining({ type: 'damage', damageType: DamageType.FIRE }))
+
+    const frosted = consume(oiled, 'frost-oil').state
+    const imbues = getCombatant(frosted, 'h-kael').statuses.map((status) => status.type)
+
+    expect(imbues).toContain(StatusType.IMBUE_ICE)
+    expect(imbues).not.toContain(StatusType.IMBUE_FIRE)
+  })
+
+  it('raises attributes with tonics and wards off harmful statuses', () => {
+    const toned = consume(field({ 'giant-draught': 1 }), 'giant-draught').state
+
+    expect(getCombatant(toned, 'h-kael').statuses.map((status) => status.type)).toEqual([
+      StatusType.ATTACK_UP,
+      StatusType.DEFENSE_UP
+    ])
+
+    const cursed = (items: Record<string, number>, seed: number) => {
+      const base = { ...field(items), seed }
+      const state = items['ward-charm'] ? consume(base, 'ward-charm').state : base
+
+      return enemyActs(state, 'curse')
+    }
+
+    let warded = 0
+    let bare = 0
+
+    for (let seed = 1; seed <= 30; seed++) {
+      const withWard = cursed({ 'ward-charm': 1 }, seed)
+
+      expect(getCombatant(withWard.state, 'h-kael').statuses.map((status) => status.type)).not.toContain(
+        StatusType.DEFENSE_DOWN
+      )
+      warded += withWard.events.some((event) => event.type === 'immune') ? 1 : 0
+      bare += getCombatant(cursed({}, seed).state, 'h-kael').statuses.some(
+        (status) => status.type === StatusType.DEFENSE_DOWN
+      )
+        ? 1
+        : 0
+    }
+
+    expect(warded).toBeGreaterThan(0)
+    expect(bare).toBeGreaterThan(0)
+  })
+
+  it('regenerates health at the start of each turn', () => {
+    const fed = consume(field({ 'troll-blood': 1 }), 'troll-blood').state
+    const hurt = {
+      ...fed,
+      actorId: null,
+      combatants: fed.combatants.map((combatant) =>
+        combatant.side === 'hero' ? { ...combatant, health: 10, initiative: 99.9 } : { ...combatant, initiative: 0 }
+      )
+    }
+    const { events } = nextTurn(hurt)
+
+    expect(events).toContainEqual(expect.objectContaining({ type: 'heal', targetId: 'h-kael' }))
+  })
+
+  it('leaves things of the biome after the fights, and more after a boss', () => {
+    const loot = (speciesId: string, seed: number) => {
+      const state = turnOf(
+        createBattle({
+          heroes: [kael],
+          phases: [[{ speciesId, level: 1 }]],
+          seed,
+          biome: Biome.FOREST,
+          canRetreat: speciesId === 'thorn-boar'
+        }).state,
+        'h-kael'
+      )
+      const nearlyDead = {
+        ...state,
+        combatants: state.combatants.map((combatant) =>
+          combatant.side === 'enemy' ? { ...combatant, health: 1, bars: 1 } : combatant
+        )
+      }
+
+      return performAction(nearlyDead, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] }).state.loot
+    }
+
+    const found = new Set<string>()
+
+    for (let seed = 1; seed <= 300; seed++) {
+      for (const itemId of Object.keys(loot('thorn-boar', seed))) {
+        found.add(itemId)
+      }
+    }
+
+    const dropped = [...found].filter(
+      (itemId) => getItem(itemId).kind === 'consumable' && !BASIC_POTIONS.includes(itemId)
+    )
+
+    expect(dropped.every((itemId) => BIOME_DROPS[Biome.FOREST].includes(itemId))).toBe(true)
+    expect(dropped.length).toBeGreaterThan(5)
+
+    const boss = loot('bandit-chief', 5)
+    const bossItems = Object.entries(boss)
+      .filter(([itemId]) => BIOME_DROPS[Biome.FOREST].includes(itemId))
+      .reduce((sum, [, count]) => sum + count, 0)
+
+    expect(bossItems).toBeGreaterThanOrEqual(BOSS_ITEMS)
+  })
+
+  it('finds every consumable somewhere: in the drops of a biome or in a shop', () => {
+    const sold = new Set(Object.values(MERCHANT_STOCK).flatMap((stock) => stock.map((entry) => entry.itemId)))
+    const dropped = new Set(Object.values(BIOME_DROPS).flat())
+
+    for (const item of ITEMS.filter((candidate) => candidate.kind === 'consumable')) {
+      expect(item.category, item.id).toBeDefined()
+      expect(BASIC_POTIONS.includes(item.id) || sold.has(item.id) || dropped.has(item.id), item.id).toBe(true)
+    }
+
+    for (const itemId of dropped) {
+      expect(getItem(itemId).kind, itemId).toBe('consumable')
+    }
+  })
+})
+
 describe('the mechanics of each hero', () => {
   const boar = [[{ speciesId: 'thorn-boar', level: 5 }]]
 
@@ -717,10 +975,14 @@ describe('rune effects', () => {
     expect(RUNES.every((rune) => Object.keys(rune.effect).length > 0)).toBe(true)
   })
 
-  it('stops the first hit with a barrier', () => {
-    const first = gored(field(wearing('barrier')))
+  it('stops the first hit with the shield of the barrier', () => {
+    const start = field(wearing('barrier'))
 
-    expect(first.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.BARRIER })
+    expect(getCombatant(start, 'h-kael').shields).toBe(1)
+
+    const first = gored(start)
+
+    expect(first.events).toContainEqual({ type: 'shields', targetId: 'h-kael', change: -1, shields: 0 })
     expect(first.events.some((event) => event.type === 'damage')).toBe(false)
     expect(gored(first.state).events.some((event) => event.type === 'damage')).toBe(true)
   })

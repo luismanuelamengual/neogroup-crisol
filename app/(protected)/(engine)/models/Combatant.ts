@@ -83,7 +83,8 @@ export interface Combatant {
   fury?: number
   /** Ysolde: the elements charged. */
   charges?: DamageType[]
-  /** Heroes: what their runes keep count of, and a barrier that stops the next hit. */
+  /** Heroes: what their runes keep count of. */
   runeState?: RuneState
-  barrier?: boolean
+  /** Shields: each one stops a whole hit (they stack). */
+  shields?: number
 }

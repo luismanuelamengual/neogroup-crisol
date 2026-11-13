@@ -23,7 +23,7 @@ import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { Item } from '@/app/(protected)/(engine)/models/Item'
+import { Item, ItemTarget } from '@/app/(protected)/(engine)/models/Item'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Skill } from '@/app/(protected)/(engine)/models/Skill'
 import { Stance } from '@/app/(protected)/(engine)/models/Stance'
@@ -37,12 +37,14 @@ import {
   getCombatant,
   getCombatantSkills,
   getFighters,
+  getItemsLeft,
   getItemTargets,
   getTargets,
   getTurnQueue,
   getUsableItems,
   isAlive,
   isStanceMet,
+  MAX_ITEMS_PER_TURN,
   nextTurn,
   performAction
 } from '@/app/(protected)/(engine)/utils/battle'
@@ -54,6 +56,8 @@ import {
 } from '@/app/(protected)/(engine)/utils/battleResult'
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
 import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
+import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
+import LootGrid from '@/app/(protected)/(party)/components/LootGrid'
 import XpBar from '@/app/(protected)/(party)/components/XpBar'
 import { itemName, runeName, stanceNames } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
@@ -103,6 +107,24 @@ const BATTLE_MUSIC: Record<EncounterKind, MusicId> = {
 }
 /** Pause before an enemy acts, so the player can follow it. */
 const ENEMY_PAUSE_MS = 350
+
+/** The color of an item: what heals, what helps the party, and what hurts the enemies. */
+function itemTone(item: Item): 'heal' | 'support' | 'damage' {
+  if (item.target === 'enemy' || item.target === 'allEnemies') {
+    return 'damage'
+  }
+
+  return item.heal || item.focus ? 'heal' : 'support'
+}
+
+/** Who an item reaches, in the words of the skills. */
+const ITEM_REACH: Record<ItemTarget, TargetType> = {
+  ally: TargetType.ALLY,
+  fallenAlly: TargetType.ALLY,
+  allAllies: TargetType.ALL_ALLIES,
+  enemy: TargetType.ENEMY,
+  allEnemies: TargetType.ALL_ENEMIES
+}
 
 /** The color of a skill: heals, help for the party or the hero, and attacks. */
 function skillTone(skill: Skill): 'heal' | 'support' | 'damage' {
@@ -229,7 +251,9 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
           const rune = getRuneOfPerk(perk)
 
           return rune ? runeName(t, rune) : ''
-        }
+        },
+        shieldBlock: t('battle.shieldBlock'),
+        shieldGain: (count: number) => t('battle.shieldGain', { count })
       }
       const instance = await BattleRenderer.create(
         stage.current!,
@@ -255,13 +279,16 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       show(state, null)
 
       while (!state.outcome && !cancelled) {
-        const turn = nextTurn(state)
+        // A hero that used an item keeps its turn (up to MAX_ITEMS_PER_TURN of them): no new turn then.
+        if (!state.actorId) {
+          const turn = nextTurn(state)
 
-        await instance.play(turn.events, turn.state)
-        state = turn.state
-        show(state, state.actorId)
+          await instance.play(turn.events, turn.state)
+          state = turn.state
+          show(state, state.actorId)
+        }
 
-        if (state.outcome || cancelled) {
+        if (state.outcome || cancelled || !state.actorId) {
           break
         }
 
@@ -287,7 +314,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
 
         await instance.play(step.events, step.state)
         state = step.state
-        show(state, null)
+        show(state, state.actorId)
       }
 
       if (!cancelled) {
@@ -371,7 +398,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       return
     }
 
-    if (picked.target === 'ally' || picked.target === 'fallenAlly') {
+    if (picked.target === 'ally' || picked.target === 'fallenAlly' || picked.target === 'enemy') {
       setItem(picked)
       setMode('targeting')
     } else {
@@ -418,6 +445,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   }
 
   const usableItems = mode === 'choosing' || mode === 'items' ? getUsableItems(battle) : []
+  const itemsLeft = getItemsLeft(battle)
   const itemCount = Object.values(battle.items).reduce((sum, count) => sum + count, 0)
   const actorSkills = actor?.side === 'hero' ? getCombatantSkills(battle, actor.id) : []
   const [attack, ...specials] = actorSkills
@@ -453,7 +481,12 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       <div ref={hud} className="hud-bottom">
         <div className="command">
           {actor?.side === 'hero' && mode !== 'ended' && (
-            <span className="turn-of">{t('battle.turnOf', { name: combatantName(t, actor) })}</span>
+            <span className="turn-of">
+              {t('battle.turnOf', { name: combatantName(t, actor) })}
+              {itemsLeft < MAX_ITEMS_PER_TURN && (
+                <span className="items-left"> · {t('battle.itemsLeft', { count: itemsLeft })}</span>
+              )}
+            </span>
           )}
           {choosing && (
             <div className="command-row menu">
@@ -466,6 +499,13 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                 <ButtonBase className="option" disabled={usableItems.length === 0} onClick={() => setMode('items')}>
                   <BackpackIcon fontSize="small" />
                   {t('battle.items')}
+                  {itemsLeft < MAX_ITEMS_PER_TURN && (
+                    <span className="pips" aria-label={t('battle.itemsLeft', { count: itemsLeft })}>
+                      {Array.from({ length: MAX_ITEMS_PER_TURN }, (_, index) => (
+                        <i key={index} className={classNames({ spent: index >= itemsLeft })} />
+                      ))}
+                    </span>
+                  )}
                   {itemCount > 0 && <span className="count">{itemCount}</span>}
                 </ButtonBase>
                 {battle.canRetreat && (
@@ -553,12 +593,17 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                 {usableItems.map((option) => (
                   <ButtonBase
                     key={option.id}
-                    className={classNames('skill', option.power ? 'damage' : 'heal')}
+                    className={classNames('skill', 'item', itemTone(option))}
                     onClick={() => pickItem(option)}
+                    title={t(`items.${option.id}.text` as MessageKey)}
                   >
-                    <span className="skill-name">{itemName(t, option.id)}</span>
-                    <span className="skill-meta">
-                      <span className="cost">× {battle.items[option.id]}</span>
+                    <ItemIcon subject={{ type: 'item', id: option.id }} size={30} className="item-picture" />
+                    <span className="item-text">
+                      <span className="skill-name">{itemName(t, option.id)}</span>
+                      <span className="skill-meta">
+                        {t(`battle.reach.${ITEM_REACH[option.target ?? 'ally']}`)}
+                        <span className="cost">× {battle.items[option.id]}</span>
+                      </span>
                     </span>
                   </ButtonBase>
                 ))}
@@ -626,6 +671,11 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
               <div className="vitals">
                 <div className="line">
                   <span className="name">{combatantName(t, hero)}</span>
+                  {isAlive(hero) && (hero.shields ?? 0) > 0 && (
+                    <span className="shields" title={t('battle.shields', { count: hero.shields! })}>
+                      {hero.shields}
+                    </span>
+                  )}
                   <span className="numbers">{hero.health}</span>
                 </div>
                 <div className="bar health">
@@ -653,32 +703,56 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
                     : 'battle.retreated'
               )}
             </h2>
-            {battle.outcome === 'victory' ? (
-              <>
-                <p>{t('battle.xpGained', { xp: battle.xp })}</p>
-                {lostHere > 0 && <p className="recovered">{t('battle.xpRecovered', { xp: lostHere })}</p>}
-                <p>{t('battle.goldGained', { gold: battle.gold })}</p>
-                {battle.echoes > 0 && <p>{t('world.rewards.echoes', { count: battle.echoes })}</p>}
-                {Object.keys(battle.loot).length > 0 && (
-                  <p>
-                    {t('battle.lootTitle')}:{' '}
-                    {Object.entries(battle.loot)
-                      .map(([id, count]) => `${itemName(t, id)} × ${count}`)
-                      .join(', ')}
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>
-                {battle.outcome === 'defeat' && xpLostInDefeat(game) && (
-                  <p className="recovered">{t('battle.xpLeftBehind')}</p>
-                )}
-                {battle.outcome === 'defeat' && game.lostXp && (
-                  <p className="forfeited">{t('battle.xpForfeited', { xp: totalLostXp(game.lostXp.xp) })}</p>
-                )}
-              </>
-            )}
+            <div className="summary">
+              {battle.outcome === 'victory' ? (
+                <>
+                  <p>{t('battle.xpGained', { xp: battle.xp })}</p>
+                  {lostHere > 0 && <p className="recovered">{t('battle.xpRecovered', { xp: lostHere })}</p>}
+                  <LootGrid
+                    className="spoils"
+                    delay={200}
+                    entries={[
+                      ...(battle.gold > 0
+                        ? [
+                            {
+                              key: 'gold',
+                              subject: { type: 'gold' } as const,
+                              amount: `+${battle.gold}`,
+                              name: t('world.rewards.goldName')
+                            }
+                          ]
+                        : []),
+                      ...(battle.echoes > 0
+                        ? [
+                            {
+                              key: 'echoes',
+                              subject: { type: 'echo' } as const,
+                              amount: `×${battle.echoes}`,
+                              name: t('world.rewards.echoesName', { count: battle.echoes })
+                            }
+                          ]
+                        : []),
+                      ...Object.entries(battle.loot).map(([id, count]) => ({
+                        key: `item:${id}`,
+                        subject: { type: 'item', id } as const,
+                        amount: `×${count}`,
+                        name: itemName(t, id)
+                      }))
+                    ]}
+                  />
+                </>
+              ) : (
+                <>
+                  <p>{t(battle.outcome === 'defeat' ? 'battle.defeatText' : 'battle.retreatText')}</p>
+                  {battle.outcome === 'defeat' && xpLostInDefeat(game) && (
+                    <p className="recovered">{t('battle.xpLeftBehind')}</p>
+                  )}
+                  {battle.outcome === 'defeat' && game.lostXp && (
+                    <p className="forfeited">{t('battle.xpForfeited', { xp: totalLostXp(game.lostXp.xp) })}</p>
+                  )}
+                </>
+              )}
+            </div>
             <ul className="experience">
               {heroes.map((hero, position) => {
                 const before = characterOf(hero)

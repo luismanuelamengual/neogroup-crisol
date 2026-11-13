@@ -12,7 +12,7 @@ import {
   FLASK_MAX_CHARGES,
   FLASK_MAX_POTENCY
 } from '@/app/(protected)/(engine)/data/flask'
-import { BIOME_POTIONS, BIOME_STONE, getItem } from '@/app/(protected)/(engine)/data/items'
+import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { SEALS_TO_OPEN_ABYSS, START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
@@ -568,77 +568,11 @@ export function drinkFlask(index: WorldIndex, state: GameState): GameState {
   }
 }
 
-/** Potions the party can drink on the map, one hero at a time: the health and focus ones. */
-export const MAP_POTIONS = ['health-potion', 'greater-health-potion', 'focus-potion', 'greater-focus-potion']
-
-/** Potions are drunk on the map only at a point without enemies (cleared, and none came back after resting). */
-export function canDrinkPotions(state: GameState): boolean {
-  return isCleared(state, state.positionNodeId) && !state.respawnedNodeIds.includes(state.positionNodeId)
-}
-
 /** Current and maximum focus of a character on the map (half the maximum when it was never kept, as in battle). */
 export function getFocus(character: CharacterState): { focus: number; maxFocus: number } {
   const { maxFocus } = getCharacterStats(character)
 
   return { focus: Math.min(maxFocus, character.focus ?? Math.round(maxFocus / 2)), maxFocus }
-}
-
-/** Whether a potion would do something for that character now (the fallen need a revival, not a potion). */
-export function canDrinkPotion(state: GameState, itemId: string, characterId: CharacterId): boolean {
-  const character = state.characters.find((candidate) => candidate.id === characterId)
-
-  if (!character || !MAP_POTIONS.includes(itemId) || (state.inventory[itemId] ?? 0) <= 0 || character.health <= 0) {
-    return false
-  }
-
-  const item = getItem(itemId)
-
-  if (item.heal && character.health < getMaxHealth(character)) {
-    return true
-  }
-
-  if (item.focus) {
-    const { focus, maxFocus } = getFocus(character)
-
-    return focus < maxFocus
-  }
-
-  return false
-}
-
-/** A hero drinks a health or focus potion on the map: it heals or restores the same share as in battle. */
-export function drinkPotion(state: GameState, itemId: string, characterId: CharacterId): GameState {
-  if (!canDrinkPotions(state) || !canDrinkPotion(state, itemId, characterId)) {
-    throw new Error(`The potion ${itemId} cannot be drunk now`)
-  }
-
-  const item = getItem(itemId)
-
-  return {
-    ...state,
-    inventory: { ...state.inventory, [itemId]: state.inventory[itemId] - 1 },
-    characters: state.characters.map((character) => {
-      if (character.id !== characterId) {
-        return character
-      }
-
-      const changed = { ...character }
-
-      if (item.heal) {
-        const maxHealth = getMaxHealth(character)
-
-        changed.health = Math.min(maxHealth, character.health + Math.round(maxHealth * item.heal))
-      }
-
-      if (item.focus) {
-        const { focus, maxFocus } = getFocus(character)
-
-        changed.focus = Math.min(maxFocus, focus + Math.round(maxFocus * item.focus))
-      }
-
-      return changed
-    })
-  }
 }
 
 /** Whether Crisol fell in this cycle: from then on the next cycle can start from any camp. */

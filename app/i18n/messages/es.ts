@@ -328,10 +328,6 @@ export const es = {
       teleportTitle: 'Viajar a otro campamento',
       shop: 'Tienda'
     },
-    potions: {
-      blocked: 'Solo podés tomar pociones en un punto sin enemigos.',
-      chooseHero: '¿Quién la toma?'
-    },
     flask: {
       name: 'Frasco de Ámbar',
       drink: 'Beber',
@@ -351,6 +347,8 @@ export const es = {
       tear: 'Encontraste una Lágrima del Olvido',
       weapon: '¡{name} obtuvo {weapon}!',
       gold: '+{amount} de oro',
+      goldName: 'Oro',
+      echoesName: { one: 'Eco', other: 'Ecos' },
       abyssOpen: 'Los dos Sellos cayeron: la Puerta del Abismo se abrió',
       crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.'
     },
@@ -377,6 +375,10 @@ export const es = {
     stanceDrop: 'Lo deja sin postura',
     special: 'Especial',
     turnOf: 'Turno de {name}',
+    itemsLeft: { one: 'Te queda {count} objeto este turno', other: 'Te quedan {count} objetos este turno' },
+    shields: { one: '{count} escudo', other: '{count} escudos' },
+    shieldGain: { one: '+{count} escudo', other: '+{count} escudos' },
+    shieldBlock: '¡Bloqueado!',
     tapEnemy: 'Tocá un enemigo',
     tapAlly: 'Tocá un aliado',
     reach: { enemy: 'Uno', allEnemies: 'Todos', ally: 'Aliado', allAllies: 'Grupo', self: 'Propio' },
@@ -393,7 +395,6 @@ export const es = {
     items: 'Objetos',
     noItems: 'No hay objetos para usar',
     chooseAlly: 'Elegí un aliado',
-    lootTitle: 'Botín',
     attack: 'Atacar',
     specials: 'Especiales',
     retreat: 'Retirarse',
@@ -419,7 +420,6 @@ export const es = {
     xpRecovered: '+{xp} de experiencia recuperada',
     xpLeftBehind: 'Lo que perdiste quedó en este lugar: vencé a estos enemigos para recuperarlo.',
     xpForfeited: 'La experiencia que habías dejado en tu caída anterior ({xp}) se perdió.',
-    goldGained: '+{gold} de oro',
     levelUp: '{name} sube al nivel {level}',
     levelUpShort: '¡Nivel {level}!',
     continue: 'Continuar',
@@ -437,7 +437,17 @@ export const es = {
     defenseUp: 'Defensa ▲',
     defenseDown: 'Defensa ▼',
     speedUp: 'Velocidad ▲',
-    speedDown: 'Velocidad ▼'
+    speedDown: 'Velocidad ▼',
+    critUp: 'Crítico ▲',
+    regen: 'Regeneración',
+    ward: 'Protección',
+    imbueFire: 'Arma de fuego',
+    imbueIce: 'Arma de hielo',
+    imbueLightning: 'Arma de rayo',
+    imbueEarth: 'Arma de tierra',
+    imbueLight: 'Arma de luz',
+    imbueDarkness: 'Arma de sombra',
+    imbueVenom: 'Arma envenenada'
   },
   skills: {
     'kael-strike': 'Tajo',
@@ -928,7 +938,8 @@ export const es = {
     power: '+{value} de poder',
     chance: '+{value} de prob. de estados',
     cost: '−{value} de concentración',
-    turns: '+{value} turno de estados'
+    turns: '+{value} turno de estados',
+    shields: { one: 'Da {count} escudo: anula un golpe completo', other: 'Da {count} escudos: cada uno anula un golpe' }
   },
   runes: {
     'first-cut': { name: 'Runa del Primer Tajo', text: 'El primer golpe que da en cada batalla hace +50% de daño.' },
@@ -1031,8 +1042,8 @@ export const es = {
     },
     fever: { name: 'Runa de la Fiebre', text: 'El veneno, la quemadura y el sangrado que deja hacen 50% más de daño.' },
     plague: { name: 'Runa de la Plaga', text: 'Al derrotar a un enemigo envenenado, el veneno pasa a otro enemigo.' },
-    barrier: { name: 'Runa de la Barrera', text: 'Empieza la batalla con una barrera que anula el primer golpe.' },
-    aegis: { name: 'Runa de la Égida', text: 'Al curar a alguien le da una barrera que anula el próximo golpe.' },
+    barrier: { name: 'Runa de la Barrera', text: 'Empieza la batalla con 1 escudo más, que anula un golpe completo.' },
+    aegis: { name: 'Runa de la Égida', text: 'Al curar a alguien sin escudos le da 1, que anula un golpe completo.' },
     'blood-echo': {
       name: 'Runa del Eco de Sangre',
       text: 'Se cura el 12% de todo el daño que hace, especiales incluidos.'
@@ -1080,6 +1091,136 @@ export const es = {
     'revive-potion': { name: 'Poción de revivir', text: 'Levanta a un aliado caído con el 40% de su vida.' },
     'frost-bomb': { name: 'Bomba de escarcha', text: 'Daño de hielo a todos los enemigos, que puede congelarlos.' },
     elixir: { name: 'Elixir', text: 'Cura a todo el grupo, devuelve su concentración y quita sus estados.' },
+    'crusty-bread': { name: 'Pan crocante', text: 'Cura el 20% de la vida de un aliado.' },
+    'red-apple': {
+      name: 'Manzana roja',
+      text: 'Cura el 12% de la vida y devuelve el 15% de la concentración de un aliado.'
+    },
+    'wild-berries': {
+      name: 'Bayas silvestres',
+      text: 'Cura el 8% de la vida de un aliado y lo regenera durante 3 turnos.'
+    },
+    'honey-cake': { name: 'Torta de miel', text: 'Devuelve el 35% de la concentración de un aliado.' },
+    'mushroom-skewer': {
+      name: 'Brocheta de hongos',
+      text: 'Cura el 15% de la vida de un aliado y lo regenera durante 3 turnos.'
+    },
+    'roast-meat': { name: 'Carne asada', text: 'Cura el 40% de la vida de un aliado.' },
+    'fish-stew': {
+      name: 'Guiso de pescado',
+      text: 'Cura el 30% de la vida y devuelve el 20% de la concentración de un aliado.'
+    },
+    'spicy-sausage': {
+      name: 'Chorizo picante',
+      text: 'Cura el 20% de la vida de un aliado y le sube el ataque durante 2 turnos.'
+    },
+    'traveler-feast': {
+      name: 'Banquete del viajero',
+      text: 'Cura el 25% de la vida de todo el grupo y lo regenera durante 3 turnos.'
+    },
+    'golden-pear': {
+      name: 'Pera dorada',
+      text: 'Cura la mitad de la vida y devuelve la mitad de la concentración de un aliado.'
+    },
+    'might-tonic': { name: 'Tónico de fuerza', text: 'Sube el ataque de un aliado durante 3 turnos.' },
+    'iron-tonic': { name: 'Tónico de hierro', text: 'Sube la defensa de un aliado durante 3 turnos.' },
+    'swift-tonic': { name: 'Tónico de presteza', text: 'Sube la velocidad de un aliado durante 3 turnos.' },
+    'keen-tonic': {
+      name: 'Tónico de precisión',
+      text: 'Sube un 20% la probabilidad de crítico de un aliado durante 3 turnos.'
+    },
+    'troll-blood': { name: 'Sangre de trol', text: 'Regenera a un aliado durante 4 turnos.' },
+    'giant-draught': {
+      name: 'Brebaje del gigante',
+      text: 'Sube el ataque y la defensa de un aliado durante 3 turnos.'
+    },
+    'war-elixir': {
+      name: 'Elixir de guerra',
+      text: 'Sube el ataque y la velocidad de todo el grupo durante 2 turnos.'
+    },
+    'throwing-knife': { name: 'Cuchillo arrojadizo', text: 'Daño cortante a un enemigo.' },
+    'serrated-knife': { name: 'Cuchillo dentado', text: 'Daño cortante a un enemigo, que puede hacerlo sangrar.' },
+    'poison-dart': { name: 'Dardo envenenado', text: 'Poco daño perforante a un enemigo, que suele envenenarlo.' },
+    'stun-dart': { name: 'Dardo somnífero', text: 'Poco daño perforante a un enemigo, que puede aturdirlo.' },
+    shuriken: { name: 'Estrellas arrojadizas', text: 'Tres golpes cortantes a un enemigo.' },
+    javelin: { name: 'Jabalina', text: 'Mucho daño perforante a un enemigo.' },
+    'throwing-axe': { name: 'Hacha arrojadiza', text: 'Daño cortante a un enemigo, que puede bajarle la defensa.' },
+    'pepper-pouch': { name: 'Saquito de pimienta', text: 'No hace daño, pero suele dejar ciego a un enemigo.' },
+    'flame-dagger': { name: 'Daga ígnea', text: 'Daño de fuego a un enemigo, que puede quemarlo.' },
+    'frost-dagger': { name: 'Daga de escarcha', text: 'Daño de hielo a un enemigo, que puede congelarlo.' },
+    'storm-kunai': { name: 'Kunai de tormenta', text: 'Daño de rayo a un enemigo, que puede aturdirlo.' },
+    'holy-water': { name: 'Agua bendita', text: 'Daño de luz a un enemigo, que puede dejarlo ciego.' },
+    'shadow-needle': { name: 'Aguja de sombra', text: 'Daño de oscuridad a un enemigo, que puede bajarle el ataque.' },
+    'thunder-bomb': { name: 'Bomba de trueno', text: 'Daño de rayo a todos los enemigos, que puede aturdirlos.' },
+    'acid-flask': {
+      name: 'Frasco de ácido',
+      text: 'Poco daño de tierra a todos los enemigos, que suele bajarles la defensa.'
+    },
+    'smoke-bomb': { name: 'Bomba de humo', text: 'No hace daño, pero puede dejar ciegos a todos los enemigos.' },
+    'spore-bomb': {
+      name: 'Bomba de esporas',
+      text: 'Poco daño de tierra a todos los enemigos, que suele envenenarlos.'
+    },
+    'shrapnel-bomb': {
+      name: 'Bomba de metralla',
+      text: 'Daño perforante a todos los enemigos, que puede hacerlos sangrar.'
+    },
+    'radiant-orb': { name: 'Orbe radiante', text: 'Daño de luz a todos los enemigos.' },
+    'void-bomb': {
+      name: 'Bomba del vacío',
+      text: 'Daño de oscuridad a todos los enemigos, que puede bajarles el ataque.'
+    },
+    'fire-oil': {
+      name: 'Aceite ígneo',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de fuego y pueden quemar.'
+    },
+    'frost-oil': {
+      name: 'Aceite de escarcha',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de hielo y pueden congelar.'
+    },
+    'storm-oil': {
+      name: 'Aceite de tormenta',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de rayo y pueden aturdir.'
+    },
+    'earth-oil': {
+      name: 'Aceite de tierra',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de tierra y pueden bajar la defensa.'
+    },
+    'holy-oil': {
+      name: 'Aceite sagrado',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de luz y pueden cegar.'
+    },
+    'shadow-oil': {
+      name: 'Aceite de sombra',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado son de oscuridad y pueden bajar el ataque.'
+    },
+    'venom-oil': {
+      name: 'Aceite de veneno',
+      text: 'Durante 4 turnos los ataques con el arma de un aliado pueden envenenar.'
+    },
+    'ward-charm': { name: 'Amuleto protector', text: 'Durante 3 turnos ningún estado dañino alcanza a un aliado.' },
+    'purifying-incense': {
+      name: 'Incienso purificador',
+      text: 'Quita los estados dañinos de todo el grupo y lo protege de ellos durante 2 turnos.'
+    },
+    'saint-amulet': {
+      name: 'Amuleto de la santa',
+      text: 'Quita los estados dañinos de un aliado y lo protege de ellos durante 5 turnos.'
+    },
+    'guard-seal': { name: 'Sello guardián', text: 'Da 1 escudo a un aliado: anula por completo el próximo golpe.' },
+    'bulwark-crystal': {
+      name: 'Cristal de baluarte',
+      text: 'Da 2 escudos a un aliado: cada uno anula un golpe completo.'
+    },
+    'aegis-relic': {
+      name: 'Reliquia de la égida',
+      text: 'Da 3 escudos a un aliado: cada uno anula un golpe completo.'
+    },
+    'shield-scroll': {
+      name: 'Pergamino de escudos',
+      text: 'Da 1 escudo a cada aliado: anula por completo su próximo golpe.'
+    },
+    'sling-stone': { name: 'Piedra de honda', text: 'Daño contundente a un enemigo, que puede aturdirlo.' },
     'rough-stone': { name: 'Piedra tosca', text: 'Mejora un arma de +1 a +5.' },
     'tempered-stone': { name: 'Piedra templada', text: 'Mejora un arma de +6 a +10.' },
     'arcane-stone': { name: 'Piedra arcana', text: 'Mejora un arma de +11 a +15.' },
@@ -1089,23 +1230,27 @@ export const es = {
     tabs: {
       all: 'Todo',
       potions: 'Pociones',
-      bombs: 'Bombas',
+      food: 'Comida',
+      throwables: 'Arrojables',
+      oils: 'Aceites',
+      charms: 'Amuletos',
       stones: 'Piedras',
       runes: 'Runas',
       special: 'Especiales'
     },
     empty: {
       all: 'El inventario está vacío.',
-      potions: 'No llevás pociones.',
-      bombs: 'No llevás bombas.',
+      potions: 'No llevás pociones ni tónicos.',
+      food: 'No llevás comida.',
+      throwables: 'No llevás armas arrojadizas ni bombas.',
+      oils: 'No llevás aceites para el arma.',
+      charms: 'No llevás amuletos ni sellos de escudo.',
       stones: 'No llevás piedras de herrería.',
       runes: 'Todavía no tenés runas: cada santuario guarda una.',
       special: 'No tenés objetos especiales.'
     },
-    drink: 'Tomar',
     use: 'Usar',
-    nobody: 'Nadie del grupo la necesita ahora.',
-    battleOnly: 'Se usa durante una batalla.',
+    battleOnly: 'Se usa durante una batalla: cada héroe puede usar hasta 3 objetos por turno.',
     stoneUse: 'Se usa para mejorar armas en un campamento, desde la página de cada héroe.',
     runeTier: 'Runa {tier}',
     runeUse: 'Se equipa desde la página de un héroe, en un campamento.',

@@ -21,6 +21,8 @@ export interface BattleState {
   combatants: Combatant[]
   /** Whose turn it is (null between turns). */
   actorId: string | null
+  /** Items the hero whose turn it is has used in it (up to MAX_ITEMS_PER_TURN; using that many ends it). */
+  itemsUsed?: number
   canRetreat: boolean
   outcome: 'victory' | 'defeat' | 'retreat' | null
   /** Species defeated, for the bestiary. */

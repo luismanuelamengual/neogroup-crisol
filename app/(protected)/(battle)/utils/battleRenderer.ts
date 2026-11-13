@@ -41,6 +41,9 @@ export interface BattleLabels {
   transform: string
   /** The name of the rune whose effect acted. */
   perk: (perk: Perk) => string
+  /** A shield stopped a hit / shields were gained. */
+  shieldBlock: string
+  shieldGain: (count: number) => string
 }
 
 /** One fighter drawn on the stage. */
@@ -50,6 +53,10 @@ interface Figure {
   body: Container
   healthBar: Graphics
   barsText: Text | null
+  /** The shields it has: a shield with their number, beside its health bar (hidden with none). */
+  shieldBadge: Container
+  shieldText: Text
+  shields: number
   statusText: Text
   /** What its statuses look like on it (poison bubbles, ice, stars...), see statusVisuals.ts. */
   aura: StatusAura
@@ -94,6 +101,19 @@ function rigOf(combatant: Combatant, artId: string, parts: ArtManifest['parts'])
   }
 
   return RIGS[artId] ?? null
+}
+
+/** The shield of the badge of shields (its number goes on top), centered on 0. */
+function drawShieldIcon(): Graphics {
+  const g = new Graphics()
+
+  g.poly([-11, -12, 11, -12, 11, -1, 0, 13, -11, -1])
+    .fill({ color: 0x2f7fe0 })
+    .stroke({ width: 3, color: OUTLINE, join: 'round' })
+  g.poly([-8, -9, 8, -9, 8, -2, 0, 9, -8, -2]).stroke({ width: 1.5, color: 0x9fd8ff, alpha: 0.9 })
+  g.poly([-7, -8, -1, -8, -7, -1]).fill({ color: 0xffffff, alpha: 0.35 })
+
+  return g
 }
 
 function wait(ms: number): Promise<void> {
@@ -300,11 +320,17 @@ export class BattleRenderer {
     return Math.max(0.5, Math.min(1.1, this.width / 560, this.fieldHeight / 380))
   }
 
-  /** The ground line, within the free field: low on wide screens, closer to the middle on tall ones. */
+  /**
+   * The ground line, within the free field: low on wide screens, closer to the middle on tall ones, and always
+   * leaving room for the front row (46 below it, see spotOf) above the HUD.
+   */
   private get groundY(): number {
     const field = this.fieldHeight
 
-    return Math.min(this.height, this.insets.top) + Math.min(field * 0.88, field / 2 + 230 * this.scale)
+    return (
+      Math.min(this.height, this.insets.top) +
+      Math.min(field * 0.88, field - 54 * this.scale, field / 2 + 230 * this.scale)
+    )
   }
 
   /** Room the HUD covers at the top and the bottom: the fighters move to the free field. */
@@ -445,7 +471,18 @@ export class BattleRenderer {
     )
 
     aura.set(combatant.health > 0 ? combatant.statuses.map((status) => status.type) : [])
-    root.addChild(aura.back, body, aura.front, healthBar, statusText)
+    const shieldBadge = new Container()
+    const shieldText = new Text({
+      text: '',
+      style: { fontFamily: FONT, fontWeight: '900', fontSize: 13, fill: 0xffffff, stroke: { color: OUTLINE, width: 4 } }
+    })
+
+    shieldBadge.addChild(drawShieldIcon(), shieldText)
+    shieldText.anchor.set(0.5)
+    shieldText.position.set(0, 0)
+    shieldBadge.position.set(-52, -FIGURE_HEIGHT * size - 14)
+    shieldBadge.visible = false
+    root.addChild(aura.back, body, aura.front, healthBar, shieldBadge, statusText)
 
     if (barsText) {
       barsText.anchor.set(0, 0.5)
@@ -463,6 +500,9 @@ export class BattleRenderer {
       body,
       healthBar,
       barsText,
+      shieldBadge,
+      shieldText,
+      shields: combatant.shields ?? 0,
       statusText,
       aura,
       side: combatant.side,
@@ -480,6 +520,7 @@ export class BattleRenderer {
     this.figures.set(combatant.id, figure)
     this.fighters.addChild(root)
     this.drawHealth(figure)
+    this.drawShields(figure)
 
     if (combatant.health <= 0) {
       root.alpha = 0.35
@@ -505,6 +546,12 @@ export class BattleRenderer {
     }
   }
 
+  /** The number of shields beside the health bar (like the health bar, only while it stands). */
+  private drawShields(figure: Figure): void {
+    figure.shieldText.text = String(figure.shields)
+    figure.shieldBadge.visible = figure.shields > 0 && figure.healthBar.visible !== false && figure.health > 0
+  }
+
   /** Brings the drawing in line with the state (statuses, health, who is on the field, the marked fighter). */
   sync(battle: BattleState, markedId: string | null): void {
     this.markedId = markedId
@@ -520,6 +567,8 @@ export class BattleRenderer {
       figure.aura.set(combatant.health > 0 ? combatant.statuses.map((status) => status.type) : [])
       this.drawHealth(figure)
       figure.healthBar.visible = combatant.health > 0
+      figure.shields = combatant.health > 0 ? (combatant.shields ?? 0) : 0
+      this.drawShields(figure)
       this.drawOrbs(figure, combatant.health > 0 ? (combatant.charges ?? []) : [])
     }
 
@@ -725,6 +774,37 @@ export class BattleRenderer {
         break
       }
 
+      case 'shields': {
+        const figure = this.figures.get(event.targetId)
+
+        if (!figure) {
+          break
+        }
+
+        figure.shields = event.shields
+        this.drawShields(figure)
+
+        if (event.change < 0) {
+          // The shield takes the whole hit and breaks: a flash of blue, the badge jolts.
+          this.float(figure, this.labels.shieldBlock, 0x8fd3ff, 18, -20)
+          void this.shake(ms(160), 3)
+          await this.tween(ms(260), (t) => {
+            const pulse = 1 + Math.sin(t * Math.PI) * 0.6
+
+            figure.shieldBadge.scale.set(pulse)
+            figure.body.tint = t < 0.5 ? 0x9fd8ff : 0xffffff
+          })
+          figure.shieldBadge.scale.set(1)
+          figure.body.tint = 0xffffff
+        } else {
+          this.float(figure, this.labels.shieldGain(event.change), 0x8fd3ff, 15, -28)
+          await this.tween(ms(240), (t) => figure.shieldBadge.scale.set(1 + Math.sin(t * Math.PI) * 0.5))
+          figure.shieldBadge.scale.set(1)
+        }
+
+        break
+      }
+
       case 'perk': {
         const figure = this.figures.get(event.targetId)
 
@@ -786,6 +866,8 @@ export class BattleRenderer {
         }
 
         figure.aura.set([])
+        figure.shields = 0
+        this.drawShields(figure)
 
         const direction = figure.side === 'hero' ? -1 : 1
 
@@ -1453,8 +1535,8 @@ function outcomesOf(events: BattleEvent[], index: number): Map<string, HitOutcom
       break
     }
 
-    if (event.type === 'damage' && !outcomes.has(event.targetId)) {
-      outcomes.set(event.targetId, { missed: false, critical: event.critical })
+    if ((event.type === 'damage' || (event.type === 'shields' && event.change < 0)) && !outcomes.has(event.targetId)) {
+      outcomes.set(event.targetId, { missed: false, critical: event.type === 'damage' && event.critical })
     } else if ((event.type === 'miss' || event.type === 'immune') && !outcomes.has(event.targetId)) {
       outcomes.set(event.targetId, { missed: true, critical: false })
     }

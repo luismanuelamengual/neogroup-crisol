@@ -14,7 +14,7 @@ import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Item } from '@/app/(protected)/(engine)/models/Item'
 import { canForgetSkills, getMaxHealth, isRuneMastered } from '@/app/(protected)/(engine)/utils/heroes'
-import { canDrinkPotion, canDrinkPotions, getFocus, MAP_POTIONS } from '@/app/(protected)/(engine)/utils/worldMap'
+import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
 import ItemIcon, { IconSubject } from '@/app/(protected)/(party)/components/ItemIcon'
 import { describeRune, itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
@@ -24,16 +24,25 @@ import type { MessageKey } from '@/app/i18n/messages'
 
 interface InventoryScreenProps {
   state: GameState
-  /** A hero drinks a health or focus potion (only at a point without enemies). */
-  onDrinkPotion: (itemId: string, characterId: CharacterId) => void
   /** A Tear of Oblivion gives back the skill points of a hero. */
   onSpendTear: (characterId: CharacterId) => void
   onClose: () => void
 }
 
-type Category = 'all' | 'potions' | 'bombs' | 'stones' | 'runes' | 'special'
+type Category = 'all' | 'potions' | 'food' | 'throwables' | 'oils' | 'charms' | 'stones' | 'runes' | 'special'
 
-const CATEGORIES: Category[] = ['all', 'potions', 'bombs', 'stones', 'runes', 'special']
+const CATEGORIES: Category[] = ['all', 'potions', 'food', 'throwables', 'oils', 'charms', 'stones', 'runes', 'special']
+/** The tab of each family of consumables. */
+const ITEM_TABS: Record<NonNullable<Item['category']>, Exclude<Category, 'all'>> = {
+  potion: 'potions',
+  tonic: 'potions',
+  food: 'food',
+  throwable: 'throwables',
+  bomb: 'throwables',
+  oil: 'oils',
+  ward: 'charms',
+  shield: 'charms'
+}
 
 /** Something the inventory shows: an item, a rune or a Tear of Oblivion. */
 interface Entry {
@@ -49,11 +58,11 @@ function categoryOf(item: Item): Entry['category'] {
     return 'stones'
   }
 
-  return item.power ? 'bombs' : 'potions'
+  return ITEM_TABS[item.category ?? 'potion']
 }
 
 /** What the party carries (full screen over the map), by kind, each thing with its picture and what it does. */
-export default function InventoryScreen({ state, onDrinkPotion, onSpendTear, onClose }: InventoryScreenProps) {
+export default function InventoryScreen({ state, onSpendTear, onClose }: InventoryScreenProps) {
   const t = useT()
   const [category, setCategory] = useState<Category>('all')
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
@@ -123,7 +132,6 @@ export default function InventoryScreen({ state, onDrinkPotion, onSpendTear, onC
           key={selected.key}
           entry={selected}
           state={state}
-          onDrinkPotion={onDrinkPotion}
           onSpendTear={onSpendTear}
           onClose={() => setSelectedKey(null)}
         />
@@ -135,18 +143,16 @@ export default function InventoryScreen({ state, onDrinkPotion, onSpendTear, onC
 interface EntryDialogProps {
   entry: Entry
   state: GameState
-  onDrinkPotion: (itemId: string, characterId: CharacterId) => void
   onSpendTear: (characterId: CharacterId) => void
   onClose: () => void
 }
 
 /** One thing of the inventory: its picture, what it does and, when it can be used now, who uses it. */
-function EntryDialog({ entry, state, onDrinkPotion, onSpendTear, onClose }: EntryDialogProps) {
+function EntryDialog({ entry, state, onSpendTear, onClose }: EntryDialogProps) {
   const t = useT()
   const [choosing, setChoosing] = useState(false)
   const lines: string[] = []
   let usage: { use: (id: CharacterId) => void; can: (character: CharacterState) => boolean } | null = null
-  let blocked: string | null = null
   let note: string | null = null
 
   if (entry.subject.type === 'item') {
@@ -154,18 +160,8 @@ function EntryDialog({ entry, state, onDrinkPotion, onSpendTear, onClose }: Entr
 
     lines.push(t(`items.${itemId}.text` as MessageKey))
 
-    if (MAP_POTIONS.includes(itemId)) {
-      if (canDrinkPotions(state)) {
-        usage = {
-          use: (id) => onDrinkPotion(itemId, id),
-          can: (character) => canDrinkPotion(state, itemId, character.id)
-        }
-      } else {
-        blocked = t('world.potions.blocked')
-      }
-    } else {
-      note = t(entry.category === 'stones' ? 'inventory.stoneUse' : 'inventory.battleOnly')
-    }
+    // Consumables are only used in battle (up to three per turn); stones at the smith.
+    note = t(entry.category === 'stones' ? 'inventory.stoneUse' : 'inventory.battleOnly')
   } else if (entry.subject.type === 'rune') {
     const index = entry.subject.index
     const rune = getRune(index)
@@ -207,21 +203,16 @@ function EntryDialog({ entry, state, onDrinkPotion, onSpendTear, onClose }: Entr
           </p>
         ))}
         {note && <p className="note">{note}</p>}
-        {blocked && <p className="note">{blocked}</p>}
         {usage && !choosing && (
           <GameButton fullWidth color="cyan" disabled={!canUse} onClick={() => setChoosing(true)}>
-            {t(entry.subject.type === 'tear' ? 'inventory.use' : 'inventory.drink')}
+            {t('inventory.use')}
           </GameButton>
         )}
-        {usage && !canUse && (
-          <p className="note">{t(entry.subject.type === 'tear' ? 'inventory.tear.nobody' : 'inventory.nobody')}</p>
-        )}
+        {usage && !canUse && <p className="note">{t('inventory.tear.nobody')}</p>}
       </div>
       {usage && choosing && (
         <>
-          <p className="choose">
-            {t(entry.subject.type === 'tear' ? 'inventory.tear.chooseHero' : 'world.potions.chooseHero')}
-          </p>
+          <p className="choose">{t('inventory.tear.chooseHero')}</p>
           <List sx={{ pb: 2 }}>
             {state.characters.map((character) => (
               <HeroOption

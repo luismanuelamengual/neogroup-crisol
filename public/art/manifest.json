@@ -3771,6 +3771,214 @@
   "icons/items/gold": {
    "width": 128,
    "height": 126
+  },
+  "icons/items/crusty-bread": {
+   "width": 128,
+   "height": 104
+  },
+  "icons/items/red-apple": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/items/wild-berries": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/items/honey-cake": {
+   "width": 126,
+   "height": 128
+  },
+  "icons/items/mushroom-skewer": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/items/roast-meat": {
+   "width": 128,
+   "height": 124
+  },
+  "icons/items/fish-stew": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/items/spicy-sausage": {
+   "width": 128,
+   "height": 111
+  },
+  "icons/items/traveler-feast": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/items/golden-pear": {
+   "width": 110,
+   "height": 128
+  },
+  "icons/items/might-tonic": {
+   "width": 67,
+   "height": 128
+  },
+  "icons/items/iron-tonic": {
+   "width": 69,
+   "height": 128
+  },
+  "icons/items/swift-tonic": {
+   "width": 72,
+   "height": 128
+  },
+  "icons/items/keen-tonic": {
+   "width": 64,
+   "height": 128
+  },
+  "icons/items/troll-blood": {
+   "width": 97,
+   "height": 128
+  },
+  "icons/items/giant-draught": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/items/war-elixir": {
+   "width": 86,
+   "height": 128
+  },
+  "icons/items/throwing-knife": {
+   "width": 128,
+   "height": 128
+  },
+  "icons/items/serrated-knife": {
+   "width": 128,
+   "height": 127
+  },
+  "icons/items/poison-dart": {
+   "width": 122,
+   "height": 128
+  },
+  "icons/items/stun-dart": {
+   "width": 128,
+   "height": 125
+  },
+  "icons/items/shuriken": {
+   "width": 128,
+   "height": 125
+  },
+  "icons/items/javelin": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/items/throwing-axe": {
+   "width": 126,
+   "height": 128
+  },
+  "icons/items/sling-stone": {
+   "width": 113,
+   "height": 128
+  },
+  "icons/items/pepper-pouch": {
+   "width": 128,
+   "height": 127
+  },
+  "icons/items/flame-dagger": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/items/frost-dagger": {
+   "width": 118,
+   "height": 128
+  },
+  "icons/items/storm-kunai": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/items/holy-water": {
+   "width": 99,
+   "height": 128
+  },
+  "icons/items/shadow-needle": {
+   "width": 112,
+   "height": 128
+  },
+  "icons/items/thunder-bomb": {
+   "width": 103,
+   "height": 128
+  },
+  "icons/items/acid-flask": {
+   "width": 94,
+   "height": 128
+  },
+  "icons/items/smoke-bomb": {
+   "width": 104,
+   "height": 128
+  },
+  "icons/items/spore-bomb": {
+   "width": 121,
+   "height": 128
+  },
+  "icons/items/shrapnel-bomb": {
+   "width": 115,
+   "height": 128
+  },
+  "icons/items/radiant-orb": {
+   "width": 105,
+   "height": 128
+  },
+  "icons/items/void-bomb": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/items/fire-oil": {
+   "width": 112,
+   "height": 128
+  },
+  "icons/items/frost-oil": {
+   "width": 117,
+   "height": 128
+  },
+  "icons/items/storm-oil": {
+   "width": 116,
+   "height": 128
+  },
+  "icons/items/earth-oil": {
+   "width": 111,
+   "height": 128
+  },
+  "icons/items/holy-oil": {
+   "width": 101,
+   "height": 128
+  },
+  "icons/items/shadow-oil": {
+   "width": 109,
+   "height": 128
+  },
+  "icons/items/venom-oil": {
+   "width": 103,
+   "height": 128
+  },
+  "icons/items/ward-charm": {
+   "width": 100,
+   "height": 128
+  },
+  "icons/items/purifying-incense": {
+   "width": 111,
+   "height": 128
+  },
+  "icons/items/saint-amulet": {
+   "width": 128,
+   "height": 120
+  },
+  "icons/items/guard-seal": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/items/bulwark-crystal": {
+   "width": 113,
+   "height": 128
+  },
+  "icons/items/aegis-relic": {
+   "width": 120,
+   "height": 128
+  },
+  "icons/items/shield-scroll": {
+   "width": 128,
+   "height": 107
   }
  },
  "decorations": {

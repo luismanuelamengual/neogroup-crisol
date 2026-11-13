@@ -153,6 +153,10 @@ export function describeSkill(t: Translator, skillId: string, level = 1): string
     )
   }
 
+  if (skill.shields) {
+    lines.push(t('skillEffects.shields', { count: skill.shields }))
+  }
+
   if (skill.critBonus) {
     lines.push(t('skillEffects.crit', { value: formatShare(skill.critBonus).slice(1) }))
   }

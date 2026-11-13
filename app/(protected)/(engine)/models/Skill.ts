@@ -39,4 +39,6 @@ export interface Skill {
   requires?: Stance[]
   /** Spends the fury (Brann) or the elemental charges (Ysolde) of its user for more power. */
   consumes?: 'fury' | 'charges'
+  /** Shields it gives to its targets (to its user, for the ones on itself): each one stops a whole hit. */
+  shields?: number
 }

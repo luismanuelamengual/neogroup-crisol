@@ -75,6 +75,7 @@ const HERO_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.SLASH,
+    shields: 1,
     statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }],
     stance: Stance.DEFENSE
   },
@@ -346,6 +347,7 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.LIGHT,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 3), st('ATTACK_UP', 1, 3)],
     stance: Stance.NONE,
     requires: [Stance.DEFENSE]
@@ -504,6 +506,7 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.EARTH,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 4)]
   },
   {
@@ -513,6 +516,7 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.EARTH,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 3)]
   },
   {
@@ -608,6 +612,7 @@ const TREE_SKILLS: Skill[] = [
     stat: 'special',
     damageType: DamageType.EARTH,
     heal: true,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 3)]
   },
   {
@@ -636,6 +641,7 @@ const TREE_SKILLS: Skill[] = [
     stat: 'special',
     damageType: DamageType.LIGHT,
     heal: true,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 3), st('ATTACK_UP', 1, 3)]
   },
   {
@@ -708,6 +714,7 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'special',
     damageType: DamageType.ICE,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 4)]
   },
   {
@@ -1047,6 +1054,7 @@ const TREE_SKILLS: Skill[] = [
     power: 0,
     stat: 'special',
     damageType: DamageType.LIGHT,
+    shields: 2,
     statuses: [st('DEFENSE_UP', 1, 3), st('SPEED_UP', 1, 3)]
   },
   {
@@ -1107,6 +1115,7 @@ const ENEMY_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.BLUNT,
+    shields: 1,
     statuses: [{ type: StatusType.DEFENSE_UP, chance: 1, turns: 3 }]
   },
   { id: 'peck', cost: 0, target: TargetType.ENEMY, power: 0.8, stat: 'attack', damageType: DamageType.BLUNT },
@@ -1274,6 +1283,7 @@ const ENEMY_SKILLS: Skill[] = [
     power: 0,
     stat: 'attack',
     damageType: DamageType.EARTH,
+    shields: 1,
     statuses: [st('DEFENSE_UP', 1, 3)]
   },
   {

@@ -21,7 +21,6 @@ import {
   canStartNextCycle,
   countDefeatedSeals,
   drinkFlask,
-  drinkPotion,
   getEncounter,
   getFlask,
   getMissingOwner,
@@ -45,7 +44,7 @@ import MapMenu from '@/app/(protected)/(world)/components/MapMenu'
 import NextCycleDialog from '@/app/(protected)/(world)/components/NextCycleDialog'
 import PartyPanel from '@/app/(protected)/(world)/components/PartyPanel'
 import PointPanel from '@/app/(protected)/(world)/components/PointPanel'
-import RewardsDialog from '@/app/(protected)/(world)/components/RewardsDialog'
+import RewardsDialog, { RewardView } from '@/app/(protected)/(world)/components/RewardsDialog'
 import TeleportDialog from '@/app/(protected)/(world)/components/TeleportDialog'
 import WorldMap, { WorldMapHandle } from '@/app/(protected)/(world)/components/WorldMap'
 import { useGameSession } from '@/app/(protected)/(world)/hooks/useGameSession'
@@ -87,7 +86,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const [bestiaryOpen, setBestiaryOpen] = useState(false)
   const [shopOpen, setShopOpen] = useState(false)
   /** What the point just won gives, shown in the middle of the screen until the player closes it. */
-  const [pointRewards, setPointRewards] = useState<string[]>([])
+  const [pointRewards, setPointRewards] = useState<RewardView[]>([])
   const [confirmingCycle, setConfirmingCycle] = useState(false)
   const map = useRef<WorldMapHandle>(null)
   const state = save?.state ?? null
@@ -162,9 +161,9 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         : null,
     [cleared, openCamps, reachable, respawned, revealed, route, selectedNodeId, state]
   )
-  /** What a reward says, the sound it makes and how long its message stays on the map. */
+  /** What a reward says (with its picture, if it has one) and the sound it makes. */
   const describeReward = useCallback(
-    (reward: Reward): { text: string; sfx?: Parameters<typeof playSfx>[0]; duration?: number } => {
+    (reward: Reward): RewardView & { sfx?: Parameters<typeof playSfx>[0] } => {
       switch (reward.type) {
         case 'camp':
           return { text: t('world.rewards.camp', { name: campName(t, index!.nodes.get(reward.nodeId)!) }) }
@@ -176,55 +175,74 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
             })
           }
         case 'flaskCharge':
-          return { text: t('world.rewards.flaskCharge', { max: reward.maxCharges }) }
+          return { text: t('world.rewards.flaskCharge', { max: reward.maxCharges }), icon: { type: 'flask' } }
         case 'flaskPotency':
-          return { text: t('world.rewards.flaskPotency', { potency: reward.potency }) }
+          return { text: t('world.rewards.flaskPotency', { potency: reward.potency }), icon: { type: 'flask' } }
         case 'rune':
           return {
             text: t('world.rewards.rune', {
               name: runeName(t, getRune(reward.runeIndex)),
               tier: t(`world.runeTiers.${reward.tier}`)
             }),
+            icon: { type: 'rune', index: reward.runeIndex },
             sfx: 'rune'
           }
         case 'item':
-          return { text: t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }) }
+          return {
+            text: t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }),
+            icon: { type: 'item', id: reward.itemId },
+            loot: { amount: `×${reward.count}`, name: itemName(t, reward.itemId) }
+          }
         case 'echoes':
-          return { text: t('world.rewards.echoes', { count: reward.count }) }
+          return {
+            text: t('world.rewards.echoes', { count: reward.count }),
+            icon: { type: 'echo' },
+            loot: { amount: `×${reward.count}`, name: t('world.rewards.echoesName', { count: reward.count }) }
+          }
         case 'tear':
-          return { text: t('world.rewards.tear') }
+          return { text: t('world.rewards.tear'), icon: { type: 'tear' } }
         case 'weapon':
           return {
             text: t('world.rewards.weapon', {
               name: t(`characters.${reward.characterId}.name` as MessageKey),
               weapon: t(`weapons.${reward.weaponId}.name` as MessageKey)
             }),
-            sfx: 'rune',
-            duration: 8000
+            icon: { type: 'weapon', id: reward.weaponId },
+            sfx: 'rune'
           }
         case 'gold':
-          return { text: t('world.rewards.gold', { amount: reward.amount }), sfx: 'chest' }
+          return {
+            text: t('world.rewards.gold', { amount: reward.amount }),
+            icon: { type: 'gold' },
+            loot: { amount: `+${reward.amount}`, name: t('world.rewards.goldName') },
+            sfx: 'chest'
+          }
         case 'abyssOpen':
-          return { text: t('world.rewards.abyssOpen'), duration: 8000 }
+          return { text: t('world.rewards.abyssOpen') }
         case 'crisolDefeated':
-          return { text: t('world.rewards.crisol'), duration: 10000 }
+          return { text: t('world.rewards.crisol') }
       }
     },
     [index, t]
   )
-  const showRewards = useCallback(
+  /** Opens the rewards window with what was gained, playing the sound of each kind once. */
+  const showRewardsWindow = useCallback(
     (rewards: Reward[]) => {
-      for (const reward of rewards) {
-        const { text, sfx, duration } = describeReward(reward)
+      if (rewards.length === 0) {
+        return
+      }
 
+      const views = rewards.map(describeReward)
+
+      for (const sfx of new Set(views.map((view) => view.sfx))) {
         if (sfx) {
           playSfx(sfx)
         }
-
-        showSuccessMessage(text, duration)
       }
+
+      setPointRewards(views.map(({ text, icon, loot }) => ({ text, icon, loot })))
     },
-    [describeReward, showSuccessMessage]
+    [describeReward]
   )
   const go = useCallback(async () => {
     if (!index || !state || !route || walking) {
@@ -241,12 +259,13 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
     const arrival = arriveAt(index, useGameStore.getState().save!.state, target)
 
     update(arrival.state)
-    showRewards(arrival.rewards)
+    // Only chests give something on arrival: their content gets the window, with the picture of each thing.
+    showRewardsWindow(arrival.rewards)
 
     if (arrival.encounter) {
       setPending({ encounter: arrival.encounter, fromNodeId: route[route.length - 2] })
     }
-  }, [index, route, showRewards, state, update, walking])
+  }, [index, route, showRewardsWindow, state, update, walking])
   const handleTap = useCallback(
     (nodeId: string | null) => {
       if (walking || pending) {
@@ -324,15 +343,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
     // The battle's own spoils (experience, levels, gold, loot and Echoes) are already on the result panel;
     // what the point gives gets a window of its own, in the middle of the screen.
-    if (result.pointRewards.length > 0) {
-      for (const sfx of new Set(result.pointRewards.map((reward) => describeReward(reward).sfx))) {
-        if (sfx) {
-          playSfx(sfx)
-        }
-      }
-
-      setPointRewards(result.pointRewards.map((reward) => describeReward(reward).text))
-    }
+    showRewardsWindow(result.pointRewards)
 
     if (result.levelUps.length > 0) {
       playSfx('level-up')
@@ -375,11 +386,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const handleDrink = () => {
     update(drinkFlask(index, state))
     playSfx('flask')
-  }
-
-  const handleDrinkPotion = (itemId: string, characterId: CharacterId) => {
-    update(drinkPotion(state, itemId, characterId))
-    playSfx('heal')
   }
 
   const handleSpendTear = (characterId: CharacterId) => {
@@ -471,12 +477,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         />
       )}
       {inventoryOpen && (
-        <InventoryScreen
-          state={state}
-          onDrinkPotion={handleDrinkPotion}
-          onSpendTear={handleSpendTear}
-          onClose={() => setInventoryOpen(false)}
-        />
+        <InventoryScreen state={state} onSpendTear={handleSpendTear} onClose={() => setInventoryOpen(false)} />
       )}
       {bestiaryOpen && <BestiaryScreen kills={state.kills} onClose={() => setBestiaryOpen(false)} />}
       {merchantHere && (

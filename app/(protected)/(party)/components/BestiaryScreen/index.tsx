@@ -8,7 +8,7 @@ import { enemyName } from '@/app/(protected)/(battle)/utils/names'
 import { getBestiaryLevel, getBestiaryThresholds } from '@/app/(protected)/(engine)/data/bestiary'
 import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import { ENEMIES, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
-import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
+import { BIOME_DROPS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import EnemyPortrait from '@/app/(protected)/(party)/components/EnemyPortrait'
@@ -79,7 +79,7 @@ function describeSpecies(t: Translator, speciesId: string, kills: Record<string,
     lines.push(t('party.skillsLine', { skills: species.skills.map((id) => skillName(t, id)).join(', ') }))
     lines.push(
       t('party.dropsLine', {
-        items: [BIOME_STONE[species.biome], ...BIOME_POTIONS[species.biome]].map((id) => itemName(t, id)).join(', ')
+        items: [BIOME_STONE[species.biome], ...BIOME_DROPS[species.biome]].map((id) => itemName(t, id)).join(', ')
       })
     )
   }

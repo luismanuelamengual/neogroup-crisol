@@ -323,10 +323,6 @@ export const en: Messages = {
       teleportTitle: 'Travel to another camp',
       shop: 'Shop'
     },
-    potions: {
-      blocked: 'Potions can only be drunk at a point without enemies.',
-      chooseHero: 'Who drinks it?'
-    },
     flask: {
       name: 'Amber Flask',
       drink: 'Drink',
@@ -346,6 +342,8 @@ export const en: Messages = {
       tear: 'You found a Tear of Oblivion',
       weapon: '{name} got {weapon}!',
       gold: '+{amount} gold',
+      goldName: 'Gold',
+      echoesName: { one: 'Echo', other: 'Echoes' },
       abyssOpen: 'Both Seals fell: the Door of the Abyss opened',
       crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.'
     },
@@ -371,6 +369,10 @@ export const en: Messages = {
     stanceTo: 'Moves to {stance} stance',
     stanceDrop: 'Leaves him without a stance',
     special: 'Special',
+    itemsLeft: { one: '{count} item left this turn', other: '{count} items left this turn' },
+    shields: { one: '{count} shield', other: '{count} shields' },
+    shieldGain: { one: '+{count} shield', other: '+{count} shields' },
+    shieldBlock: 'Blocked!',
     turnOf: '{name}’s turn',
     tapEnemy: 'Tap an enemy',
     tapAlly: 'Tap an ally',
@@ -388,7 +390,6 @@ export const en: Messages = {
     items: 'Items',
     noItems: 'No items to use',
     chooseAlly: 'Choose an ally',
-    lootTitle: 'Loot',
     attack: 'Attack',
     specials: 'Specials',
     retreat: 'Retreat',
@@ -414,7 +415,6 @@ export const en: Messages = {
     xpRecovered: '+{xp} experience recovered',
     xpLeftBehind: 'What you lost stays here: defeat these enemies to get it back.',
     xpForfeited: 'The experience you left at your previous fall ({xp}) is lost.',
-    goldGained: '+{gold} gold',
     levelUp: '{name} reaches level {level}',
     levelUpShort: 'Level {level}!',
     continue: 'Continue',
@@ -432,7 +432,17 @@ export const en: Messages = {
     defenseUp: 'Defense ▲',
     defenseDown: 'Defense ▼',
     speedUp: 'Speed ▲',
-    speedDown: 'Speed ▼'
+    speedDown: 'Speed ▼',
+    critUp: 'Critical ▲',
+    regen: 'Regeneration',
+    ward: 'Ward',
+    imbueFire: 'Fire weapon',
+    imbueIce: 'Ice weapon',
+    imbueLightning: 'Lightning weapon',
+    imbueEarth: 'Earth weapon',
+    imbueLight: 'Light weapon',
+    imbueDarkness: 'Shadow weapon',
+    imbueVenom: 'Venomous weapon'
   },
   skills: {
     'kael-strike': 'Strike',
@@ -923,7 +933,8 @@ export const en: Messages = {
     power: '+{value} power',
     chance: '+{value} status chance',
     cost: '−{value} focus',
-    turns: '+{value} status turn'
+    turns: '+{value} status turn',
+    shields: { one: 'Gives {count} shield: it stops a whole hit', other: 'Gives {count} shields: each one stops a hit' }
   },
   runes: {
     'first-cut': { name: 'First Cut Rune', text: 'Its first hit of each battle deals +50% damage.' },
@@ -1002,8 +1013,8 @@ export const en: Messages = {
     },
     fever: { name: 'Fever Rune', text: 'The poison, burns and bleeding it leaves deal 50% more damage.' },
     plague: { name: 'Plague Rune', text: 'Defeating a poisoned enemy passes the poison to another enemy.' },
-    barrier: { name: 'Barrier Rune', text: 'Starts the battle with a barrier that stops the first hit.' },
-    aegis: { name: 'Aegis Rune', text: 'Healing someone gives them a barrier that stops the next hit.' },
+    barrier: { name: 'Barrier Rune', text: 'Starts the battle with 1 more shield, which stops a whole hit.' },
+    aegis: { name: 'Aegis Rune', text: 'Healing someone without shields gives them 1, which stops a whole hit.' },
     'blood-echo': {
       name: 'Blood Echo Rune',
       text: 'Heals itself for 12% of all the damage it deals, specials included.'
@@ -1039,6 +1050,85 @@ export const en: Messages = {
     'revive-potion': { name: 'Revival Potion', text: 'Brings a fallen ally back with 40% of its health.' },
     'frost-bomb': { name: 'Frost Bomb', text: 'Ice damage to every enemy, which can freeze them.' },
     elixir: { name: 'Elixir', text: 'Heals the whole party, restores its focus and cures its statuses.' },
+    'crusty-bread': { name: 'Crusty Bread', text: "Heals 20% of an ally's health." },
+    'red-apple': { name: 'Red Apple', text: "Heals 12% of an ally's health and restores 15% of its focus." },
+    'wild-berries': { name: 'Wild Berries', text: "Heals 8% of an ally's health and regenerates it for 3 turns." },
+    'honey-cake': { name: 'Honey Cake', text: "Restores 35% of an ally's focus." },
+    'mushroom-skewer': {
+      name: 'Mushroom Skewer',
+      text: "Heals 15% of an ally's health and regenerates it for 3 turns."
+    },
+    'roast-meat': { name: 'Roast Meat', text: "Heals 40% of an ally's health." },
+    'fish-stew': { name: 'Fish Stew', text: "Heals 30% of an ally's health and restores 20% of its focus." },
+    'spicy-sausage': {
+      name: 'Spicy Sausage',
+      text: "Heals 20% of an ally's health and raises its attack for 2 turns."
+    },
+    'traveler-feast': {
+      name: "Traveler's Feast",
+      text: "Heals 25% of the whole party's health and regenerates it for 3 turns."
+    },
+    'golden-pear': { name: 'Golden Pear', text: "Heals half of an ally's health and restores half of its focus." },
+    'might-tonic': { name: 'Might Tonic', text: "Raises an ally's attack for 3 turns." },
+    'iron-tonic': { name: 'Iron Tonic', text: "Raises an ally's defense for 3 turns." },
+    'swift-tonic': { name: 'Swift Tonic', text: "Raises an ally's speed for 3 turns." },
+    'keen-tonic': { name: 'Keen Tonic', text: "Raises an ally's critical chance by 20% for 3 turns." },
+    'troll-blood': { name: 'Troll Blood', text: 'Regenerates an ally for 4 turns.' },
+    'giant-draught': { name: "Giant's Draught", text: "Raises an ally's attack and defense for 3 turns." },
+    'war-elixir': { name: 'War Elixir', text: "Raises the whole party's attack and speed for 2 turns." },
+    'throwing-knife': { name: 'Throwing Knife', text: 'Slashing damage to one enemy.' },
+    'serrated-knife': { name: 'Serrated Knife', text: 'Slashing damage to one enemy that can make it bleed.' },
+    'poison-dart': { name: 'Poison Dart', text: 'A little piercing damage to one enemy that usually poisons it.' },
+    'stun-dart': { name: 'Sleep Dart', text: 'A little piercing damage to one enemy that can stun it.' },
+    shuriken: { name: 'Shuriken', text: 'Three slashing hits on one enemy.' },
+    javelin: { name: 'Javelin', text: 'Heavy piercing damage to one enemy.' },
+    'throwing-axe': { name: 'Throwing Axe', text: 'Slashing damage to one enemy that can lower its defense.' },
+    'pepper-pouch': { name: 'Pepper Pouch', text: 'Deals no damage, but usually blinds one enemy.' },
+    'flame-dagger': { name: 'Flame Dagger', text: 'Fire damage to one enemy that can burn it.' },
+    'frost-dagger': { name: 'Frost Dagger', text: 'Ice damage to one enemy that can freeze it.' },
+    'storm-kunai': { name: 'Storm Kunai', text: 'Lightning damage to one enemy that can stun it.' },
+    'holy-water': { name: 'Holy Water', text: 'Light damage to one enemy that can blind it.' },
+    'shadow-needle': { name: 'Shadow Needle', text: 'Darkness damage to one enemy that can lower its attack.' },
+    'thunder-bomb': { name: 'Thunder Bomb', text: 'Lightning damage to every enemy that can stun them.' },
+    'acid-flask': {
+      name: 'Acid Flask',
+      text: 'A little earth damage to every enemy that usually lowers their defense.'
+    },
+    'smoke-bomb': { name: 'Smoke Bomb', text: 'Deals no damage, but can blind every enemy.' },
+    'spore-bomb': { name: 'Spore Bomb', text: 'A little earth damage to every enemy that usually poisons them.' },
+    'shrapnel-bomb': { name: 'Shrapnel Bomb', text: 'Piercing damage to every enemy that can make them bleed.' },
+    'radiant-orb': { name: 'Radiant Orb', text: 'Light damage to every enemy.' },
+    'void-bomb': { name: 'Void Bomb', text: 'Darkness damage to every enemy that can lower their attack.' },
+    'fire-oil': { name: 'Fire Oil', text: "For 4 turns an ally's weapon attacks deal fire damage and can burn." },
+    'frost-oil': { name: 'Frost Oil', text: "For 4 turns an ally's weapon attacks deal ice damage and can freeze." },
+    'storm-oil': {
+      name: 'Storm Oil',
+      text: "For 4 turns an ally's weapon attacks deal lightning damage and can stun."
+    },
+    'earth-oil': {
+      name: 'Earth Oil',
+      text: "For 4 turns an ally's weapon attacks deal earth damage and can lower defense."
+    },
+    'holy-oil': { name: 'Holy Oil', text: "For 4 turns an ally's weapon attacks deal light damage and can blind." },
+    'shadow-oil': {
+      name: 'Shadow Oil',
+      text: "For 4 turns an ally's weapon attacks deal darkness damage and can lower attack."
+    },
+    'venom-oil': { name: 'Venom Oil', text: "For 4 turns an ally's weapon attacks can poison." },
+    'ward-charm': { name: 'Ward Charm', text: 'For 3 turns no harmful status reaches an ally.' },
+    'purifying-incense': {
+      name: 'Purifying Incense',
+      text: 'Removes the harmful statuses of the whole party and wards it against them for 2 turns.'
+    },
+    'saint-amulet': {
+      name: "Saint's Amulet",
+      text: "Removes an ally's harmful statuses and wards it against them for 5 turns."
+    },
+    'guard-seal': { name: 'Guard Seal', text: 'Gives an ally 1 shield: it fully stops the next hit.' },
+    'bulwark-crystal': { name: 'Bulwark Crystal', text: 'Gives an ally 2 shields: each one fully stops a hit.' },
+    'aegis-relic': { name: 'Aegis Relic', text: 'Gives an ally 3 shields: each one fully stops a hit.' },
+    'shield-scroll': { name: 'Shield Scroll', text: 'Gives each ally 1 shield: it fully stops their next hit.' },
+    'sling-stone': { name: 'Sling Stone', text: 'Blunt damage to one enemy that can stun it.' },
     'rough-stone': { name: 'Rough Stone', text: 'Upgrades a weapon from +1 to +5.' },
     'tempered-stone': { name: 'Tempered Stone', text: 'Upgrades a weapon from +6 to +10.' },
     'arcane-stone': { name: 'Arcane Stone', text: 'Upgrades a weapon from +11 to +15.' },
@@ -1048,23 +1138,27 @@ export const en: Messages = {
     tabs: {
       all: 'All',
       potions: 'Potions',
-      bombs: 'Bombs',
+      food: 'Food',
+      throwables: 'Throwables',
+      oils: 'Oils',
+      charms: 'Charms',
       stones: 'Stones',
       runes: 'Runes',
       special: 'Special'
     },
     empty: {
       all: 'The inventory is empty.',
-      potions: 'You carry no potions.',
-      bombs: 'You carry no bombs.',
+      potions: 'You carry no potions or tonics.',
+      food: 'You carry no food.',
+      throwables: 'You carry no throwing weapons or bombs.',
+      oils: 'You carry no weapon oils.',
+      charms: 'You carry no charms or shield seals.',
       stones: 'You carry no smithing stones.',
       runes: 'You have no runes yet: each sanctuary keeps one.',
       special: 'You have no special items.'
     },
-    drink: 'Drink',
     use: 'Use',
-    nobody: 'Nobody in the party needs it now.',
-    battleOnly: 'Used during a battle.',
+    battleOnly: 'Used during a battle: each hero can use up to 3 items per turn.',
     stoneUse: "Used to upgrade weapons at a camp, from each hero's page.",
     runeTier: 'Tier: {tier}',
     runeUse: "Equipped from a hero's page, at a camp.",

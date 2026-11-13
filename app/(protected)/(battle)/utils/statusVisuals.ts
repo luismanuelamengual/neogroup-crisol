@@ -31,9 +31,29 @@ export const STATUS_COLORS: Record<StatusType, { main: number; light: number; da
   [StatusType.DEFENSE_UP]: { main: 0x60a5fa, light: 0xdbeafe, dark: 0x1d4ed8 },
   [StatusType.DEFENSE_DOWN]: { main: 0x94a3b8, light: 0xe2e8f0, dark: 0x475569 },
   [StatusType.SPEED_UP]: { main: 0x34d399, light: 0xd1fae5, dark: 0x047857 },
-  [StatusType.SPEED_DOWN]: { main: 0xa78bfa, light: 0xede9fe, dark: 0x5b21b6 }
+  [StatusType.SPEED_DOWN]: { main: 0xa78bfa, light: 0xede9fe, dark: 0x5b21b6 },
+  [StatusType.CRIT_UP]: { main: 0xffd23c, light: 0xfff6c2, dark: 0xb7791f },
+  [StatusType.REGEN]: { main: 0x4ade80, light: 0xdcfce7, dark: 0x15803d },
+  [StatusType.WARD]: { main: 0xe0f2fe, light: 0xffffff, dark: 0x7dd3fc },
+  [StatusType.IMBUE_FIRE]: { main: 0xff7a00, light: 0xfff1a8, dark: 0xc2410c },
+  [StatusType.IMBUE_ICE]: { main: 0x7dd3fc, light: 0xf0fdff, dark: 0x0284c7 },
+  [StatusType.IMBUE_LIGHTNING]: { main: 0xfde047, light: 0xfffbe6, dark: 0xca8a04 },
+  [StatusType.IMBUE_EARTH]: { main: 0xd6a35c, light: 0xf5e1b8, dark: 0x7c4a1e },
+  [StatusType.IMBUE_LIGHT]: { main: 0xfff7c2, light: 0xffffff, dark: 0xeab308 },
+  [StatusType.IMBUE_DARKNESS]: { main: 0xc084fc, light: 0xf3e8ff, dark: 0x6b21a8 },
+  [StatusType.IMBUE_VENOM]: { main: 0x84cc16, light: 0xd9f99d, dark: 0x3f6212 }
 }
 
+/** The imbuements of the weapon: a badge of their color and sparks of it at the weapon's side. */
+const IMBUES = new Set([
+  StatusType.IMBUE_FIRE,
+  StatusType.IMBUE_ICE,
+  StatusType.IMBUE_LIGHTNING,
+  StatusType.IMBUE_EARTH,
+  StatusType.IMBUE_LIGHT,
+  StatusType.IMBUE_DARKNESS,
+  StatusType.IMBUE_VENOM
+])
 /** The tint each status gives the body, and how strong (the first one present wins). */
 const TINTS: [StatusType, number, number][] = [
   [StatusType.FREEZE, 0x9fd8ff, 0.75],
@@ -50,7 +70,11 @@ const BADGES = [
   StatusType.DEFENSE_UP,
   StatusType.DEFENSE_DOWN,
   StatusType.SPEED_UP,
-  StatusType.SPEED_DOWN
+  StatusType.SPEED_DOWN,
+  StatusType.CRIT_UP,
+  StatusType.REGEN,
+  StatusType.WARD,
+  ...IMBUES
 ]
 /** How often each status lets out its loose bits (ms, in the high quality). */
 const EVERY: Partial<Record<StatusType, number>> = {
@@ -61,7 +85,16 @@ const EVERY: Partial<Record<StatusType, number>> = {
   [StatusType.BLIND]: 320,
   [StatusType.ATTACK_UP]: 260,
   [StatusType.DEFENSE_DOWN]: 700,
-  [StatusType.SPEED_DOWN]: 600
+  [StatusType.SPEED_DOWN]: 600,
+  [StatusType.CRIT_UP]: 380,
+  [StatusType.REGEN]: 300,
+  [StatusType.IMBUE_FIRE]: 160,
+  [StatusType.IMBUE_ICE]: 220,
+  [StatusType.IMBUE_LIGHTNING]: 180,
+  [StatusType.IMBUE_EARTH]: 260,
+  [StatusType.IMBUE_LIGHT]: 200,
+  [StatusType.IMBUE_DARKNESS]: 220,
+  [StatusType.IMBUE_VENOM]: 220
 }
 
 /** Where the fighter stands on the stage, to place its particles: its spot and its scale. */
@@ -190,6 +223,9 @@ export class StatusAura {
         case StatusType.SPEED_DOWN:
           this.drawClock(t, h, w)
           break
+        case StatusType.WARD:
+          this.drawWard(t, h, w)
+          break
       }
     }
 
@@ -228,8 +264,38 @@ export class StatusAura {
         case StatusType.SPEED_DOWN:
           hourglass(this.front, x, y, colors.main, colors.light, t)
           break
+        case StatusType.CRIT_UP:
+          star(this.front, x, y, 6.5, t * 0.8, colors.main, 1)
+          break
+        case StatusType.REGEN:
+          this.front.rect(x - 1.8, y - 6, 3.6, 12).fill({ color: colors.main })
+          this.front.rect(x - 6, y - 1.8, 12, 3.6).fill({ color: colors.main })
+          break
+        case StatusType.WARD:
+          this.front.circle(x, y, 5.5).stroke({ width: 2, color: colors.dark })
+          this.front.circle(x, y, 2.2).fill({ color: colors.light })
+          break
+        default:
+          // An imbuement: a gem of its color.
+          this.front
+            .poly([x, y - 7, x + 5.5, y, x, y + 7, x - 5.5, y])
+            .fill({ color: colors.main })
+            .stroke({ width: 1.5, color: colors.light })
       }
     })
+  }
+
+  /** A thin, pale veil around the body that shimmers: no harmful status gets through. */
+  private drawWard(t: number, h: number, w: number): void {
+    const colors = STATUS_COLORS[StatusType.WARD]
+    const rx = w * 1.25
+    const ry = h * 0.58
+    const cy = -h * 0.5
+
+    this.back
+      .ellipse(0, cy, rx, ry)
+      .fill({ color: colors.dark, alpha: 0.08 + Math.sin(t * 2) * 0.03 })
+      .stroke({ width: 2, color: colors.light, alpha: 0.35 + Math.sin(t * 2.4) * 0.15 })
   }
 
   /** The body takes the color of its strongest status, breathing in and out. */
@@ -750,8 +816,55 @@ export class StatusAura {
           radius: w * 1.1,
           alpha: 0.5
         }
+      case StatusType.CRIT_UP:
+        return {
+          shape: 'spark',
+          ...at(0, -h * 0.9),
+          count: 1,
+          tint: [colors.main, colors.light],
+          speed: [20, 50],
+          angle: -Math.PI / 2,
+          spread: 2,
+          life: [300, 500],
+          size: [10 * s, 6 * s],
+          radius: w * 0.9,
+          glow: true
+        }
+      case StatusType.REGEN:
+        return {
+          shape: 'dot',
+          ...at(0, -h * 0.15),
+          count: 1,
+          tint: [colors.main, colors.light],
+          speed: [25, 50],
+          angle: -Math.PI / 2,
+          spread: 0.3,
+          life: [700, 1000],
+          size: [6 * s, 3 * s],
+          gravity: -20,
+          radius: w,
+          glow: true
+        }
       default:
-        return null
+        if (!IMBUES.has(status)) {
+          return null
+        }
+
+        // Sparks of the element at the side the weapon is held.
+        return {
+          shape: status === StatusType.IMBUE_ICE ? 'flake' : status === StatusType.IMBUE_LIGHTNING ? 'spark' : 'dot',
+          ...at(this.direction * w * 0.9, -h * 0.5),
+          count: 1,
+          tint: [colors.main, colors.light, colors.dark],
+          speed: [20, 50],
+          angle: -Math.PI / 2,
+          spread: 1.2,
+          life: [350, 600],
+          size: [7 * s, 3 * s],
+          gravity: status === StatusType.IMBUE_EARTH ? 200 : -40,
+          radius: w * 0.35,
+          glow: status !== StatusType.IMBUE_EARTH && status !== StatusType.IMBUE_DARKNESS
+        }
     }
   }
 }

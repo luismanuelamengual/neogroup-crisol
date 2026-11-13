@@ -3,8 +3,9 @@ import { CYCLE_BOSS_SKILLS } from '@/app/(protected)/(engine)/data/cycles'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import {
   BASIC_POTIONS,
-  BIOME_POTIONS,
+  BIOME_DROPS,
   BIOME_STONE,
+  BOSS_ITEMS,
   BOSS_STONES,
   DROP_CHANCE,
   getItem,
@@ -24,7 +25,7 @@ import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 import { Item, ItemTarget, StoneId } from '@/app/(protected)/(engine)/models/Item'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
-import { Skill } from '@/app/(protected)/(engine)/models/Skill'
+import { Skill, SkillStatus } from '@/app/(protected)/(engine)/models/Skill'
 import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { TargetType } from '@/app/(protected)/(engine)/models/TargetType'
@@ -43,7 +44,43 @@ import { getCharacterSkills, getCharacterStats, getHeroBonuses } from '@/app/(pr
  */
 
 export const ACTIVE_HEROES = 3
+/**
+ * Items a hero can use in one turn: each one keeps the turn going (it can use
+ * another or then attack or use a special) until the third, which ends it.
+ */
+export const MAX_ITEMS_PER_TURN = 3
+/** Most shields a fighter can stack (each one stops a whole hit). */
+export const MAX_SHIELDS = 9
 const INITIATIVE_FULL = 100
+/** Share of the maximum health that regeneration gives back at the start of each turn. */
+const REGEN_SHARE = 0.06
+/** Critical chance added while the critical chance is up. */
+const CRIT_UP_CHANCE = 0.2
+/** What an imbued weapon does: the kind of hit of its attacks, and the status they can leave. */
+const IMBUES: Partial<Record<StatusType, { damageType?: DamageType; onHit: SkillStatus }>> = {
+  [StatusType.IMBUE_FIRE]: { damageType: DamageType.FIRE, onHit: { type: StatusType.BURN, chance: 0.3, turns: 2 } },
+  [StatusType.IMBUE_ICE]: { damageType: DamageType.ICE, onHit: { type: StatusType.FREEZE, chance: 0.12, turns: 1 } },
+  [StatusType.IMBUE_LIGHTNING]: {
+    damageType: DamageType.LIGHTNING,
+    onHit: { type: StatusType.STUN, chance: 0.12, turns: 1 }
+  },
+  [StatusType.IMBUE_EARTH]: {
+    damageType: DamageType.EARTH,
+    onHit: { type: StatusType.DEFENSE_DOWN, chance: 0.3, turns: 2 }
+  },
+  [StatusType.IMBUE_LIGHT]: { damageType: DamageType.LIGHT, onHit: { type: StatusType.BLIND, chance: 0.25, turns: 2 } },
+  [StatusType.IMBUE_DARKNESS]: {
+    damageType: DamageType.DARKNESS,
+    onHit: { type: StatusType.ATTACK_DOWN, chance: 0.3, turns: 2 }
+  },
+  [StatusType.IMBUE_VENOM]: { onHit: { type: StatusType.POISON, chance: 0.4, turns: 3 } }
+}
+
+/** Whether a status is one of the imbuements of the weapon (only one at a time). */
+export function isImbue(type: StatusType): boolean {
+  return type in IMBUES
+}
+
 /** Share of the maximum focus recovered with each weapon attack. */
 const ATTACK_FOCUS = 0.25
 /** Health lost per turn by each damage over time (share of the maximum; bosses take a third). */
@@ -118,7 +155,13 @@ const START_BUFFS: [Perk, StatusType][] = [
   [Perk.START_DEFENSE_UP, StatusType.DEFENSE_UP],
   [Perk.START_SPEED_UP, StatusType.SPEED_UP]
 ]
-const BUFFS = new Set([StatusType.ATTACK_UP, StatusType.DEFENSE_UP, StatusType.SPEED_UP])
+const BUFFS = new Set([
+  StatusType.ATTACK_UP,
+  StatusType.DEFENSE_UP,
+  StatusType.SPEED_UP,
+  StatusType.CRIT_UP,
+  StatusType.REGEN
+])
 /** The statuses each immunity of the runes keeps away. */
 const IMMUNITIES: [Perk, StatusType[]][] = [
   [Perk.IMMUNE_DOTS, [StatusType.POISON, StatusType.BURN, StatusType.BLEED]],
@@ -344,7 +387,7 @@ function restoreFocus(combatant: Combatant, share: number, events: BattleEvent[]
   }
 }
 
-/** A hero steps onto the field: what its runes give it at the start (focus, a barrier, the first turn, buffs). */
+/** A hero steps onto the field: what its runes give it at the start (focus, a shield, the first turn, buffs). */
 function startRunes(hero: Combatant): void {
   if (!hero.bonuses) {
     return
@@ -363,7 +406,7 @@ function startRunes(hero: Combatant): void {
   }
 
   if (perkOf(hero, Perk.BARRIER)) {
-    hero.barrier = true
+    hero.shields = Math.min(MAX_SHIELDS, (hero.shields ?? 0) + 1)
   }
 
   for (const [perk, type] of START_BUFFS) {
@@ -773,6 +816,10 @@ export function nextTurn(battle: BattleState): BattleStep {
         heal(actor, Math.ceil(actor.stats.maxHealth * actor.bonuses.regen), events)
       }
 
+      if (hasStatus(actor, StatusType.REGEN) && actor.health < actor.stats.maxHealth) {
+        heal(actor, Math.ceil(actor.stats.maxHealth * REGEN_SHARE * (isBoss(actor) ? BOSS_DOT_FACTOR : 1)), events)
+      }
+
       for (const status of actor.statuses) {
         const share = DOT_SHARE[status.type]
 
@@ -805,6 +852,7 @@ export function nextTurn(battle: BattleState): BattleStep {
     }
 
     state.actorId = actor.id
+    state.itemsUsed = 0
     break
   }
 
@@ -825,7 +873,20 @@ function skillOf(combatant: Combatant, skillId: string): Skill {
     skill = { ...skill, damageType: element[1] }
   }
 
+  const imbued = skillId === combatant.skills[0] ? imbueOf(combatant)?.damageType : undefined
+
+  if (imbued) {
+    skill = { ...skill, damageType: imbued }
+  }
+
   return skill
+}
+
+/** The imbuement of the weapon of a fighter, if it has one. */
+function imbueOf(combatant: Combatant): (typeof IMBUES)[StatusType] {
+  const status = combatant.statuses.find((candidate) => isImbue(candidate.type))
+
+  return status ? IMBUES[status.type] : undefined
 }
 
 /** A skill with the levels its user has in its skill tree. */
@@ -880,6 +941,7 @@ export function getItemTargets(state: BattleState, item: Item): string[] {
   const target: ItemTarget = item.target ?? 'ally'
 
   switch (target) {
+    case 'enemy':
     case 'allEnemies':
       return getFighters(state, 'enemy').map((enemy) => enemy.id)
     case 'fallenAlly':
@@ -889,8 +951,17 @@ export function getItemTargets(state: BattleState, item: Item): string[] {
   }
 }
 
+/** Items the hero whose turn it is can still use in it. */
+export function getItemsLeft(state: BattleState): number {
+  return Math.max(0, MAX_ITEMS_PER_TURN - (state.itemsUsed ?? 0))
+}
+
 /** Items the party can use now: carried, and with someone to use them on. */
 export function getUsableItems(state: BattleState): Item[] {
+  if (getItemsLeft(state) <= 0) {
+    return []
+  }
+
   return Object.entries(state.items)
     .filter(([, count]) => count > 0)
     .map(([itemId]) => getItem(itemId))
@@ -922,7 +993,9 @@ export function getTargets(state: BattleState, actorId: string, skill: Skill): s
 /**
  * The fighter whose turn it is acts: a skill on its targets (one for single
  * target skills; "all" skills reach every valid target whatever is passed),
- * or a retreat. Then the turn ends.
+ * an item or a retreat. Then the turn ends, except after an item: the hero
+ * keeps the turn (`actorId` stays) until it uses MAX_ITEMS_PER_TURN of them
+ * or does anything else.
  */
 export function performAction(battle: BattleState, action: BattleAction): BattleStep {
   const state = structuredClone(battle)
@@ -930,10 +1003,20 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
   const actor = getCombatant(state, state.actorId ?? '')
 
   if (action.type === 'item') {
+    if (getItemsLeft(state) <= 0) {
+      throw new Error(`${actor.id} cannot use more items this turn`)
+    }
+
     applyItem(state, actor, action.itemId, action.targetIds, events)
+    state.itemsUsed = (state.itemsUsed ?? 0) + 1
 
     if (perkOf(actor, Perk.ITEM_FOCUS) && !state.outcome && isAlive(actor)) {
       restoreFocus(actor, perkOf(actor, Perk.ITEM_FOCUS), events)
+    }
+
+    // The turn goes on until the last item it can use.
+    if (!state.outcome && isAlive(actor) && getItemsLeft(state) > 0) {
+      return { state, events }
     }
 
     if (!state.outcome && isAlive(actor) && !actor.runeState?.inBonus) {
@@ -942,6 +1025,7 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
     endRuneAction(actor)
     state.actorId = null
+    state.itemsUsed = 0
 
     return { state, events }
   }
@@ -953,6 +1037,7 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
     state.outcome = 'retreat'
     state.actorId = null
+    state.itemsUsed = 0
     events.push({ type: 'end', outcome: 'retreat' })
 
     return { state, events }
@@ -1060,6 +1145,10 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
     applyStatuses(state, actor, target, skill, events)
 
+    if (skill.shields && skill.target !== TargetType.ENEMY && skill.target !== TargetType.ALL_ENEMIES) {
+      addShields(target, skill.shields, events)
+    }
+
     if (state.outcome) {
       break
     }
@@ -1081,11 +1170,25 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
 
   endRuneAction(actor)
   state.actorId = null
+  state.itemsUsed = 0
 
   return { state, events }
 }
 
-/** A hero healed someone: what its runes add (a share of the healing for itself, a buff, a barrier). */
+/** Gives shields to a fighter (they stack, up to MAX_SHIELDS). */
+function addShields(target: Combatant, count: number, events: BattleEvent[]): void {
+  const shields = Math.min(MAX_SHIELDS, (target.shields ?? 0) + count)
+  const change = shields - (target.shields ?? 0)
+
+  if (!isAlive(target) || change <= 0) {
+    return
+  }
+
+  target.shields = shields
+  events.push({ type: 'shields', targetId: target.id, change, shields })
+}
+
+/** A hero healed someone: what its runes add (a share of the healing for itself, a buff, a shield). */
 function afterHeal(actor: Combatant, target: Combatant, healed: number, events: BattleEvent[]): void {
   if (!actor.runeState || !isAlive(target)) {
     return
@@ -1102,9 +1205,9 @@ function afterHeal(actor: Combatant, target: Combatant, healed: number, events: 
     addStatus(target, StatusType.ATTACK_UP, buff, events, actor)
   }
 
-  if (perkOf(actor, Perk.AEGIS) && !target.barrier) {
-    target.barrier = true
+  if (perkOf(actor, Perk.AEGIS) && !target.shields) {
     triggerPerk(target, Perk.AEGIS, events)
+    addShields(target, 1, events)
   }
 }
 
@@ -1141,10 +1244,22 @@ function addStatus(
   events: BattleEvent[],
   source?: Combatant
 ): void {
-  if (IMMUNITIES.some(([perk, types]) => types.includes(type) && perkOf(bearer, perk) > 0)) {
+  if (
+    IMMUNITIES.some(([perk, types]) => types.includes(type) && perkOf(bearer, perk) > 0) ||
+    (HARMFUL.has(type) && hasStatus(bearer, StatusType.WARD))
+  ) {
     events.push({ type: 'immune', targetId: bearer.id })
 
     return
+  }
+
+  // The weapon holds one imbuement: a new one takes the place of the old.
+  if (isImbue(type)) {
+    for (const old of bearer.statuses.filter((status) => isImbue(status.type) && status.type !== type)) {
+      events.push({ type: 'statusEnd', targetId: bearer.id, status: old.type })
+    }
+
+    bearer.statuses = bearer.statuses.filter((status) => !isImbue(status.type) || status.type === type)
   }
 
   const lasting =
@@ -1189,7 +1304,7 @@ function applyItem(
   }
 
   const valid = getItemTargets(state, item)
-  const single = item.target === 'ally' || item.target === 'fallenAlly'
+  const single = item.target === 'ally' || item.target === 'fallenAlly' || item.target === 'enemy'
   const targets = single ? targetIds.filter((id) => valid.includes(id)).slice(0, 1) : valid
 
   if (targets.length === 0) {
@@ -1210,19 +1325,25 @@ function applyItem(
       continue
     }
 
-    if (item.power) {
-      const bomb: Skill = {
+    if (target.side === 'enemy') {
+      const thrown: Skill = {
         id: itemId,
         cost: 0,
-        target: TargetType.ALL_ENEMIES,
-        power: item.power,
+        target: item.target === 'enemy' ? TargetType.ENEMY : TargetType.ALL_ENEMIES,
+        power: item.power ?? 0,
         stat: 'attack',
         damageType: item.damageType ?? DamageType.FIRE,
         statuses: item.status ? [item.status] : undefined
       }
+      let landed = !item.power
 
-      if (isAlive(target) && strike(state, actor, target, bomb, events)) {
-        applyStatuses(state, actor, target, bomb, events)
+      // A thrown weapon can hit more than once, each time with all its power.
+      for (let hit = 0; hit < (item.power ? (item.hits ?? 1) : 0) && isAlive(target) && !state.outcome; hit++) {
+        landed = strike(state, actor, target, thrown, events) || landed
+      }
+
+      if (landed && isAlive(target) && !state.outcome) {
+        applyStatuses(state, actor, target, thrown, events)
       }
 
       if (state.outcome) {
@@ -1245,6 +1366,14 @@ function applyItem(
 
     if (item.cure) {
       cure(target, events)
+    }
+
+    for (const effect of item.buffs ?? []) {
+      addStatus(target, effect.type, effect.turns, events, actor)
+    }
+
+    if (item.shields) {
+      addShields(target, item.shields, events)
     }
   }
 }
@@ -1275,9 +1404,10 @@ function strike(
     }
   }
 
-  if (target.barrier) {
-    target.barrier = false
-    triggerPerk(target, Perk.BARRIER, events)
+  // A shield stops the whole hit, and breaks.
+  if (target.shields) {
+    target.shields--
+    events.push({ type: 'shields', targetId: target.id, change: -1, shields: target.shields })
 
     return false
   }
@@ -1301,7 +1431,12 @@ function strike(
     (target.statuses.some((status) => HARMFUL.has(status.type)) ? perkOf(actor, Perk.CRIT_VS_DEBUFFED) : 0)
   const critical =
     (controlled && perkOf(actor, Perk.CONTROLLED_CRIT) > 0) ||
-    roll(state) < actor.stats.critChance + (skill.critBonus ?? 0) + marks * MARK_CRIT + runeCrit
+    roll(state) <
+      actor.stats.critChance +
+        (skill.critBonus ?? 0) +
+        marks * MARK_CRIT +
+        runeCrit +
+        (hasStatus(actor, StatusType.CRIT_UP) ? CRIT_UP_CHANCE : 0)
 
   if (actor.marks) {
     actor.marks[target.id] = critical ? 0 : Math.min(MAX_MARKS, marks + 1)
@@ -1354,7 +1489,9 @@ function strike(
 
   // The weapon attack can leave the statuses of the weapon, the runes and the tree.
   if (skill.id === actor.skills[0] && isAlive(target) && !state.outcome) {
-    for (const effect of actor.bonuses?.onHit ?? []) {
+    const imbue = imbueOf(actor)?.onHit
+
+    for (const effect of [...(actor.bonuses?.onHit ?? []), ...(imbue ? [imbue] : [])]) {
       const chance = effect.chance * (CONTROL.has(effect.type) && isBoss(target) ? BOSS_CONTROL_FACTOR : 1)
 
       if (roll(state) < chance) {
@@ -1503,6 +1640,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
   }
 
   target.statuses = []
+  target.shields = 0
   target.initiative = 0
   events.push({ type: 'fall', targetId: target.id })
 
@@ -1561,7 +1699,10 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
   }
 }
 
-/** What a defeated enemy leaves: smithing stones of the biome, a potion now and then, and very rarely an Echo. */
+/**
+ * What a defeated enemy leaves: smithing stones of the biome, now and then
+ * something of BIOME_DROPS (always for bosses), and very rarely an Echo.
+ */
 function dropLoot(state: BattleState, enemy: Combatant): void {
   const species = getSpecies(enemy.speciesId!)
 
@@ -1569,7 +1710,7 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
     state.loot[itemId] = (state.loot[itemId] ?? 0) + count
   }
 
-  const potions = BIOME_POTIONS[state.biome].filter((itemId) => !BASIC_POTIONS.includes(itemId))
+  const drops = BIOME_DROPS[state.biome]
 
   if (species.strength > 1) {
     add(BIOME_STONE[state.biome], BOSS_STONES * species.bars)
@@ -1585,11 +1726,12 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
     }
   }
 
-  if (
-    potions.length > 0 &&
-    roll(state) < (enemy.elite || species.strength > 1 ? DROP_CHANCE.elitePotion : DROP_CHANCE.potion)
-  ) {
-    add(potions[Math.floor(roll(state) * potions.length)])
+  if (species.strength > 1) {
+    for (let index = 0; index < BOSS_ITEMS; index++) {
+      add(drops[Math.floor(roll(state) * drops.length)])
+    }
+  } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteItem : DROP_CHANCE.item)) {
+    add(drops[Math.floor(roll(state) * drops.length)])
   }
 
   if (roll(state) < DROP_CHANCE.echo) {

@@ -27,6 +27,8 @@ export type BattleEvent =
   | { type: 'status'; targetId: string; status: StatusType; turns: number }
   | { type: 'statusEnd'; targetId: string; status: StatusType }
   | { type: 'stance'; targetId: string; stance: Stance }
+  /** Its shields changed: `change` is how many it got (or -1, a shield that stopped a hit), `shields` how many are left. */
+  | { type: 'shields'; targetId: string; change: number; shields: number }
   | { type: 'fall'; targetId: string }
   | { type: 'nextBar'; targetId: string; bars: number }
   | { type: 'phase'; phase: number; enemyIds: string[] }

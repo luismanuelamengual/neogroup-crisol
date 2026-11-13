@@ -68,7 +68,9 @@ export default function EffectsPreview() {
           immune: t('battle.immune'),
           miss: t('battle.miss'),
           transform: t('battle.transform'),
-          perk: () => ''
+          perk: () => '',
+          shieldBlock: t('battle.shieldBlock'),
+          shieldGain: (count) => t('battle.shieldGain', { count })
         },
         (id) => setActorId(id),
         null,
