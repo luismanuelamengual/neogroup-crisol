@@ -359,7 +359,7 @@ export const BIOMES: BiomeDefinition[] = [
       [14852, 3193],
       [11614, 1574]
     ],
-    sanctuaries: 10,
+    sanctuaries: 11,
     sanctuariesAt: [
       [10525, 301],
       [13618, 1646],
@@ -372,7 +372,8 @@ export const BIOMES: BiomeDefinition[] = [
       // The rune of n187, brought from the Abyss.
       [14298, 4355, RuneTier.ABYSSAL],
       // Sanctuaries added by hand on points of the way through.
-      [13881, 2115]
+      [13881, 2115],
+      [15147, 1859]
     ],
     reliquariesAt: [[12870, 4957]],
     runeTier: RuneTier.ANCESTRAL,

@@ -1019,6 +1019,7 @@ export const en: Messages = {
       name: 'Blood Echo Rune',
       text: 'Heals itself for 12% of all the damage it deals, specials included.'
     },
+    shelter: { name: 'Shelter Rune', text: 'When it falls, it gives 1 shield to each ally that has none.' },
     breach: { name: 'Breach Rune', text: "Hitting a weakness lowers the enemy's defense for 2 turns." },
     persistence: {
       name: 'Persistence Rune',

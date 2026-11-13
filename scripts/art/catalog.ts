@@ -460,6 +460,7 @@ const RUNE_ICONS: Record<string, string> = {
   barrier: 'una cúpula de luz sobre un escudo',
   aegis: 'un escudo con una hoja verde en el centro',
   'blood-echo': 'una copa con un remolino rojo',
+  shelter: 'una llama que se apaga cubriendo con su luz tres escudos pequeños',
   breach: 'una muralla con una grieta abierta en el centro',
   persistence: 'un nudo apretado de cuerda dorada',
   'full-cup': 'un cáliz desbordando luz azul',

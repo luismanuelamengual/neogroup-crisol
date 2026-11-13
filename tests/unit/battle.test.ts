@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BASIC_POTION_CHANCE,
   BASIC_POTIONS,
   BIOME_DROPS,
   BOSS_ITEMS,
   getItem,
   ITEMS,
   MAX_BASIC_POTIONS,
-  MERCHANT_STOCK,
-  victoryPotionChance
+  MERCHANT_STOCK
 } from '@/app/(protected)/(engine)/data/items'
 import { RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
@@ -522,17 +522,12 @@ describe('items, bonuses and loot', () => {
     expect(after.loot['rough-stone']).toBe(4)
   })
 
-  it('makes basic potions likelier the fewer the party carries', () => {
-    expect([0, 1, 2, 3, 9].map(victoryPotionChance)).toEqual([0.5, 0.3, 0.2, 0.1, 0.1])
-    expect(victoryPotionChance(MAX_BASIC_POTIONS)).toBe(0)
-  })
-
-  it('rolls each basic potion on its own after a victory', () => {
-    const potionsWon = (items: Record<string, number>, seed: number) => {
+  it('lets each enemy leave each basic potion now and then, a little more often than some food', () => {
+    const lootOf = (items: Record<string, number>, seed: number, elite = false) => {
       const state = turnOf(
         createBattle({
           heroes: [kael],
-          phases: [[{ speciesId: 'thorn-boar', level: 1 }]],
+          phases: [[{ speciesId: 'thorn-boar', level: 1, elite }]],
           seed,
           biome: Biome.MEADOWS,
           canRetreat: true,
@@ -553,22 +548,28 @@ describe('items, bonuses and loot', () => {
       return after.loot
     }
 
-    const rate = (items: Record<string, number>, itemId: string) => {
+    const rate = (items: Record<string, number>, count: (loot: Record<string, number>) => number, elite = false) => {
       let won = 0
 
-      for (let seed = 1; seed <= 2000; seed++) {
-        won += potionsWon(items, seed)[itemId] ?? 0
+      for (let seed = 1; seed <= 3000; seed++) {
+        won += count(lootOf(items, seed, elite))
       }
 
-      return won / 2000
+      return won / 3000
     }
 
-    expect(rate({}, 'health-potion')).toBeCloseTo(0.5, 1)
-    expect(rate({}, 'focus-potion')).toBeCloseTo(0.5, 1)
-    expect(rate({ 'health-potion': 1, 'focus-potion': 3 }, 'health-potion')).toBeCloseTo(0.3, 1)
-    expect(rate({ 'health-potion': 2 }, 'health-potion')).toBeCloseTo(0.2, 1)
-    expect(rate({ 'focus-potion': 3 }, 'focus-potion')).toBeCloseTo(0.1, 1)
-    expect(rate({ 'focus-potion': MAX_BASIC_POTIONS }, 'focus-potion')).toBe(0)
+    const of = (itemId: string) => (loot: Record<string, number>) => loot[itemId] ?? 0
+    const food = (loot: Record<string, number>) =>
+      Object.entries(loot)
+        .filter(([itemId]) => getItem(itemId).category === 'food')
+        .reduce((sum, [, count]) => sum + count, 0)
+
+    expect(rate({}, of('health-potion'))).toBeCloseTo(BASIC_POTION_CHANCE.normal, 1)
+    expect(rate({}, of('focus-potion'))).toBeCloseTo(BASIC_POTION_CHANCE.normal, 1)
+    expect(rate({}, of('health-potion'), true)).toBeCloseTo(BASIC_POTION_CHANCE.elite, 1)
+    expect(BASIC_POTION_CHANCE.normal).toBeGreaterThan(rate({}, food) * 0.9)
+    expect(BASIC_POTION_CHANCE.normal).toBeLessThan(rate({}, food) * 1.6)
+    expect(rate({ 'focus-potion': MAX_BASIC_POTIONS }, of('focus-potion'))).toBe(0)
   })
 })
 
@@ -985,6 +986,32 @@ describe('rune effects', () => {
     expect(first.events).toContainEqual({ type: 'shields', targetId: 'h-kael', change: -1, shields: 0 })
     expect(first.events.some((event) => event.type === 'damage')).toBe(false)
     expect(gored(first.state).events.some((event) => event.type === 'damage')).toBe(true)
+  })
+
+  it('shields the allies that have none when the wearer of the shelter falls', () => {
+    const start = createBattle({
+      heroes: [wearing('shelter'), createCharacter(CharacterId.SERA, 5), createCharacter(CharacterId.BRANN, 5)],
+      phases: [[{ speciesId: 'thorn-boar', level: 60 }]],
+      seed: 7,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    }).state
+    const ready: BattleState = {
+      ...start,
+      combatants: start.combatants.map((combatant) =>
+        combatant.id === 'h-kael'
+          ? { ...combatant, health: 2 }
+          : combatant.id === 'h-brann'
+            ? { ...combatant, shields: 1 }
+            : combatant
+      )
+    }
+    const fall = gored(ready)
+
+    expect(getCombatant(fall.state, 'h-kael').health).toBe(0)
+    expect(fall.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.SHELTER })
+    expect(getCombatant(fall.state, 'h-sera').shields).toBe(1)
+    expect(getCombatant(fall.state, 'h-brann').shields).toBe(1)
   })
 
   it('survives a deadly hit once per battle', () => {

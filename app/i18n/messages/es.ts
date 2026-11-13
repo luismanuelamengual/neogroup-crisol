@@ -1048,6 +1048,7 @@ export const es = {
       name: 'Runa del Eco de Sangre',
       text: 'Se cura el 12% de todo el daño que hace, especiales incluidos.'
     },
+    shelter: { name: 'Runa del Amparo', text: 'Al caer, da 1 escudo a cada aliado que no tenga ninguno.' },
     breach: { name: 'Runa de la Brecha', text: 'Golpear una debilidad le baja la defensa al enemigo por 2 turnos.' },
     persistence: {
       name: 'Runa del Ahínco',

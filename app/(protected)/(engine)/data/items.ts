@@ -6,30 +6,23 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /**
  * Items, merchants and drops. Gold is scarce and prices never go down, but the
- * basic health and focus potions are cheap and drop often after a victory.
+ * basic health and focus potions are cheap, and any enemy can leave them (a
+ * little more often than some food).
  */
 
 /** Most units of each consumable the party can carry (stones have no limit). */
 export const MAX_CONSUMABLES = 5
 
-/** The basic potions: the party carries more of them and they drop after each victory (see VICTORY_POTION_CHANCES). */
+/** The basic potions: the party carries more of them and any enemy can leave them (see BASIC_POTION_CHANCE). */
 export const BASIC_POTIONS = ['health-potion', 'focus-potion']
 export const MAX_BASIC_POTIONS = 10
 
 /**
- * Chance that a victory leaves one of each basic potion, by how many of it the
- * party carries (the last one counts for any number above, up to the maximum).
+ * Chance that each enemy defeated leaves each basic potion (elites and bosses
+ * more), none once the party carries the maximum. A little above the chance
+ * of leaving some food (DROP_CHANCE.item shared among the BIOME_DROPS).
  */
-export const VICTORY_POTION_CHANCES = [0.5, 0.3, 0.2, 0.1]
-
-/** Chance that a victory leaves a basic potion when the party carries `owned` of it. */
-export function victoryPotionChance(owned: number): number {
-  if (owned >= MAX_BASIC_POTIONS) {
-    return 0
-  }
-
-  return VICTORY_POTION_CHANCES[Math.min(owned, VICTORY_POTION_CHANCES.length - 1)]
-}
+export const BASIC_POTION_CHANCE = { normal: 0.05, elite: 0.15 }
 
 const { SLASH, PIERCE, BLUNT, FIRE, ICE, LIGHTNING, EARTH, LIGHT, DARKNESS } = DamageType
 
@@ -470,7 +463,7 @@ export const BIOME_POTIONS: Record<Biome, string[]> = {
  * What the enemies of each biome can leave (besides its stone): food, tonics,
  * things to throw, bombs, oils, wards and shields, the stronger ones further
  * on, and the strong potions of the biome. The basic potions are not here
- * (they drop after each victory, see VICTORY_POTION_CHANCES).
+ * (any enemy can leave them, see BASIC_POTION_CHANCE).
  */
 export const BIOME_DROPS: Record<Biome, string[]> = {
   [Biome.MEADOWS]: [

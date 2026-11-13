@@ -83,6 +83,8 @@ export enum Perk {
   LAST_BLAST = 'lastBlast',
   /** When it falls: its allies recover all their health and focus. */
   LEGACY = 'legacy',
+  /** When it falls: a shield for each ally that has none. */
+  SHELTER = 'shelter',
   /** Extra damage (and raised speed) while it is the only hero standing. */
   LONE_WOLF = 'loneWolf',
   /** Extra damage while the three heroes of the front stand. */

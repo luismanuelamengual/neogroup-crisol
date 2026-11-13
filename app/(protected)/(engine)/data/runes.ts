@@ -5,7 +5,7 @@ import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /**
- * The 69 runes, one per sanctuary, ordered by power: each one with an effect
+ * The 70 runes, one per sanctuary, ordered by power: each one with an effect
  * of its own (see Perk) and a shift of one or two attributes, often a gain
  * against a loss (+8% speed, -5% defense), that grows with its number.
  */
@@ -22,7 +22,7 @@ interface RuneDefinition {
 }
 
 const perk = (perks: Partial<Record<Perk, number>>): BonusesPart => ({ perks })
-/** In order of power: the lesser ones (1..12), the greater (13..33), the ancestral (34..61) and the abyssal (62..69). */
+/** In order of power: the lesser ones (1..12), the greater (13..33), the ancestral (34..62) and the abyssal (63..70). */
 const DEFINITIONS: RuneDefinition[] = [
   // Lesser: Meadows and Forest.
   { id: 'first-cut', effect: perk({ [Perk.FIRST_STRIKE]: 0.5 }), gain: 'attack' },
@@ -95,6 +95,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'barrier', effect: perk({ [Perk.BARRIER]: 1 }), gain: 'defense' },
   { id: 'aegis', effect: perk({ [Perk.AEGIS]: 1 }), gain: 'maxHealth' },
   { id: 'blood-echo', effect: { lifesteal: 0.12 }, gain: 'attack' },
+  { id: 'shelter', effect: perk({ [Perk.SHELTER]: 1 }), gain: 'defense' },
   { id: 'breach', effect: perk({ [Perk.BREACH]: 2 }), gain: 'attack' },
   { id: 'persistence', effect: perk({ [Perk.PERSISTENCE]: 2 }), gain: 'defense' },
   { id: 'full-cup', effect: perk({ [Perk.FULL_CUP]: 0.3 }), gain: 'maxFocus' },
@@ -119,8 +120,8 @@ export const RUNE_COUNT = DEFINITIONS.length
 const TIER_RANGES: [RuneTier, number, number][] = [
   [RuneTier.LESSER, 1, 12],
   [RuneTier.GREATER, 13, 33],
-  [RuneTier.ANCESTRAL, 34, 61],
-  [RuneTier.ABYSSAL, 62, 69]
+  [RuneTier.ANCESTRAL, 34, 62],
+  [RuneTier.ABYSSAL, 63, 70]
 ]
 /** Echoes a rune costs as an echo, from the weakest to the strongest of its tier. */
 const ECHO_COSTS: Record<RuneTier, [number, number]> = {
