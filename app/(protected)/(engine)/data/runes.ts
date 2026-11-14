@@ -6,8 +6,8 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /**
  * The 70 runes, one per sanctuary, ordered by power: each one with an effect
- * of its own (see Perk) and a shift of one or two attributes, often a gain
- * against a loss (+8% speed, -5% defense), that grows with its number.
+ * of its own (see Perk) and a gain in one attribute (+8% speed), never a
+ * loss, that grows with its number.
  */
 
 export const RUNE_SLOTS = 3
@@ -18,7 +18,6 @@ interface RuneDefinition {
   id: string
   effect: BonusesPart
   gain: RuneStat
-  loss?: RuneStat
 }
 
 const perk = (perks: Partial<Record<Perk, number>>): BonusesPart => ({ perks })
@@ -30,7 +29,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'sprout', effect: perk({ [Perk.OPENING_REGEN]: 0.05 }), gain: 'maxHealth' },
   { id: 'light-step', effect: perk({ [Perk.START_SPEED_UP]: 3 }), gain: 'speed' },
   { id: 'carapace', effect: perk({ [Perk.START_DEFENSE_UP]: 3 }), gain: 'defense' },
-  { id: 'impetus', effect: perk({ [Perk.START_ATTACK_UP]: 3 }), gain: 'attack', loss: 'defense' },
+  { id: 'impetus', effect: perk({ [Perk.START_ATTACK_UP]: 3 }), gain: 'attack' },
   { id: 'live-ember', effect: perk({ [Perk.BURN_HUNTER]: 0.25 }), gain: 'special' },
   { id: 'finisher', effect: perk({ [Perk.KILL_HEAL]: 0.15 }), gain: 'maxHealth' },
   { id: 'true-pulse', effect: perk({ [Perk.CRIT_FOCUS]: 0.1 }), gain: 'critChance' },
@@ -38,13 +37,13 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'pause', effect: perk({ [Perk.ITEM_FOCUS]: 0.15 }), gain: 'maxFocus' },
   { id: 'whole-body', effect: perk({ [Perk.FULL_HEALTH]: 0.2 }), gain: 'defense' },
   // Greater: Tropics, Desert and Mountains.
-  { id: 'double-edge', effect: perk({ [Perk.DOUBLE_STRIKE]: 0.6 }), gain: 'attack', loss: 'defense' },
+  { id: 'double-edge', effect: perk({ [Perk.DOUBLE_STRIKE]: 0.6 }), gain: 'attack' },
   { id: 'stubborn-ember', effect: perk({ [Perk.LONG_BURN]: 2 }), gain: 'special' },
   { id: 'contagion', effect: perk({ [Perk.STATUS_FOCUS]: 0.1 }), gain: 'maxFocus' },
   { id: 'warm-up', effect: perk({ [Perk.WARM_UP]: 0.05 }), gain: 'attack' },
-  { id: 'untouched-skin', effect: perk({ [Perk.UNTOUCHED]: 0.3 }), gain: 'speed', loss: 'defense' },
-  { id: 'last-breath', effect: perk({ [Perk.LAST_BREATH]: 0.5 }), gain: 'attack', loss: 'maxHealth' },
-  { id: 'right-moment', effect: perk({ [Perk.LOW_HEALTH_CRIT]: 0.3 }), gain: 'critChance', loss: 'maxHealth' },
+  { id: 'untouched-skin', effect: perk({ [Perk.UNTOUCHED]: 0.3 }), gain: 'speed' },
+  { id: 'last-breath', effect: perk({ [Perk.LAST_BREATH]: 0.5 }), gain: 'attack' },
+  { id: 'right-moment', effect: perk({ [Perk.LOW_HEALTH_CRIT]: 0.3 }), gain: 'critChance' },
   { id: 'rescue', effect: perk({ [Perk.SOS]: 3 }), gain: 'defense' },
   { id: 'clean-blow', effect: perk({ [Perk.CONTROLLED_CRIT]: 1 }), gain: 'critChance' },
   { id: 'icebreaker', effect: perk({ [Perk.FROST_BREAKER]: 0.4 }), gain: 'special' },
@@ -60,20 +59,18 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'reprisal', effect: perk({ [Perk.COUNTER]: 0.25 }), gain: 'defense' },
   { id: 'clean-blood', effect: perk({ [Perk.IMMUNE_DOTS]: 1 }), gain: 'maxHealth' },
   // Ancestral: Wastelands, Snow and the volcanic lands.
-  { id: 'temper', effect: perk({ [Perk.IMMUNE_CONTROL]: 1 }), gain: 'defense', loss: 'speed' },
+  { id: 'temper', effect: perk({ [Perk.IMMUNE_CONTROL]: 1 }), gain: 'defense' },
   { id: 'clear-sight', effect: perk({ [Perk.IMMUNE_BLIND]: 1 }), gain: 'speed' },
   {
     id: 'glass',
     effect: perk({ [Perk.DAMAGE_DEALT]: 0.35, [Perk.DAMAGE_TAKEN]: 0.25 }),
-    gain: 'attack',
-    loss: 'defense'
+    gain: 'attack'
   },
-  { id: 'pride', effect: perk({ [Perk.DAMAGE_TAKEN]: -0.4, [Perk.NO_HEALING]: 1 }), gain: 'defense', loss: 'speed' },
+  { id: 'pride', effect: perk({ [Perk.DAMAGE_TAKEN]: -0.4, [Perk.NO_HEALING]: 1 }), gain: 'defense' },
   {
     id: 'recklessness',
     effect: perk({ [Perk.DAMAGE_DEALT]: 0.35, [Perk.NO_HEALING]: 1 }),
-    gain: 'attack',
-    loss: 'maxHealth'
+    gain: 'attack'
   },
   { id: 'coin', effect: perk({ [Perk.COIN]: 1 }), gain: 'critChance' },
   { id: 'endurance', effect: perk({ [Perk.SURVIVE]: 1 }), gain: 'maxHealth' },
@@ -83,11 +80,11 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'final-blast', effect: perk({ [Perk.LAST_BLAST]: 2 }), gain: 'special' },
   { id: 'lone-wolf', effect: perk({ [Perk.LONE_WOLF]: 0.5 }), gain: 'speed' },
   { id: 'company', effect: perk({ [Perk.TEAMWORK]: 0.12 }), gain: 'defense' },
-  { id: 'frenzy', effect: perk({ [Perk.FRENZY]: 0.15 }), gain: 'special', loss: 'defense' },
+  { id: 'frenzy', effect: perk({ [Perk.FRENZY]: 0.15 }), gain: 'special' },
   { id: 'thrift', effect: perk({ [Perk.ECONOMY]: 0.15 }), gain: 'maxFocus' },
   { id: 'spring', effect: perk({ [Perk.TURN_FOCUS]: 0.08 }), gain: 'maxFocus' },
   { id: 'dawn', effect: perk({ [Perk.DAWN]: 1 }), gain: 'speed' },
-  { id: 'lightning', effect: perk({ [Perk.LIGHTNING]: 50 }), gain: 'speed', loss: 'defense' },
+  { id: 'lightning', effect: perk({ [Perk.LIGHTNING]: 50 }), gain: 'speed' },
   { id: 'third-blow', effect: perk({ [Perk.THIRD_SPECIAL]: 1 }), gain: 'special' },
   { id: 'counterpoint', effect: perk({ [Perk.COUNTERPOINT]: 1 }), gain: 'critChance' },
   { id: 'fever', effect: perk({ [Perk.FEVER]: 0.5 }), gain: 'special' },
@@ -130,10 +127,9 @@ const ECHO_COSTS: Record<RuneTier, [number, number]> = {
   [RuneTier.ANCESTRAL]: [15, 35],
   [RuneTier.ABYSSAL]: [30, 50]
 }
-/** The attribute shifts, from the first rune to the last: critical chance adds up as is, so it moves less. */
+/** The attribute gains, from the first rune to the last: critical chance adds up as is, so it moves less. */
 const GAIN: [number, number] = [0.04, 0.15]
 const CRIT_GAIN: [number, number] = [0.03, 0.1]
-const LOSS: [number, number] = [0.03, 0.06]
 
 /** A value between two shares, in whole percents. */
 function share([from, to]: [number, number], strength: number): number {
@@ -153,17 +149,12 @@ function createRune(definition: RuneDefinition, index: number): Rune {
     [definition.gain]: share(definition.gain === 'critChance' ? CRIT_GAIN : GAIN, strength)
   }
 
-  if (definition.loss) {
-    stats[definition.loss] = -share(LOSS, strength)
-  }
-
   return {
     index,
     id: definition.id,
     tier,
     effect: definition.effect,
     gain: definition.gain,
-    loss: definition.loss,
     stats,
     echoCost: Math.round(minCost + ((maxCost - minCost) * (index - from)) / Math.max(1, to - from))
   }

@@ -257,6 +257,15 @@ describe('runes and echoes', () => {
     expect(getRune(RUNE_COUNT)).toMatchObject({ tier: RuneTier.ABYSSAL, echoCost: 50 })
   })
 
+  it('only raises attributes, never lowers them', () => {
+    for (const rune of RUNES) {
+      const shifts = Object.values(rune.stats)
+
+      expect(shifts).toHaveLength(1)
+      expect(shifts.every((share) => share! > 0)).toBe(true)
+    }
+  })
+
   it('wears up to three runes, never the same one on two characters', () => {
     let state = game(10, { runes: [1, 2, 3, 4] })
 
