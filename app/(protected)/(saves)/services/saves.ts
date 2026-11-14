@@ -10,6 +10,7 @@ import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { SaveGameInput } from '@/app/(protected)/(saves)/models/SaveGameInput'
 import { SaveSummary } from '@/app/(protected)/(saves)/models/SaveSummary'
+import { toSaveSummary } from '@/app/(protected)/(saves)/utils/saveSummary'
 import { ApiException } from '@/app/models/ApiException'
 
 /**
@@ -39,15 +40,7 @@ export async function getSaveSummary(userId: number): Promise<SaveSummary | null
     return null
   }
 
-  const state = stateOf(save)
-
-  return {
-    cycle: save.cycle,
-    playTimeSeconds: save.playTimeSeconds,
-    topLevel: Math.max(...state.characters.map((character) => character.level)),
-    characters: state.characters.length,
-    updatedAt: save.updatedAt.toISOString()
-  }
+  return toSaveSummary(stateOf(save), save.playTimeSeconds, save.updatedAt.toISOString())
 }
 
 /** The player's saved game, to continue it. */

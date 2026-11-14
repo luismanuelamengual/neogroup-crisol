@@ -9,12 +9,16 @@ import { playMusic } from '@/app/(protected)/(art)/utils/sound'
 import NewGameDialog from '@/app/(protected)/(home)/components/NewGameDialog'
 import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
 import { SaveSummary } from '@/app/(protected)/(saves)/models/SaveSummary'
+import { loadBrowserGame, startBrowserGame } from '@/app/(protected)/(saves)/utils/browserSaves'
 import { fromServer } from '@/app/(protected)/(saves)/utils/chooseSave'
 import { writeLocalSave } from '@/app/(protected)/(saves)/utils/localSaves'
+import { isLocalStorageMode } from '@/app/(protected)/(saves)/utils/saveStorage'
+import { toSaveSummary } from '@/app/(protected)/(saves)/utils/saveSummary'
 import { useUserStore } from '@/app/(protected)/stores/users'
 import InstallAppBanner from '@/app/(pwa)/components/InstallAppBanner'
 import CommandMenu from '@/app/components/CommandMenu'
 import Logo from '@/app/components/Logo'
+import { useNotifications } from '@/app/hooks/useNotifications'
 import { useI18n } from '@/app/i18n/I18nProvider'
 import { formatPlayTime } from '@/app/utils/time'
 
@@ -22,12 +26,18 @@ import { formatPlayTime } from '@/app/utils/time'
  * Main menu (/menu), the title screen: "Continue" the saved game (disabled when
  * there is none), start a "New game" (which asks first when it would replace a
  * saved one), the player's profile and sign out.
+ *
+ * `save` comes from the server in the `db` mode; in the `local` one (see
+ * saveStorage.ts) it is read here from localStorage.
  */
-export default function MainMenu({ save }: { save: SaveSummary | null }) {
+export default function MainMenu({ save: serverSave }: { save: SaveSummary | null }) {
   const { t, locale } = useI18n()
   const router = useRouter()
   const { newGame } = useSaves()
   const user = useUserStore((state) => state.user)
+  const { showErrorMessage } = useNotifications()
+  const [save, setSave] = useState<SaveSummary | null>(serverSave)
+  const [checking, setChecking] = useState(isLocalStorageMode)
   const [confirming, setConfirming] = useState(false)
   const [starting, setStarting] = useState(false)
 
@@ -35,8 +45,39 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
     void playMusic('menu')
   }, [])
 
+  useEffect(() => {
+    if (!isLocalStorageMode || !user) {
+      return
+    }
+
+    let cancelled = false
+
+    void loadBrowserGame(user.id).then((local) => {
+      if (!cancelled) {
+        setSave(local && toSaveSummary(local.state, local.playTimeSeconds, local.updatedAt ?? new Date().toISOString()))
+        setChecking(false)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
   const startNewGame = async () => {
     setStarting(true)
+
+    if (isLocalStorageMode) {
+      if (user && startBrowserGame(user.id)) {
+        router.push('/world')
+      } else {
+        showErrorMessage(t('home.saveUnavailable'))
+        setStarting(false)
+        setConfirming(false)
+      }
+
+      return
+    }
 
     try {
       const fresh = await newGame()
@@ -71,7 +112,7 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
             key: 'continue',
             label: t('home.continue'),
             href: '/world',
-            disabled: !save || starting,
+            disabled: !save || starting || checking,
             detail: save && (
               <>
                 {save.cycle > 0 && <span className="cycle">{t('home.cycle', { cycle: save.cycle })} · </span>}

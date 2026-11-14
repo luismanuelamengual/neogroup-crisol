@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { auth } from '@/app/(auth)/services/auth'
 import MainMenu from '@/app/(protected)/(home)/components/MainMenu'
 import { getSaveSummary } from '@/app/(protected)/(saves)/services/saves'
+import { isLocalStorageMode } from '@/app/(protected)/(saves)/utils/saveStorage'
 import { getT } from '@/app/i18n/server'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -9,6 +10,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MenuPage() {
+  // With the saves in localStorage the menu reads the summary in the browser.
+  if (isLocalStorageMode) {
+    return <MainMenu save={null} />
+  }
+
   const session = await auth()
   const save = await getSaveSummary(Number(session!.user.id))
 
