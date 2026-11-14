@@ -221,7 +221,6 @@ export const es = {
   home: {
     tagline: 'Aurenya se apaga. Solo la Llama Primera puede detener a Crisol.',
     continue: 'Continuar',
-    saveUnavailable: 'Este navegador no puede guardar partidas (modo privado o almacenamiento bloqueado).',
     newGame: 'Nuevo',
     cycle: 'NG+{cycle}',
     saveCharacters: { one: '{count} personaje', other: '{count} personajes' },
@@ -364,7 +363,6 @@ export const es = {
       pending: 'Guardada en este dispositivo',
       syncing: 'Sincronizando...',
       offline: 'Sin conexión: guardada en este dispositivo',
-      localFailed: 'Este navegador no pudo guardar la partida: se perderá al cerrarlo.',
       localDiscarded: 'Tu partida avanzó en otro dispositivo: se cargó esa versión.',
       serverDiscarded: 'Esta copia tenía más tiempo de juego que la de otro dispositivo: se mantuvo esta.'
     }

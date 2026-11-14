@@ -15,6 +15,4 @@ export interface LocalSave {
   state: GameState
   /** Whether it has changes the server does not have yet. */
   dirty: boolean
-  /** When it was last written (only in localStorage, see browserSaves.ts). */
-  updatedAt?: string
 }

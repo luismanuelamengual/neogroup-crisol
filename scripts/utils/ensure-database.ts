@@ -55,7 +55,15 @@ export async function ensureDatabaseExists(): Promise<void> {
 
   const client = new Client(target.config)
 
-  await client.connect()
+  try {
+    await client.connect()
+  } catch (error) {
+    // Hosted databases (Neon, Supabase, Vercel Postgres...) already exist and may not let
+    // anyone into the maintenance database: the migrations go on with the configured one.
+    console.log(`Could not check whether "${target.name}" exists (${(error as Error).message}); assuming it does.`)
+
+    return
+  }
 
   try {
     const result = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [target.name])

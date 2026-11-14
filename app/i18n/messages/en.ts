@@ -217,7 +217,6 @@ export const en: Messages = {
   home: {
     tagline: 'Aurenya is fading. Only the First Flame can stop Crisol.',
     continue: 'Continue',
-    saveUnavailable: 'This browser cannot save games (private mode or storage blocked).',
     newGame: 'New game',
     cycle: 'NG+{cycle}',
     saveCharacters: { one: '{count} character', other: '{count} characters' },
@@ -359,7 +358,6 @@ export const en: Messages = {
       pending: 'Saved on this device',
       syncing: 'Syncing...',
       offline: 'Offline: saved on this device',
-      localFailed: 'This browser could not save the game: it will be lost when you close it.',
       localDiscarded: 'Your game moved on in another device: that version was loaded.',
       serverDiscarded: 'This copy had more play time than the one of another device: this one was kept.'
     }

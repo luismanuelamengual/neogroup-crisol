@@ -5,10 +5,8 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { SAVE_VERSION } from '@/app/(protected)/(engine)/utils/gameState'
 import { useSaves } from '@/app/(protected)/(saves)/hooks/useSaves'
 import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
-import { loadBrowserGame, writeBrowserSave } from '@/app/(protected)/(saves)/utils/browserSaves'
 import { chooseSave } from '@/app/(protected)/(saves)/utils/chooseSave'
 import { deleteLocalSave, readLocalSave, writeLocalSave } from '@/app/(protected)/(saves)/utils/localSaves'
-import { isLocalStorageMode } from '@/app/(protected)/(saves)/utils/saveStorage'
 import { useGameStore } from '@/app/(protected)/(world)/stores/game'
 import { useUserStore } from '@/app/(protected)/stores/users'
 import { useNotifications } from '@/app/hooks/useNotifications'
@@ -28,9 +26,6 @@ export type SessionStatus = 'loading' | 'ready' | 'missing' | 'offline'
  * uploads the changes to the server. Returns `update` to change the state and
  * `upload` to push it to the server right away (e.g. after resting).
  *
- * With SAVE_STORAGE `local` the game lives only in localStorage: it is loaded
- * and written there, and nothing is uploaded (see saveStorage.ts).
- *
  * With `test` (development only, /dev/progressN) it plays that state in
  * memory instead: nothing is read, written or uploaded.
  */
@@ -41,23 +36,14 @@ export function useGameSession(test?: GameState) {
   const { showWarningMessage } = useNotifications()
   const [status, setStatus] = useState<SessionStatus>('loading')
   const uploading = useRef(false)
-  const warnedWriteFailure = useRef(false)
   const testing = !!test
   const persist = useCallback(() => {
     const { save } = useGameStore.getState()
 
-    if (!save || testing) {
-      return
-    }
-
-    if (!isLocalStorageMode) {
+    if (save && !testing) {
       void writeLocalSave(save)
-    } else if (!writeBrowserSave(save) && !warnedWriteFailure.current) {
-      // Private mode or a full storage: the game goes on in memory, the player is told once.
-      warnedWriteFailure.current = true
-      showWarningMessage(t('world.sync.localFailed'), 8000)
     }
-  }, [showWarningMessage, t, testing])
+  }, [testing])
   const fetchServerSave = useCallback(async (): Promise<LoadedSave | null | 'missing'> => {
     try {
       return await loadGame(false)
@@ -101,7 +87,7 @@ export function useGameSession(test?: GameState) {
   const upload = useCallback(async () => {
     const { save, setSync } = useGameStore.getState()
 
-    if (!save?.dirty || uploading.current || testing || isLocalStorageMode) {
+    if (!save?.dirty || uploading.current || testing) {
       return
     }
 
@@ -164,17 +150,6 @@ export function useGameSession(test?: GameState) {
     ;(async () => {
       useGameStore.getState().setSave(null)
 
-      if (isLocalStorageMode) {
-        const save = await loadBrowserGame(userId)
-
-        if (!cancelled) {
-          useGameStore.getState().setSave(save)
-          setStatus(save ? 'ready' : 'missing')
-        }
-
-        return
-      }
-
       const server = await fetchServerSave()
       const found = await reconcile(server)
 
@@ -232,21 +207,13 @@ export function useGameSession(test?: GameState) {
     }
   }, [persist, status, testing, upload])
 
-  /** Changes the state of the game: written to the local copy at once, uploaded later (`db` mode). */
+  /** Changes the state of the game: written to the local copy at once, uploaded later. */
   const update = useCallback(
     (state: GameState) => {
       useGameStore.getState().setState(state)
-
-      // In localStorage the write is the whole save: nothing is left pending.
-      const { save, setSave } = useGameStore.getState()
-
-      if (isLocalStorageMode && !testing && save) {
-        setSave({ ...save, dirty: false })
-      }
-
       persist()
     },
-    [persist, testing]
+    [persist]
   )
 
   return { status, update, upload }
