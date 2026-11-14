@@ -948,6 +948,7 @@ export const es = {
     'light-step': { name: 'Runa del Paso Ligero', text: 'Empieza la batalla con velocidad aumentada por 3 turnos.' },
     carapace: { name: 'Runa de la Coraza', text: 'Empieza la batalla con defensa aumentada por 3 turnos.' },
     impetus: { name: 'Runa del Ímpetu', text: 'Empieza la batalla con ataque aumentado por 3 turnos.' },
+    wisdom: { name: 'Runa de la Sabiduría', text: 'El grupo gana 25% más de experiencia en cada batalla.' },
     'live-ember': { name: 'Runa de la Brasa Viva', text: '+25% de daño a enemigos quemados.' },
     finisher: { name: 'Runa del Remate', text: 'Al derrotar a un enemigo recupera 15% de vida.' },
     'true-pulse': {
@@ -963,6 +964,7 @@ export const es = {
       name: 'Runa del Contagio',
       text: 'Dejarle un estado a un enemigo le devuelve 10% de concentración (una vez por turno).'
     },
+    tribute: { name: 'Runa del Tributo', text: 'El grupo gana 30% más de oro en cada victoria.' },
     'warm-up': { name: 'Runa del Calentamiento', text: '+5% de daño por cada turno propio, hasta +25%.' },
     'untouched-skin': { name: 'Runa de la Piel Intacta', text: '+30% de daño hasta que recibe el primer golpe.' },
     'last-breath': { name: 'Runa del Último Aliento', text: '+50% de daño con menos del 15% de vida.' },
@@ -985,6 +987,10 @@ export const es = {
       name: 'Runa de la Mano Generosa',
       text: 'Al curar a un aliado, también se cura el 30% de esa curación.'
     },
+    clover: {
+      name: 'Runa del Trébol',
+      text: 'Suerte: los enemigos dejan objetos, piedras y pociones un 50% más seguido.'
+    },
     cheer: { name: 'Runa del Ánimo', text: 'Al curar a alguien le da ataque aumentado por 2 turnos.' },
     harvest: { name: 'Runa de la Cosecha', text: 'Al derrotar a un enemigo recupera 30% de concentración.' },
     'hunter-eye': {
@@ -1002,6 +1008,7 @@ export const es = {
     },
     reprisal: { name: 'Runa del Escarmiento', text: 'Al recibir un golpe tiene 25% de contraatacar con el arma.' },
     'clean-blood': { name: 'Runa de la Sangre Limpia', text: 'No puede ser envenenado, quemado ni sangrar.' },
+    vigil: { name: 'Runa de la Vigilia', text: 'Cuando cae un aliado, actúa de inmediato.' },
     temper: { name: 'Runa del Temple', text: 'No puede ser congelado ni aturdido.' },
     'clear-sight': {
       name: 'Runa de la Mirada Clara',
@@ -1033,6 +1040,10 @@ export const es = {
     },
     thrift: { name: 'Runa de la Economía', text: 'Los especiales cuestan 15% menos de concentración.' },
     spring: { name: 'Runa del Manantial', text: 'Al empezar cada turno recupera 8% de concentración.' },
+    'patient-apprentice': {
+      name: 'Runa del Aprendiz Paciente',
+      text: '+5% de daño por cada turno propio sin recibir daño, hasta +25%. Recibir daño lo reinicia.'
+    },
     dawn: { name: 'Runa del Albor', text: 'Siempre actúa primero al empezar la batalla.' },
     lightning: { name: 'Runa del Relámpago', text: 'Al derrotar a un enemigo, su próximo turno llega antes.' },
     'third-blow': { name: 'Runa del Tercer Golpe', text: 'Cada tercer especial hace el doble de daño.' },
@@ -1050,6 +1061,10 @@ export const es = {
     },
     shelter: { name: 'Runa del Amparo', text: 'Al caer, da 1 escudo a cada aliado que no tenga ninguno.' },
     breach: { name: 'Runa de la Brecha', text: 'Golpear una debilidad le baja la defensa al enemigo por 2 turnos.' },
+    respite: {
+      name: 'Runa del Respiro',
+      text: 'Al ganar la batalla, los héroes en pie recuperan el 25% de su vida.'
+    },
     persistence: {
       name: 'Runa del Ahínco',
       text: 'Los aumentos de ataque, defensa y velocidad que recibe duran 2 turnos más.'

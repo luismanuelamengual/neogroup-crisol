@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { CAPTOR_ECHOES, CAPTOR_STONES, CYCLE_LEVELS } from '@/app/(protected)/(engine)/data/cycles'
 import { FLASK_MAX_CHARGES, FLASK_MAX_POTENCY } from '@/app/(protected)/(engine)/data/flask'
 import { BIOME_POTIONS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
+import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { getStartingWeapon, getWeapon, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -166,6 +167,40 @@ describe('fights', () => {
     expect(isGameState(migrated)).toBe(true)
     expect(isGameState({ ...start, lostXp: { nodeId: combat, xp: { kael: 12 } } })).toBe(true)
     expect(isGameState({ ...start, lostXp: { nodeId: combat, xp: { nobody: 12 } } })).toBe(false)
+  })
+
+  it('moves the indices of the runes and reopens the points of the new sanctuaries in a v12 game', () => {
+    const kael = { ...start.characters[0], runes: [6, 7, 61], echoes: [34] }
+    const old = {
+      ...start,
+      positionNodeId: 'n3',
+      clearedNodeIds: [...start.clearedNodeIds, 'n850', 'n3', combat],
+      respawnedNodeIds: ['n850'],
+      restsSinceCleared: { n850: 2, [combat]: 1 },
+      characters: [kael],
+      runes: [6, 7, 34, 61, 70],
+      runeWins: { 6: 4, 7: 1, 34: 4, 70: 2 }
+    }
+    const migrated = migrateGameState(old, 12) as GameState
+    const byNode = (id: string) => world.nodes.find((node) => node.id === id)!
+
+    expect(migrated.runes).toEqual([6, 8, 38, 67, 76])
+    expect(migrated.runeWins).toEqual({ 6: 4, 8: 1, 38: 4, 76: 2 })
+    expect(migrated.characters[0].runes).toEqual([6, 8, 67])
+    expect(migrated.characters[0].echoes).toEqual([38])
+    expect(migrated.clearedNodeIds).toEqual([...start.clearedNodeIds, 'n3', combat])
+    expect(migrated.respawnedNodeIds).toEqual([])
+    expect(migrated.restsSinceCleared).toEqual({ [combat]: 1 })
+    expect(isGameState(migrated)).toBe(true)
+    // The new runes are the ones of the new sanctuaries.
+    expect(['n850', 'n820', 'n494', 'n569', 'n3', 'n275'].map((id) => getRune(byNode(id).runeIndex!).id)).toEqual([
+      'wisdom',
+      'tribute',
+      'clover',
+      'vigil',
+      'patient-apprentice',
+      'respite'
+    ])
   })
 
   it('wakes up at the last rest after a defeat, with full health', () => {

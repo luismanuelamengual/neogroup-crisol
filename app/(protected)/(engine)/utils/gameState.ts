@@ -10,7 +10,15 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 12
+export const SAVE_VERSION = 13
+
+/**
+ * The six runes added with world 40 (wisdom, tribute, clover, vigil, patient
+ * apprentice and respite) took their places in the order of power: after these indices
+ * of the old order. Their points were fights before.
+ */
+const V13_RUNES_AFTER = [6, 14, 24, 33, 49, 60]
+const V13_RUNE_NODES = ['n850', 'n820', 'n494', 'n569', 'n3', 'n275']
 
 /** State of a brand new game: Kael alone, at level 1, in the starting camp. */
 export function createInitialGameState(gameId: string = crypto.randomUUID()): GameState {
@@ -184,6 +192,36 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
         ...character,
         weaponId: rename(character.weaponId),
         weapons: Object.fromEntries(Object.entries(character.weapons).map(([id, level]) => [rename(id), level]))
+      }))
+    }
+  }
+
+  if (fromVersion < 13) {
+    // v13: six new runes. The ones after them in the order of power move up their index (owned, equipped, worn as
+    // echoes and their wins); their points, if won as fights, wait to be won again as sanctuaries (unless the
+    // party stands there).
+    const shift = (index: number) => index + V13_RUNES_AFTER.filter((after) => index > after).length
+    const reopened = V13_RUNE_NODES.filter((id) => id !== state.positionNodeId)
+    const keep = (id: string) => !reopened.includes(id)
+
+    state = {
+      ...state,
+      runes: ((state.runes ?? []) as number[]).map(shift),
+      runeWins: Object.fromEntries(
+        Object.entries((state.runeWins ?? {}) as Record<string, number>).map(([index, wins]) => [
+          shift(Number(index)),
+          wins
+        ])
+      ),
+      clearedNodeIds: ((state.clearedNodeIds ?? []) as string[]).filter(keep),
+      respawnedNodeIds: ((state.respawnedNodeIds ?? []) as string[]).filter(keep),
+      restsSinceCleared: Object.fromEntries(
+        Object.entries((state.restsSinceCleared ?? {}) as Record<string, number>).filter(([id]) => keep(id))
+      ),
+      characters: ((state.characters ?? []) as CharacterState[]).map((character) => ({
+        ...character,
+        runes: character.runes.map(shift),
+        echoes: character.echoes.map(shift)
       }))
     }
   }

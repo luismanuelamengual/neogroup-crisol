@@ -12,11 +12,11 @@ import { getRune, RUNE_MASTERY_WINS } from '@/app/(protected)/(engine)/data/rune
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { Item } from '@/app/(protected)/(engine)/models/Item'
 import { canForgetSkills, getMaxHealth, isRuneMastered } from '@/app/(protected)/(engine)/utils/heroes'
 import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
 import ItemIcon, { IconSubject } from '@/app/(protected)/(party)/components/ItemIcon'
 import { describeRune, itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
+import { ITEM_FAMILIES, ItemFamily, itemFamily } from '@/app/(protected)/(party)/utils/itemFamilies'
 import GameButton from '@/app/components/GameButton'
 import GameScreen from '@/app/components/GameScreen'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -29,20 +29,9 @@ interface InventoryScreenProps {
   onClose: () => void
 }
 
-type Category = 'all' | 'potions' | 'food' | 'throwables' | 'oils' | 'charms' | 'stones' | 'runes' | 'special'
+type Category = 'all' | ItemFamily | 'runes' | 'special'
 
-const CATEGORIES: Category[] = ['all', 'potions', 'food', 'throwables', 'oils', 'charms', 'stones', 'runes', 'special']
-/** The tab of each family of consumables. */
-const ITEM_TABS: Record<NonNullable<Item['category']>, Exclude<Category, 'all'>> = {
-  potion: 'potions',
-  tonic: 'potions',
-  food: 'food',
-  throwable: 'throwables',
-  bomb: 'throwables',
-  oil: 'oils',
-  ward: 'charms',
-  shield: 'charms'
-}
+const CATEGORIES: Category[] = ['all', ...ITEM_FAMILIES, 'runes', 'special']
 
 /** Something the inventory shows: an item, a rune or a Tear of Oblivion. */
 interface Entry {
@@ -53,14 +42,6 @@ interface Entry {
   count: number
 }
 
-function categoryOf(item: Item): Entry['category'] {
-  if (item.kind === 'stone') {
-    return 'stones'
-  }
-
-  return ITEM_TABS[item.category ?? 'potion']
-}
-
 /** What the party carries (full screen over the map), by kind, each thing with its picture and what it does. */
 export default function InventoryScreen({ state, onSpendTear, onClose }: InventoryScreenProps) {
   const t = useT()
@@ -69,7 +50,7 @@ export default function InventoryScreen({ state, onSpendTear, onClose }: Invento
   const entries: Entry[] = [
     ...ITEMS.filter((item) => (state.inventory[item.id] ?? 0) > 0).map((item) => ({
       key: `item:${item.id}`,
-      category: categoryOf(item),
+      category: itemFamily(item),
       subject: { type: 'item', id: item.id } as IconSubject,
       name: itemName(t, item.id),
       count: state.inventory[item.id]

@@ -5,7 +5,7 @@ import { RuneTier } from '@/app/(protected)/(engine)/models/RuneTier'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
 /**
- * The 70 runes, one per sanctuary, ordered by power: each one with an effect
+ * The 76 runes, one per sanctuary, ordered by power: each one with an effect
  * of its own (see Perk) and a gain in one attribute (+8% speed), never a
  * loss, that grows with its number.
  */
@@ -21,7 +21,7 @@ interface RuneDefinition {
 }
 
 const perk = (perks: Partial<Record<Perk, number>>): BonusesPart => ({ perks })
-/** In order of power: the lesser ones (1..12), the greater (13..33), the ancestral (34..62) and the abyssal (63..70). */
+/** In order of power: the lesser ones (1..13), the greater (14..37), the ancestral (38..68) and the abyssal (69..76). */
 const DEFINITIONS: RuneDefinition[] = [
   // Lesser: Meadows and Forest.
   { id: 'first-cut', effect: perk({ [Perk.FIRST_STRIKE]: 0.5 }), gain: 'attack' },
@@ -30,6 +30,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'light-step', effect: perk({ [Perk.START_SPEED_UP]: 3 }), gain: 'speed' },
   { id: 'carapace', effect: perk({ [Perk.START_DEFENSE_UP]: 3 }), gain: 'defense' },
   { id: 'impetus', effect: perk({ [Perk.START_ATTACK_UP]: 3 }), gain: 'attack' },
+  { id: 'wisdom', effect: perk({ [Perk.XP_GAIN]: 0.25 }), gain: 'special' },
   { id: 'live-ember', effect: perk({ [Perk.BURN_HUNTER]: 0.25 }), gain: 'special' },
   { id: 'finisher', effect: perk({ [Perk.KILL_HEAL]: 0.15 }), gain: 'maxHealth' },
   { id: 'true-pulse', effect: perk({ [Perk.CRIT_FOCUS]: 0.1 }), gain: 'critChance' },
@@ -39,6 +40,7 @@ const DEFINITIONS: RuneDefinition[] = [
   // Greater: Tropics, Desert and Mountains.
   { id: 'double-edge', effect: perk({ [Perk.DOUBLE_STRIKE]: 0.6 }), gain: 'attack' },
   { id: 'stubborn-ember', effect: perk({ [Perk.LONG_BURN]: 2 }), gain: 'special' },
+  { id: 'tribute', effect: perk({ [Perk.GOLD_GAIN]: 0.3 }), gain: 'critChance' },
   { id: 'contagion', effect: perk({ [Perk.STATUS_FOCUS]: 0.1 }), gain: 'maxFocus' },
   { id: 'warm-up', effect: perk({ [Perk.WARM_UP]: 0.05 }), gain: 'attack' },
   { id: 'untouched-skin', effect: perk({ [Perk.UNTOUCHED]: 0.3 }), gain: 'speed' },
@@ -49,6 +51,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'icebreaker', effect: perk({ [Perk.FROST_BREAKER]: 0.4 }), gain: 'special' },
   { id: 'open-wound', effect: perk({ [Perk.CRIT_BLEED]: 3 }), gain: 'critChance' },
   { id: 'full-healing', effect: perk({ [Perk.HEALING_RECEIVED]: 1 }), gain: 'maxHealth' },
+  { id: 'clover', effect: perk({ [Perk.LUCK]: 0.5 }), gain: 'speed' },
   { id: 'generous-hand', effect: perk({ [Perk.HEAL_SHARE]: 0.3 }), gain: 'special' },
   { id: 'cheer', effect: perk({ [Perk.HEAL_BUFF]: 2 }), gain: 'special' },
   { id: 'harvest', effect: perk({ [Perk.KILL_FOCUS]: 0.3 }), gain: 'maxFocus' },
@@ -58,6 +61,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'thunder-iron', effect: perk({ [Perk.LIGHTNING_WEAPON]: 1 }), gain: 'speed' },
   { id: 'reprisal', effect: perk({ [Perk.COUNTER]: 0.25 }), gain: 'defense' },
   { id: 'clean-blood', effect: perk({ [Perk.IMMUNE_DOTS]: 1 }), gain: 'maxHealth' },
+  { id: 'vigil', effect: perk({ [Perk.VIGIL]: 1 }), gain: 'defense' },
   // Ancestral: Wastelands, Snow and the volcanic lands.
   { id: 'temper', effect: perk({ [Perk.IMMUNE_CONTROL]: 1 }), gain: 'defense' },
   { id: 'clear-sight', effect: perk({ [Perk.IMMUNE_BLIND]: 1 }), gain: 'speed' },
@@ -83,6 +87,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'frenzy', effect: perk({ [Perk.FRENZY]: 0.15 }), gain: 'special' },
   { id: 'thrift', effect: perk({ [Perk.ECONOMY]: 0.15 }), gain: 'maxFocus' },
   { id: 'spring', effect: perk({ [Perk.TURN_FOCUS]: 0.08 }), gain: 'maxFocus' },
+  { id: 'patient-apprentice', effect: perk({ [Perk.PATIENCE]: 0.05 }), gain: 'maxFocus' },
   { id: 'dawn', effect: perk({ [Perk.DAWN]: 1 }), gain: 'speed' },
   { id: 'lightning', effect: perk({ [Perk.LIGHTNING]: 50 }), gain: 'speed' },
   { id: 'third-blow', effect: perk({ [Perk.THIRD_SPECIAL]: 1 }), gain: 'special' },
@@ -94,6 +99,7 @@ const DEFINITIONS: RuneDefinition[] = [
   { id: 'blood-echo', effect: { lifesteal: 0.12 }, gain: 'attack' },
   { id: 'shelter', effect: perk({ [Perk.SHELTER]: 1 }), gain: 'defense' },
   { id: 'breach', effect: perk({ [Perk.BREACH]: 2 }), gain: 'attack' },
+  { id: 'respite', effect: perk({ [Perk.RESPITE]: 0.25 }), gain: 'maxHealth' },
   { id: 'persistence', effect: perk({ [Perk.PERSISTENCE]: 2 }), gain: 'defense' },
   { id: 'full-cup', effect: perk({ [Perk.FULL_CUP]: 0.3 }), gain: 'maxFocus' },
   // Abyssal: the Abyss (and the two brought from it to the Snow and the volcanic lands).
@@ -115,10 +121,10 @@ export const RUNE_COUNT = DEFINITIONS.length
 
 /** Index ranges of each tier, as the world generator spreads them. */
 const TIER_RANGES: [RuneTier, number, number][] = [
-  [RuneTier.LESSER, 1, 12],
-  [RuneTier.GREATER, 13, 33],
-  [RuneTier.ANCESTRAL, 34, 62],
-  [RuneTier.ABYSSAL, 63, 70]
+  [RuneTier.LESSER, 1, 13],
+  [RuneTier.GREATER, 14, 37],
+  [RuneTier.ANCESTRAL, 38, 68],
+  [RuneTier.ABYSSAL, 69, 76]
 ]
 /** Echoes a rune costs as an echo, from the weakest to the strongest of its tier. */
 const ECHO_COSTS: Record<RuneTier, [number, number]> = {

@@ -383,41 +383,103 @@ export function maxCarried(itemId: string): number {
   return BASIC_POTIONS.includes(itemId) ? MAX_BASIC_POTIONS : MAX_CONSUMABLES
 }
 
-/** What each merchant sells and its price. The Scholar sells Echoes (see SCHOLAR_*). */
+/**
+ * What each merchant sells and its price, by family (potions, food, tonics,
+ * things to throw, bombs, oils, wards and shields, stones), each one its
+ * specialty and the stronger things further on: the Peddler the basics of the
+ * Meadows, the Alchemist potions, tonics and bombs, the Smith stones, oils and
+ * blades, the Scholar some wards and relics besides its Echoes (see SCHOLAR_*)
+ * and the Threshold the best of everything. What the stronger biomes leave
+ * stays dearer here than finding it.
+ */
 export const MERCHANT_STOCK: Record<MerchantId, { itemId: string; price: number }[]> = {
   [MerchantId.PEDDLER]: [
     { itemId: 'health-potion', price: 125 },
     { itemId: 'focus-potion', price: 100 },
     { itemId: 'antidote', price: 120 },
     { itemId: 'crusty-bread', price: 80 },
+    { itemId: 'red-apple', price: 90 },
+    { itemId: 'wild-berries', price: 110 },
+    { itemId: 'honey-cake', price: 110 },
+    { itemId: 'might-tonic', price: 300 },
     { itemId: 'throwing-knife', price: 150 },
+    { itemId: 'sling-stone', price: 160 },
+    { itemId: 'poison-dart', price: 170 },
+    { itemId: 'pepper-pouch', price: 150 },
     { itemId: 'fire-bomb', price: 180 },
+    { itemId: 'smoke-bomb', price: 220 },
+    { itemId: 'venom-oil', price: 300 },
     { itemId: 'guard-seal', price: 350 }
   ],
   [MerchantId.ALCHEMIST]: [
     { itemId: 'health-potion', price: 125 },
+    { itemId: 'focus-potion', price: 100 },
+    { itemId: 'antidote', price: 120 },
     { itemId: 'greater-health-potion', price: 700 },
     { itemId: 'greater-focus-potion', price: 550 },
     { itemId: 'revive-potion', price: 900 },
-    { itemId: 'frost-bomb', price: 400 },
+    { itemId: 'mushroom-skewer', price: 250 },
+    { itemId: 'spicy-sausage', price: 300 },
     { itemId: 'might-tonic', price: 450 },
     { itemId: 'iron-tonic', price: 450 },
     { itemId: 'swift-tonic', price: 450 },
-    { itemId: 'ward-charm', price: 600 }
+    { itemId: 'keen-tonic', price: 450 },
+    { itemId: 'troll-blood', price: 550 },
+    { itemId: 'frost-bomb', price: 400 },
+    { itemId: 'spore-bomb', price: 380 },
+    { itemId: 'acid-flask', price: 400 },
+    { itemId: 'thunder-bomb', price: 450 },
+    { itemId: 'ward-charm', price: 600 },
+    { itemId: 'purifying-incense', price: 950 }
   ],
   [MerchantId.SMITH]: [
-    { itemId: StoneId.ROUGH, price: 300 },
-    { itemId: StoneId.TEMPERED, price: 900 },
-    { itemId: StoneId.ARCANE, price: 2500 },
+    { itemId: 'roast-meat', price: 400 },
+    { itemId: 'serrated-knife', price: 350 },
+    { itemId: 'shuriken', price: 380 },
+    { itemId: 'throwing-axe', price: 420 },
+    { itemId: 'javelin', price: 450 },
+    { itemId: 'flame-dagger', price: 550 },
+    { itemId: 'frost-dagger', price: 550 },
+    { itemId: 'storm-kunai', price: 550 },
+    { itemId: 'shrapnel-bomb', price: 500 },
     { itemId: 'fire-oil', price: 500 },
     { itemId: 'frost-oil', price: 500 },
-    { itemId: 'storm-oil', price: 500 }
+    { itemId: 'storm-oil', price: 500 },
+    { itemId: 'earth-oil', price: 500 },
+    { itemId: 'venom-oil', price: 450 },
+    { itemId: 'guard-seal', price: 350 },
+    { itemId: 'bulwark-crystal', price: 900 },
+    { itemId: StoneId.ROUGH, price: 300 },
+    { itemId: StoneId.TEMPERED, price: 900 },
+    { itemId: StoneId.ARCANE, price: 2500 }
   ],
-  [MerchantId.SCHOLAR]: [],
+  [MerchantId.SCHOLAR]: [
+    { itemId: 'greater-focus-potion', price: 650 },
+    { itemId: 'fish-stew', price: 450 },
+    { itemId: 'holy-water', price: 650 },
+    { itemId: 'shadow-needle', price: 650 },
+    { itemId: 'ward-charm', price: 700 },
+    { itemId: 'purifying-incense', price: 1000 },
+    { itemId: 'saint-amulet', price: 1500 },
+    { itemId: 'shield-scroll', price: 1800 }
+  ],
   [MerchantId.THRESHOLD]: [
     { itemId: 'greater-health-potion', price: 1000 },
+    { itemId: 'greater-focus-potion', price: 800 },
     { itemId: 'revive-potion', price: 1300 },
     { itemId: 'elixir', price: 4000 },
+    { itemId: 'golden-pear', price: 1200 },
+    { itemId: 'traveler-feast', price: 1500 },
+    { itemId: 'giant-draught', price: 1100 },
+    { itemId: 'war-elixir', price: 1800 },
+    { itemId: 'holy-water', price: 900 },
+    { itemId: 'radiant-orb', price: 1200 },
+    { itemId: 'void-bomb', price: 1200 },
+    { itemId: 'holy-oil', price: 900 },
+    { itemId: 'shadow-oil', price: 900 },
+    { itemId: 'saint-amulet', price: 1800 },
+    { itemId: 'bulwark-crystal', price: 1400 },
+    { itemId: 'shield-scroll', price: 2200 },
     { itemId: 'aegis-relic', price: 2500 },
     { itemId: StoneId.ARCANE, price: 3500 },
     { itemId: StoneId.ABYSSAL, price: 6000 }

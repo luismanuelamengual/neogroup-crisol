@@ -943,6 +943,7 @@ export const en: Messages = {
     'light-step': { name: 'Light Step Rune', text: 'Starts the battle with raised speed for 3 turns.' },
     carapace: { name: 'Carapace Rune', text: 'Starts the battle with raised defense for 3 turns.' },
     impetus: { name: 'Impetus Rune', text: 'Starts the battle with raised attack for 3 turns.' },
+    wisdom: { name: 'Wisdom Rune', text: 'The party gains 25% more experience from each battle.' },
     'live-ember': { name: 'Live Ember Rune', text: '+25% damage to burning enemies.' },
     finisher: { name: 'Finisher Rune', text: 'Defeating an enemy restores 15% health.' },
     'true-pulse': { name: 'True Pulse Rune', text: 'Each critical hit restores 10% focus (once per turn).' },
@@ -952,6 +953,7 @@ export const en: Messages = {
     'double-edge': { name: 'Double Edge Rune', text: 'The weapon attack hits twice, each hit at 60%.' },
     'stubborn-ember': { name: 'Stubborn Ember Rune', text: 'The burns it leaves last 2 more turns.' },
     contagion: { name: 'Contagion Rune', text: 'Leaving a status on an enemy restores 10% focus (once per turn).' },
+    tribute: { name: 'Tribute Rune', text: 'The party gains 30% more gold from each victory.' },
     'warm-up': { name: 'Warm-Up Rune', text: '+5% damage for each of its turns, up to +25%.' },
     'untouched-skin': { name: 'Untouched Skin Rune', text: '+30% damage until it takes its first hit.' },
     'last-breath': { name: 'Last Breath Rune', text: '+50% damage below 15% health.' },
@@ -965,6 +967,7 @@ export const en: Messages = {
     'open-wound': { name: 'Open Wound Rune', text: 'Its critical hits leave bleeding for 3 turns.' },
     'full-healing': { name: 'Full Healing Rune', text: 'The healing it receives is doubled.' },
     'generous-hand': { name: 'Generous Hand Rune', text: 'Healing an ally also heals itself for 30% of it.' },
+    clover: { name: 'Clover Rune', text: 'Luck: enemies drop items, stones and potions 50% more often.' },
     cheer: { name: 'Cheer Rune', text: 'Healing someone gives them raised attack for 2 turns.' },
     harvest: { name: 'Harvest Rune', text: 'Defeating an enemy restores 30% focus.' },
     'hunter-eye': { name: 'Hunter Eye Rune', text: '+25% critical chance against enemies with a harmful status.' },
@@ -976,6 +979,7 @@ export const en: Messages = {
     },
     reprisal: { name: 'Reprisal Rune', text: 'When hit, it has a 25% chance to strike back with its weapon.' },
     'clean-blood': { name: 'Clean Blood Rune', text: 'It cannot be poisoned, burned or made to bleed.' },
+    vigil: { name: 'Vigil Rune', text: 'When an ally falls, it acts right away.' },
     temper: { name: 'Temper Rune', text: 'It cannot be frozen or stunned.' },
     'clear-sight': {
       name: 'Clear Sight Rune',
@@ -1004,6 +1008,10 @@ export const en: Messages = {
     },
     thrift: { name: 'Thrift Rune', text: 'Specials cost 15% less focus.' },
     spring: { name: 'Spring Rune', text: 'Restores 8% focus at the start of each turn.' },
+    'patient-apprentice': {
+      name: 'Patient Apprentice Rune',
+      text: '+5% damage for each of its turns without taking damage, up to +25%. Taking damage resets it.'
+    },
     dawn: { name: 'Dawn Rune', text: 'It always acts first at the start of the battle.' },
     lightning: { name: 'Lightning Rune', text: 'Defeating an enemy brings its next turn sooner.' },
     'third-blow': { name: 'Third Blow Rune', text: 'Every third special deals double damage.' },
@@ -1021,6 +1029,10 @@ export const en: Messages = {
     },
     shelter: { name: 'Shelter Rune', text: 'When it falls, it gives 1 shield to each ally that has none.' },
     breach: { name: 'Breach Rune', text: "Hitting a weakness lowers the enemy's defense for 2 turns." },
+    respite: {
+      name: 'Respite Rune',
+      text: 'On winning a battle, the heroes standing recover 25% of their health.'
+    },
     persistence: {
       name: 'Persistence Rune',
       text: 'The attack, defense and speed raises it receives last 2 more turns.'

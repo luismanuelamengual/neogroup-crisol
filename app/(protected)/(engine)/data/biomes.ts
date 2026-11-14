@@ -112,7 +112,7 @@ export const BIOMES: BiomeDefinition[] = [
       [4704, 7860],
       [3210, 9214]
     ],
-    sanctuaries: 6,
+    sanctuaries: 7,
     sanctuariesAt: [
       [3549, 8398],
       [5032, 6219],
@@ -120,7 +120,8 @@ export const BIOMES: BiomeDefinition[] = [
       [2989, 11350],
       [322, 11627],
       // Sanctuaries added by hand on points of the way through.
-      [2340, 9994]
+      [2340, 9994],
+      [4821, 9895]
     ],
     reliquariesAt: [[6925, 8061]],
     runeTier: RuneTier.LESSER,
@@ -152,7 +153,7 @@ export const BIOMES: BiomeDefinition[] = [
       [11977, 11222],
       [10321, 10025]
     ],
-    sanctuaries: 7,
+    sanctuaries: 8,
     sanctuariesAt: [
       [15625, 9241],
       [11754, 11576],
@@ -161,7 +162,8 @@ export const BIOMES: BiomeDefinition[] = [
       [14014, 11243],
       [10248, 8498],
       // Sanctuaries added by hand on points of the way through.
-      [11349, 10923]
+      [11349, 10923],
+      [11679, 9605]
     ],
     reliquariesAt: [[14739, 11644]],
     runeTier: RuneTier.GREATER,
@@ -191,14 +193,16 @@ export const BIOMES: BiomeDefinition[] = [
       [10190, 5577],
       [11784, 7488]
     ],
-    sanctuaries: 6,
+    sanctuaries: 7,
     sanctuariesAt: [
       [11960, 4086],
       [12124, 5521],
       [12254, 8335],
       [9928, 6917],
       [12972, 6413],
-      [14579, 8402]
+      [14579, 8402],
+      // Sanctuaries added by hand on points of the way through.
+      [15083, 5587]
     ],
     reliquariesAt: [[15618, 8769]],
     runeTier: RuneTier.GREATER,
@@ -228,7 +232,7 @@ export const BIOMES: BiomeDefinition[] = [
       [5623, 4903],
       [2164, 7808]
     ],
-    sanctuaries: 8,
+    sanctuaries: 9,
     sanctuariesAt: [
       [5581, 3855],
       [6956, 5186],
@@ -238,7 +242,8 @@ export const BIOMES: BiomeDefinition[] = [
       [3573, 5316],
       [3343, 7460],
       // Sanctuaries added by hand on points of the way through.
-      [3491, 4468]
+      [3491, 4468],
+      [378, 6533]
     ],
     reliquariesAt: [
       [4510, 5416],
@@ -317,7 +322,7 @@ export const BIOMES: BiomeDefinition[] = [
       [3021, 1271],
       [1324, 3558]
     ],
-    sanctuaries: 11,
+    sanctuaries: 12,
     sanctuariesAt: [
       [5430, 755],
       [422, 1043],
@@ -331,7 +336,8 @@ export const BIOMES: BiomeDefinition[] = [
       [512, 2148, RuneTier.ABYSSAL],
       // Sanctuaries added by hand on points of the way through.
       [3493, 2277],
-      [1579, 357]
+      [1579, 357],
+      [4116, 304]
     ],
     reliquariesAt: [[4567, 380]],
     runeTier: RuneTier.ANCESTRAL,
@@ -359,7 +365,7 @@ export const BIOMES: BiomeDefinition[] = [
       [14852, 3193],
       [11614, 1574]
     ],
-    sanctuaries: 11,
+    sanctuaries: 12,
     sanctuariesAt: [
       [10525, 301],
       [13618, 1646],
@@ -373,7 +379,8 @@ export const BIOMES: BiomeDefinition[] = [
       [14298, 4355, RuneTier.ABYSSAL],
       // Sanctuaries added by hand on points of the way through.
       [13881, 2115],
-      [15147, 1859]
+      [15147, 1859],
+      [13436, 3150]
     ],
     reliquariesAt: [[12870, 4957]],
     runeTier: RuneTier.ANCESTRAL,

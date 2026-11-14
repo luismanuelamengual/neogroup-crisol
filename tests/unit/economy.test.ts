@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { getBestiaryLevel } from '@/app/(protected)/(engine)/data/bestiary'
-import { MAX_BASIC_POTIONS, MAX_CONSUMABLES, MERCHANT_STOCK, scholarPrice } from '@/app/(protected)/(engine)/data/items'
+import {
+  getItem,
+  MAX_BASIC_POTIONS,
+  MAX_CONSUMABLES,
+  MERCHANT_STOCK,
+  scholarPrice
+} from '@/app/(protected)/(engine)/data/items'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -119,6 +125,26 @@ describe('merchants', () => {
     )
     expect(canBuyItem(index, { ...state, inventory: { antidote: MAX_CONSUMABLES } }, 'antidote')).toBe(false)
     expect(canBuyItem(index, { ...state, positionNodeId: scholar.id }, 'health-potion')).toBe(false)
+  })
+
+  it('sells a varied stock: known items, each once, of several families, the end of the world dearer', () => {
+    for (const [merchant, stock] of Object.entries(MERCHANT_STOCK)) {
+      const ids = stock.map((offer) => offer.itemId)
+      const categories = new Set(ids.map((itemId) => getItem(itemId).category ?? getItem(itemId).kind))
+
+      expect(new Set(ids).size, merchant).toBe(ids.length)
+      expect(
+        stock.every((offer) => offer.price > 0),
+        merchant
+      ).toBe(true)
+      expect(categories.size, merchant).toBeGreaterThanOrEqual(5)
+    }
+
+    const price = (merchant: MerchantId, itemId: string) =>
+      MERCHANT_STOCK[merchant].find((offer) => offer.itemId === itemId)!.price
+
+    expect(price(MerchantId.THRESHOLD, 'revive-potion')).toBeGreaterThan(price(MerchantId.ALCHEMIST, 'revive-potion'))
+    expect(price(MerchantId.SCHOLAR, 'ward-charm')).toBeGreaterThan(price(MerchantId.ALCHEMIST, 'ward-charm'))
   })
 
   it('sells a few Echoes per cycle at the Scholar, each one dearer', () => {

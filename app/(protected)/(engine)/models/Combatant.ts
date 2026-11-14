@@ -27,6 +27,8 @@ export interface RuneState {
   struck: boolean
   hurt: boolean
   damagedSinceTurn: boolean
+  /** Turns of its own begun in a row without taking damage (up to 5): the patient apprentice. */
+  patience: number
   /** Its last hit was critical (and the next one is not yet). */
   afterCrit: boolean
   /** The once per battle effects already used. */

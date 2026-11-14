@@ -244,7 +244,7 @@ describe('runes and echoes', () => {
   it('has one rune per sanctuary with echo costs within the range of their tier', () => {
     const ranges = { lesser: [1, 8], greater: [6, 20], ancestral: [15, 35], abyssal: [30, 50] }
 
-    expect(RUNES).toHaveLength(70)
+    expect(RUNES).toHaveLength(76)
 
     for (const rune of RUNES) {
       const [min, max] = ranges[rune.tier]

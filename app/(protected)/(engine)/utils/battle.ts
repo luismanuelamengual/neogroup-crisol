@@ -143,6 +143,7 @@ const CHARGING = [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]
 /** Runes (see Perk): how long or how far their conditions reach. */
 const OPENING_TURNS = 3
 const WARM_UP_TURNS = 5
+const PATIENCE_TURNS = 5
 const MAX_FRENZY = 4
 const LOW_HEALTH = 0.3
 const LAST_BREATH_HEALTH = 0.15
@@ -346,6 +347,19 @@ function perkOf(combatant: Combatant, perk: Perk): number {
   return combatant.bonuses?.perks[perk] ?? 0
 }
 
+/**
+ * The value of a perk of the spoils for the whole party: the highest among the
+ * heroes that fought (the same rune worn as an echo by others does not stack).
+ */
+function partyPerk(state: BattleState, perk: Perk): number {
+  return Math.max(
+    0,
+    ...state.combatants
+      .filter((combatant) => combatant.side === 'hero' && combatant.fought)
+      .map((hero) => perkOf(hero, perk))
+  )
+}
+
 function emptyRuneState(): RuneState {
   return {
     turns: 0,
@@ -355,6 +369,7 @@ function emptyRuneState(): RuneState {
     struck: false,
     hurt: false,
     damagedSinceTurn: false,
+    patience: 0,
     afterCrit: false,
     survived: false,
     rose: false,
@@ -436,6 +451,10 @@ function beginRuneTurn(state: BattleState, actor: Combatant, events: BattleEvent
   ) {
     triggerPerk(actor, Perk.PERFECT_INSTANT, events)
     heal(actor, actor.stats.maxHealth, events)
+  }
+
+  if (runes.turns > 1 && !runes.damagedSinceTurn) {
+    runes.patience = Math.min(PATIENCE_TURNS, (runes.patience ?? 0) + 1)
   }
 
   runes.damagedSinceTurn = false
@@ -527,7 +546,10 @@ function runeDamage(
   const runes = actor.runeState
   const health = actor.health / actor.stats.maxHealth
   const heroes = getFighters(state, 'hero')
-  let bonus = perkOf(actor, Perk.DAMAGE_DEALT) + perkOf(actor, Perk.WARM_UP) * Math.min(WARM_UP_TURNS, runes.turns)
+  let bonus =
+    perkOf(actor, Perk.DAMAGE_DEALT) +
+    perkOf(actor, Perk.WARM_UP) * Math.min(WARM_UP_TURNS, runes.turns) +
+    perkOf(actor, Perk.PATIENCE) * (runes.patience ?? 0)
 
   if (!runes.struck) {
     bonus += perkOf(actor, Perk.FIRST_STRIKE)
@@ -653,6 +675,12 @@ function onHeroFall(state: BattleState, hero: Combatant, events: BattleEvent[]):
     for (const ally of allies) {
       heal(ally, Math.round(ally.stats.maxHealth * martyr), events)
     }
+  }
+
+  // The allies that keep vigil take their turn right away.
+  for (const ally of allies.filter((candidate) => perkOf(candidate, Perk.VIGIL))) {
+    ally.initiative = INITIATIVE_FULL
+    triggerPerk(ally, Perk.VIGIL, events)
   }
 
   const unshielded = allies.filter((ally) => !ally.shields)
@@ -1595,6 +1623,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
 
   if (runes) {
     runes.damagedSinceTurn = true
+    runes.patience = 0
 
     // Once per battle a rune keeps the hero standing with 1 health.
     if (perkOf(target, Perk.SURVIVE) && !runes.survived && target.health > 1 && amount >= target.health) {
@@ -1664,8 +1693,8 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
     const rewards = getEnemyRewards(target.speciesId!, target.level, target.elite, state.cycle)
 
     state.kills[target.speciesId!] = (state.kills[target.speciesId!] ?? 0) + 1
-    state.xp += rewards.xp
-    state.gold += rewards.gold
+    state.xp += Math.round(rewards.xp * (1 + partyPerk(state, Perk.XP_GAIN)))
+    state.gold += Math.round(rewards.gold * (1 + partyPerk(state, Perk.GOLD_GAIN)))
     dropLoot(state, target)
 
     if (getFighters(state, 'enemy').length === 0) {
@@ -1677,6 +1706,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
         state.combatants.push(...enemies)
         events.push({ type: 'phase', phase: state.phase, enemyIds: enemies.map((enemy) => enemy.id) })
       } else {
+        respite(state, events)
         state.outcome = 'victory'
         state.actorId = null
         events.push({ type: 'end', outcome: 'victory' })
@@ -1709,6 +1739,26 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
   }
 }
 
+/** The battle is won: the heroes standing recover a share of their health (the highest respite of the party). */
+function respite(state: BattleState, events: BattleEvent[]): void {
+  const share = partyPerk(state, Perk.RESPITE)
+  const wearer = state.combatants.find(
+    (combatant) => combatant.side === 'hero' && combatant.fought && perkOf(combatant, Perk.RESPITE) === share
+  )
+
+  if (!share || !wearer) {
+    return
+  }
+
+  triggerPerk(wearer, Perk.RESPITE, events)
+
+  for (const hero of getFighters(state, 'hero')) {
+    if (hero.health < hero.stats.maxHealth) {
+      heal(hero, Math.ceil(hero.stats.maxHealth * share), events)
+    }
+  }
+}
+
 /**
  * What a defeated enemy leaves: smithing stones of the biome, now and then
  * something of BIOME_DROPS (always for bosses), and very rarely an Echo.
@@ -1721,6 +1771,8 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
   }
 
   const drops = BIOME_DROPS[state.biome]
+  // The luck of the party raises every chance but the one of an Echo.
+  const luck = 1 + partyPerk(state, Perk.LUCK)
 
   if (species.strength > 1) {
     add(BIOME_STONE[state.biome], BOSS_STONES * species.bars)
@@ -1731,7 +1783,7 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
       ? DROP_CHANCE[rough ? 'eliteRoughStone' : 'eliteStone']
       : DROP_CHANCE[rough ? 'roughStone' : 'stone']
 
-    if (roll(state) < chance) {
+    if (roll(state) < chance * luck) {
       add(stoneId)
     }
   }
@@ -1740,7 +1792,7 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
     for (let index = 0; index < BOSS_ITEMS; index++) {
       add(drops[Math.floor(roll(state) * drops.length)])
     }
-  } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteItem : DROP_CHANCE.item)) {
+  } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteItem : DROP_CHANCE.item) * luck) {
     add(drops[Math.floor(roll(state) * drops.length)])
   }
 
@@ -1748,7 +1800,7 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
   for (const itemId of BASIC_POTIONS) {
     const chance = enemy.elite || species.strength > 1 ? BASIC_POTION_CHANCE.elite : BASIC_POTION_CHANCE.normal
 
-    if ((state.items[itemId] ?? 0) + (state.loot[itemId] ?? 0) < MAX_BASIC_POTIONS && roll(state) < chance) {
+    if ((state.items[itemId] ?? 0) + (state.loot[itemId] ?? 0) < MAX_BASIC_POTIONS && roll(state) < chance * luck) {
       add(itemId)
     }
   }

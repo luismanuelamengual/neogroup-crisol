@@ -1056,3 +1056,153 @@ describe('rune effects', () => {
     expect(getCombatant(proud.state, 'h-kael').health).toBe(10)
   })
 })
+
+describe('runes of the spoils and the new runes of the way', () => {
+  const runeIndex = (id: string) => RUNES.find((rune) => rune.id === id)!.index
+  const wearing = (character: CharacterState, ...ids: string[]): CharacterState => ({
+    ...character,
+    runes: ids.map(runeIndex)
+  })
+
+  /** A battle against one thorn boar that falls with the next hit of Kael. */
+  const nearlyWonWith = (heroes: CharacterState[], seed = 7, elite = false) => {
+    const state = createBattle({
+      heroes,
+      phases: [[{ speciesId: 'thorn-boar', level: 30, elite }]],
+      seed,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    }).state
+
+    return turnOf(
+      {
+        ...state,
+        combatants: state.combatants.map((combatant) =>
+          combatant.side === 'enemy' ? { ...combatant, health: 1 } : combatant
+        )
+      },
+      'h-kael'
+    )
+  }
+
+  const strike = (state: BattleState) =>
+    performAction(state, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })
+
+  it('gives the party more experience with the wisdom and more gold with the tribute', () => {
+    const plain = strike(nearlyWonWith([kael])).state
+    const wise = strike(nearlyWonWith([wearing(kael, 'wisdom')])).state
+    const rich = strike(nearlyWonWith([wearing(kael, 'tribute')])).state
+
+    expect(plain.xp).toBeGreaterThan(0)
+    expect(plain.gold).toBeGreaterThan(0)
+    expect(wise.xp).toBe(Math.round(plain.xp * 1.25))
+    expect(wise.gold).toBe(plain.gold)
+    expect(rich.gold).toBe(Math.round(plain.gold * 1.3))
+    expect(rich.xp).toBe(plain.xp)
+  })
+
+  it('counts a rune of the spoils once for the party, from any hero that fought', () => {
+    const sera = createCharacter(CharacterId.SERA, 5)
+    const plain = strike(nearlyWonWith([kael, sera])).state
+    const fromAlly = strike(nearlyWonWith([kael, wearing(sera, 'wisdom')])).state
+    const twice = strike(nearlyWonWith([wearing(kael, 'wisdom'), wearing(sera, 'wisdom')])).state
+
+    expect(fromAlly.xp).toBe(Math.round(plain.xp * 1.25))
+    expect(twice.xp).toBe(fromAlly.xp)
+  })
+
+  it('makes the enemies leave loot more often with the luck of the clover', () => {
+    const count = (heroes: CharacterState[]) => {
+      let found = 0
+
+      for (let seed = 1; seed <= 1500; seed++) {
+        const after = strike(nearlyWonWith(heroes, seed)).state
+
+        found += Object.values(after.loot).reduce((sum, amount) => sum + amount, 0)
+      }
+
+      return found
+    }
+
+    const plain = count([kael])
+    const lucky = count([wearing(kael, 'clover')])
+
+    expect(plain).toBeGreaterThan(0)
+    expect(lucky / plain).toBeGreaterThan(1.35)
+    expect(lucky / plain).toBeLessThan(1.65)
+  })
+
+  it('gives its turn right away to the ally that keeps vigil when a hero falls', () => {
+    const start = createBattle({
+      heroes: [kael, wearing(createCharacter(CharacterId.SERA, 5), 'vigil'), createCharacter(CharacterId.BRANN, 5)],
+      phases: [[{ speciesId: 'thorn-boar', level: 60 }]],
+      seed: 7,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    }).state
+    const ready: BattleState = {
+      ...start,
+      combatants: start.combatants.map((combatant) =>
+        combatant.id === 'h-kael' ? { ...combatant, health: 2 } : { ...combatant, initiative: 0 }
+      )
+    }
+    const fall = performAction(turnOf(ready, 'e1-1'), { type: 'skill', skillId: 'gore', targetIds: ['h-kael'] })
+
+    expect(getCombatant(fall.state, 'h-kael').health).toBe(0)
+    expect(fall.events).toContainEqual({ type: 'perk', targetId: 'h-sera', perk: Perk.VIGIL })
+    expect(nextTurn(fall.state).state.actorId).toBe('h-sera')
+  })
+
+  it('grows the damage of the patient apprentice with each turn without damage, and resets it on a hit', () => {
+    const start = createBattle({
+      heroes: [wearing(kael, 'patient-apprentice')],
+      phases: [[{ speciesId: 'thorn-boar', level: 60 }]],
+      seed: 7,
+      biome: Biome.MEADOWS,
+      canRetreat: true
+    }).state
+    const withPatience = (patience: number, initiative = 0): BattleState => ({
+      ...start,
+      combatants: start.combatants.map((combatant) =>
+        combatant.id === 'h-kael'
+          ? { ...combatant, initiative, runeState: { ...combatant.runeState!, turns: 1, patience } }
+          : { ...combatant, initiative: 0 }
+      )
+    })
+    const damageOf = (state: BattleState) =>
+      strike(turnOf(state, 'h-kael')).events.find((event) => event.type === 'damage')!
+    const calm = damageOf(withPatience(0))
+    const patient = damageOf(withPatience(5))
+
+    // A turn begun without damage since the last one adds a step.
+    expect(getCombatant(nextTurn(withPatience(2, 99)).state, 'h-kael').runeState!.patience).toBe(3)
+    expect(getCombatant(nextTurn(withPatience(5, 99)).state, 'h-kael').runeState!.patience).toBe(5)
+    expect(calm.type === 'damage' && patient.type === 'damage' && patient.amount / calm.amount).toBeGreaterThan(1.15)
+    expect(calm.type === 'damage' && patient.type === 'damage' && patient.amount / calm.amount).toBeLessThan(1.35)
+
+    const gored = performAction(turnOf(withPatience(4), 'e1-1'), {
+      type: 'skill',
+      skillId: 'gore',
+      targetIds: ['h-kael']
+    })
+
+    expect(getCombatant(gored.state, 'h-kael').runeState!.patience).toBe(0)
+  })
+
+  it('heals the heroes standing when the battle is won with the respite', () => {
+    const hurt = (state: BattleState): BattleState => ({
+      ...state,
+      combatants: state.combatants.map((combatant) =>
+        combatant.side === 'hero' ? { ...combatant, health: 10 } : combatant
+      )
+    })
+    const plain = strike(hurt(nearlyWonWith([kael])))
+    const rested = strike(hurt(nearlyWonWith([wearing(kael, 'respite')])))
+    const hero = getCombatant(rested.state, 'h-kael')
+
+    expect(rested.state.outcome).toBe('victory')
+    expect(getCombatant(plain.state, 'h-kael').health).toBe(10)
+    expect(hero.health).toBe(Math.min(hero.stats.maxHealth, 10 + Math.ceil(hero.stats.maxHealth * 0.25)))
+    expect(rested.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.RESPITE })
+  })
+})

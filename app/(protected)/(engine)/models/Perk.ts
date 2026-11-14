@@ -128,5 +128,20 @@ export enum Perk {
   /** Defeating an enemy lets it act again right away (once per turn). */
   ECLIPSE = 'eclipse',
   /** Every fifth hit: this much extra damage. */
-  JUDGMENT = 'judgment'
+  JUDGMENT = 'judgment',
+  /** When an ally falls, it takes its turn right away. */
+  VIGIL = 'vigil',
+  /**
+   * The spoils of the party: extra share of the experience and the gold of the
+   * battle, extra share of the chances of loot (stones, things of the biome
+   * and potions; not Echoes) and share of the maximum health recovered by the
+   * heroes standing when the battle is won. They count once for the party:
+   * the highest among the heroes that fought.
+   */
+  XP_GAIN = 'xpGain',
+  GOLD_GAIN = 'goldGain',
+  LUCK = 'luck',
+  RESPITE = 'respite',
+  /** Extra damage per turn of its own begun without taking damage since the last one, up to 5; damage resets it. */
+  PATIENCE = 'patience'
 }
