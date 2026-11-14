@@ -93,6 +93,19 @@ const FONT = "'Lilita One', Nunito, sans-serif"
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
 export const FIGURE_HEIGHT = 120
 const OUTLINE = 0x0a0710
+/** Height offsets of the three staggered rows of a side (the front row is the lowest). */
+const ROW_STEP = 46
+const ROWS = [0, -ROW_STEP, ROW_STEP]
+/** Below the ground line: the front row and its feet, kept above the bottom HUD. */
+const FRONT_ROOM = 54
+/** Over the head of a fighter: its health bar and the arrow that marks a target. */
+const FIGURE_HEADROOM = 30
+/** Stage width (at scale 1) the two sides need: below it (a phone upright) the fighters shrink to fit. */
+const FIELD_WIDTH = 470
+/** A screen whose short side is at most this is a phone (either way up): its fighters fill the free field. */
+const PHONE_SIDE = 540
+/** Room (at scale 1) from the edge of the screen to the middle of a fighter of the outer row. */
+const EDGE_ROOM = 64
 
 /** The puppet of a fighter: a hero holds its weapon (the one it starts with while that image is missing). */
 function rigOf(combatant: Combatant, artId: string, parts: ArtManifest['parts']): Rig | null {
@@ -159,6 +172,8 @@ export class BattleRenderer {
   /** Room the screen covers at the top and at the bottom (its HUD): the fighters stand in what is left. */
   private insets = { top: 0, bottom: 0 }
   private lastBattle: BattleState | null = null
+  /** Stage pixels (at scale 1) the tallest fighter of the battle needs from the ground line up (see measureReach). */
+  private reach = FIGURE_HEIGHT + ROW_STEP + FIGURE_HEADROOM
   private elapsed = 0
   /** The camera: how far it panned right (pixels) and its zoom, easing towards their targets. */
   private readonly camera = { x: 0, zoom: 1, targetX: 0, targetZoom: 1 }
@@ -329,8 +344,34 @@ export class BattleRenderer {
     return Math.max(200, this.height - this.insets.top - this.insets.bottom)
   }
 
+  /**
+   * How big the fighters are drawn. On a large screen the cap wins (1.1). On a phone the free field decides: the
+   * fighters grow until the tallest of the battle (a boss included, any phase) just fits between the top HUD and the
+   * front row over the bottom HUD, never smaller than the fixed fit of larger screens (field / 380).
+   */
   private get scale(): number {
-    return Math.max(0.5, Math.min(1.1, this.width / 560, this.fieldHeight / 380))
+    const phone = Math.min(this.width, this.height) <= PHONE_SIDE
+    const fit = phone
+      ? Math.max(this.fieldHeight / 380, this.fieldHeight / (this.reach + FRONT_ROOM))
+      : this.fieldHeight / 380
+
+    return Math.max(0.5, Math.min(1.1, this.width / (phone ? FIELD_WIDTH : 560), fit))
+  }
+
+  /** The room the tallest fighter of the battle needs above the ground line: its row, its body and its health bar. */
+  private measureReach(battle: BattleState): number {
+    const heroes = battle.combatants.filter((combatant) => combatant.side === 'hero' && !combatant.reserve)
+    const above = (index: number, size: number) =>
+      Math.max(0, -ROWS[index % 3]) + FIGURE_HEIGHT * size + FIGURE_HEADROOM
+    let reach = Math.max(0, ...heroes.map((_, index) => above(index, 1)))
+
+    for (const phase of battle.phases) {
+      phase.forEach((spawn, index) => {
+        reach = Math.max(reach, above(index, getSpecies(spawn.speciesId).size * (spawn.elite ? 1.15 : 1)))
+      })
+    }
+
+    return reach
   }
 
   /**
@@ -342,7 +383,7 @@ export class BattleRenderer {
 
     return (
       Math.min(this.height, this.insets.top) +
-      Math.min(field * 0.88, field - 54 * this.scale, field / 2 + 230 * this.scale)
+      Math.min(field * 0.88, field - FRONT_ROOM * this.scale, field / 2 + 230 * this.scale)
     )
   }
 
@@ -367,6 +408,7 @@ export class BattleRenderer {
   /** Draws the background and places every fighter at its spot (on start and on resize). */
   layout(battle: BattleState): void {
     this.lastBattle = battle
+    this.reach = this.measureReach(battle)
     this.drawBackground()
 
     for (const combatant of battle.combatants) {
@@ -393,14 +435,15 @@ export class BattleRenderer {
       0,
       side.findIndex((other) => other.id === combatant.id)
     )
-    const rows = [0, -46, 46]
-    const y = this.groundY + rows[index % 3] * this.scale
+    const y = this.groundY + ROWS[index % 3] * this.scale
+    // On a narrow screen the outer row keeps clear of the edge, so its body is never cut.
+    const edge = EDGE_ROOM * this.scale
 
     if (combatant.side === 'hero') {
-      return { x: this.width * (0.31 - 0.1 * (index % 3)), y }
+      return { x: Math.max(edge, this.width * (0.31 - 0.1 * (index % 3))), y }
     }
 
-    return { x: this.width * (0.69 + 0.1 * (index % 3)), y }
+    return { x: Math.min(this.width - edge, this.width * (0.69 + 0.1 * (index % 3))), y }
   }
 
   private placeAll(battle: BattleState): void {
