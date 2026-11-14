@@ -11,6 +11,7 @@ import ButtonBase from '@mui/material/ButtonBase'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MusicId } from '@/app/(protected)/(art)/data/audio'
+import { useArtProgress } from '@/app/(protected)/(art)/hooks/useArtProgress'
 import { playMusic } from '@/app/(protected)/(art)/utils/sound'
 import XpChange from '@/app/(protected)/(battle)/components/XpChange'
 import type { BattleRenderer } from '@/app/(protected)/(battle)/utils/battleRenderer'
@@ -61,6 +62,7 @@ import LootGrid from '@/app/(protected)/(party)/components/LootGrid'
 import XpBar from '@/app/(protected)/(party)/components/XpBar'
 import { itemName, runeName, stanceNames } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
+import Loading from '@/app/components/Loading'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
@@ -178,6 +180,10 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   const [item, setItem] = useState<Item | null>(null)
   const [speed, setSpeed] = useState(1)
   const battleRef = useRef(battle)
+  /** A loading screen covers the battle until its art is loaded and drawn, and while its canvas recovers (see recoverFromContextLoss). */
+  const [ready, setReady] = useState(false)
+  const [unavailable, setUnavailable] = useState(false)
+  const { value: progress, report: reportProgress } = useArtProgress()
 
   useEffect(() => setSpeed(readSpeed()), [])
 
@@ -261,7 +267,8 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         labels,
         (id) => handleTapRef.current(id),
         backgroundOf(node, encounter),
-        node.id
+        node.id,
+        { onProgress: reportProgress, onUnavailable: (value) => !cancelled && setUnavailable(value) }
       )
 
       if (cancelled) {
@@ -277,6 +284,14 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
       let state = battleRef.current
 
       show(state, null)
+      // The first frame uploads the textures to the GPU: once it is drawn the loading screen goes, and the battle starts.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+      if (cancelled) {
+        return
+      }
+
+      setReady(true)
 
       while (!state.outcome && !cancelled) {
         // A hero that used an item keeps its turn (up to MAX_ITEMS_PER_TURN of them): no new turn then.
@@ -459,6 +474,7 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
   return (
     <div className="battle-screen">
       <div ref={stage} className="stage" />
+      {(!ready || unavailable) && <Loading className="over-canvas" progress={ready ? null : progress} />}
       <header ref={top} className="hud-top">
         <ol className="queue">
           {queue.map((combatant, index) => (

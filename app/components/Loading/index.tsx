@@ -1,9 +1,19 @@
 import './index.scss'
+import classNames from 'classnames'
+
+interface LoadingProps {
+  message?: string
+  /** How much has loaded, from 0 to 1: shown as a percentage under the seal (nothing when not known). */
+  progress?: number | null
+  className?: string
+}
 
 /** Full-area loading overlay: a flickering flame inside a slowly turning ring of runes. */
-export default function Loading({ message }: { message?: string }) {
+export default function Loading({ message, progress, className }: LoadingProps) {
+  const percent = progress == null ? null : Math.max(0, Math.min(100, Math.floor(progress * 100)))
+
   return (
-    <div className="loading-screen">
+    <div className={classNames('loading-screen', className)}>
       <div className="wrapper">
         <div className="seal">
           <svg className="ring" viewBox="0 0 100 100" aria-hidden="true">
@@ -16,6 +26,14 @@ export default function Loading({ message }: { message?: string }) {
           </svg>
         </div>
         {message && <p className="message">{message}</p>}
+        {percent != null && (
+          <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+            <div className="bar">
+              <div className="fill" style={{ transform: `scaleX(${percent / 100})` }} />
+            </div>
+            <span className="percent">{percent}%</span>
+          </div>
+        )}
       </div>
     </div>
   )

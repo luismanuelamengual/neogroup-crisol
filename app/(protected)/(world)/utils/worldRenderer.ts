@@ -1,5 +1,6 @@
 import { Application, Container, Graphics, Matrix, RenderTexture, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+import { watchArtLoading } from '@/app/(protected)/(art)/utils/art'
 import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { recoverFromContextLoss } from '@/app/(protected)/(art)/utils/webgl'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
@@ -10,13 +11,23 @@ import { buildTileMap } from '@/app/(protected)/(engine)/utils/tileMap'
 import { placeVillages } from '@/app/(protected)/(engine)/utils/village'
 import { darken, markerOf, MarkerStyle } from '@/app/(protected)/(world)/utils/mapStyle'
 import { loadMerchantHouses } from '@/app/(protected)/(world)/utils/merchantHouses'
-import { loadSceneryArt, paintSceneryTextures, paintShadow } from '@/app/(protected)/(world)/utils/sceneryTextures'
-import { loadGroundArt, paintGroundTextures } from '@/app/(protected)/(world)/utils/terrainTextures'
+import {
+  loadSceneryArt,
+  paintSceneryTextures,
+  paintShadow,
+  SceneryTextures
+} from '@/app/(protected)/(world)/utils/sceneryTextures'
+import { GroundTextures, loadGroundArt } from '@/app/(protected)/(world)/utils/terrainTextures'
 import { WorldAbyss } from '@/app/(protected)/(world)/utils/worldAbyss'
 import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
 import { WorldLairs } from '@/app/(protected)/(world)/utils/worldLairs'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
-import { addVillages, loadVillageTextures, paintContactShadow } from '@/app/(protected)/(world)/utils/worldVillages'
+import {
+  addVillages,
+  loadVillageTextures,
+  paintContactShadow,
+  VillageTextures
+} from '@/app/(protected)/(world)/utils/worldVillages'
 import {
   buildAbyssTextures,
   buildLairTextures,
@@ -84,6 +95,31 @@ const IDLE_AFTER = 0.6
 export interface WorldRendererOptions {
   /** Covers what the party has not seen yet (true by default; off to review the whole map). */
   fog?: boolean
+  /** How the loading of the art goes: files loaded and files in all (see watchArtLoading). */
+  onProgress?: (loaded: number, total: number) => void
+  /** The map cannot be shown for a while (the WebGL context lost while the app was in the background) and again it can. */
+  onUnavailable?: (unavailable: boolean) => void
+}
+
+/** All the art of the map, loaded before it is first drawn (no provisional drawing shows meanwhile). */
+interface WorldArt {
+  ground: GroundTextures
+  scenery: SceneryTextures
+  extras: Map<string, Texture>
+  houses: Awaited<ReturnType<typeof loadMerchantHouses>>
+  villages: VillageTextures
+}
+
+async function loadWorldArt(): Promise<WorldArt> {
+  const [ground, scenery, extras, houses, villages] = await Promise.all([
+    loadGroundArt(),
+    loadSceneryArt(() => paintSceneryTextures()),
+    loadZoneArt(),
+    loadMerchantHouses(),
+    loadVillageTextures()
+  ])
+
+  return { ground, scenery, extras, houses, villages }
 }
 
 /**
@@ -149,17 +185,14 @@ export class WorldRenderer {
     private readonly viewport: Viewport,
     private readonly world: World,
     onTap: (nodeId: string | null) => void,
+    art: WorldArt,
     private readonly options: WorldRendererOptions = {}
   ) {
     this.nodes = new Map(world.nodes.map((node) => [node.id, node]))
 
     this.tiles = buildTileMap(world)
     // Without WebGL 2 the ground is only the picture from far (its shader needs it).
-    this.ground = new WorldGround(
-      this.tiles,
-      paintGroundTextures(),
-      (app.renderer as WebGLRenderer).context?.webGLVersion === 2
-    )
+    this.ground = new WorldGround(this.tiles, art.ground, (app.renderer as WebGLRenderer).context?.webGLVersion === 2)
 
     this.fogCanvas = document.createElement('canvas')
     this.fogCanvas.width = Math.ceil(world.width / FOG_SCALE)
@@ -175,9 +208,13 @@ export class WorldRenderer {
     this.lairs = new WorldLairs(world, this.tiles)
     this.abyss = new WorldAbyss(world, this.tiles)
 
-    const provisional = paintSceneryTextures()
+    const zones = buildZoneTextures(art.scenery, art.extras)
 
-    this.scenery.setItems(placeScenery(world, this.tiles), provisional, buildZoneTextures(provisional, new Map()))
+    this.scenery.setItems(placeScenery(world, this.tiles), art.scenery, zones)
+    this.lairs.setTextures((zone) => buildLairTextures(zones, art.extras, zone), this.scenery)
+    this.abyss.setTextures(buildAbyssTextures(art.extras), this.scenery)
+    this.addMerchantHouses(art.houses)
+    addVillages(placeVillages(world, this.tiles), art.villages, this.scenery)
     this.outOfReach.alpha = OUT_OF_REACH_ALPHA
     // The ground goes under the viewport, as a picture of the screen (see drawGround).
     this.groundPicture = RenderTexture.create({ width: 1, height: 1, resolution: app.renderer.resolution })
@@ -216,6 +253,9 @@ export class WorldRenderer {
     options: WorldRendererOptions = {}
   ): Promise<WorldRenderer> {
     const app = new Application()
+    // The art loads while PixiJS starts; the map is built only with all of it.
+    const stopWatching = options.onProgress ? watchArtLoading(options.onProgress) : null
+    const loading = loadWorldArt()
 
     await app.init({
       resizeTo: element,
@@ -228,6 +268,14 @@ export class WorldRenderer {
     })
     element.appendChild(app.canvas)
 
+    let art: WorldArt
+
+    try {
+      art = await loading
+    } finally {
+      stopWatching?.()
+    }
+
     const viewport = new Viewport({
       screenWidth: app.screen.width,
       screenHeight: app.screen.height,
@@ -239,19 +287,15 @@ export class WorldRenderer {
     app.stage.addChild(viewport)
     viewport.drag().pinch().wheel({ smooth: 4 }).decelerate({ friction: 0.92 })
 
-    const renderer = new WorldRenderer(app, viewport, world, onTap, options)
+    const renderer = new WorldRenderer(app, viewport, world, onTap, art, options)
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
-    renderer.stopRecovering = recoverFromContextLoss(app, renderer.redrawGround)
+    renderer.stopRecovering = recoverFromContextLoss(app, renderer.redrawGround, options.onUnavailable)
     document.addEventListener('visibilitychange', renderer.handleVisibility)
 
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
-    void renderer.addMerchantHouses()
-    void renderer.addVillages()
-    void renderer.loadGroundArt()
-    void renderer.loadSceneryArt()
     app.renderer.on('resize', (width: number, height: number) => {
       viewport.resize(width, height)
       renderer.fitZoom()
@@ -262,13 +306,8 @@ export class WorldRenderer {
   }
 
   /** A house, tent or tower beside each merchant, so that the place reads from far. */
-  private async addMerchantHouses(): Promise<void> {
-    const houses = await loadMerchantHouses()
+  private addMerchantHouses(houses: WorldArt['houses']): void {
     const contactShadows = new Map(Object.values(houses).map((texture) => [texture, paintContactShadow(texture)]))
-
-    if (this.scenery.standing.destroyed) {
-      return
-    }
 
     for (const node of this.world.nodes) {
       if (!node.merchant) {
@@ -283,44 +322,6 @@ export class WorldRenderer {
       // A shadow along the edge of its base, as the cottages of the villages, so that it sits on the ground.
       this.scenery.add(sprite, contactShadows.get(sprite.texture))
       this.houses.set(node.id, sprite)
-    }
-
-    if (this.view) {
-      this.drawMarkers(this.view)
-    }
-  }
-
-  /** The cottages, the well, the fences and the fields of the village around a merchant. */
-  private async addVillages(): Promise<void> {
-    const textures = await loadVillageTextures()
-
-    if (!this.scenery.standing.destroyed) {
-      addVillages(placeVillages(this.world, this.tiles), textures, this.scenery)
-    }
-  }
-
-  /** The final art of the scenery, as far as it exists, with the drawings of the zones and the lairs made from it. */
-  private async loadSceneryArt(): Promise<void> {
-    const [art, extras] = await Promise.all([loadSceneryArt(paintSceneryTextures()), loadZoneArt()])
-
-    if (this.scenery.standing.destroyed) {
-      return
-    }
-
-    const zones = buildZoneTextures(art, extras)
-
-    this.scenery.setItems(placeScenery(this.world, this.tiles), art, zones)
-
-    this.lairs.setTextures((zone) => buildLairTextures(zones, extras, zone), this.scenery)
-    this.abyss.setTextures(buildAbyssTextures(extras), this.scenery)
-  }
-
-  /** The final art of the terrains, as far as it exists (the provisional textures stay otherwise). */
-  private async loadGroundArt(): Promise<void> {
-    const art = await loadGroundArt(paintGroundTextures())
-
-    if (art && !this.ground.destroyed) {
-      this.ground.setTextures(art)
     }
   }
 

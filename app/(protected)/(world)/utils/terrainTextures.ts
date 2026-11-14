@@ -1,4 +1,4 @@
-import { artUrl, loadArtManifest } from '@/app/(protected)/(art)/utils/art'
+import { artUrl, loadArtManifest, trackArt } from '@/app/(protected)/(art)/utils/art'
 import { TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { createRandom, Random } from '@/app/(protected)/(engine)/utils/random'
@@ -118,35 +118,25 @@ const LOOKS: Record<Terrain, Look> = {
   [Terrain.REDSAND]: { base: [176, 72, 44], dark: [122, 40, 32], light: [216, 112, 64], pattern: 'ripples' }
 }
 
-/** The provisional textures. */
-export function paintGroundTextures(): GroundTextures {
-  return {
-    terrains: new Map(TERRAINS.map((terrain, index) => [terrain, paintTerrain(terrain, createRandom(0x7e77 + index))])),
-    cliff: paintCliff(createRandom(0xc11f))
-  }
-}
-
-/** The textures with the final art of the ones that have it (null when none has). */
-export async function loadGroundArt(provisional: GroundTextures): Promise<GroundTextures | null> {
+/**
+ * The textures of the terrains: the final art where it exists, and the
+ * provisional drawing only of the ones that have none (each painted only then).
+ */
+export async function loadGroundArt(): Promise<GroundTextures> {
   const { images } = await loadArtManifest()
-  const read = async (id: string) => (images[id] ? await readImage(artUrl(id)).catch(() => null) : null)
-  const terrains = new Map(provisional.terrains)
-  let found = 0
+  const read = (id: string) => (images[id] ? trackArt(readImage(artUrl(id))).catch(() => null) : Promise.resolve(null))
+  // Every file at once, the cliff included.
+  const [arts, cliff] = await Promise.all([
+    Promise.all(TERRAINS.map((terrain) => read(`tiles/${terrain}`))),
+    read('tiles/cliff')
+  ])
 
-  await Promise.all(
-    TERRAINS.map(async (terrain) => {
-      const art = await read(`tiles/${terrain}`)
-
-      if (art) {
-        terrains.set(terrain, art)
-        found++
-      }
-    })
-  )
-
-  const cliff = await read('tiles/cliff')
-
-  return found || cliff ? { terrains, cliff: cliff ?? provisional.cliff } : null
+  return {
+    terrains: new Map(
+      TERRAINS.map((terrain, index) => [terrain, arts[index] ?? paintTerrain(terrain, createRandom(0x7e77 + index))])
+    ),
+    cliff: cliff ?? paintCliff(createRandom(0xc11f))
+  }
 }
 
 async function readImage(url: string): Promise<TerrainTexture> {

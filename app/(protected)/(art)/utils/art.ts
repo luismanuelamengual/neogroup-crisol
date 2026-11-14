@@ -4,8 +4,8 @@ import { isHandheld } from '@/app/(protected)/(art)/utils/device'
 
 /**
  * The final art, as far as it exists: the manifest says which images are
- * there (see `yarn art`), and anything missing is drawn with the provisional
- * art. Loaded once per session.
+ * there (see `yarn art`), and only what is missing is drawn with the
+ * provisional art. Loaded once per session.
  */
 
 let manifest: Promise<ArtManifest> | null = null
@@ -18,6 +18,53 @@ export function loadArtManifest(): Promise<ArtManifest> {
     .catch(() => EMPTY_MANIFEST)
 
   return manifest
+}
+
+/** Someone following the files of art that load (see watchArtLoading). */
+interface ArtWatcher {
+  loaded: number
+  total: number
+  onChange: (loaded: number, total: number) => void
+}
+
+const watchers = new Set<ArtWatcher>()
+
+/**
+ * Counts the files of art that start loading from now on and how many of
+ * them finished (failed ones too), for a loading screen. Only a counter per
+ * file: it costs nothing to the loads. Returns the function that stops counting.
+ */
+export function watchArtLoading(onChange: (loaded: number, total: number) => void): () => void {
+  const watcher: ArtWatcher = { loaded: 0, total: 0, onChange }
+
+  watchers.add(watcher)
+
+  return () => watchers.delete(watcher)
+}
+
+/** A file of art that loads, counted by whoever is watching (see watchArtLoading). */
+export function trackArt<T>(loading: Promise<T>): Promise<T> {
+  if (watchers.size === 0) {
+    return loading
+  }
+
+  const counting = [...watchers]
+
+  const done = () => {
+    for (const watcher of counting) {
+      watcher.loaded++
+      watcher.onChange(watcher.loaded, watcher.total)
+    }
+  }
+
+  for (const watcher of counting) {
+    watcher.total++
+    watcher.onChange(watcher.loaded, watcher.total)
+  }
+
+  loading.then(done, done)
+
+  return loading
 }
 
 export function artUrl(id: string): string {
@@ -33,7 +80,7 @@ export async function loadTextures(ids: string[]): Promise<Map<string, Texture>>
   await Promise.all(
     present.map(async (id) => {
       try {
-        textures.set(id, await loadArt(id, images[id]))
+        textures.set(id, await trackArt(loadArt(id, images[id])))
       } catch {
         // A file that does not load keeps the provisional art.
       }

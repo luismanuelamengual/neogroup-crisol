@@ -2,7 +2,7 @@ import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js
 import { HERO_LOADOUTS, heroRig, Rig, RIGS } from '@/app/(protected)/(art)/data/rigs'
 import { SHADOW_ALPHA, shadowOf } from '@/app/(protected)/(art)/data/shadows'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
-import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
+import { figureArtId, loadArtManifest, loadTextures, watchArtLoading } from '@/app/(protected)/(art)/utils/art'
 import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
@@ -234,9 +234,19 @@ export class BattleRenderer {
     /** A painted background for special places (null: the scenery builds the biome's landscape). */
     background: string | null,
     /** Each point of the map has its own scenery, made from this (its id). */
-    sceneSeed: string
+    sceneSeed: string,
+    {
+      onProgress,
+      onUnavailable
+    }: {
+      /** How the loading of the art goes: files loaded and files in all (see watchArtLoading). */
+      onProgress?: (loaded: number, total: number) => void
+      /** The battle cannot be shown for a while (the WebGL context lost in the background) and again it can. */
+      onUnavailable?: (unavailable: boolean) => void
+    } = {}
   ): Promise<BattleRenderer> {
     const app = new Application()
+    const stopWatching = onProgress ? watchArtLoading(onProgress) : null
     const { images, parts, props, decorations, battle: landscapes } = await loadArtManifest()
     const backgroundId = background && images[background] ? background : null
     const landscape = landscapes[battle.biome] ?? { bands: [], landmarks: [] }
@@ -261,7 +271,7 @@ export class BattleRenderer {
       ...figureIds,
       ...figureIds.flatMap((id) => (RIGS[id] ? rigPartIds(RIGS[id], parts) : [])),
       ...heroRigs.flatMap((rig) => (rig ? rigPartIds(rig, parts) : []))
-    ])
+    ]).finally(() => stopWatching?.())
 
     await app.init({
       resizeTo: element,
@@ -315,7 +325,7 @@ export class BattleRenderer {
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
     // The textures of the particles live only in the GPU: drawn again if the context is lost (the app in the background).
-    renderer.stopRecovering = recoverFromContextLoss(app, () => renderer.particles.redraw(app.renderer))
+    renderer.stopRecovering = recoverFromContextLoss(app, () => renderer.particles.redraw(app.renderer), onUnavailable)
 
     renderer.layout(battle)
     app.renderer.on('resize', () => renderer.layout(renderer.lastBattle ?? battle))

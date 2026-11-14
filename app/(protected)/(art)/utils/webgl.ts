@@ -13,18 +13,44 @@ import { Application } from 'pixi.js'
  * - the pictures drawn by code into the GPU (render textures) have no image
  *   to upload from: whoever owns them draws them again (`onRestored`).
  *
+ * Meanwhile the canvas shows nothing, and its first frame after uploads every
+ * texture again: `onUnavailable` says when the context is lost (true) and
+ * when that first frame was drawn (false), so a loading screen can cover it.
+ *
  * Returns the function that stops listening (call it before destroying the app).
  */
-export function recoverFromContextLoss(app: Application, onRestored?: () => void): () => void {
+export function recoverFromContextLoss(
+  app: Application,
+  onRestored?: () => void,
+  onUnavailable?: (unavailable: boolean) => void
+): () => void {
   const canvas = app.canvas
+  let frame = 0
+
+  const handleLost = () => {
+    cancelAnimationFrame(frame)
+    onUnavailable?.(true)
+  }
 
   // Added after the listener of PixiJS (in app.init), so it runs once PixiJS has restored its systems.
   const handleRestored = () => {
     app.renderer.resetState()
     onRestored?.()
+
+    if (onUnavailable) {
+      // The ticker draws on the next animation frame (uploading the textures again): after it, the picture is back.
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => onUnavailable(false))
+      })
+    }
   }
 
+  canvas.addEventListener('webglcontextlost', handleLost)
   canvas.addEventListener('webglcontextrestored', handleRestored)
 
-  return () => canvas.removeEventListener('webglcontextrestored', handleRestored)
+  return () => {
+    cancelAnimationFrame(frame)
+    canvas.removeEventListener('webglcontextlost', handleLost)
+    canvas.removeEventListener('webglcontextrestored', handleRestored)
+  }
 }

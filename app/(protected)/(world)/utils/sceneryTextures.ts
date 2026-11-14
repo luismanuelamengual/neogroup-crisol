@@ -38,31 +38,34 @@ export function paintSceneryTextures(resolution = 1): SceneryTextures {
   ) as SceneryTextures
 }
 
-/** The provisional drawings with the final art of the biomes that have it. */
-export async function loadSceneryArt(provisional: SceneryTextures): Promise<SceneryTextures> {
+/**
+ * The final art of the scenery; the provisional drawings (painted only when
+ * needed, `provisional`) stand in for the biomes and layers that have none.
+ */
+export async function loadSceneryArt(provisional: () => SceneryTextures): Promise<SceneryTextures> {
   const { scenery } = await loadArtManifest()
-  const result = { ...provisional }
   const biomes = Object.entries(scenery) as [Biome, Record<SceneryItem['layer'], string[]>][]
   // The files of every biome at once, not one biome after another.
   const loads = await Promise.all(biomes.map(([, layers]) => loadTextures(Object.values(layers).flat())))
+  const art = new Map(biomes.map(([biome, layers], index) => [biome, { layers, loaded: loads[index] }]))
+  let painted: SceneryTextures | null = null
+  const drawing = (biome: Biome, layer: SceneryItem['layer']) => (painted ??= provisional())[biome][layer]
 
-  for (const [index, [biome, layers]] of biomes.entries()) {
-    const loaded = loads[index]
+  return Object.fromEntries(
+    Object.values(Biome).map((biome) => {
+      const found = art.get(biome)
 
-    const pick = (ids: string[], fallback: Texture[]) => {
-      const found = ids.flatMap((id) => (loaded.has(id) ? [loaded.get(id)!] : []))
+      const pick = (layer: SceneryItem['layer']) => {
+        const textures = (found?.layers[layer] ?? []).flatMap((id) =>
+          found!.loaded.has(id) ? [found!.loaded.get(id)!] : []
+        )
 
-      return found.length ? found : fallback
-    }
+        return textures.length ? textures : drawing(biome, layer)
+      }
 
-    result[biome] = {
-      tall: pick(layers.tall, provisional[biome].tall),
-      low: pick(layers.low, provisional[biome].low),
-      ground: pick(layers.ground, provisional[biome].ground)
-    }
-  }
-
-  return result
+      return [biome, { tall: pick('tall'), low: pick('low'), ground: pick('ground') }]
+    })
+  ) as SceneryTextures
 }
 
 /** A soft dark oval, for the shadow at the foot of every piece. */
