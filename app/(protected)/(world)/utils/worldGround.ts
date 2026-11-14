@@ -1,4 +1,5 @@
 import { BufferImageSource, Container, Geometry, Mesh, Rectangle, Shader, Sprite, Texture } from 'pixi.js'
+import { isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { LAKES, TERRAINS } from '@/app/(protected)/(engine)/data/terrains'
 import { Terrain } from '@/app/(protected)/(engine)/models/Terrain'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
@@ -23,7 +24,9 @@ import { GroundTextures, TerrainTexture } from '@/app/(protected)/(world)/utils/
  * blend it with its neighbors.
  */
 const ATLAS_COLUMNS = 6
+/** On a phone the cells are smaller: less than half the memory, and the screen shows it at about the same sharpness. */
 const ATLAS_CELL = 400
+const HANDHELD_ATLAS_CELL = 256
 /** Cells of the info texture (see infoTexture): room for every terrain. */
 const INFO_WIDTH = ATLAS_COLUMNS * ATLAS_COLUMNS
 /** How much the face of a cliff takes the color of the plateau over it (the rest: earth and rock). */
@@ -52,6 +55,8 @@ export class WorldGround extends Container {
   private atlas: Texture = Texture.EMPTY
   private info: Texture = Texture.EMPTY
   private textures: TerrainTexture[] = []
+  /** Goes up whenever the ground looks different (its textures, or the shader turned on or off), so a picture of it can be redrawn. */
+  version = 0
 
   constructor(
     private readonly map: TileMap,
@@ -107,11 +112,17 @@ export class WorldGround extends Container {
     this.mesh.shader!.resources.uAtlas = this.atlas.source
     this.mesh.shader!.resources.uInfo = this.info.source
     this.paintFar()
+    this.version++
   }
 
   /** Close up the shader draws the ground; from far, the small picture. */
   update(visible: Rectangle): void {
-    this.mesh.visible = this.close && visible.width <= FAR_WIDTH
+    const shown = this.close && visible.width <= FAR_WIDTH
+
+    if (shown !== this.mesh.visible) {
+      this.mesh.visible = shown
+      this.version++
+    }
   }
 
   override destroy(): void {
@@ -161,8 +172,9 @@ function tilesTexture({ columns, rows, terrains, heights, paved }: TileMap): Tex
 
 /** Every texture in its cell of the atlas, with mipmaps so they do not shimmer from far. */
 function atlasTexture(textures: TerrainTexture[]): Texture {
-  const side = ATLAS_CELL * ATLAS_COLUMNS
-  const repeat = ATLAS_CELL / 2
+  const cell = isHandheld() ? HANDHELD_ATLAS_CELL : ATLAS_CELL
+  const side = cell * ATLAS_COLUMNS
+  const repeat = cell / 2
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')!
 
@@ -172,15 +184,15 @@ function atlasTexture(textures: TerrainTexture[]): Texture {
   context.imageSmoothingEnabled = false
   textures.forEach((texture, index) => {
     const image = document.createElement('canvas')
-    const left = (index % ATLAS_COLUMNS) * ATLAS_CELL
-    const top = Math.floor(index / ATLAS_COLUMNS) * ATLAS_CELL
+    const left = (index % ATLAS_COLUMNS) * cell
+    const top = Math.floor(index / ATLAS_COLUMNS) * cell
 
     image.width = texture.size
     image.height = texture.size
     image.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(texture.data), texture.size), 0, 0)
     context.save()
     context.beginPath()
-    context.rect(left, top, ATLAS_CELL, ATLAS_CELL)
+    context.rect(left, top, cell, cell)
     context.clip()
 
     for (let row = -1; row <= 1; row++) {

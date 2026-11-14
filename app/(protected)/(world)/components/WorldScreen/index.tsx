@@ -403,7 +403,13 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
   return (
     <div className="world-screen">
-      <WorldMap ref={map} world={index.world} view={view} onTap={handleTap} />
+      <WorldMap
+        ref={map}
+        world={index.world}
+        view={view}
+        onTap={handleTap}
+        paused={Boolean(pending || heroId || inventoryOpen || bestiaryOpen)}
+      />
       <MapHud
         location={nameOf(position.id)}
         biome={t(`world.biomes.${position.biome}` as MessageKey)}

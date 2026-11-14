@@ -1,5 +1,6 @@
-import { Application, Container, Graphics, Sprite, Texture, WebGLRenderer } from 'pixi.js'
+import { Application, Container, Graphics, Matrix, RenderTexture, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
@@ -70,6 +71,13 @@ const LOST_XP_CORE = 0xe6f8ff
 /** Height of the building of each merchant, standing on its point in place of its marker (the door just behind the hero). */
 const HOUSE_HEIGHT = 170
 const FOG = 'rgba(7, 4, 13, 0.95)'
+/**
+ * On a phone, frames per second while the camera stands still (the trees sway
+ * and the lairs glow, slowly enough for half the frames), and how long after
+ * the last move the full rate stays.
+ */
+const IDLE_FPS = 30
+const IDLE_AFTER = 0.6
 
 /** How the map is drawn. */
 export interface WorldRendererOptions {
@@ -104,6 +112,18 @@ export class WorldRenderer {
   private readonly houses = new Map<string, Sprite>()
   private walking = false
   private elapsed = 0
+  /**
+   * The ground (its shader reads many textures per pixel) is drawn into this
+   * picture of the screen only when the camera moves; every other frame
+   * shows the picture as it is.
+   */
+  private groundPicture: RenderTexture
+  private readonly groundCache: Sprite
+  private readonly groundTransform = new Matrix()
+  private groundKey = ''
+  /** When the camera last moved (seconds of `elapsed`): the frame rate drops a while after it. */
+  private lastMove = 0
+  private readonly handheld = isHandheld()
   /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
   private resizeObserver: ResizeObserver | null = null
 
@@ -142,9 +162,12 @@ export class WorldRenderer {
 
     this.scenery.setItems(placeScenery(world, this.tiles), provisional, buildZoneTextures(provisional, new Map()))
     this.outOfReach.alpha = OUT_OF_REACH_ALPHA
+    // The ground goes under the viewport, as a picture of the screen (see drawGround).
+    this.groundPicture = RenderTexture.create({ width: 1, height: 1, resolution: app.renderer.resolution })
+    this.groundCache = new Sprite(this.groundPicture)
+    app.stage.addChildAt(this.groundCache, 0)
     // The trees, the landmarks and the hero stand over the trails and the points, sorted by depth.
     viewport.addChild(
-      this.ground,
       this.scenery.ground,
       this.lairs.circles,
       this.abyss.ground,
@@ -180,9 +203,9 @@ export class WorldRenderer {
     await app.init({
       resizeTo: element,
       background: '#0d0806',
-      antialias: true,
+      antialias: canvasAntialias(),
       autoDensity: true,
-      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      resolution: canvasResolution(),
       // The ground is drawn by a WebGL shader (see groundShader.ts).
       preference: 'webgl'
     })
@@ -296,8 +319,24 @@ export class WorldRenderer {
     this.scenery.destroy()
     this.lairs.destroy()
     this.abyss.destroy()
+    // The ground is out of the stage (see drawGround): it goes on its own, with its picture.
+    this.ground.destroy()
+    this.groundCache.destroy()
+    this.groundPicture.destroy(true)
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true, texture: true })
+  }
+
+  /**
+   * Stops drawing while something covers the whole map (a battle, the sheet
+   * of a hero, the inventory) and starts again when it is gone.
+   */
+  setPaused(paused: boolean): void {
+    if (paused) {
+      this.app.ticker.stop()
+    } else {
+      this.app.ticker.start()
+    }
   }
 
   /** Draws the map for a new state of the game. */
@@ -732,9 +771,10 @@ export class WorldRenderer {
     const visible = this.viewport.getVisibleBounds()
 
     this.ground.update(visible)
+    this.drawGround()
     this.scenery.update(visible, this.elapsed)
-    this.lairs.update(this.elapsed)
-    this.abyss.update(this.elapsed)
+    this.lairs.update(this.elapsed, visible)
+    this.abyss.update(this.elapsed, visible)
     this.hero.scale.set(1 + pulse * 0.04)
     this.drawBeacons(pulse)
     this.drawLostXp()
@@ -747,5 +787,44 @@ export class WorldRenderer {
 
       this.selection.circle(selected.x, selected.y, radius).stroke({ width: 7, color: 0xffffff, alpha: 0.85 })
     }
+
+    if (this.handheld) {
+      this.app.ticker.maxFPS = this.walking || this.elapsed - this.lastMove < IDLE_AFTER ? 0 : IDLE_FPS
+    }
+  }
+
+  /** The ground into its picture, only when the camera (or the size of the screen, or the textures) changed. */
+  private drawGround(): void {
+    const { width, height } = this.app.screen
+    const { resolution } = this.app.renderer
+    const { x, y, scale } = this.viewport
+    const key = `${x},${y},${scale.x},${scale.y},${width},${height},${resolution},${this.ground.version}`
+
+    if (key === this.groundKey) {
+      return
+    }
+
+    this.groundKey = key
+    this.lastMove = this.elapsed
+
+    if (
+      this.groundPicture.width !== width ||
+      this.groundPicture.height !== height ||
+      this.groundPicture.source.resolution !== resolution
+    ) {
+      // A new picture rather than a resized one: the resized one is drawn into but can show black.
+      this.groundPicture.destroy(true)
+      this.groundPicture = RenderTexture.create({ width, height, resolution })
+      this.groundCache.texture = this.groundPicture
+    }
+
+    this.groundTransform.set(scale.x, 0, 0, scale.y, x, y)
+    this.app.renderer.render({
+      container: this.ground,
+      target: this.groundPicture,
+      transform: this.groundTransform,
+      clear: true,
+      clearColor: [0, 0, 0, 0]
+    })
   }
 }

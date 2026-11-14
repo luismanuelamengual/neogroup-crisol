@@ -1,4 +1,4 @@
-import { Graphics, Sprite, Texture } from 'pixi.js'
+import { Graphics, Rectangle, Sprite, Texture } from 'pixi.js'
 import { BIOMES_ORDER, LAKES } from '@/app/(protected)/(engine)/data/terrains'
 import { LAIRS } from '@/app/(protected)/(engine)/data/zones'
 import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
@@ -181,13 +181,14 @@ export class WorldLairs {
   }
 
   /** The magic of the lairs whose captive waits, moving. */
-  update(elapsed: number): void {
+  update(elapsed: number, visible: Rectangle): void {
     this.circles.clear()
     this.motes.clear()
     this.beams.clear()
 
     for (const { node, magic } of this.lairs) {
-      if (!this.freed.has(node.id)) {
+      // Redrawn every frame: only the lairs whose circle or beam can be on screen.
+      if (!this.freed.has(node.id) && onScreen(node, visible)) {
         this.drawCircle(node, magic, elapsed)
 
         if (magic.motes === 'whirl') {
@@ -495,4 +496,16 @@ export class WorldLairs {
       .ellipse(x, y - 40, BEAM_WIDTH * 0.7, BEAM_WIDTH * 0.25)
       .fill({ color: light, alpha: 0.12 + breath * 0.1 })
   }
+}
+
+/** Whether the magic of a lair (its circle, its motes and the beam over it) can be inside the visible area. */
+function onScreen({ x, y }: WorldNode, visible: Rectangle): boolean {
+  const side = CIRCLE_RADIUS * 2
+
+  return (
+    x + side >= visible.x &&
+    x - side <= visible.x + visible.width &&
+    y + side >= visible.y &&
+    y - BEAM_HEIGHT - side <= visible.y + visible.height
+  )
 }

@@ -1,4 +1,5 @@
 import { BlurFilter, Container, Graphics, MeshPlane, Rectangle, Sprite, Texture } from 'pixi.js'
+import { isHandheld } from '@/app/(protected)/(art)/utils/device'
 import {
   BiomeLook,
   LandscapePlan,
@@ -1107,7 +1108,12 @@ export class BattleScenery {
     const color = mix(this.look.groundDark, 0x000000, 0.45)
     const edges = random() < 0.35 ? ['left', 'right'] : [random() < 0.5 ? 'left' : 'right']
 
-    layer.filters = [new BlurFilter({ strength: 3 * scale, quality: 2 })]
+    // On a phone the blur is worked out at half the pixels and in one pass: for something this soft it looks the same.
+    layer.filters = [
+      isHandheld()
+        ? new BlurFilter({ strength: 3 * scale, quality: 1, resolution: 0.5 })
+        : new BlurFilter({ strength: 3 * scale, quality: 2 })
+    ]
 
     for (const edge of edges) {
       const holder = new Container()

@@ -3,6 +3,7 @@ import { HERO_LOADOUTS, heroRig, Rig, RIGS } from '@/app/(protected)/(art)/data/
 import { SHADOW_ALPHA, shadowOf } from '@/app/(protected)/(art)/data/shadows'
 import { ArtManifest } from '@/app/(protected)/(art)/models/ArtManifest'
 import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(art)/utils/art'
+import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
 import { ArrowKind, arrowKindOf, drawArrow, drawImpact, drawTrail } from '@/app/(protected)/(battle)/utils/arrows'
@@ -84,6 +85,9 @@ const DAMAGE_COLORS: Partial<Record<DamageType, number>> = {
   [DamageType.LIGHT]: 0xfff7c2,
   [DamageType.DARKNESS]: 0xc084fc
 }
+/** Average frame (ms) slower than this: the effects get lighter. Seconds still slow after that before the canvas draws fewer pixels. */
+const SLOW_FRAME = 24
+const SLOW_WAIT = 3
 const FONT = "'Lilita One', Nunito, sans-serif"
 /** Height of a fighter of size 1, in stage pixels at scale 1. */
 export const FIGURE_HEIGHT = 120
@@ -143,6 +147,9 @@ export class BattleRenderer {
   private readonly reducedMotion = prefersReducedMotion()
   /** Average time of a frame (ms): when it is slow the effects drop to their light quality. */
   private frameTime = 16
+  /** When the effects dropped to their light quality (seconds of `elapsed`). */
+  private slowSince = 0
+  private readonly handheld = isHandheld()
   private readonly figures = new Map<string, Figure>()
   private readonly marker = new Graphics()
   private markedId: string | null = null
@@ -241,9 +248,9 @@ export class BattleRenderer {
     await app.init({
       resizeTo: element,
       background: '#07040d',
-      antialias: true,
+      antialias: canvasAntialias(),
       autoDensity: true,
-      resolution: Math.min(window.devicePixelRatio || 1, 2)
+      resolution: canvasResolution()
     })
     element.appendChild(app.canvas)
 
@@ -1190,12 +1197,23 @@ export class BattleRenderer {
     })
   }
 
-  /** When the frames slow down for a while, the effects drop to their light quality (and stay there). */
+  /**
+   * When the frames slow down for a while, the effects drop to their light
+   * quality; if they are still slow a while later, on a phone, the canvas
+   * draws one pixel per CSS pixel. Both stay so until the end of the battle.
+   */
   private watchFrames(deltaMS: number): void {
     this.frameTime = this.frameTime * 0.95 + Math.min(100, deltaMS) * 0.05
 
-    if (this.particles.quality === 'high' && this.frameTime > 24 && this.elapsed > 3) {
+    if (this.frameTime <= SLOW_FRAME || this.elapsed <= 3) {
+      return
+    }
+
+    if (this.particles.quality === 'high') {
       this.particles.quality = 'low'
+      this.slowSince = this.elapsed
+    } else if (this.handheld && this.app.renderer.resolution > 1 && this.elapsed - this.slowSince > SLOW_WAIT) {
+      this.app.renderer.resize(this.app.screen.width, this.app.screen.height, 1)
     }
   }
 

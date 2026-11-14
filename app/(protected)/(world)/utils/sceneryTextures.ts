@@ -42,9 +42,12 @@ export function paintSceneryTextures(resolution = 1): SceneryTextures {
 export async function loadSceneryArt(provisional: SceneryTextures): Promise<SceneryTextures> {
   const { scenery } = await loadArtManifest()
   const result = { ...provisional }
+  const biomes = Object.entries(scenery) as [Biome, Record<SceneryItem['layer'], string[]>][]
+  // The files of every biome at once, not one biome after another.
+  const loads = await Promise.all(biomes.map(([, layers]) => loadTextures(Object.values(layers).flat())))
 
-  for (const [biome, layers] of Object.entries(scenery) as [Biome, Record<SceneryItem['layer'], string[]>][]) {
-    const loaded = await loadTextures(Object.values(layers).flat())
+  for (const [index, [biome, layers]] of biomes.entries()) {
+    const loaded = loads[index]
 
     const pick = (ids: string[], fallback: Texture[]) => {
       const found = ids.flatMap((id) => (loaded.has(id) ? [loaded.get(id)!] : []))

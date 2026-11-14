@@ -17,15 +17,18 @@ interface WorldMapProps {
   onTap: (nodeId: string | null) => void
   /** Covers what the party has not seen yet (off only to review the whole map). */
   fog?: boolean
+  /** Something covers the whole map (a battle, a full screen page): it stops drawing meanwhile. */
+  paused?: boolean
   ref?: Ref<WorldMapHandle>
 }
 
 /** The PixiJS world map (see WorldRenderer), loaded only in the browser. */
-export default function WorldMap({ world, view, onTap, fog = true, ref }: WorldMapProps) {
+export default function WorldMap({ world, view, onTap, fog = true, paused = false, ref }: WorldMapProps) {
   const element = useRef<HTMLDivElement>(null)
   const renderer = useRef<WorldRenderer | null>(null)
   const viewRef = useRef(view)
   const onTapRef = useRef(onTap)
+  const pausedRef = useRef(paused)
 
   useEffect(() => {
     onTapRef.current = onTap
@@ -51,6 +54,7 @@ export default function WorldMap({ world, view, onTap, fog = true, ref }: WorldM
       renderer.current = instance
       instance.update(viewRef.current)
       instance.centerOn(viewRef.current.positionNodeId, false)
+      instance.setPaused(pausedRef.current)
     })()
 
     return () => {
@@ -64,6 +68,11 @@ export default function WorldMap({ world, view, onTap, fog = true, ref }: WorldM
     viewRef.current = view
     renderer.current?.update(view)
   }, [view])
+
+  useEffect(() => {
+    pausedRef.current = paused
+    renderer.current?.setPaused(paused)
+  }, [paused])
 
   useImperativeHandle(
     ref,

@@ -1,4 +1,5 @@
 import { Container, Graphics, Renderer, Sprite, Texture } from 'pixi.js'
+import { isHandheld } from '@/app/(protected)/(art)/utils/device'
 
 /**
  * The small bits of the attack effects (embers, sparks, crystals, rocks...):
@@ -235,10 +236,8 @@ export function initialQuality(): EffectQuality {
     return 'high'
   }
 
-  const touch = window.matchMedia?.('(pointer: coarse)').matches ?? false
-  const cores = navigator.hardwareConcurrency ?? 4
-
-  return touch && cores <= 6 ? 'low' : 'high'
+  // A phone or a tablet starts light: its screen has many pixels to fill with each particle.
+  return isHandheld() ? 'low' : 'high'
 }
 
 /** Whether the player asked the system for less motion: no shaking and soft flashes. */

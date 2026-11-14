@@ -1,4 +1,4 @@
-import { Graphics, Sprite, Texture } from 'pixi.js'
+import { Graphics, Rectangle, Sprite, Texture } from 'pixi.js'
 import { LAKES } from '@/app/(protected)/(engine)/data/terrains'
 import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { ZONES_ORDER } from '@/app/(protected)/(engine)/data/zones'
@@ -224,22 +224,26 @@ export class WorldAbyss {
     }
   }
 
-  update(elapsed: number): void {
+  update(elapsed: number, visible: Rectangle): void {
     this.ground.clear()
     this.air.clear()
     this.sky.clear()
-    this.drawForecourt(elapsed)
 
-    if (this.open) {
-      this.drawVortex(elapsed)
-    } else {
-      this.drawDarkHole(elapsed)
-      this.drawChains(elapsed)
+    // Redrawn every frame: only while the gate or the forge (with their beams and embers) can be on screen.
+    if (near(this.gate, visible, PORTAL_BEAM.height + RING_RADIUS)) {
+      this.drawForecourt(elapsed)
+
+      if (this.open) {
+        this.drawVortex(elapsed)
+      } else {
+        this.drawDarkHole(elapsed)
+        this.drawChains(elapsed)
+      }
+
+      this.drawPortalBeam(elapsed)
     }
 
-    this.drawPortalBeam(elapsed)
-
-    if (!this.crisolDown) {
+    if (!this.crisolDown && near(this.crisol, visible, EMBERS_REACH + FORGE_RADIUS)) {
       this.drawForge(elapsed)
     }
 
@@ -547,4 +551,14 @@ export class WorldAbyss {
       this.sky.circle(x, y - 40, radius + beat * 60).fill({ color: FORGE.color, alpha: alpha + beat * 0.08 })
     }
   }
+}
+
+/** Whether something drawn around a point, up to `reach` from it, can be inside the visible area. */
+function near({ x, y }: WorldNode, visible: Rectangle, reach: number): boolean {
+  return (
+    x + reach >= visible.x &&
+    x - reach <= visible.x + visible.width &&
+    y + reach >= visible.y &&
+    y - reach <= visible.y + visible.height
+  )
 }

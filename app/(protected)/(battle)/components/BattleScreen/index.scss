@@ -27,6 +27,11 @@
       0 4px 14px rgba(0, 0, 0, 0.45),
       inset 0 1px 0 rgba(255, 226, 160, 0.12);
     backdrop-filter: blur(6px);
+
+    // On a phone the blur behind every panel costs a pass over the canvas each frame: the glass is opaque enough without it.
+    @media (pointer: coarse) {
+      backdrop-filter: none;
+    }
   }
 
   .hud-top {
