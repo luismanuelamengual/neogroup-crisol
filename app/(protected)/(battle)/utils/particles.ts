@@ -1,4 +1,4 @@
-import { Container, Graphics, Renderer, Sprite, Texture } from 'pixi.js'
+import { Container, Graphics, Matrix, Renderer, Sprite, Texture } from 'pixi.js'
 import { isHandheld } from '@/app/(protected)/(art)/utils/device'
 
 /**
@@ -68,6 +68,26 @@ export class Particles {
   constructor(renderer: Renderer, quality: EffectQuality) {
     this.quality = quality
     this.textures = drawTextures(renderer)
+  }
+
+  /**
+   * Draws the shapes again into the same textures: they live only in the GPU
+   * and come back empty when the WebGL context is lost (see recoverFromContextLoss).
+   */
+  redraw(renderer: Renderer): void {
+    for (const shape of Object.keys(SHAPES) as ParticleShape[]) {
+      const g = paintShape(shape)
+
+      // generateTexture placed the frame (-16, -16) at the corner of the texture.
+      renderer.render({
+        container: g,
+        target: this.textures[shape],
+        transform: new Matrix(1, 0, 0, 1, 16, 16),
+        clear: true,
+        clearColor: [0, 0, 0, 0]
+      })
+      g.destroy()
+    }
   }
 
   /** The texture of a shape, for effects that place their own sprites. */
@@ -170,61 +190,68 @@ function between([min, max]: [number, number]): number {
 }
 
 /** The shapes, in white (each particle gets its tint), 32 pixels wide. */
+const SHAPES: Record<ParticleShape, (g: Graphics) => void> = {
+  // A soft round glow: rings that get brighter towards the center.
+  dot: (g) => {
+    for (let ring = 8; ring >= 1; ring--) {
+      g.circle(0, 0, ring * 2).fill({ color: 0xffffff, alpha: 0.2 })
+    }
+
+    g.circle(0, 0, 7).fill({ color: 0xffffff })
+  },
+  spark: (g) => {
+    g.poly([-16, 0, 0, -3, 16, 0, 0, 3]).fill({ color: 0xffffff, alpha: 0.5 })
+    g.poly([-12, 0, 0, -1.5, 12, 0, 0, 1.5]).fill({ color: 0xffffff })
+  },
+  shard: (g) => {
+    g.poly([-14, 0, -2, -6, 14, 0, -2, 6]).fill({ color: 0xffffff, alpha: 0.9 })
+    g.poly([-8, 0, -1, -2.5, 10, 0, -1, 2.5]).fill({ color: 0xffffff })
+  },
+  flake: (g) => {
+    for (let arm = 0; arm < 3; arm++) {
+      const angle = (arm / 3) * Math.PI
+
+      g.moveTo(Math.cos(angle) * -12, Math.sin(angle) * -12)
+        .lineTo(Math.cos(angle) * 12, Math.sin(angle) * 12)
+        .stroke({ width: 3, color: 0xffffff, cap: 'round' })
+    }
+
+    g.circle(0, 0, 3).fill({ color: 0xffffff })
+  },
+  rock: (g) => {
+    g.poly([-11, -4, -4, -11, 8, -9, 12, 2, 5, 11, -7, 9])
+      .fill({ color: 0xffffff })
+      .stroke({ width: 2.5, color: 0x3a2a1c })
+  },
+  ring: (g) => {
+    g.circle(0, 0, 13).stroke({ width: 3, color: 0xffffff })
+  },
+  leaf: (g) => {
+    g.ellipse(0, 0, 12, 5).fill({ color: 0xffffff })
+  }
+}
+
+/** A shape on a graphics, with an invisible frame so every texture is centered and the same size. */
+function paintShape(shape: ParticleShape): Graphics {
+  const g = new Graphics()
+
+  g.rect(-16, -16, 32, 32).fill({ color: 0xffffff, alpha: 0 })
+  SHAPES[shape](g)
+
+  return g
+}
+
 function drawTextures(renderer: Renderer): Record<ParticleShape, Texture> {
-  const make = (draw: (g: Graphics) => void) => {
-    const g = new Graphics()
+  const textures = {} as Record<ParticleShape, Texture>
 
-    // An invisible frame, so every texture is centered and the same size.
-    g.rect(-16, -16, 32, 32).fill({ color: 0xffffff, alpha: 0 })
-    draw(g)
+  for (const shape of Object.keys(SHAPES) as ParticleShape[]) {
+    const g = paintShape(shape)
 
-    const texture = renderer.generateTexture({ target: g, resolution: 2 })
-
+    textures[shape] = renderer.generateTexture({ target: g, resolution: 2 })
     g.destroy()
-
-    return texture
   }
 
-  return {
-    // A soft round glow: rings that get brighter towards the center.
-    dot: make((g) => {
-      for (let ring = 8; ring >= 1; ring--) {
-        g.circle(0, 0, ring * 2).fill({ color: 0xffffff, alpha: 0.2 })
-      }
-
-      g.circle(0, 0, 7).fill({ color: 0xffffff })
-    }),
-    spark: make((g) => {
-      g.poly([-16, 0, 0, -3, 16, 0, 0, 3]).fill({ color: 0xffffff, alpha: 0.5 })
-      g.poly([-12, 0, 0, -1.5, 12, 0, 0, 1.5]).fill({ color: 0xffffff })
-    }),
-    shard: make((g) => {
-      g.poly([-14, 0, -2, -6, 14, 0, -2, 6]).fill({ color: 0xffffff, alpha: 0.9 })
-      g.poly([-8, 0, -1, -2.5, 10, 0, -1, 2.5]).fill({ color: 0xffffff })
-    }),
-    flake: make((g) => {
-      for (let arm = 0; arm < 3; arm++) {
-        const angle = (arm / 3) * Math.PI
-
-        g.moveTo(Math.cos(angle) * -12, Math.sin(angle) * -12)
-          .lineTo(Math.cos(angle) * 12, Math.sin(angle) * 12)
-          .stroke({ width: 3, color: 0xffffff, cap: 'round' })
-      }
-
-      g.circle(0, 0, 3).fill({ color: 0xffffff })
-    }),
-    rock: make((g) => {
-      g.poly([-11, -4, -4, -11, 8, -9, 12, 2, 5, 11, -7, 9])
-        .fill({ color: 0xffffff })
-        .stroke({ width: 2.5, color: 0x3a2a1c })
-    }),
-    ring: make((g) => {
-      g.circle(0, 0, 13).stroke({ width: 3, color: 0xffffff })
-    }),
-    leaf: make((g) => {
-      g.ellipse(0, 0, 12, 5).fill({ color: 0xffffff })
-    })
-  }
+  return textures
 }
 
 /**

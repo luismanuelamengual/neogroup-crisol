@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, Matrix, RenderTexture, Sprite, Texture, WebGLRenderer } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
+import { recoverFromContextLoss } from '@/app/(protected)/(art)/utils/webgl'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
@@ -126,6 +127,22 @@ export class WorldRenderer {
   private readonly handheld = isHandheld()
   /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
   private resizeObserver: ResizeObserver | null = null
+  /** Stops following the losses of the WebGL context (see recoverFromContextLoss). */
+  private stopRecovering: (() => void) | null = null
+  /**
+   * The picture of the ground lives only in the GPU: when the phone suspends
+   * the app (an installed PWA in the background) the WebGL context can be
+   * lost, and the picture comes back black. It is drawn again on the next frame.
+   */
+  private readonly redrawGround = (): void => {
+    this.groundKey = ''
+  }
+  /** Coming back to the app: the ground again, in case the GPU dropped it without saying so. */
+  private readonly handleVisibility = (): void => {
+    if (document.visibilityState === 'visible') {
+      this.redrawGround()
+    }
+  }
 
   private constructor(
     private readonly app: Application,
@@ -226,6 +243,8 @@ export class WorldRenderer {
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
+    renderer.stopRecovering = recoverFromContextLoss(app, renderer.redrawGround)
+    document.addEventListener('visibilitychange', renderer.handleVisibility)
 
     renderer.fitZoom()
     viewport.setZoom(START_ZOOM, true)
@@ -315,6 +334,8 @@ export class WorldRenderer {
 
   destroy(): void {
     this.resizeObserver?.disconnect()
+    this.stopRecovering?.()
+    document.removeEventListener('visibilitychange', this.handleVisibility)
     // The scenery first, keeping its textures: they are shared through the asset cache.
     this.scenery.destroy()
     this.lairs.destroy()

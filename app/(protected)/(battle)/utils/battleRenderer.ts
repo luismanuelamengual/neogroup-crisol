@@ -6,6 +6,7 @@ import { figureArtId, loadArtManifest, loadTextures } from '@/app/(protected)/(a
 import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
 import { RigFigure, rigPartIds } from '@/app/(protected)/(art)/utils/rig'
 import { playSfx } from '@/app/(protected)/(art)/utils/sound'
+import { recoverFromContextLoss } from '@/app/(protected)/(art)/utils/webgl'
 import { ArrowKind, arrowKindOf, drawArrow, drawImpact, drawTrail } from '@/app/(protected)/(battle)/utils/arrows'
 import { ActorStyle, AttackEffect, attackEffectOf, LOOK_COLORS } from '@/app/(protected)/(battle)/utils/attackEffects'
 import { AttackVisuals, EffectTarget, HitOutcome } from '@/app/(protected)/(battle)/utils/attackVisuals'
@@ -163,6 +164,8 @@ export class BattleRenderer {
   private readonly camera = { x: 0, zoom: 1, targetX: 0, targetZoom: 1 }
   /** Follows the size of the element (it can change without the window doing so, e.g. panels below it). */
   private resizeObserver: ResizeObserver | null = null
+  /** Stops following the losses of the WebGL context (see recoverFromContextLoss). */
+  private stopRecovering: (() => void) | null = null
   /** Animation speed (×1 or ×2). */
   speed = 1
 
@@ -296,6 +299,8 @@ export class BattleRenderer {
 
     renderer.resizeObserver = new ResizeObserver(() => app.resize())
     renderer.resizeObserver.observe(element)
+    // The textures of the particles live only in the GPU: drawn again if the context is lost (the app in the background).
+    renderer.stopRecovering = recoverFromContextLoss(app, () => renderer.particles.redraw(app.renderer))
 
     renderer.layout(battle)
     app.renderer.on('resize', () => renderer.layout(renderer.lastBattle ?? battle))
@@ -305,6 +310,7 @@ export class BattleRenderer {
 
   destroy(): void {
     this.resizeObserver?.disconnect()
+    this.stopRecovering?.()
     this.particles.destroy()
     // Not `true`: that also releases resources shared with the other PixiJS apps of the page.
     this.app.destroy({ removeView: true }, { children: true })
