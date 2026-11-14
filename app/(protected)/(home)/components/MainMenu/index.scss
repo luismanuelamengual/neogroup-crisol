@@ -45,6 +45,17 @@
   .sound {
     color: var(--color-text-secondary);
   }
+
+  .version {
+    margin: -16px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    text-align: center;
+    opacity: 0.7;
+    user-select: text;
+  }
 }
 
 @media (min-height: 760px) {

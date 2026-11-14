@@ -17,11 +17,13 @@ import CommandMenu from '@/app/components/CommandMenu'
 import Logo from '@/app/components/Logo'
 import { useI18n } from '@/app/i18n/I18nProvider'
 import { formatPlayTime } from '@/app/utils/time'
+import { formatBuiltAt, versionLabel } from '@/app/utils/version'
 
 /**
  * Main menu (/menu), the title screen: "Continue" the saved game (disabled when
  * there is none), start a "New game" (which asks first when it would replace a
- * saved one), the player's profile and sign out.
+ * saved one), the player's profile and sign out. The version of the running
+ * build sits at the bottom, to tell whether a new deploy has been picked up.
  */
 export default function MainMenu({ save }: { save: SaveSummary | null }) {
   const { t, locale } = useI18n()
@@ -30,10 +32,18 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
   const user = useUserStore((state) => state.user)
   const [confirming, setConfirming] = useState(false)
   const [starting, setStarting] = useState(false)
+  // Formatted after mount: the build time renders in the device's time zone,
+  // which the server doesn't know, so doing it on the first render would
+  // mismatch the server HTML.
+  const [builtAt, setBuiltAt] = useState('')
 
   useEffect(() => {
     void playMusic('menu')
   }, [])
+
+  useEffect(() => {
+    setBuiltAt(formatBuiltAt(locale))
+  }, [locale])
 
   const startNewGame = async () => {
     setStarting(true)
@@ -87,6 +97,10 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
       />
       {user && <p className="player">{user.displayName}</p>}
       <SoundButton className="sound" />
+      <p className="version">
+        {versionLabel}
+        {builtAt && <span className="built-at"> · {builtAt}</span>}
+      </p>
       <NewGameDialog
         open={confirming}
         starting={starting}

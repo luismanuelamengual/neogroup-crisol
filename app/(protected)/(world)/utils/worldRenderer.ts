@@ -552,13 +552,10 @@ export class WorldRenderer {
 
   /** A small padlock on the points out of reach. */
   private lock(x: number, y: number): void {
-    this.markers
-      .moveTo(x - 8, y - 6)
-      .arc(x, y - 6, 8, Math.PI, 0)
-      .stroke({ width: 7, color: OUTLINE })
-      .moveTo(x - 8, y - 6)
-      .arc(x, y - 6, 8, Math.PI, 0)
-      .stroke({ width: 3, color: LOCK })
+    const shackle = lockShackle(x, y - 6, 8)
+
+    this.markers.poly(shackle, false).stroke({ width: 7, color: OUTLINE })
+    this.markers.poly(shackle, false).stroke({ width: 3, color: LOCK })
     this.markers
       .roundRect(x - 12, y - 6, 24, 18, 4)
       .fill({ color: LOCK })
@@ -848,4 +845,25 @@ export class WorldRenderer {
       clearColor: [0, 0, 0, 0]
     })
   }
+}
+
+/**
+ * The points of the shackle of a padlock: half a circle over (x, y), from its
+ * left to its right. Not `moveTo` + `arc`: far from the origin of the world,
+ * the arc starts at exactly the point of the `moveTo` (sin(π) · radius is lost
+ * in the rounding), and PixiJS turns that segment of length 0 into vertices
+ * with NaN. Computers skip those triangles, but many phone GPUs draw them as
+ * long thin lines across the whole map.
+ */
+function lockShackle(x: number, y: number, radius: number): number[] {
+  const steps = 8
+  const points: number[] = []
+
+  for (let step = 0; step <= steps; step++) {
+    const angle = Math.PI + (Math.PI * step) / steps
+
+    points.push(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius)
+  }
+
+  return points
 }
