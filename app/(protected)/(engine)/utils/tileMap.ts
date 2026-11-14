@@ -186,7 +186,7 @@ export function buildTileMap(world: World): TileMap {
     }
   }
 
-  const heights = buildHeights(world, columns, rows, rise)
+  const heights = buildHeights(world, columns, rows, rise, paved)
 
   digMoats(columns, rows, zones, paved, terrains, grounds, terrainIndex)
 
@@ -331,9 +331,11 @@ function terrainsNear(terrains: BiomeTerrains, toSeal: number): BiomeTerrains {
  * apart at most). The strip of a trail takes the level of its points (split
  * at the middle when they differ), the clearings the level of their point,
  * and the rest of the ground, from the noise, settles so that neighbors differ
- * by one level at most wherever it can.
+ * by one level at most wherever it can. Where the strips of two trails (or a
+ * trail and a clearing) at different levels meet, the paving rules: the strip
+ * next to it gives way so that it never stands two levels off a paved tile.
  */
-function buildHeights(world: World, columns: number, rows: number, rise: Float32Array): Uint8Array {
+function buildHeights(world: World, columns: number, rows: number, rise: Float32Array, paved: Uint8Array): Uint8Array {
   const sorted = [...rise].sort((a, b) => a - b)
   const cuts = LEVEL_SHARES.map((share) => sorted[Math.floor(share * (sorted.length - 1))])
   const heights = new Uint8Array(rise.map((value) => cuts.filter((cut) => value > cut).length))
@@ -415,6 +417,35 @@ function buildHeights(world: World, columns: number, rows: number, rise: Float32
         fixed[index] = 1
       }
     })
+  }
+
+  // The strips give way to the paving next to them, so that a trail never has a cliff beside it.
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      const index = row * columns + column
+
+      if (!fixed[index] || paved[index]) {
+        continue
+      }
+
+      const beside = [
+        column > 0 ? index - 1 : -1,
+        column < columns - 1 ? index + 1 : -1,
+        row > 0 ? index - columns : -1,
+        row < rows - 1 ? index + columns : -1
+      ]
+        .filter((other) => other >= 0 && paved[other])
+        .map((other) => heights[other])
+
+      if (beside.length > 0) {
+        const floor = Math.max(...beside) - 1
+        const ceiling = Math.min(...beside) + 1
+
+        if (floor <= ceiling) {
+          heights[index] = Math.min(ceiling, Math.max(floor, heights[index]))
+        }
+      }
+    }
   }
 
   // The rest settles between its neighbors.

@@ -27,6 +27,18 @@ function image(width: number, height: number, paint: (x: number, y: number) => C
   return { data, width, height }
 }
 
+/**
+ * The ids of every image the catalog gives: a hero's body and arm come out of
+ * one sheet (heroes/<id>/body-parts), split in halves when it is processed.
+ */
+function catalogImages(): string[] {
+  return buildCatalog().flatMap((piece) =>
+    piece.kind === 'heroParts'
+      ? heroParts(piece.id.split('/')[1] as CharacterId).map((part) => piece.id.replace(/body-parts$/, part))
+      : [piece.id]
+  )
+}
+
 const alphaAt = ({ data, width }: RawImage, x: number, y: number) => data[(y * width + x) * 4 + 3]
 
 describe('art pipeline', () => {
@@ -110,7 +122,7 @@ describe('art pipeline', () => {
     const catalog = buildCatalog()
     const ids = catalog.map((piece) => piece.id)
 
-    expect(catalog).toHaveLength(323)
+    expect(catalog).toHaveLength(440)
     expect(new Set(ids).size).toBe(ids.length)
     expect(catalog.every((piece) => BATCHES.includes(piece.batch) && piece.prompt.length > 40)).toBe(true)
 
@@ -121,7 +133,7 @@ describe('art pipeline', () => {
   })
 
   it('gives every hero a puppet whose images are in the catalog', () => {
-    const ids = new Set(buildCatalog().map((piece) => piece.id))
+    const ids = new Set(catalogImages())
 
     for (const [hero, loadout] of Object.entries(HERO_LOADOUTS)) {
       expect(Object.keys(HERO_WEAPONS[hero])[0], hero).toBe(loadout.weapon)
@@ -133,7 +145,7 @@ describe('art pipeline', () => {
   })
 
   it('gives the heroes that shoot a body without the weapon and no arm, so any of their weapons fits', () => {
-    const ids = buildCatalog().map((piece) => piece.id)
+    const ids = catalogImages()
     const sera = RIGS[`heroes/${CharacterId.SERA}/full`]
 
     expect(isRangedCharacter(CharacterId.SERA)).toBe(true)

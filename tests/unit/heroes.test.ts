@@ -190,7 +190,8 @@ describe('weapons', () => {
 
     expect(getWeaponLevel(kaelOf(upgraded))).toBe(1)
     expect(upgraded.gold).toBe(940)
-    expect(upgraded.inventory[StoneId.ROUGH]).toBe(2)
+    // +1 takes 2 rough stones (see getUpgradeCost).
+    expect(upgraded.inventory[StoneId.ROUGH]).toBe(1)
     expect(getCharacterStats(kaelOf(upgraded)).attack).toBeGreaterThan(getCharacterStats(kaelOf(state)).attack)
     expect(getWeaponEffects('oath-sword', 4)).toHaveLength(0)
     expect(getWeaponEffects('oath-sword', 5)).toHaveLength(1)
