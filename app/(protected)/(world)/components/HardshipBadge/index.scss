@@ -1,0 +1,104 @@
+.hardship-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 10px;
+  border: var(--frame-border);
+  border-radius: 10px;
+  background: var(--frame-background);
+  box-shadow:
+    0 0 0 2px #12103a,
+    0 0 0 3px #12103a,
+    0 6px 14px rgba(0, 0, 0, 0.5);
+  color: var(--hardship-color, var(--color-ember));
+  font-family: var(--font-display);
+  font-weight: 700;
+  cursor: pointer;
+
+  .label {
+    color: var(--color-text-secondary);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .value {
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  &.maxed {
+    animation: hardship-pulse 2.4s ease-in-out infinite;
+  }
+
+  &.hardship-thirst {
+    --hardship-color: #f2c35b;
+  }
+
+  &.hardship-spores {
+    --hardship-color: #8fe36b;
+  }
+
+  &.hardship-thinAir {
+    --hardship-color: #bfd4e6;
+  }
+
+  &.hardship-rust {
+    --hardship-color: #d68a4e;
+  }
+
+  &.hardship-cold {
+    --hardship-color: #8fd8ff;
+  }
+
+  &.hardship-heat {
+    --hardship-color: #ff7043;
+  }
+
+  &.hardship-void {
+    --hardship-color: #b78cff;
+  }
+}
+
+@keyframes hardship-pulse {
+  0%,
+  100% {
+    filter: none;
+  }
+
+  50% {
+    filter: drop-shadow(0 0 6px var(--hardship-color));
+  }
+}
+
+.hardship-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 260px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+  }
+
+  .now {
+    font-weight: 700;
+  }
+
+  .steps,
+  .relief {
+    opacity: 0.75;
+    font-size: 0.74rem;
+  }
+}
+
+// Not enough room on a phone (landscape): only the icon and the number.
+@media (max-width: 960px), (max-height: 500px) {
+  .hardship-badge .label {
+    display: none;
+  }
+}

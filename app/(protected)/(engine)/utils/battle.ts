@@ -19,6 +19,7 @@ import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
 import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { addBonuses, BonusesPart } from '@/app/(protected)/(engine)/models/Bonuses'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { Combatant, RuneState } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
@@ -84,6 +85,8 @@ export function isImbue(type: StatusType): boolean {
 
 /** Share of the maximum focus recovered with each weapon attack. */
 const ATTACK_FOCUS = 0.25
+/** The weapon attacks keep this share of their power at least, whatever weakens them. */
+const MIN_WEAPON_POWER = 0.1
 /** Health lost per turn by each damage over time (share of the maximum; bosses take a third). */
 const DOT_SHARE: Partial<Record<StatusType, number>> = {
   [StatusType.POISON]: 0.06,
@@ -186,6 +189,10 @@ export interface BattleSetup {
   canRetreat: boolean
   /** Consumables the party carries. */
   items?: Record<string, number>
+  /** What the hardship of the biome takes away from every hero (utils/hardships.ts). */
+  hardship?: BonusesPart | null
+  /** Turns of poison the heroes on the field start with (the spores of the Tropics). */
+  poisonTurns?: number
 }
 
 export interface BattleStep {
@@ -302,6 +309,11 @@ export function createBattle(setup: BattleSetup): BattleStep {
   }
   const heroes: Combatant[] = setup.heroes.map((character, index) => {
     const bonuses = getHeroBonuses(character)
+
+    if (setup.hardship) {
+      addBonuses(bonuses, setup.hardship)
+    }
+
     const stats = getCharacterStats(character, bonuses)
 
     return {
@@ -330,6 +342,11 @@ export function createBattle(setup: BattleSetup): BattleStep {
 
   for (const hero of heroes.filter((candidate) => !candidate.reserve)) {
     startRunes(hero)
+
+    // The spores of the Tropics: the heroes on the field start poisoned (unless their runes keep them off).
+    if (setup.poisonTurns && setup.poisonTurns > 0 && !perkOf(hero, Perk.IMMUNE_DOTS) && isAlive(hero)) {
+      hero.statuses.push({ type: StatusType.POISON, turns: setup.poisonTurns })
+    }
   }
 
   return {
@@ -1101,7 +1118,13 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
         : 1
   // The runes add power to the specials (in a row, every third one, with full focus).
   const runePower = base.heal ? 1 : runeSkillPower(actor, base, base.id === actor.skills[0], events)
-  const skill = spent * runePower !== 1 ? { ...base, power: base.power * spent * runePower } : base
+  // The void of the Abyss weakens the weapon attacks (never below a tenth of their power).
+  const weaponPower =
+    base.id === actor.skills[0] && actor.bonuses?.weaponDamage
+      ? Math.max(MIN_WEAPON_POWER, 1 + actor.bonuses.weaponDamage)
+      : 1
+  const power = spent * runePower * weaponPower
+  const skill = power !== 1 ? { ...base, power: base.power * power } : base
   const valid = getTargets(state, actor.id, skill)
   const single = skill.target === TargetType.ENEMY || skill.target === TargetType.ALLY
   const targetIds = single ? action.targetIds.filter((id) => valid.includes(id)).slice(0, 1) : valid

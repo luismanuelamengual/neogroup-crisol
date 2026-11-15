@@ -56,6 +56,7 @@ import {
   xpLostInDefeat
 } from '@/app/(protected)/(engine)/utils/battleResult'
 import { getEncounterPhases, hashText } from '@/app/(protected)/(engine)/utils/encounters'
+import { getHardshipBonuses, getHardshipPoison } from '@/app/(protected)/(engine)/utils/hardships'
 import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
 import LootGrid from '@/app/(protected)/(party)/components/LootGrid'
@@ -172,7 +173,9 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         biome: node.biome as Biome,
         cycle: game.cycle,
         canRetreat: encounter.canRetreat,
-        items: game.inventory
+        items: game.inventory,
+        hardship: getHardshipBonuses(game, node.biome as Biome),
+        poisonTurns: getHardshipPoison(game, node.biome as Biome)
       }).state
   )
   const [mode, setMode] = useState<Mode>('playing')

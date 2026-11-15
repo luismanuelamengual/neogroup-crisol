@@ -1,4 +1,5 @@
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
+import { Hardship } from '@/app/(protected)/(engine)/models/Hardship'
 import { LostXp } from '@/app/(protected)/(engine)/models/LostXp'
 
 /**
@@ -37,6 +38,11 @@ export interface GameState {
    * replaces it: what was waiting is lost for good.
    */
   lostXp: LostXp | null
+  /**
+   * Steps walked in a hard biome since the party rested or came into it
+   * (data/hardships.ts): null when it carries none.
+   */
+  hardship: Hardship | null
   /** Charges left in the Amber Flask (its maximum and potency come from the bosses defeated). */
   flaskCharges: number
   /** Unlocked characters, in the order of the formation: the first three fight, the rest wait in reserve. */

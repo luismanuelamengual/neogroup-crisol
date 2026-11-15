@@ -293,6 +293,54 @@ export const en: Messages = {
       wastelands: 'Wastelands',
       abyss: 'Abyss'
     },
+    hardships: {
+      steps: { one: '{count} step in this zone', other: '{count} steps in this zone' },
+      maxed: 'At its peak',
+      relief: 'It fades when you rest at a camp or leave the zone.',
+      entered: '{name}: {description}',
+      thirst: {
+        name: 'Thirst',
+        short: '−{value}%',
+        description: 'Each step cuts the healing the heroes receive by {perStep}% (the Amber Flask too), up to {max}%.',
+        now: 'Healing −{value}%'
+      },
+      spores: {
+        name: 'Spores',
+        short: '{value}',
+        description: 'Every 4 steps the heroes start battles poisoned for one more turn, up to {max} turns.',
+        now: 'Poisoned at the start: {value} turns'
+      },
+      thinAir: {
+        name: 'Thin air',
+        short: '−{value}%',
+        description: 'Each step makes weapon attacks restore {perStep}% less focus, up to {max}%.',
+        now: 'Focus per attack −{value}%'
+      },
+      rust: {
+        name: 'Rust',
+        short: '−{value}%',
+        description: 'The dust rusts the armor: each step lowers defense by {perStep}%, up to {max}%.',
+        now: 'Defense −{value}%'
+      },
+      cold: {
+        name: 'Cold',
+        short: '−{value}%',
+        description: 'Each step numbs the heroes: {perStep}% less speed, up to {max}%.',
+        now: 'Speed −{value}%'
+      },
+      heat: {
+        name: 'Heat',
+        short: '−{value}%',
+        description: 'Each step burns {perStep}% of the maximum health of every hero (never below 1).',
+        now: 'Health per step −{value}%'
+      },
+      void: {
+        name: 'Void',
+        short: '−{value}%',
+        description: 'Each step weakens weapon attacks by {perStep}%, up to {max}%.',
+        now: 'Weapon attack damage −{value}%'
+      }
+    },
     bosses: {
       morgrath: { name: 'Morgrath', title: 'Morgrath, the Moss Witch' },
       sahrak: { name: 'Sahrak', title: 'Sahrak, the Scorpion King' },

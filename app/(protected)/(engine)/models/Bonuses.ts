@@ -40,6 +40,8 @@ export interface Bonuses {
   initiative: number
   /** Share of the damage it takes that it avoids. */
   guard: number
+  /** Share added to the damage of its weapon attacks (negative in the Abyss, see data/hardships.ts). */
+  weaponDamage: number
   /** Extra damage by type (0.15 = +15%). */
   damage: Partial<Record<DamageType, number>>
   /** Extra damage on a weakness. */
@@ -60,6 +62,7 @@ export function emptyBonuses(): Bonuses {
     regen: 0,
     initiative: 0,
     guard: 0,
+    weaponDamage: 0,
     damage: {},
     weakness: 0,
     statusChance: 0,
@@ -102,6 +105,7 @@ export function addBonuses(total: Bonuses, part: BonusesPart): Bonuses {
   total.regen += part.regen ?? 0
   total.initiative += part.initiative ?? 0
   total.guard += part.guard ?? 0
+  total.weaponDamage += part.weaponDamage ?? 0
   total.weakness += part.weakness ?? 0
   total.statusChance += part.statusChance ?? 0
   total.onHit.push(...(part.onHit ?? []))

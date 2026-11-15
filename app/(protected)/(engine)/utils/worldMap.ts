@@ -28,6 +28,7 @@ import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency } from '@/app/(protected)/(engine)/utils/graph'
+import { getHardshipThirst, stepInto } from '@/app/(protected)/(engine)/utils/hardships'
 import { addItems, createCharacter, getCharacterStats, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
 
 /**
@@ -470,7 +471,8 @@ export function retreat(index: WorldIndex, state: GameState, toNodeId: string): 
     throw new Error('The party cannot retreat')
   }
 
-  return { ...state, positionNodeId: toNodeId }
+  // Going back is a step too.
+  return stepInto({ ...state, positionNodeId: toNodeId }, getNode(index, toNodeId).biome)
 }
 
 export function isAtOpenCamp(state: GameState): boolean {
@@ -509,6 +511,8 @@ export function rest(index: WorldIndex, state: GameState): GameState {
     ...state,
     lastRestCampId: state.positionNodeId,
     flaskCharges: getFlask(index, state).maxCharges,
+    // Rest wipes the hardship of the biome away.
+    hardship: null,
     respawnedNodeIds: [...respawned],
     restsSinceCleared,
     characters: state.characters.map((character) => ({ ...character, health: getMaxHealth(character), focus: 0 }))
@@ -554,6 +558,9 @@ export function drinkFlask(index: WorldIndex, state: GameState): GameState {
     throw new Error('The Amber Flask is empty')
   }
 
+  // The thirst of the desert makes it heal less.
+  const thirst = getHardshipThirst(state, getNode(index, state.positionNodeId).biome)
+
   return {
     ...state,
     flaskCharges: flask.charges - 1,
@@ -562,7 +569,7 @@ export function drinkFlask(index: WorldIndex, state: GameState): GameState {
 
       return {
         ...character,
-        health: Math.min(maxHealth, character.health + Math.ceil((maxHealth * flask.potency) / 100))
+        health: Math.min(maxHealth, character.health + Math.ceil((maxHealth * flask.potency * (1 - thirst)) / 100))
       }
     })
   }

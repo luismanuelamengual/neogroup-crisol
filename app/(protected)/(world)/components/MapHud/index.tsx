@@ -12,6 +12,8 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import Link from 'next/link'
 import SoundButton from '@/app/(protected)/(art)/components/SoundButton'
+import type { ActiveHardship } from '@/app/(protected)/(engine)/utils/hardships'
+import HardshipBadge from '@/app/(protected)/(world)/components/HardshipBadge'
 import { SyncStatus } from '@/app/(protected)/(world)/stores/game'
 import { useT } from '@/app/i18n/I18nProvider'
 
@@ -22,6 +24,8 @@ interface MapHudProps {
   /** New Game+ cycle (0 = first playthrough). */
   cycle: number
   sync: SyncStatus
+  /** The hardship of the biome that weighs on the party, if any. */
+  hardship?: ActiveHardship | null
   onRecenter: () => void
 }
 
@@ -32,8 +36,11 @@ const SYNC_ICONS: Record<SyncStatus, typeof CloudDoneIcon> = {
   offline: CloudOffIcon
 }
 
-/** Top of the map: the way back to the main menu, where the party is, its gold and whether the game is saved. */
-export default function MapHud({ location, biome, gold, cycle, sync, onRecenter }: MapHudProps) {
+/**
+ * Top of the map: the way back to the main menu, where the party is (and the hardship of its biome), its gold and
+ * whether the game is saved.
+ */
+export default function MapHud({ location, biome, gold, cycle, sync, hardship, onRecenter }: MapHudProps) {
   const t = useT()
   const SyncIcon = SYNC_ICONS[sync]
 
@@ -46,6 +53,7 @@ export default function MapHud({ location, biome, gold, cycle, sync, onRecenter 
         <span className="biome">{biome}</span>
         <span className="name">{location}</span>
       </div>
+      {hardship && <HardshipBadge hardship={hardship} />}
       <div className="spacer" />
       {cycle > 0 && <span className="cycle">{t('home.cycle', { cycle })}</span>}
       <div className="gold" aria-label={t('world.gold')}>

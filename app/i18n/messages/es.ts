@@ -297,6 +297,55 @@ export const es = {
       wastelands: 'Yermos',
       abyss: 'Abismo'
     },
+    hardships: {
+      steps: { one: '{count} paso en esta zona', other: '{count} pasos en esta zona' },
+      maxed: 'Al máximo',
+      relief: 'Se alivia al descansar en un campamento o al salir de la zona.',
+      entered: '{name}: {description}',
+      thirst: {
+        name: 'Sed',
+        short: '−{value}%',
+        description:
+          'Cada paso reduce un {perStep}% las curaciones que reciben los héroes (también el Frasco de Ámbar), hasta {max}%.',
+        now: 'Curación −{value}%'
+      },
+      spores: {
+        name: 'Esporas',
+        short: '{value}',
+        description: 'Cada 4 pasos los héroes empiezan las batallas envenenados un turno más, hasta {max} turnos.',
+        now: 'Veneno al empezar: {value} turnos'
+      },
+      thinAir: {
+        name: 'Aire enrarecido',
+        short: '−{value}%',
+        description: 'Cada paso los ataques con arma devuelven un {perStep}% menos de concentración, hasta {max}%.',
+        now: 'Concentración por ataque −{value}%'
+      },
+      rust: {
+        name: 'Herrumbre',
+        short: '−{value}%',
+        description: 'El polvo oxida las armaduras: cada paso baja un {perStep}% la defensa, hasta {max}%.',
+        now: 'Defensa −{value}%'
+      },
+      cold: {
+        name: 'Frío',
+        short: '−{value}%',
+        description: 'Cada paso entumece a los héroes: un {perStep}% menos de velocidad, hasta {max}%.',
+        now: 'Velocidad −{value}%'
+      },
+      heat: {
+        name: 'Calor',
+        short: '−{value}%',
+        description: 'Cada paso quema un {perStep}% de la vida máxima de cada héroe (nunca baja de 1).',
+        now: 'Vida por paso −{value}%'
+      },
+      void: {
+        name: 'Vacío',
+        short: '−{value}%',
+        description: 'Cada paso debilita los ataques con arma un {perStep}%, hasta {max}%.',
+        now: 'Daño del ataque con arma −{value}%'
+      }
+    },
     bosses: {
       morgrath: { name: 'Morgrath', title: 'Morgrath, la Bruja del Musgo' },
       sahrak: { name: 'Sahrak', title: 'Sahrak, el Rey Escorpión' },

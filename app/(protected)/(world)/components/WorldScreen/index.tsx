@@ -13,6 +13,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
+import { getHardship, getHardshipHere, walkRoute } from '@/app/(protected)/(engine)/utils/hardships'
 import { canSwapWeapons, spendTear } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
@@ -36,6 +37,7 @@ import HeroScreen from '@/app/(protected)/(party)/components/HeroScreen'
 import InventoryScreen from '@/app/(protected)/(party)/components/InventoryScreen'
 import ShopDialog from '@/app/(protected)/(party)/components/ShopDialog'
 import { itemName, runeName } from '@/app/(protected)/(party)/utils/describe'
+import { hardshipNumbers } from '@/app/(protected)/(world)/components/HardshipBadge'
 import MapHud from '@/app/(protected)/(world)/components/MapHud'
 import MapMenu from '@/app/(protected)/(world)/components/MapMenu'
 import NextCycleDialog from '@/app/(protected)/(world)/components/NextCycleDialog'
@@ -72,7 +74,7 @@ interface PendingEncounter {
  */
 export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const t = useT()
-  const { showSuccessMessage } = useNotifications()
+  const { showSuccessMessage, showWarningMessage } = useNotifications()
   const { status, update, upload } = useGameSession(test)
   const save = useGameStore((store) => store.save)
   const sync = useGameStore((store) => store.sync)
@@ -275,7 +277,27 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
       setWalking(false)
 
       const target = route[route.length - 1]
-      const arrival = arriveAt(index, useGameStore.getState().save!.state, target)
+      // Every step on the trails of a hard biome weighs on the party (data/hardships.ts).
+      const before = useGameStore.getState().save!.state
+      const walked = walkRoute(index, before, route)
+      const arrival = arriveAt(index, walked, target)
+
+      // Coming into a hard biome tells what it does.
+      if (walked.hardship && walked.hardship.biome !== index.nodes.get(before.positionNodeId)?.biome) {
+        const hardship = getHardship(walked, walked.hardship.biome)
+
+        if (hardship) {
+          const key = `world.hardships.${hardship.kind}` as const
+
+          showWarningMessage(
+            t('world.hardships.entered', {
+              name: t(`${key}.name`),
+              description: t(`${key}.description`, hardshipNumbers(hardship))
+            }),
+            7000
+          )
+        }
+      }
 
       update(arrival.state)
       // Only chests give something on arrival: their content gets the window, with the picture of each thing.
@@ -285,7 +307,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         setPending({ encounter: arrival.encounter, fromNodeId: route[route.length - 2] })
       }
     },
-    [index, showRewardsWindow, update, walking]
+    [index, showRewardsWindow, showWarningMessage, t, update, walking]
   )
   /** A tap on a point walks there if there is a clear trail; with none, the point only blinks. */
   const handleTap = useCallback(
@@ -433,6 +455,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         gold={state.gold}
         cycle={state.cycle}
         sync={test ? 'synced' : sync}
+        hardship={getHardshipHere(index, state)}
         onRecenter={() => map.current?.centerOn(state.positionNodeId)}
       />
       <div className="bottom">

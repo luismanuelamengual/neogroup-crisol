@@ -4,13 +4,14 @@ import { RUNE_COUNT } from '@/app/(protected)/(engine)/data/runes'
 import { getSkillTree, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import { getStartingWeapon, MAX_WEAPON_LEVEL, WEAPONS } from '@/app/(protected)/(engine)/data/weapons'
 import { START_NODE_ID } from '@/app/(protected)/(engine)/data/world'
+import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 14
+export const SAVE_VERSION = 15
 
 /**
  * The six runes added with world 40 (wisdom, tribute, clover, vigil, patient
@@ -32,6 +33,7 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
     respawnedNodeIds: [],
     restsSinceCleared: {},
     lostXp: null,
+    hardship: null,
     flaskCharges: FLASK_BASE_CHARGES,
     characters: [createCharacter(CharacterId.KAEL)],
     gold: 0,
@@ -232,6 +234,11 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
     }
   }
 
+  if (fromVersion < 15) {
+    // v15: the hardships of the map. The party carries none yet.
+    state = { ...state, hardship: null }
+  }
+
   return state
 }
 
@@ -276,6 +283,13 @@ export function isGameState(value: unknown): value is GameState {
   const isRuneIndex = (item: unknown) =>
     Number.isInteger(item) && (item as number) >= 1 && (item as number) <= RUNE_COUNT
   const characterIds = Object.values(CharacterId) as string[]
+  // None, or the steps walked in a biome.
+  const isHardship = (item: unknown) =>
+    item === null ||
+    (!!item &&
+      typeof item === 'object' &&
+      (Object.values(Biome) as unknown[]).includes((item as Record<string, unknown>).biome) &&
+      isCount((item as Record<string, unknown>).steps))
   // Nothing waiting, or a point with what each character lost there.
   const isLostXp = (item: unknown) =>
     item === null ||
@@ -302,6 +316,7 @@ export function isGameState(value: unknown): value is GameState {
     isStringArray(state.respawnedNodeIds) &&
     isCountMap(state.restsSinceCleared) &&
     isLostXp(state.lostXp) &&
+    isHardship(state.hardship) &&
     isCount(state.flaskCharges) &&
     isCount(state.gold) &&
     isCount(state.tears) &&
