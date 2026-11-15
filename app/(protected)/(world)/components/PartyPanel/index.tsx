@@ -30,7 +30,8 @@ const share = (value: number, max: number) => `${Math.round(Math.min(1, value / 
 
 /**
  * Bottom left of the map: a plaque per hero with its health, focus and
- * experience (the active ones lit), which opens its page, and the Amber Flask.
+ * experience (the active ones lit), which opens its page, and the Amber Flask
+ * above them as a slim pill, so the row of plaques keeps its room.
  */
 export default function PartyPanel({ characters, flask, disabled, onDrink, onOpenHero, echoes }: PartyPanelProps) {
   const t = useT()
@@ -44,6 +45,22 @@ export default function PartyPanel({ characters, flask, disabled, onDrink, onOpe
 
   return (
     <div className="party-panel">
+      <Tooltip title={`${t('world.flask.name')}: ${hint}`}>
+        <span className="flask-wrap">
+          <ButtonBase
+            className="flask"
+            onClick={onDrink}
+            disabled={disabled || flask.charges === 0 || !hurt}
+            aria-label={`${t('world.flask.drink')} ${t('world.flask.name')}`}
+          >
+            <LocalDrinkIcon />
+            <span className="charges">
+              {flask.charges}/{flask.maxCharges}
+            </span>
+            <span className="potency">{flask.potency}%</span>
+          </ButtonBase>
+        </span>
+      </Tooltip>
       <ul className="party">
         {characters.map((character, position) => {
           const name = t(`characters.${character.id}.name` as MessageKey)
@@ -86,24 +103,6 @@ export default function PartyPanel({ characters, flask, disabled, onDrink, onOpe
             </li>
           )
         })}
-        <li>
-          <Tooltip title={`${t('world.flask.name')}: ${hint}`}>
-            <span className="flask-wrap">
-              <ButtonBase
-                className="flask"
-                onClick={onDrink}
-                disabled={disabled || flask.charges === 0 || !hurt}
-                aria-label={`${t('world.flask.drink')} ${t('world.flask.name')}`}
-              >
-                <LocalDrinkIcon />
-                <span className="charges">
-                  {flask.charges}/{flask.maxCharges}
-                </span>
-                <span className="potency">{flask.potency}%</span>
-              </ButtonBase>
-            </span>
-          </Tooltip>
-        </li>
       </ul>
     </div>
   )
