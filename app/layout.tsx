@@ -3,8 +3,8 @@ import { SerwistProvider } from '@serwist/turbopack/react'
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { ReactNode } from 'react'
-import { Toaster } from 'react-hot-toast'
 import { PWA_CONFIG } from '@/app/(pwa)/services/pwa'
+import AppToaster from '@/app/components/AppToaster'
 import ThemeRegistry from '@/app/components/ThemeRegistry'
 import I18nProvider from '@/app/i18n/I18nProvider'
 import { getLocale, getT } from '@/app/i18n/server'
@@ -75,21 +75,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <SerwistProvider swUrl="/serwist/sw.js">
           <ThemeRegistry>
             <I18nProvider locale={locale}>{children}</I18nProvider>
-            <Toaster
-              position="top-center"
-              // Below the top HUD row (location, gold, buttons) so it never covers it.
-              containerStyle={{ top: 'calc(70px + var(--safe-top))' }}
-              toastOptions={{
-                style: {
-                  background: 'var(--frame-background)',
-                  color: 'var(--color-text)',
-                  border: 'var(--frame-border)',
-                  borderRadius: 3,
-                  boxShadow: 'var(--frame-shadow)',
-                  fontWeight: 700
-                }
-              }}
-            />
+            <AppToaster />
           </ThemeRegistry>
         </SerwistProvider>
       </body>
