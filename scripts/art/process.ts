@@ -498,7 +498,7 @@ function report(catalog: Piece[], found: Set<string>, manifest: ArtManifest, str
     `  ${styleText('green', `${done} ✔ ready`)}  ${styleText('red', `${total - done} ✘ missing`)}  ${styleText('gray', `(${Object.keys(manifest.images).length} images written)`)}`
   )
   console.log(
-    `  ${audio('music', names(manifest.music), MUSIC.length)}   ${audio('sound effects (the rest are synthesized)', names(manifest.sfx), SFX.length)}`
+    `  ${audio('music', names(manifest.music), MUSIC.length)}   ${OK} sound effects ${count(SFX.length, SFX.length)} ${styleText('gray', `(${names(manifest.sfx)} from files, ${SFX.length - names(manifest.sfx)} synthesized)`)}`
   )
 
   if (missingMusic.length > 0) {
