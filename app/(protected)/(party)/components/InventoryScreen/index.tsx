@@ -89,10 +89,6 @@ export default function InventoryScreen({ state, onSpendTear, onClose }: Invento
       tab={category}
       onTab={setCategory}
     >
-      <p className="wealth">
-        <span>{t('shop.gold', { gold: state.gold })}</span>
-        <span>{t('party.echoPool', { count: state.echoes })}</span>
-      </p>
       {shown.length === 0 ? (
         <p className="empty">{t(`inventory.empty.${category}`)}</p>
       ) : (

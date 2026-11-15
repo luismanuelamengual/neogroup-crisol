@@ -1,15 +1,4 @@
 .inventory-screen {
-  .wealth {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px 18px;
-    margin: 0;
-    color: var(--color-gold-light);
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-  }
-
   .empty {
     margin: 24px 0;
     color: var(--color-text-secondary);
