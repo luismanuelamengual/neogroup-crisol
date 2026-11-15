@@ -28,8 +28,8 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
  * The build of each character: attribute points, skill tree, weapon, runes
  * and echoes, and the attributes and bonuses that come out of them. Pure
  * functions: the actions return a new GameState and throw when not allowed.
- * The weapons are upgraded and the runes and the echoes changed only at an
- * open camp; the weapon held is changed at any cleared point.
+ * The runes and the echoes are changed only at an open camp; the weapons are
+ * upgraded and the one held is changed at any cleared point.
  */
 
 /** Echoes a skill point is traded for, once the tree of the character is complete. */
@@ -349,7 +349,9 @@ export function spendTear(state: GameState, id: CharacterId): GameState {
 
 /** Upgrades one weapon of a character (the one it holds by default) one level, paying stones and gold. */
 export function upgradeWeapon(state: GameState, id: CharacterId, weaponId?: string): GameState {
-  requireCamp(state)
+  if (!canSwapWeapons(state)) {
+    throw new Error('Only at a cleared point')
+  }
 
   const character = getCharacter(state, id)
   const weapon = weaponId ?? character.weaponId
@@ -389,9 +391,15 @@ export function canUpgradeWeapon(state: GameState, character: CharacterState, we
   return (state.inventory[cost.stoneId] ?? 0) >= cost.stones && state.gold >= cost.gold
 }
 
-/** Whether the party stands on a cleared point (not one whose enemies came back): the weapons can be swapped. */
+/**
+ * Whether the party stands on a cleared point (not one whose enemies came back) or at an open camp:
+ * the weapons can be swapped and upgraded.
+ */
 export function canSwapWeapons(state: GameState): boolean {
-  return state.clearedNodeIds.includes(state.positionNodeId) && !state.respawnedNodeIds.includes(state.positionNodeId)
+  return (
+    isAtCamp(state) ||
+    (state.clearedNodeIds.includes(state.positionNodeId) && !state.respawnedNodeIds.includes(state.positionNodeId))
+  )
 }
 
 /** Gives a character another of its weapons to hold (at any cleared point). */

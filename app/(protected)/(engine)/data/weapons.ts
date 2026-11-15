@@ -13,7 +13,7 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
  * weapon attack (damage type, targets, statuses) and its own style (shares
  * that can be negative), for different fights.
  *
- * Every weapon is upgraded on its own at a camp, from +0 to +20, with
+ * Every weapon is upgraded on its own at any cleared point, from +0 to +20, with
  * smithing stones and gold. Each level adds attack and special power; +5,
  * +10, +15 and +20 also add an effect of its own. The equipped weapon can be
  * changed at any cleared point.

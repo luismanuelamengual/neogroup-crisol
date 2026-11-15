@@ -17,9 +17,9 @@ interface HeroScreenProps {
   state: GameState
   /** The hero shown first (the arrows go through the others). */
   characterId: CharacterId
-  /** The party stands at an open camp: the weapons can be upgraded and the runes and the echoes changed. */
+  /** The party stands at an open camp: the runes and the echoes can be changed. */
   atCamp: boolean
-  /** The party stands on a cleared point: the weapons can be swapped. */
+  /** The party stands on a cleared point (or an open camp): the weapons can be swapped and upgraded. */
   canSwap: boolean
   onChange: (state: GameState) => void
   onClose: () => void

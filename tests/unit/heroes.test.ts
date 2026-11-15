@@ -238,6 +238,13 @@ describe('weapons', () => {
     expect(() => equipWeapon(away, KAEL, 'bulwark-mace')).toThrow()
     expect(() => equipWeapon({ ...away, positionNodeId: 'n2' }, KAEL, 'dawnbrand')).toThrow()
     expect(() => equipWeapon({ ...away, respawnedNodeIds: ['n1'] }, KAEL, 'dawnbrand')).toThrow()
+
+    // Upgraded away from the camps too, at any cleared point, but not where the enemies came back.
+    const stocked = { ...away, inventory: { [StoneId.ROUGH]: 10 } }
+
+    expect(kaelOf(upgradeWeapon(stocked, KAEL, 'dawnbrand')).weapons.dawnbrand).toBe(2)
+    expect(() => upgradeWeapon({ ...stocked, respawnedNodeIds: ['n1'] }, KAEL, 'dawnbrand')).toThrow()
+    expect(() => upgradeWeapon({ ...stocked, positionNodeId: 'n2' }, KAEL, 'dawnbrand')).toThrow()
   })
 })
 

@@ -809,7 +809,7 @@ export const es = {
     moveUp: 'Mover antes en la formación',
     moveDown: 'Mover después en la formación',
     pointsBadge: 'Puntos para gastar',
-    swapOnly: 'Las armas se cambian en cualquier punto despejado.',
+    swapOnly: 'Las armas se cambian y se mejoran en cualquier punto despejado.',
     attributes: 'Atributos',
     attributePoints: { one: '{count} punto de atributo', other: '{count} puntos de atributo' },
     spendPoint: 'Sumar un punto a {stat}',
@@ -895,7 +895,6 @@ export const es = {
     nextHero: 'Héroe siguiente',
     formationPlace: 'Puesto {place} de {total}',
     echoesBadge: 'Hay Ecos para asignar',
-    upgradeCampOnly: 'Las armas se mejoran en un campamento.',
     runesCampOnly: 'Las runas se equipan y se quitan en un campamento.',
     echoesCampOnly: 'Los ecos se equipan y se quitan en un campamento.'
   },
@@ -1297,7 +1296,7 @@ export const es = {
     },
     use: 'Usar',
     battleOnly: 'Se usa durante una batalla: cada héroe puede usar hasta 3 objetos por turno.',
-    stoneUse: 'Se usa para mejorar armas en un campamento, desde la página de cada héroe.',
+    stoneUse: 'Se usa para mejorar armas en cualquier punto despejado, desde la página de cada héroe.',
     runeTier: 'Runa {tier}',
     runeUse: 'Se equipa desde la página de un héroe, en un campamento.',
     tear: {

@@ -804,7 +804,7 @@ export const en: Messages = {
     moveUp: 'Move earlier in the formation',
     moveDown: 'Move later in the formation',
     pointsBadge: 'Points to spend',
-    swapOnly: 'The weapons are swapped at any cleared point.',
+    swapOnly: 'The weapons are swapped and upgraded at any cleared point.',
     attributes: 'Attributes',
     attributePoints: { one: '{count} attribute point', other: '{count} attribute points' },
     spendPoint: 'Add a point to {stat}',
@@ -890,7 +890,6 @@ export const en: Messages = {
     nextHero: 'Next hero',
     formationPlace: 'Place {place} of {total}',
     echoesBadge: 'There are Echoes to assign',
-    upgradeCampOnly: 'Weapons are upgraded at a camp.',
     runesCampOnly: 'Runes are equipped and removed at a camp.',
     echoesCampOnly: 'Echoes are equipped and removed at a camp.'
   },
@@ -1202,7 +1201,7 @@ export const en: Messages = {
     },
     use: 'Use',
     battleOnly: 'Used during a battle: each hero can use up to 3 items per turn.',
-    stoneUse: "Used to upgrade weapons at a camp, from each hero's page.",
+    stoneUse: "Used to upgrade weapons at any cleared point, from each hero's page.",
     runeTier: 'Tier: {tier}',
     runeUse: "Equipped from a hero's page, at a camp.",
     tear: {

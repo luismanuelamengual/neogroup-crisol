@@ -73,7 +73,7 @@ interface HeroSheetProps {
   /** The part of the build shown. */
   tab: HeroTab
   atCamp: boolean
-  /** The party stands on a cleared point: the weapons can be swapped. */
+  /** The party stands on a cleared point: the weapons can be swapped and upgraded. */
   canSwap: boolean
   onChange: (state: GameState) => void
 }
@@ -309,7 +309,6 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
         <section>
           <h3>{t('party.weapons')}</h3>
           {!canSwap && <p className="lines">{t('party.swapOnly')}</p>}
-          {!atCamp && <p className="lines">{t('party.upgradeCampOnly')}</p>}
           <ul className="cards weapons">
             {getCharacterWeapons(id)
               .filter((weapon) => weapon.id in character.weapons)
@@ -383,7 +382,7 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
                         {nextUpgrade && (
                           <GameButton
                             size="small"
-                            disabled={!atCamp || !canUpgradeWeapon(state, character, weapon.id)}
+                            disabled={!canSwap || !canUpgradeWeapon(state, character, weapon.id)}
                             onClick={() => onChange(upgradeWeapon(state, id, weapon.id))}
                           >
                             {t('party.upgrade', { level: level + 1 })}
