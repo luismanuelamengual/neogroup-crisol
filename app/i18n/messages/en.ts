@@ -883,7 +883,8 @@ export const en: Messages = {
       attributes: 'Attributes',
       weapons: 'Weapons',
       skills: 'Skills',
-      runes: 'Runes'
+      runes: 'Runes',
+      echoes: 'Echoes'
     },
     openHero: 'See {name}',
     previousHero: 'Previous hero',
@@ -891,7 +892,17 @@ export const en: Messages = {
     formationPlace: 'Place {place} of {total}',
     echoesBadge: 'There are Echoes to assign',
     runesCampOnly: 'Runes are equipped and removed at a camp.',
-    echoesCampOnly: 'Echoes are equipped and removed at a camp.'
+    echoesCampOnly: 'Echoes are equipped and removed at a camp.',
+    echoesWorn: 'Equipped',
+    noEchoesWorn: 'No echo equipped yet.',
+    echoesOthers: 'Mastered echoes',
+    echoesLockedHint: 'Greyed out echoes cannot be equipped right now.',
+    echoNoRoom: 'No room',
+    echoAsRune: 'Worn as rune',
+    runeTakenBy: 'Worn by {name}',
+    runeTakenHint: '{name} wears it: remove it from their page to equip it here.',
+    echoNoRoomHint: '{missing} more capacity needed: remove another echo or assign more Echoes.',
+    echoAsRuneHint: 'This hero already wears the rune: it cannot wear its echo too.'
   },
   attributes: {
     maxHealth: 'Health',

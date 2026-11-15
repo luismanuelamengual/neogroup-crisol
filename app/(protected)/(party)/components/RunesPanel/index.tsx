@@ -28,8 +28,21 @@ import type { MessageKey } from '@/app/i18n/messages'
 interface RunesPanelProps {
   state: GameState
   character: CharacterState
+  /** The tab shown: the runes (slots and grid) or the echoes of the mastered ones. */
+  view: 'runes' | 'echoes'
   atCamp: boolean
   onChange: (state: GameState) => void
+}
+
+/** Why an echo the hero does not wear cannot be equipped (whatever the place): its rune is worn, or it does not fit. */
+type EchoLock = 'asRune' | 'noRoom'
+
+function getEchoLock(state: GameState, character: CharacterState, index: number): EchoLock | null {
+  if (character.echoes.includes(index) || canEquipEcho(state, character, index)) {
+    return null
+  }
+
+  return character.runes.includes(index) ? 'asRune' : 'noRoom'
 }
 
 /** What the card shows: a rune (to wear it) or the echo of a mastered one, next to the tile clicked. */
@@ -45,10 +58,12 @@ function runeStyle(rune: Rune): CSSProperties {
 }
 
 /**
- * The runes and echoes of a hero: its three rune slots on top and the runes
- * of the party as a grid below. Clicking one opens its card next to it.
+ * The runes or the echoes of a hero. Runes: its three rune slots on top and the
+ * runes of the party as a grid below. Echoes: the capacity, the echoes worn on
+ * top and the other mastered ones below, greyed out when they cannot be
+ * equipped. Clicking one opens its card next to it.
  */
-export default function RunesPanel({ state, character, atCamp, onChange }: RunesPanelProps) {
+export default function RunesPanel({ state, character, view, atCamp, onChange }: RunesPanelProps) {
   const t = useT()
   const id = character.id
   const name = t(`characters.${id}.name` as MessageKey)
@@ -67,118 +82,193 @@ export default function RunesPanel({ state, character, atCamp, onChange }: Runes
   const initialOf = (other: CharacterState) => t(`characters.${other.id}.name` as MessageKey).charAt(0)
   const isChosen = (kind: Selection['kind'], index: number) => selection?.kind === kind && selection.index === index
 
+  // The runes another hero wears cannot be equipped here: they go last.
+  const isTaken = (index: number) => {
+    const wearer = owner(index)
+
+    return !!wearer && wearer !== character
+  }
+
+  const runeOrder = [...owned.filter((index) => !isTaken(index)), ...owned.filter(isTaken)]
+  const worn = mastered.filter((index) => character.echoes.includes(index))
+  const others = mastered.filter((index) => !character.echoes.includes(index))
+  const anyLocked = others.some((index) => getEchoLock(state, character, index))
+
   return (
     <div className="runes-panel">
-      <section>
-        <h3>
-          {t('party.runes')}
-          <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
-        </h3>
-        <ul className="rune-slots">
-          {Array.from({ length: RUNE_SLOTS }, (_, slot) => {
-            const index = character.runes[slot]
+      {view === 'runes' && (
+        <section>
+          <h3>
+            {t('party.runes')}
+            <small>{t('party.runeSlots', { used: character.runes.length, total: RUNE_SLOTS })}</small>
+          </h3>
+          <ul className="rune-slots">
+            {Array.from({ length: RUNE_SLOTS }, (_, slot) => {
+              const index = character.runes[slot]
 
-            if (index === undefined) {
+              if (index === undefined) {
+                return (
+                  <li key={slot}>
+                    <div className="slot empty">
+                      <span className="hole" />
+                      <span className="name">{t('party.emptySlot')}</span>
+                    </div>
+                  </li>
+                )
+              }
+
+              const rune = getRune(index)
+
               return (
                 <li key={slot}>
-                  <div className="slot empty">
-                    <span className="hole" />
-                    <span className="name">{t('party.emptySlot')}</span>
-                  </div>
-                </li>
-              )
-            }
-
-            const rune = getRune(index)
-
-            return (
-              <li key={slot}>
-                <button
-                  type="button"
-                  className={classNames('slot', { chosen: isChosen('rune', index) })}
-                  style={runeStyle(rune)}
-                  onClick={choose('rune', index)}
-                >
-                  <ItemIcon subject={{ type: 'rune', index }} size={52} />
-                  <span className="name">{runeName(t, rune)}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-        {!atCamp && owned.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
-        {owned.length === 0 ? (
-          <p className="lines">{t('party.noRunes')}</p>
-        ) : (
-          <ul className="rune-grid">
-            {owned.map((index) => {
-              const rune = getRune(index)
-              const wearer = owner(index)
-
-              return (
-                <li key={index}>
                   <button
                     type="button"
-                    className={classNames('tile', { worn: wearer === character, chosen: isChosen('rune', index) })}
+                    className={classNames('slot', { chosen: isChosen('rune', index) })}
                     style={runeStyle(rune)}
                     onClick={choose('rune', index)}
                   >
-                    <ItemIcon subject={{ type: 'rune', index }} size={44} />
+                    <ItemIcon subject={{ type: 'rune', index }} size={52} />
                     <span className="name">{runeName(t, rune)}</span>
-                    {wearer && <span className="badge">{wearer === character ? '✓' : initialOf(wearer)}</span>}
                   </button>
                 </li>
               )
             })}
           </ul>
-        )}
-      </section>
+          {!atCamp && owned.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
+          {owned.length === 0 ? (
+            <p className="lines">{t('party.noRunes')}</p>
+          ) : (
+            <ul className="rune-grid">
+              {runeOrder.map((index) => {
+                const rune = getRune(index)
+                const wearer = owner(index)
+                const taken = isTaken(index)
 
-      <section>
-        <h3>
-          {t('party.echoes')}
-          <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
-        </h3>
-        {state.echoes > 0 && (
-          <div className="row">
-            <span className="lines">
-              {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
-            </span>
-            <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
-              {t('party.assign', { name })}
-            </GameButton>
-          </div>
-        )}
-        <p className="lines">{t('party.echoesHint')}</p>
-        {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
-        {mastered.length === 0 ? (
-          <p className="lines">{t('party.noEchoes')}</p>
-        ) : (
-          <ul className="rune-grid">
-            {mastered.map((index) => {
-              const rune = getRune(index)
+                return (
+                  <li key={index}>
+                    <button
+                      type="button"
+                      className={classNames('tile', {
+                        worn: wearer === character,
+                        locked: taken,
+                        chosen: isChosen('rune', index)
+                      })}
+                      style={runeStyle(rune)}
+                      onClick={choose('rune', index)}
+                    >
+                      <ItemIcon subject={{ type: 'rune', index }} size={44} />
+                      <span className="name">{runeName(t, rune)}</span>
+                      {taken && wearer && (
+                        <span className="reason">
+                          {t('party.runeTakenBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
+                        </span>
+                      )}
+                      {wearer && <span className="badge">{wearer === character ? '✓' : initialOf(wearer)}</span>}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
-              return (
-                <li key={index}>
-                  <button
-                    type="button"
-                    className={classNames('tile', 'echo', {
-                      worn: character.echoes.includes(index),
-                      chosen: isChosen('echo', index)
+      {view === 'echoes' && (
+        <section>
+          <h3>
+            {t('party.echoes')}
+            <small>{t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}</small>
+          </h3>
+          {state.echoes > 0 && (
+            <div className="row">
+              <span className="lines">
+                {t('party.echoPool', { count: state.echoes })} · {t('party.assignHint')}
+              </span>
+              <GameButton size="small" color="magenta" onClick={() => onChange(assignEchoes(state, id, 1))}>
+                {t('party.assign', { name })}
+              </GameButton>
+            </div>
+          )}
+          <span
+            className="echo-meter"
+            role="meter"
+            aria-valuemin={0}
+            aria-valuemax={character.echoCapacity}
+            aria-valuenow={echoLoad}
+            aria-label={t('party.echoCapacity', { used: echoLoad, capacity: character.echoCapacity })}
+          >
+            <span
+              className="fill"
+              style={{ width: `${Math.min(100, (echoLoad / Math.max(1, character.echoCapacity)) * 100)}%` }}
+            />
+          </span>
+          <p className="lines">{t('party.echoesHint')}</p>
+          {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
+          {mastered.length === 0 ? (
+            <p className="lines">{t('party.noEchoes')}</p>
+          ) : (
+            <>
+              <h4 className="grid-title">{t('party.echoesWorn')}</h4>
+              {worn.length === 0 ? (
+                <p className="lines">{t('party.noEchoesWorn')}</p>
+              ) : (
+                <ul className="rune-grid worn-echoes">
+                  {worn.map((index) => {
+                    const rune = getRune(index)
+
+                    return (
+                      <li key={index}>
+                        <button
+                          type="button"
+                          className={classNames('tile', 'echo', 'worn', { chosen: isChosen('echo', index) })}
+                          style={runeStyle(rune)}
+                          onClick={choose('echo', index)}
+                        >
+                          <ItemIcon subject={{ type: 'rune', index }} size={52} />
+                          <span className="name">{runeName(t, rune)}</span>
+                          <span className="badge">✓ {rune.echoCost}</span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+              {others.length > 0 && (
+                <>
+                  <h4 className="grid-title">{t('party.echoesOthers')}</h4>
+                  {anyLocked && <p className="lines">{t('party.echoesLockedHint')}</p>}
+                  <ul className="rune-grid">
+                    {others.map((index) => {
+                      const rune = getRune(index)
+                      const lock = getEchoLock(state, character, index)
+
+                      return (
+                        <li key={index}>
+                          <button
+                            type="button"
+                            className={classNames('tile', 'echo', { locked: lock, chosen: isChosen('echo', index) })}
+                            style={runeStyle(rune)}
+                            onClick={choose('echo', index)}
+                          >
+                            <ItemIcon subject={{ type: 'rune', index }} size={44} />
+                            <span className="name">{runeName(t, rune)}</span>
+                            {lock && (
+                              <span className="reason">
+                                {t(lock === 'asRune' ? 'party.echoAsRune' : 'party.echoNoRoom')}
+                              </span>
+                            )}
+                            <span className="badge">{rune.echoCost}</span>
+                          </button>
+                        </li>
+                      )
                     })}
-                    style={runeStyle(rune)}
-                    onClick={choose('echo', index)}
-                  >
-                    <ItemIcon subject={{ type: 'rune', index }} size={44} />
-                    <span className="name">{runeName(t, rune)}</span>
-                    <span className="badge">{character.echoes.includes(index) ? '✓' : rune.echoCost}</span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+                  </ul>
+                </>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       <Popover
         open={!!selection}
@@ -197,6 +287,7 @@ export default function RunesPanel({ state, character, atCamp, onChange }: Runes
             selection={selection}
             atCamp={atCamp}
             onChange={onChange}
+            onClose={() => setChosen(null)}
           />
         )}
       </Popover>
@@ -210,19 +301,22 @@ interface RuneCardProps {
   selection: Selection
   atCamp: boolean
   onChange: (state: GameState) => void
+  /** Closes the card (once the rune or the echo is equipped or removed). */
+  onClose: () => void
 }
 
 /** The card of a rune (or its echo): what it does, and the button to wear it or take it off. */
-function RuneCard({ state, character, selection, atCamp, onChange }: RuneCardProps) {
+function RuneCard({ state, character, selection, atCamp, onChange, onClose }: RuneCardProps) {
   const t = useT()
   const { kind, index } = selection
   const rune = getRune(index)
   const echo = kind === 'echo'
   const wearer = state.characters.find((other) => other.runes.includes(index))
   const worn = echo ? character.echoes.includes(index) : character.runes.includes(index)
+  const lock = echo ? getEchoLock(state, character, index) : null
   const disabled = echo
     ? !atCamp || (!worn && !canEquipEcho(state, character, index))
-    : !atCamp || (!worn && character.runes.length >= RUNE_SLOTS)
+    : !atCamp || (!worn && (character.runes.length >= RUNE_SLOTS || (!!wearer && wearer !== character)))
 
   const toggle = () => {
     if (echo) {
@@ -230,6 +324,8 @@ function RuneCard({ state, character, selection, atCamp, onChange }: RuneCardPro
     } else {
       onChange(worn ? unequipRune(state, character.id, index) : equipRune(state, character.id, index))
     }
+
+    onClose()
   }
 
   return (
@@ -254,8 +350,18 @@ function RuneCard({ state, character, selection, atCamp, onChange }: RuneCardPro
             ? t('party.mastered')
             : t('party.mastery', { wins: state.runeWins[index] ?? 0, needed: RUNE_MASTERY_WINS })}
       </p>
+      {echo && lock === 'noRoom' && (
+        <p className="lines warning">
+          {t('party.echoNoRoomHint', {
+            missing: getEchoLoad(character) + rune.echoCost - character.echoCapacity
+          })}
+        </p>
+      )}
+      {echo && lock === 'asRune' && <p className="lines warning">{t('party.echoAsRuneHint')}</p>}
       {!echo && wearer && wearer !== character && (
-        <p className="lines">{t('party.wornBy', { name: t(`characters.${wearer.id}.name` as MessageKey) })}</p>
+        <p className="lines warning">
+          {t('party.runeTakenHint', { name: t(`characters.${wearer.id}.name` as MessageKey) })}
+        </p>
       )}
       <GameButton
         fullWidth

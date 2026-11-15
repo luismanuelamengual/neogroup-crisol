@@ -888,7 +888,8 @@ export const es = {
       attributes: 'Atributos',
       weapons: 'Armas',
       skills: 'Habilidades',
-      runes: 'Runas'
+      runes: 'Runas',
+      echoes: 'Ecos'
     },
     openHero: 'Ver a {name}',
     previousHero: 'Héroe anterior',
@@ -896,7 +897,17 @@ export const es = {
     formationPlace: 'Puesto {place} de {total}',
     echoesBadge: 'Hay Ecos para asignar',
     runesCampOnly: 'Las runas se equipan y se quitan en un campamento.',
-    echoesCampOnly: 'Los ecos se equipan y se quitan en un campamento.'
+    echoesCampOnly: 'Los ecos se equipan y se quitan en un campamento.',
+    echoesWorn: 'Equipados',
+    noEchoesWorn: 'Todavía no lleva ningún eco.',
+    echoesOthers: 'Ecos dominados',
+    echoesLockedHint: 'Los ecos en gris no se pueden equipar ahora.',
+    echoNoRoom: 'Sin espacio',
+    echoAsRune: 'Puesta como runa',
+    runeTakenBy: 'La lleva {name}',
+    runeTakenHint: 'La lleva {name}: quitásela desde su página para poder equiparla.',
+    echoNoRoomHint: 'Faltan {missing} de capacidad: quitá otro eco o asigná más Ecos.',
+    echoAsRuneHint: 'La runa ya está puesta en este héroe: no puede llevar también su eco.'
   },
   attributes: {
     maxHealth: 'Vida',

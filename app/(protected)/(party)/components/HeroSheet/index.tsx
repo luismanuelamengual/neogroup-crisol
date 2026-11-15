@@ -63,9 +63,9 @@ import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
 /** The tabs of the page of a hero. */
-export type HeroTab = 'status' | 'attributes' | 'weapons' | 'skills' | 'runes'
+export type HeroTab = 'status' | 'attributes' | 'weapons' | 'skills' | 'runes' | 'echoes'
 
-export const HERO_TABS: HeroTab[] = ['status', 'attributes', 'weapons', 'skills', 'runes']
+export const HERO_TABS: HeroTab[] = ['status', 'attributes', 'weapons', 'skills', 'runes', 'echoes']
 
 interface HeroSheetProps {
   state: GameState
@@ -397,7 +397,9 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
         </section>
       )}
 
-      {tab === 'runes' && <RunesPanel state={state} character={character} atCamp={atCamp} onChange={onChange} />}
+      {(tab === 'runes' || tab === 'echoes') && (
+        <RunesPanel state={state} character={character} view={tab} atCamp={atCamp} onChange={onChange} />
+      )}
     </div>
   )
 }

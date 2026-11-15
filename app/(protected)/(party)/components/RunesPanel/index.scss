@@ -102,6 +102,87 @@
     }
   }
 
+  // The titles of the two grids of echoes (worn, then the others).
+  .grid-title {
+    margin: 10px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  // How much of its capacity of Echoes the hero spends on the echoes it wears.
+  .echo-meter {
+    display: block;
+    height: 8px;
+    margin: 8px 0;
+    overflow: hidden;
+    border: 1px solid #12103a;
+    border-radius: 999px;
+    background: rgba(18, 16, 58, 0.75);
+
+    .fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--color-magenta, #c04ad8), var(--color-gold));
+      transition: width 0.2s ease;
+    }
+  }
+
+  // The echoes worn stand out: bigger tiles with a gold frame and glow.
+  .worn-echoes {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+
+    .tile {
+      padding: 10px 4px 8px;
+      border: 2px solid var(--color-gold);
+      border-bottom: 4px solid var(--rune-color);
+      background: radial-gradient(
+        circle at 50% 35%,
+        color-mix(in srgb, var(--rune-color) 35%, transparent) 0%,
+        rgba(18, 16, 58, 0.8) 75%
+      );
+      box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.6),
+        0 0 10px color-mix(in srgb, var(--color-gold) 45%, transparent);
+
+      .badge {
+        background: var(--color-gold);
+        color: #12103a;
+      }
+    }
+  }
+
+  // An echo that cannot be equipped (its rune is worn, or it does not fit): grey and see-through.
+  .tile.locked {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+    background: rgba(18, 16, 58, 0.35);
+    opacity: 0.5;
+    filter: grayscale(1);
+
+    .badge {
+      color: #ff8a8a;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &.chosen {
+      opacity: 0.75;
+    }
+  }
+
+  .tile .reason {
+    color: var(--color-text-secondary);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
   .slot,
   .tile {
     &:hover,
@@ -131,6 +212,10 @@
 
     .rune-grid {
       grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    }
+
+    .worn-echoes {
+      grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
     }
   }
 }
@@ -199,6 +284,10 @@
   .lines {
     margin: 0;
     font-size: 0.85rem;
+  }
+
+  .warning {
+    color: #ff9c9c;
   }
 
   .tag {

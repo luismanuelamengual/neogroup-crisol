@@ -40,7 +40,7 @@ export default function HeroScreen({ state, characterId, atCamp, canSwap, onChan
   const badges: Partial<Record<HeroTab, number>> = {
     attributes: getAttributePoints(character),
     skills: Math.max(0, getSkillPoints(character)),
-    runes: state.echoes
+    echoes: state.echoes
   }
 
   return (
