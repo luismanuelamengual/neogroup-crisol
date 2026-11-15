@@ -69,6 +69,17 @@
 }
 
 .inventory-entry {
+  // The paper keeps overflow visible for its gold corners, so the content scrolls in here instead of spilling out.
+  .scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 13px;
+    overflow-wrap: anywhere;
+  }
+
   .title {
     display: flex;
     align-items: center;
@@ -77,6 +88,7 @@
     .titles {
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     .name {
@@ -164,6 +176,14 @@
       color: var(--color-text-secondary);
       font-size: 0.72rem;
       font-weight: 800;
+    }
+  }
+
+  // Phones held sideways: little height, so smaller margins.
+  @media (max-height: 520px) and (orientation: landscape) {
+    .MuiDialog-paper {
+      margin: 12px;
+      max-height: calc(100% - 24px);
     }
   }
 }

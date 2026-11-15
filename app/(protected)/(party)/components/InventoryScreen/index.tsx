@@ -170,45 +170,48 @@ function EntryDialog({ entry, state, onSpendTear, onClose }: EntryDialogProps) {
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs" className="inventory-entry">
-      <DialogTitle className="title">
-        <ItemIcon subject={entry.subject} size={64} />
-        <span className="titles">
-          <span className="name">{entry.name}</span>
-          {entry.count > 1 && <span className="count">{t('party.owned', { count: entry.count })}</span>}
-        </span>
-      </DialogTitle>
-      <div className="body">
-        {lines.map((line) => (
-          <p key={line} className="lines">
-            {line}
-          </p>
-        ))}
-        {note && <p className="note">{note}</p>}
-        {usage && !choosing && (
-          <GameButton fullWidth color="cyan" disabled={!canUse} onClick={() => setChoosing(true)}>
-            {t('inventory.use')}
-          </GameButton>
+      {/* The window never outgrows the screen (short phones, landscape): its content scrolls inside. */}
+      <div className="scroll">
+        <DialogTitle className="title">
+          <ItemIcon subject={entry.subject} size={64} />
+          <span className="titles">
+            <span className="name">{entry.name}</span>
+            {entry.count > 1 && <span className="count">{t('party.owned', { count: entry.count })}</span>}
+          </span>
+        </DialogTitle>
+        <div className="body">
+          {lines.map((line) => (
+            <p key={line} className="lines">
+              {line}
+            </p>
+          ))}
+          {note && <p className="note">{note}</p>}
+          {usage && !choosing && (
+            <GameButton fullWidth color="cyan" disabled={!canUse} onClick={() => setChoosing(true)}>
+              {t('inventory.use')}
+            </GameButton>
+          )}
+          {usage && !canUse && <p className="note">{t('inventory.tear.nobody')}</p>}
+        </div>
+        {usage && choosing && (
+          <>
+            <p className="choose">{t('inventory.tear.chooseHero')}</p>
+            <List sx={{ pb: 2 }}>
+              {state.characters.map((character) => (
+                <HeroOption
+                  key={character.id}
+                  character={character}
+                  disabled={!usage!.can(character)}
+                  onClick={() => {
+                    usage!.use(character.id)
+                    setChoosing(false)
+                  }}
+                />
+              ))}
+            </List>
+          </>
         )}
-        {usage && !canUse && <p className="note">{t('inventory.tear.nobody')}</p>}
       </div>
-      {usage && choosing && (
-        <>
-          <p className="choose">{t('inventory.tear.chooseHero')}</p>
-          <List sx={{ pb: 2 }}>
-            {state.characters.map((character) => (
-              <HeroOption
-                key={character.id}
-                character={character}
-                disabled={!usage!.can(character)}
-                onClick={() => {
-                  usage!.use(character.id)
-                  setChoosing(false)
-                }}
-              />
-            ))}
-          </List>
-        </>
-      )}
     </Dialog>
   )
 }

@@ -136,21 +136,24 @@ function SpeciesDialog({
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs" className="bestiary-entry">
-      <div className="portrait">
-        <EnemyPortrait speciesId={speciesId} size={160} />
-      </div>
-      <DialogTitle className="title">{enemyName(t, speciesId)}</DialogTitle>
-      <div className="body">
-        <p className="meta">
-          {t(`world.biomes.${species.biome}` as MessageKey)} · {t('party.kills', { count: kills[speciesId] })}
-        </p>
-        {lines.length === 0 && <p className="lines">{t('bestiary.nothingYet')}</p>}
-        {lines.map((line) => (
-          <p key={line} className="lines">
-            {line}
+      {/* The window never outgrows the screen (short phones, landscape): its content scrolls inside. */}
+      <div className="scroll">
+        <div className="portrait">
+          <EnemyPortrait speciesId={speciesId} size={160} />
+        </div>
+        <DialogTitle className="title">{enemyName(t, speciesId)}</DialogTitle>
+        <div className="body">
+          <p className="meta">
+            {t(`world.biomes.${species.biome}` as MessageKey)} · {t('party.kills', { count: kills[speciesId] })}
           </p>
-        ))}
-        {next !== undefined && <p className="note">{t('party.nextUnlock', { count: next })}</p>}
+          {lines.length === 0 && <p className="lines">{t('bestiary.nothingYet')}</p>}
+          {lines.map((line) => (
+            <p key={line} className="lines">
+              {line}
+            </p>
+          ))}
+          {next !== undefined && <p className="note">{t('party.nextUnlock', { count: next })}</p>}
+        </div>
       </div>
     </Dialog>
   )

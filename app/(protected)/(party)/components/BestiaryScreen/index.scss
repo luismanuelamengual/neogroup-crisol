@@ -56,6 +56,17 @@
 }
 
 .bestiary-entry {
+  // The paper keeps overflow visible for its gold corners, so the content scrolls in here instead of spilling out.
+  .scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 13px;
+    overflow-wrap: anywhere;
+  }
+
   .portrait {
     display: flex;
     justify-content: center;
@@ -92,6 +103,23 @@
       color: var(--color-gold);
       font-size: 0.8rem;
       font-weight: 700;
+    }
+  }
+
+  // Phones held sideways: little height, so a smaller picture and margins.
+  @media (max-height: 520px) and (orientation: landscape) {
+    .MuiDialog-paper {
+      margin: 12px;
+      max-height: calc(100% - 24px);
+    }
+
+    .portrait {
+      padding-top: 12px;
+
+      .enemy-portrait {
+        max-width: 96px;
+        max-height: 96px;
+      }
     }
   }
 }
