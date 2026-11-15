@@ -565,7 +565,46 @@ export function buildAbyssTextures(extras: Map<string, Texture>): AbyssTextures 
   return entries.every(([, texture]) => texture) ? (Object.fromEntries(entries) as AbyssTextures) : null
 }
 
-/** Every piece of other sheets the zones and the lairs use. */
+/** The ice crystals of the Seal of the snow, turned to the violet of the magic of the Seals. */
+const SEAL_ICE: Recolor = { hue: 274, saturation: 0.95, lightness: 1.02, from: [165, 225] }
+/** The glowing cracks of the obsidian of the Seal of fire, turned to the same violet. */
+const SEAL_CRACKS: Recolor = { hue: 284, saturation: 1.1, lightness: 1.18, from: [18, 58] }
+/**
+ * The pieces around each Seal (see WorldSeals): great spires standing guard
+ * further out and a ring of shards closer to its point, of the stuff of its
+ * biome lit by the violet of the Seals.
+ */
+const SEAL_LOOKS = {
+  snow: {
+    spire: { id: 'battle/snow/landmarks/1', height: 400, recolor: SEAL_ICE },
+    shard: { id: 'props/snow/4', height: 160, recolor: SEAL_ICE }
+  },
+  volcanic: {
+    spire: { id: 'battle/volcanic/landmarks/4', height: 410, recolor: SEAL_CRACKS },
+    shard: { id: 'props/volcanic/3', height: 170 }
+  }
+} satisfies Record<string, Record<'spire' | 'shard', Extra>>
+
+export type SealBiome = keyof typeof SEAL_LOOKS
+export type SealTextures = Record<'spire' | 'shard', Texture>
+
+/** The drawings of the pieces around the Seal of a biome, or nothing while some are missing. */
+export function buildSealTextures(extras: Map<string, Texture>, biome: SealBiome): SealTextures | null {
+  const { spire, shard } = SEAL_LOOKS[biome]
+  const spireArt = extras.get(spire.id)
+  const shardArt = extras.get(shard.id)
+
+  if (!spireArt || !shardArt) {
+    return null
+  }
+
+  return {
+    spire: redraw(spireArt, spire.recolor, spire.height),
+    shard: redraw(shardArt, 'recolor' in shard ? shard.recolor : undefined, shard.height)
+  }
+}
+
+/** Every piece of other sheets the zones, the lairs and the Seals use. */
 export function zoneArtIds(): string[] {
   const extras = Object.values(LOOKS).flatMap((look) =>
     Object.values(look).flatMap((pieces) => pieces.flatMap((piece) => ('id' in piece ? [piece.id] : [])))
@@ -576,8 +615,9 @@ export function zoneArtIds(): string[] {
     ...(tree ? [tree] : []),
     ...monuments.map(({ id }) => id)
   ])
+  const seals = Object.values(SEAL_LOOKS).flatMap((look) => Object.values(look).map(({ id }) => id))
 
-  return [...new Set([...extras, ...lairs, ...Object.values(ABYSS_LOOK).map(({ id }) => id)])]
+  return [...new Set([...extras, ...lairs, ...seals, ...Object.values(ABYSS_LOOK).map(({ id }) => id)])]
 }
 
 export async function loadZoneArt(): Promise<Map<string, Texture>> {

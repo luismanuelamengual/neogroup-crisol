@@ -23,6 +23,7 @@ import { WorldAbyss } from '@/app/(protected)/(world)/utils/worldAbyss'
 import { WorldGround } from '@/app/(protected)/(world)/utils/worldGround'
 import { WorldLairs } from '@/app/(protected)/(world)/utils/worldLairs'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
+import { WorldSeals } from '@/app/(protected)/(world)/utils/worldSeals'
 import {
   addVillages,
   loadVillageTextures,
@@ -32,6 +33,7 @@ import {
 import {
   buildAbyssTextures,
   buildLairTextures,
+  buildSealTextures,
   buildZoneTextures,
   loadZoneArt
 } from '@/app/(protected)/(world)/utils/zoneTextures'
@@ -137,6 +139,7 @@ export class WorldRenderer {
   private readonly scenery: WorldScenery
   private readonly lairs: WorldLairs
   private readonly abyss: WorldAbyss
+  private readonly seals: WorldSeals
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
@@ -213,12 +216,14 @@ export class WorldRenderer {
     this.scenery = new WorldScenery(world.width, this.hero, paintShadow())
     this.lairs = new WorldLairs(world, this.tiles)
     this.abyss = new WorldAbyss(world, this.tiles)
+    this.seals = new WorldSeals(world, this.tiles)
 
     const zones = buildZoneTextures(art.scenery, art.extras)
 
     this.scenery.setItems(placeScenery(world, this.tiles), art.scenery, zones)
     this.lairs.setTextures((zone) => buildLairTextures(zones, art.extras, zone), this.scenery)
     this.abyss.setTextures(buildAbyssTextures(art.extras), this.scenery)
+    this.seals.setTextures((biome) => buildSealTextures(art.extras, biome), this.scenery)
     this.addMerchantHouses(art.houses)
     addVillages(placeVillages(world, this.tiles), art.villages, this.scenery)
     this.outOfReach.alpha = OUT_OF_REACH_ALPHA
@@ -230,6 +235,7 @@ export class WorldRenderer {
     viewport.addChild(
       this.scenery.ground,
       this.lairs.circles,
+      this.seals.ground,
       this.abyss.ground,
       this.trails,
       this.route,
@@ -238,9 +244,11 @@ export class WorldRenderer {
       this.scenery.shadows,
       this.scenery.standing,
       this.lairs.motes,
+      this.seals.motes,
       this.abyss.air,
       fog,
       this.lairs.beams,
+      this.seals.sky,
       this.abyss.sky,
       this.beacons,
       this.lostXp,
@@ -346,6 +354,7 @@ export class WorldRenderer {
     // The scenery first, keeping its textures: they are shared through the asset cache.
     this.scenery.destroy()
     this.lairs.destroy()
+    this.seals.destroy()
     this.abyss.destroy()
     // The ground is out of the stage (see drawGround): it goes on its own, with its picture.
     this.ground.destroy()
@@ -375,6 +384,7 @@ export class WorldRenderer {
 
     if (!previous || previous.cleared !== view.cleared || previous.respawned !== view.respawned) {
       this.lairs.setFreed(view.cleared)
+      this.seals.setBeaten(view.cleared)
       this.abyss.setCleared(view.cleared)
       this.drawTrails(view)
       this.drawMarkers(view)
@@ -816,6 +826,7 @@ export class WorldRenderer {
     this.drawGround()
     this.scenery.update(visible, this.elapsed)
     this.lairs.update(this.elapsed, visible)
+    this.seals.update(this.elapsed, visible)
     this.abyss.update(this.elapsed, visible)
     this.hero.scale.set(1 + pulse * 0.04)
     this.tellHeroOnScreen()
