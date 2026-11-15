@@ -34,7 +34,7 @@
   },
   "icons/weapons/mace": {
    "width": 320,
-   "height": 305
+   "height": 294
   },
   "heroes/kael/portrait": {
    "width": 256,
@@ -3452,6 +3452,10 @@
    "width": 125,
    "height": 128
   },
+  "icons/runes/wisdom": {
+   "width": 124,
+   "height": 128
+  },
   "icons/runes/live-ember": {
    "width": 122,
    "height": 128
@@ -3482,6 +3486,10 @@
   },
   "icons/runes/stubborn-ember": {
    "width": 121,
+   "height": 128
+  },
+  "icons/runes/tribute": {
+   "width": 122,
    "height": 128
   },
   "icons/runes/contagion": {
@@ -3524,6 +3532,10 @@
    "width": 125,
    "height": 128
   },
+  "icons/runes/clover": {
+   "width": 124,
+   "height": 128
+  },
   "icons/runes/generous-hand": {
    "width": 121,
    "height": 128
@@ -3557,6 +3569,10 @@
    "height": 128
   },
   "icons/runes/clean-blood": {
+   "width": 119,
+   "height": 128
+  },
+  "icons/runes/vigil": {
    "width": 119,
    "height": 128
   },
@@ -3624,6 +3640,10 @@
    "width": 122,
    "height": 128
   },
+  "icons/runes/patient-apprentice": {
+   "width": 120,
+   "height": 128
+  },
   "icons/runes/dawn": {
    "width": 126,
    "height": 128
@@ -3660,8 +3680,16 @@
    "width": 122,
    "height": 128
   },
+  "icons/runes/shelter": {
+   "width": 122,
+   "height": 128
+  },
   "icons/runes/breach": {
    "width": 124,
+   "height": 128
+  },
+  "icons/runes/respite": {
+   "width": 120,
    "height": 128
   },
   "icons/runes/persistence": {
@@ -3739,38 +3767,6 @@
   "icons/items/elixir": {
    "width": 98,
    "height": 128
-  },
-  "icons/items/rough-stone": {
-   "width": 128,
-   "height": 121
-  },
-  "icons/items/tempered-stone": {
-   "width": 128,
-   "height": 109
-  },
-  "icons/items/arcane-stone": {
-   "width": 127,
-   "height": 128
-  },
-  "icons/items/abyssal-stone": {
-   "width": 128,
-   "height": 123
-  },
-  "icons/items/echo": {
-   "width": 106,
-   "height": 128
-  },
-  "icons/items/tear": {
-   "width": 96,
-   "height": 128
-  },
-  "icons/items/flask": {
-   "width": 100,
-   "height": 128
-  },
-  "icons/items/gold": {
-   "width": 128,
-   "height": 126
   },
   "icons/items/crusty-bread": {
    "width": 128,
@@ -3979,6 +3975,38 @@
   "icons/items/shield-scroll": {
    "width": 128,
    "height": 107
+  },
+  "icons/items/rough-stone": {
+   "width": 128,
+   "height": 121
+  },
+  "icons/items/tempered-stone": {
+   "width": 128,
+   "height": 109
+  },
+  "icons/items/arcane-stone": {
+   "width": 127,
+   "height": 128
+  },
+  "icons/items/abyssal-stone": {
+   "width": 128,
+   "height": 123
+  },
+  "icons/items/echo": {
+   "width": 106,
+   "height": 128
+  },
+  "icons/items/tear": {
+   "width": 96,
+   "height": 128
+  },
+  "icons/items/flask": {
+   "width": 100,
+   "height": 128
+  },
+  "icons/items/gold": {
+   "width": 128,
+   "height": 126
   }
  },
  "decorations": {
@@ -5533,6 +5561,8 @@
    }
   ]
  },
- "music": [],
+ "music": [
+  "menu.mp3"
+ ],
  "sfx": []
 }
