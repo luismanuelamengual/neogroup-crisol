@@ -4,6 +4,13 @@ RPG de fantasía por turnos para un jugador: un mundo laberíntico de más de 1.
 
 El diseño completo (mapa, personajes, combate, runas y ecos, Nuevo Juego+, fases) está en el plan de implementación del proyecto. Este repositorio va por la **fase 5**: la base (auth, PWA, i18n), el menú Continuar / Nuevo, el generador del mundo, el mapa jugable (PixiJS) con guardado local, el combate por turnos con arte provisorio, y la progresión y la economía (atributos, árboles de habilidades, armas, runas, Ecos, objetos, mercaderes, bestiario y formación). El contenido completo (225 habilidades, 80 enemigos, 52 jefes) llega en la fase 6.
 
+## Jugar
+
+- **Web (PWA):** https://neogroup-crisol.vercel.app/
+- **Android:** [Descargar APK](https://github.com/luismanuelamengual/neogroup-crisol/releases/latest/download/Crisol.apk) (TWA, package `app.crisol.twa`). El juego es solo horizontal.
+
+  Para instalarlo, abrir el `.apk` en el celular y permitir la instalación de apps de origen desconocido si Android lo pide. El APK se publica en las [Releases](https://github.com/luismanuelamengual/neogroup-crisol/releases) del repositorio: cada versión nueva se sube con el nombre exacto `Crisol.apk` para que el link de arriba siempre baje la última.
+
 ## Tech stack
 
 - **Next.js 16** (App Router, Turbopack)
