@@ -338,16 +338,23 @@ async function processPiece(piece: Piece, path: string, manifest: ArtManifest): 
   manifest.images[piece.id] = await writeWebp(image, box, piece.id, MAX_SIDE[piece.kind])
 }
 
+/**
+ * Copies the audio there is (art/source/<kind>/<name>.mp3 or .ogg, both when
+ * both exist: OGG loops without a gap, MP3 plays on every phone) and returns
+ * the files copied ("<name>.<extension>").
+ */
 function copyAudio(kind: 'music' | 'sfx', names: readonly string[]): string[] {
   const found: string[] = []
 
   for (const name of names) {
-    const source = ['mp3', 'ogg'].map((extension) => join(SOURCE, kind, `${name}.${extension}`)).find(existsSync)
+    for (const extension of ['mp3', 'ogg']) {
+      const source = join(SOURCE, kind, `${name}.${extension}`)
 
-    if (source) {
-      mkdirSync(join(AUDIO, kind), { recursive: true })
-      copyFileSync(source, join(AUDIO, kind, `${name}.mp3`))
-      found.push(name)
+      if (existsSync(source)) {
+        mkdirSync(join(AUDIO, kind), { recursive: true })
+        copyFileSync(source, join(AUDIO, kind, `${name}.${extension}`))
+        found.push(`${name}.${extension}`)
+      }
     }
   }
 
@@ -482,14 +489,21 @@ function report(catalog: Piece[], found: Set<string>, manifest: ArtManifest, str
   const done = found.size
   const total = catalog.length
   const audio = (kind: string, have: number, all: number) => `${have === all ? OK : KO} ${kind} ${count(have, all)}`
+  /** How many sounds a list of files holds (a name can come in MP3 and OGG). */
+  const names = (files: string[]) => new Set(files.map((file) => file.replace(/\.\w+$/, ''))).size
+  const missingMusic = MUSIC.filter((name) => !manifest.music.some((file) => file.startsWith(`${name}.`)))
 
   console.log(`\n${styleText('bold', 'Total'.padEnd(12))} ${bar(done, total)} ${count(done, total)}`)
   console.log(
     `  ${styleText('green', `${done} ✔ ready`)}  ${styleText('red', `${total - done} ✘ missing`)}  ${styleText('gray', `(${Object.keys(manifest.images).length} images written)`)}`
   )
   console.log(
-    `  ${audio('music', manifest.music.length, MUSIC.length)}   ${audio('sound effects', manifest.sfx.length, SFX.length)}`
+    `  ${audio('music', names(manifest.music), MUSIC.length)}   ${audio('sound effects (the rest are synthesized)', names(manifest.sfx), SFX.length)}`
   )
+
+  if (missingMusic.length > 0) {
+    console.log(`  ${styleText('gray', `music missing in ${SOURCE}/music/: ${missingMusic.join(', ')}`)}`)
+  }
 
   if (strays.length > 0) {
     console.log(`\n${styleText('yellow', '⚠ Not in the catalog (check the names):')}`)

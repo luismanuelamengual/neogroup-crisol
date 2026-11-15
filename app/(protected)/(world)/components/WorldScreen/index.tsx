@@ -183,9 +183,17 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
             })
           }
         case 'flaskCharge':
-          return { text: t('world.rewards.flaskCharge', { max: reward.maxCharges }), icon: { type: 'flask' } }
+          return {
+            text: t('world.rewards.flaskCharge', { max: reward.maxCharges }),
+            icon: { type: 'flask' },
+            sfx: 'flask'
+          }
         case 'flaskPotency':
-          return { text: t('world.rewards.flaskPotency', { potency: reward.potency }), icon: { type: 'flask' } }
+          return {
+            text: t('world.rewards.flaskPotency', { potency: reward.potency }),
+            icon: { type: 'flask' },
+            sfx: 'flask'
+          }
         case 'rune':
           return {
             text: t('world.rewards.rune', {
@@ -199,16 +207,18 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
           return {
             text: t('world.rewards.item', { count: reward.count, name: itemName(t, reward.itemId) }),
             icon: { type: 'item', id: reward.itemId },
-            loot: { amount: `×${reward.count}`, name: itemName(t, reward.itemId) }
+            loot: { amount: `×${reward.count}`, name: itemName(t, reward.itemId) },
+            sfx: 'chest'
           }
         case 'echoes':
           return {
             text: t('world.rewards.echoes', { count: reward.count }),
             icon: { type: 'echo' },
-            loot: { amount: `×${reward.count}`, name: t('world.rewards.echoesName', { count: reward.count }) }
+            loot: { amount: `×${reward.count}`, name: t('world.rewards.echoesName', { count: reward.count }) },
+            sfx: 'coin'
           }
         case 'tear':
-          return { text: t('world.rewards.tear'), icon: { type: 'tear' } }
+          return { text: t('world.rewards.tear'), icon: { type: 'tear' }, sfx: 'rune' }
         case 'weapon':
           return {
             text: t('world.rewards.weapon', {
@@ -223,7 +233,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
             text: t('world.rewards.gold', { amount: reward.amount }),
             icon: { type: 'gold' },
             loot: { amount: `+${reward.amount}`, name: t('world.rewards.goldName') },
-            sfx: 'chest'
+            sfx: 'coin'
           }
         case 'abyssOpen':
           return { text: t('world.rewards.abyssOpen') }
@@ -260,7 +270,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
       setWalking(true)
       setBlockedNodeId(null)
-      playSfx('step')
       await map.current?.walk(route)
       setWalking(false)
 

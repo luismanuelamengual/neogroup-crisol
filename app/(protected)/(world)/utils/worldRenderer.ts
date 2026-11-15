@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Matrix, RenderTexture, Sprite, Textur
 import { Viewport } from 'pixi-viewport'
 import { watchArtLoading } from '@/app/(protected)/(art)/utils/art'
 import { canvasAntialias, canvasResolution, isHandheld } from '@/app/(protected)/(art)/utils/device'
+import { playSfx } from '@/app/(protected)/(art)/utils/sound'
 import { recoverFromContextLoss } from '@/app/(protected)/(art)/utils/webgl'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
@@ -60,6 +61,8 @@ const CLEAR_RADIUS = 620
 const SILHOUETTE_RADIUS = 300
 /** Walking speed of the hero, in world pixels per second. */
 const WALK_SPEED = 1500
+/** Time between footsteps while walking. */
+const FOOTSTEP_MS = 170
 /** Distance between the dots of a trail. */
 const TRAIL_DOT_GAP = 38
 const MAX_ZOOM = 1.6
@@ -433,9 +436,17 @@ export class WorldRenderer {
     return new Promise((resolve) => {
       let segment = 0
       let travelled = 0
+      /** Time since the last footstep (the first one sounds at once). */
+      let sinceStep = FOOTSTEP_MS
 
       const step = (ticker: { deltaMS: number }) => {
         travelled += (WALK_SPEED * ticker.deltaMS) / 1000
+        sinceStep += ticker.deltaMS
+
+        if (sinceStep >= FOOTSTEP_MS) {
+          sinceStep = 0
+          playSfx('step')
+        }
 
         while (segment < points.length - 1) {
           const from = points[segment]

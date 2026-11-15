@@ -1,0 +1,89 @@
+'use client'
+
+import './index.scss'
+import classNames from 'classnames'
+import { useEffect, useState } from 'react'
+import SoundButton from '@/app/(protected)/(art)/components/SoundButton'
+import { MUSIC, MusicId, SFX, SfxId } from '@/app/(protected)/(art)/data/audio'
+import { loadArtManifest } from '@/app/(protected)/(art)/utils/art'
+import { audioFile, playMusic, playSfx, stopMusic } from '@/app/(protected)/(art)/utils/sound'
+
+const GROUPS: { title: string; ids: SfxId[] }[] = [
+  { title: 'Weapons', ids: ['slash', 'pierce', 'blunt', 'critical', 'miss', 'block', 'hurt'] },
+  { title: 'Elements', ids: ['fire', 'ice', 'lightning', 'earth', 'light', 'darkness'] },
+  { title: 'Support and statuses', ids: ['heal', 'revive', 'buff', 'debuff', 'poison', 'stun', 'stance', 'shield', 'focus'] },
+  { title: 'Enemies', ids: ['enemy-fall', 'boss-bar', 'boss-roar', 'phase'] },
+  { title: 'End of battle', ids: ['victory-sting', 'defeat-sting'] },
+  { title: 'World', ids: ['step', 'chest', 'coin', 'rest', 'flask', 'level-up', 'rune'] },
+  { title: 'Menus', ids: ['button', 'cursor', 'menu-open', 'menu-close'] }
+]
+
+/**
+ * Every sound effect (synthesized unless it has a file) and every theme
+ * (with whether its file is there and which one plays), to hear them one by
+ * one on a computer or a phone.
+ */
+export default function SoundsPreview() {
+  const [files, setFiles] = useState<{ music: string[]; sfx: string[] } | null>(null)
+  const [playing, setPlaying] = useState<MusicId | null>(null)
+
+  useEffect(() => {
+    void loadArtManifest().then(({ music, sfx }) => setFiles({ music, sfx }))
+
+    return () => stopMusic()
+  }, [])
+
+  const missing = SFX.filter((id) => !GROUPS.some((group) => group.ids.includes(id)))
+
+  return (
+    <div className="sounds-preview" data-silent>
+      <header>
+        <h1>Sounds</h1>
+        <SoundButton />
+      </header>
+
+      {[...GROUPS, ...(missing.length ? [{ title: 'Others', ids: missing }] : [])].map((group) => (
+        <section key={group.title}>
+          <h2>{group.title}</h2>
+          <div className="grid">
+            {group.ids.map((id) => (
+              <button key={id} type="button" onClick={() => playSfx(id)}>
+                {id}
+                {files && audioFile('sfx', id, files.sfx) && <small>file</small>}
+              </button>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section>
+        <h2>Music</h2>
+        <div className="grid">
+          {MUSIC.map((id) => {
+            const src = files ? audioFile('music', id, files.music) : null
+
+            return (
+              <button
+                key={id}
+                type="button"
+                className={classNames({ active: playing === id, missing: !src })}
+                onClick={() => {
+                  if (playing === id) {
+                    stopMusic()
+                    setPlaying(null)
+                  } else {
+                    void playMusic(id)
+                    setPlaying(id)
+                  }
+                }}
+              >
+                {id}
+                <small>{src ? src.split('/').pop() : 'missing'}</small>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+    </div>
+  )
+}

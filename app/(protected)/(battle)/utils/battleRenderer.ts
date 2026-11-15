@@ -664,9 +664,7 @@ export class BattleRenderer {
     outcomes = new Map<string, HitOutcome>()
   ): Promise<void> {
     const ms = (value: number) => value / this.speed
-    const sound = soundOf(event, 'targetId' in event ? (this.figures.get(event.targetId)?.side ?? null) : null)
-
-    if (sound) {
+    for (const sound of soundOf(event, 'targetId' in event ? (this.figures.get(event.targetId)?.side ?? null) : null)) {
       playSfx(sound)
     }
 

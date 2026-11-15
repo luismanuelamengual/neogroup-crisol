@@ -4,6 +4,7 @@ import './index.scss'
 import { useRouter } from 'next/navigation'
 import { getSession } from 'next-auth/react'
 import { ReactNode, useEffect } from 'react'
+import { installUiSounds } from '@/app/(protected)/(art)/utils/uiSounds'
 import OrientationGuard from '@/app/components/OrientationGuard'
 
 /**
@@ -13,6 +14,9 @@ import OrientationGuard from '@/app/components/OrientationGuard'
  */
 export default function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter()
+
+  // The clicks of the buttons and the whoosh of the windows, on every screen.
+  useEffect(() => installUiSounds(), [])
 
   // Coming back to an installed PWA after the session expired: go to login.
   useEffect(() => {

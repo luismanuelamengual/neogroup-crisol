@@ -4,7 +4,8 @@ import './index.scss'
 import CircularProgress from '@mui/material/CircularProgress'
 import classNames from 'classnames'
 import Link from 'next/link'
-import { KeyboardEvent, ReactNode, useRef, useState } from 'react'
+import { KeyboardEvent, PointerEvent, ReactNode, useRef, useState } from 'react'
+import { playSfx } from '@/app/(protected)/(art)/utils/sound'
 
 export interface CommandMenuItem {
   key: string
@@ -38,6 +39,10 @@ export default function CommandMenu({ items, className, 'aria-label': ariaLabel 
     const next = enabled[(at + step + enabled.length) % enabled.length]
 
     if (next !== undefined) {
+      if (next !== cursor) {
+        playSfx('cursor')
+      }
+
       setCursor(next)
       refs.current[next]?.focus()
     }
@@ -72,7 +77,16 @@ export default function CommandMenu({ items, className, 'aria-label': ariaLabel 
             refs.current[index] = element
           },
           className: classes,
-          onPointerEnter: () => !item.disabled && setCursor(index),
+          onPointerEnter: (event: PointerEvent<HTMLElement>) => {
+            if (!item.disabled && index !== cursor) {
+              // With a mouse only: on a phone the tap already clicks.
+              if (event.pointerType === 'mouse') {
+                playSfx('cursor')
+              }
+
+              setCursor(index)
+            }
+          },
           onFocus: () => !item.disabled && setCursor(index)
         }
 

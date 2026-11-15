@@ -2,37 +2,66 @@ import { SfxId } from '@/app/(protected)/(art)/data/audio'
 import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 
-const BUFFS = [StatusType.ATTACK_UP, StatusType.DEFENSE_UP, StatusType.SPEED_UP]
-const DAMAGE_OVER_TIME = [StatusType.POISON, StatusType.BURN, StatusType.BLEED]
+const HARMFUL = [
+  StatusType.POISON,
+  StatusType.BURN,
+  StatusType.BLEED,
+  StatusType.FREEZE,
+  StatusType.STUN,
+  StatusType.BLIND,
+  StatusType.ATTACK_DOWN,
+  StatusType.DEFENSE_DOWN,
+  StatusType.SPEED_DOWN
+]
 
-/** The sound effect of a battle event, if it has one. */
-export function soundOf(event: BattleEvent, side: 'hero' | 'enemy' | null): SfxId | null {
+/** The sound effects of a battle event (none, one, or a hit and the hero's pain). */
+export function soundOf(event: BattleEvent, side: 'hero' | 'enemy' | null): SfxId[] {
   switch (event.type) {
     case 'damage':
-      return event.critical ? 'critical' : event.damageType
+      return [event.critical ? 'critical' : event.damageType, ...(side === 'hero' ? (['hurt'] as const) : [])]
     case 'miss':
-      return 'miss'
+      return ['miss']
     case 'immune':
-      return 'block'
+      return ['block']
+    case 'shields':
+      return [event.change < 0 ? 'block' : 'shield']
     case 'heal':
-      return 'heal'
+      return ['heal']
     case 'revive':
-      return 'revive'
+      return ['revive']
+    case 'focus':
+      return ['focus']
+    case 'item':
+      return ['flask']
+    case 'skip':
+      return event.status === StatusType.FREEZE ? ['ice'] : ['stun']
     case 'status':
-      return BUFFS.includes(event.status) ? 'buff' : 'debuff'
+      return event.status === StatusType.STUN ? ['stun'] : HARMFUL.includes(event.status) ? ['debuff'] : ['buff']
+
     case 'statusTick':
-      return DAMAGE_OVER_TIME.includes(event.status) ? 'poison' : null
+      switch (event.status) {
+        case StatusType.POISON:
+        case StatusType.BLEED:
+          return ['poison']
+        case StatusType.BURN:
+          return ['fire']
+        case StatusType.REGEN:
+          return ['heal']
+        default:
+          return []
+      }
+
     case 'stance':
-      return 'stance'
+      return ['stance']
     case 'fall':
-      return side === 'enemy' ? 'enemy-fall' : null
+      return side === 'enemy' ? ['enemy-fall'] : ['hurt']
     case 'nextBar':
-      return 'boss-bar'
+      return ['boss-bar']
     case 'phase':
-      return 'phase'
+      return ['phase', 'boss-roar']
     case 'end':
-      return event.outcome === 'victory' ? 'victory-sting' : event.outcome === 'defeat' ? 'defeat-sting' : null
+      return event.outcome === 'victory' ? ['victory-sting'] : event.outcome === 'defeat' ? ['defeat-sting'] : []
     default:
-      return null
+      return []
   }
 }

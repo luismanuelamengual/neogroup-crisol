@@ -18,7 +18,7 @@ export interface ArtManifest {
   battle: Record<string, { bands: string[]; landmarks: string[]; floor?: string; floorLine?: number }>
   /** Parts cut from a parts sheet (ids of images) with their box on the sheet, for the skeletal rigs. */
   parts: Record<string, { id: string; x: number; y: number; width: number; height: number }[]>
-  /** Music and sound effects available (names; files under /audio/). */
+  /** Music and sound effects there are, as files ("battle.ogg", under /audio/music/ and /audio/sfx/). */
   music: string[]
   sfx: string[]
 }
