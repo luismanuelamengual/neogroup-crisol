@@ -5562,7 +5562,8 @@
   ]
  },
  "music": [
-  "menu.mp3"
+  "menu.mp3",
+  "menu.ogg"
  ],
  "sfx": []
 }
