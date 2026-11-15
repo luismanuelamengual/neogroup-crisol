@@ -4,6 +4,7 @@ import './index.scss'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { playMusic, playSfx } from '@/app/(protected)/(art)/utils/sound'
 import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
+import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
@@ -385,13 +386,22 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
     playSfx('rune')
   }
 
+  // The camps the party can travel to, grouped by biome from the easiest to the hardest (the sort is stable: within a
+  // biome they keep the order in which they were opened).
+  const biomeOrder = (biome: string) => BIOMES.findIndex((definition) => definition.biome === biome)
   const otherCamps = state.openCampIds
     .filter((id) => id !== state.positionNodeId)
     .map((id) => {
       const node = index.nodes.get(id)!
 
-      return { nodeId: id, name: campName(t, node), biome: t(`world.biomes.${node.biome}` as MessageKey) }
+      return {
+        nodeId: id,
+        name: campName(t, node),
+        biome: t(`world.biomes.${node.biome}` as MessageKey),
+        order: biomeOrder(node.biome)
+      }
     })
+    .sort((a, b) => a.order - b.order)
 
   return (
     <div className="world-screen">
