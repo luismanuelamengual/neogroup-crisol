@@ -5,12 +5,20 @@ import Alert from '@mui/material/Alert'
 import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import classNames from 'classnames'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { FormEvent, useState } from 'react'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
+
+/**
+ * Sign in with email and password (and the link to create an account). Turned
+ * off for now: only Google is offered. The forms, pages and API of the manual
+ * registration stay in place, so turning it back on is flipping this flag.
+ */
+export const MANUAL_LOGIN_ENABLED = false
 
 interface LoginFormProps {
   callbackUrl: string | null
@@ -74,7 +82,7 @@ export default function LoginForm({ callbackUrl, verified, passwordReset }: Logi
   }
 
   return (
-    <div className="auth-form">
+    <div className={classNames('auth-form', { 'google-only': !MANUAL_LOGIN_ENABLED })}>
       <Typography variant="h5" component="h1" className="title">
         {t('auth.login.title')}
       </Typography>
@@ -90,49 +98,53 @@ export default function LoginForm({ callbackUrl, verified, passwordReset }: Logi
       >
         {t('auth.login.google')}
       </GameButton>
-      <Divider className="divider">{t('auth.login.or')}</Divider>
-      <form onSubmit={handleSubmit} className="form">
-        {verified && <Alert severity="success">{t('auth.login.verified')}</Alert>}
-        {passwordReset && <Alert severity="success">{t('auth.login.passwordReset')}</Alert>}
-        {error && <Alert severity="error">{error}</Alert>}
-        <TextField
-          label={t('auth.email')}
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          fullWidth
-          autoComplete="email"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-        <TextField
-          label={t('auth.password')}
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          fullWidth
-          autoComplete="current-password"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-        <GameButton type="submit" fullWidth loading={loading}>
-          {t('auth.login.submit')}
-        </GameButton>
-        <Typography variant="body2" className="forgot-password">
-          <Link href="/forgot-password" className="text-link">
-            {t('auth.login.forgotPassword')}
-          </Link>
-        </Typography>
-      </form>
-      <Typography variant="body2" className="footer">
-        {t('auth.login.noAccount')}{' '}
-        <Link
-          href={`/register${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
-          className="text-link"
-        >
-          {t('auth.login.register')}
-        </Link>
-      </Typography>
+      {MANUAL_LOGIN_ENABLED && (
+        <>
+          <Divider className="divider">{t('auth.login.or')}</Divider>
+          <form onSubmit={handleSubmit} className="form">
+            {verified && <Alert severity="success">{t('auth.login.verified')}</Alert>}
+            {passwordReset && <Alert severity="success">{t('auth.login.passwordReset')}</Alert>}
+            {error && <Alert severity="error">{error}</Alert>}
+            <TextField
+              label={t('auth.email')}
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              fullWidth
+              autoComplete="email"
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              label={t('auth.password')}
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              fullWidth
+              autoComplete="current-password"
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <GameButton type="submit" fullWidth loading={loading}>
+              {t('auth.login.submit')}
+            </GameButton>
+            <Typography variant="body2" className="forgot-password">
+              <Link href="/forgot-password" className="text-link">
+                {t('auth.login.forgotPassword')}
+              </Link>
+            </Typography>
+          </form>
+          <Typography variant="body2" className="footer">
+            {t('auth.login.noAccount')}{' '}
+            <Link
+              href={`/register${callbackUrl ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ''}`}
+              className="text-link"
+            >
+              {t('auth.login.register')}
+            </Link>
+          </Typography>
+        </>
+      )}
     </div>
   )
 }

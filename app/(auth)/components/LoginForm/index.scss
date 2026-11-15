@@ -38,6 +38,33 @@
     }
   }
 
+  // Only Google: a short card, with the button gold like the main action.
+  &.google-only {
+    gap: 14px;
+    padding: 4px 0;
+
+    .game-button.MuiButtonBase-root.google-button {
+      --btn-light: var(--color-gold-light);
+      --btn-bg: var(--color-gold);
+      --btn-dark: #e08a12;
+      --btn-text: #4a2604;
+      --btn-ring: #12103a;
+
+      margin-top: 4px;
+      padding-top: 13px;
+      padding-bottom: 13px;
+      font-size: 1.05rem;
+
+      .google-logo {
+        padding: 3px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #fff;
+      }
+    }
+  }
+
   .divider {
     color: var(--color-text-secondary);
     font-weight: 700;
@@ -48,5 +75,30 @@
   .forgot-password,
   .footer {
     text-align: center;
+  }
+}
+
+// Phone in landscape: little height, so tighter spacing to scroll less.
+@media (orientation: landscape) and (max-height: 600px) {
+  .auth-form {
+    gap: 10px;
+
+    .title {
+      font-size: 1.2rem;
+    }
+
+    .subtitle {
+      margin-top: -6px;
+      font-size: 0.8rem;
+    }
+
+    .form {
+      gap: 12px;
+    }
+
+    .game-button.MuiButtonBase-root {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
   }
 }

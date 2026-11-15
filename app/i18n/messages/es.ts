@@ -73,7 +73,7 @@ export const es = {
     lastName: 'Apellido',
     login: {
       title: 'Iniciar sesión',
-      subtitle: '¿Dónde estás? Entrá y demostralo.',
+      subtitle: 'Aurenya te necesita. Entrá y encendé la Llama.',
       google: 'Continuar con Google',
       or: 'o',
       verified: 'Tu email fue verificado. Ya podés iniciar sesión.',

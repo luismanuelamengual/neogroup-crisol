@@ -15,6 +15,7 @@ import { useUserStore } from '@/app/(protected)/stores/users'
 import InstallAppBanner from '@/app/(pwa)/components/InstallAppBanner'
 import CommandMenu from '@/app/components/CommandMenu'
 import Logo from '@/app/components/Logo'
+import TitleArt from '@/app/components/TitleArt'
 import { useI18n } from '@/app/i18n/I18nProvider'
 import { formatPlayTime } from '@/app/utils/time'
 import { formatBuiltAt, versionLabel } from '@/app/utils/version'
@@ -24,6 +25,8 @@ import { formatBuiltAt, versionLabel } from '@/app/utils/version'
  * there is none), start a "New game" (which asks first when it would replace a
  * saved one), the player's profile and sign out. The version of the running
  * build sits at the bottom, to tell whether a new deploy has been picked up.
+ * The key art fills the screen and the menu sits on its right, sized to fit
+ * the height of the display (phones in landscape included) without scrolling.
  */
 export default function MainMenu({ save }: { save: SaveSummary | null }) {
   const { t, locale } = useI18n()
@@ -68,35 +71,42 @@ export default function MainMenu({ save }: { save: SaveSummary | null }) {
 
   return (
     <div className="main-menu">
-      <InstallAppBanner />
-      <section className="hero">
-        <Logo size="large" />
-        <p className="tagline">{t('home.tagline')}</p>
-      </section>
-      <CommandMenu
-        className="actions"
-        aria-label={t('metadata.mainMenu')}
-        items={[
-          {
-            key: 'continue',
-            label: t('home.continue'),
-            href: '/world',
-            disabled: !save || starting,
-            detail: save && (
-              <>
-                {save.cycle > 0 && <span className="cycle">{t('home.cycle', { cycle: save.cycle })} · </span>}
-                {t('home.saveCharacters', { count: save.characters })} · {t('home.saveLevel', { level: save.topLevel })}{' '}
-                · {formatPlayTime(save.playTimeSeconds, locale)}
-              </>
-            )
-          },
-          { key: 'new', label: t('home.newGame'), onClick: handleNewGame, loading: starting && !confirming },
-          { key: 'profile', label: t('nav.myProfile'), href: '/account' },
-          { key: 'logout', label: t('nav.logout'), onClick: () => signOut({ redirectTo: '/login' }) }
-        ]}
-      />
-      {user && <p className="player">{user.displayName}</p>}
-      <SoundButton className="sound" />
+      <TitleArt />
+      <div className="install">
+        <InstallAppBanner />
+      </div>
+      <div className="column">
+        <section className="hero">
+          <Logo size="large" />
+          <p className="tagline">{t('home.tagline')}</p>
+        </section>
+        <CommandMenu
+          className="actions"
+          aria-label={t('metadata.mainMenu')}
+          items={[
+            {
+              key: 'continue',
+              label: t('home.continue'),
+              href: '/world',
+              disabled: !save || starting,
+              detail: save && (
+                <>
+                  {save.cycle > 0 && <span className="cycle">{t('home.cycle', { cycle: save.cycle })} · </span>}
+                  {t('home.saveCharacters', { count: save.characters })} ·{' '}
+                  {t('home.saveLevel', { level: save.topLevel })} · {formatPlayTime(save.playTimeSeconds, locale)}
+                </>
+              )
+            },
+            { key: 'new', label: t('home.newGame'), onClick: handleNewGame, loading: starting && !confirming },
+            { key: 'profile', label: t('nav.myProfile'), href: '/account' },
+            { key: 'logout', label: t('nav.logout'), onClick: () => signOut({ redirectTo: '/login' }) }
+          ]}
+        />
+        <footer className="footer">
+          {user && <p className="player">{user.displayName}</p>}
+          <SoundButton className="sound" />
+        </footer>
+      </div>
       <p className="version">
         {versionLabel}
         {builtAt && <span className="built-at"> · {builtAt}</span>}

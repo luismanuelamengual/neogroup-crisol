@@ -70,7 +70,7 @@ export const en: Messages = {
     lastName: 'Last name',
     login: {
       title: 'Sign in',
-      subtitle: 'Where are you? Come in and prove it.',
+      subtitle: 'Aurenya needs you. Come in and rekindle the Flame.',
       google: 'Continue with Google',
       or: 'or',
       verified: 'Your email has been verified. You can now sign in.',

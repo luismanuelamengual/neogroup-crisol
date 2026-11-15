@@ -1,32 +1,64 @@
+// Title screen: the key art behind and the menu column on its right, always as
+// tall as the display (no scroll, phones in landscape included).
 .main-menu {
+  position: relative;
   display: flex;
   flex: 1;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
+  justify-content: flex-end;
   width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  padding: calc(64px + var(--safe-top)) 24px calc(32px + var(--safe-bottom));
+  height: 100dvh;
+  overflow: hidden;
+
+  .install {
+    position: absolute;
+    top: calc(16px + var(--safe-top));
+    left: calc(16px + var(--safe-left));
+    z-index: 2;
+    width: min(420px, calc(100% - 32px));
+  }
+
+  .column {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    width: min(100%, 500px);
+    height: 100%;
+    padding: calc(24px + var(--safe-top)) calc(48px + var(--safe-right)) calc(36px + var(--safe-bottom)) 24px;
+  }
 
   .hero {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     text-align: center;
 
+    .logo.size-large {
+      font-size: clamp(3rem, 6vw, 4.8rem);
+    }
+
     .tagline {
+      max-width: 380px;
       margin: 0;
-      color: #c9cff5;
-      font-size: 1.05rem;
+      color: #f3e6c8;
+      font-size: 1rem;
       font-style: italic;
+      text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.9),
+        0 0 12px rgba(0, 0, 0, 0.6);
     }
   }
 
   .actions {
     width: 100%;
-    margin-top: auto;
+    max-width: 400px;
+    box-shadow:
+      var(--frame-shadow),
+      0 0 40px rgba(255, 140, 40, 0.25);
 
     .cycle {
       color: var(--color-ember);
@@ -34,32 +66,105 @@
     }
   }
 
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .player {
-    margin: -12px 0 0;
-    color: var(--color-text-secondary);
+    margin: 0;
+    color: #f3e6c8;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     letter-spacing: 0.12em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
   }
 
   .sound {
-    color: var(--color-text-secondary);
+    color: #f3e6c8;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
   }
 
   .version {
-    margin: -16px 0 0;
+    position: absolute;
+    right: calc(12px + var(--safe-right));
+    bottom: calc(6px + var(--safe-bottom));
+    z-index: 1;
+    margin: 0;
     color: var(--color-text-secondary);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.04em;
-    text-align: center;
-    opacity: 0.7;
+    text-align: right;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    opacity: 0.75;
     user-select: text;
   }
 }
 
-@media (min-height: 760px) {
-  .main-menu .actions {
-    margin-top: 40px;
+// Phone in landscape (about 360 to 430 px tall): a smaller logo, no tagline
+// and tighter commands so the four of them fit.
+@media (orientation: landscape) and (max-height: 600px) {
+  .main-menu {
+    .column {
+      gap: 10px;
+      width: min(52%, 420px);
+      padding: calc(10px + var(--safe-top)) calc(20px + var(--safe-right)) calc(22px + var(--safe-bottom)) 12px;
+    }
+
+    .hero {
+      .logo.size-large {
+        font-size: 2.4rem;
+      }
+
+      .tagline {
+        display: none;
+      }
+    }
+
+    .actions {
+      padding: 6px 0;
+
+      .command {
+        padding: 7px 12px;
+        font-size: 1rem;
+
+        .detail {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .footer {
+      margin-top: -4px;
+    }
+
+    .player {
+      font-size: 0.75rem;
+    }
+
+    .sound {
+      padding: 4px;
+    }
+  }
+}
+
+@media (orientation: landscape) and (max-height: 360px) {
+  .main-menu .hero .logo.size-large {
+    font-size: 2rem;
+  }
+}
+
+// Desktop window narrower than tall (only desktop: phones upright see the
+// rotate screen): the menu goes centered at the bottom over the art.
+@media (orientation: portrait) {
+  .main-menu {
+    justify-content: center;
+
+    .column {
+      justify-content: flex-end;
+      padding: calc(24px + var(--safe-top)) 24px calc(40px + var(--safe-bottom));
+    }
   }
 }
