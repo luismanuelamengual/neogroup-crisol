@@ -11,12 +11,10 @@ export function campName(t: Translator, node: WorldNode): string {
   }
 
   if (node.bossKind === BossKind.MINIBOSS) {
-    const number = node.bossId?.split('-').pop() ?? '1'
-
-    return t('world.camps.miniboss', { biome: t(`world.biomes.${node.biome}` as MessageKey), number })
+    return t(`world.camps.miniboss.${node.bossId}` as MessageKey)
   }
 
-  return t('world.camps.lair', { name: t(`world.bosses.${node.bossId}.name` as MessageKey) })
+  return t(`world.camps.lair.${node.bossId}` as MessageKey)
 }
 
 /** What the player reads about a point of the map. */

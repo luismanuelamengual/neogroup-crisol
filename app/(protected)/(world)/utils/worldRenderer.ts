@@ -148,6 +148,9 @@ export class WorldRenderer {
   /** The building of each merchant, by point. */
   private readonly houses = new Map<string, Sprite>()
   private walking = false
+  /** Told where the hero is on the screen whenever that changes (see onHeroOnScreen). */
+  private heroListener: ((x: number, y: number, scale: number) => void) | null = null
+  private heroOnScreenKey = ''
   private elapsed = 0
   /**
    * The ground (its shader reads many textures per pixel) is drawn into this
@@ -387,6 +390,15 @@ export class WorldRenderer {
 
       this.hero.position.set(node.x, node.y)
     }
+  }
+
+  /**
+   * Follows where the hero is on the screen (in CSS pixels of the map element)
+   * and the zoom, so that HTML can be anchored to it.
+   */
+  onHeroOnScreen(listener: ((x: number, y: number, scale: number) => void) | null): void {
+    this.heroListener = listener
+    this.heroOnScreenKey = ''
   }
 
   /** Moves the camera to a point. */
@@ -795,6 +807,7 @@ export class WorldRenderer {
     this.lairs.update(this.elapsed, visible)
     this.abyss.update(this.elapsed, visible)
     this.hero.scale.set(1 + pulse * 0.04)
+    this.tellHeroOnScreen()
     this.drawBeacons(pulse)
     this.drawLostXp()
     this.selection.clear()
@@ -809,6 +822,22 @@ export class WorldRenderer {
 
     if (this.handheld) {
       this.app.ticker.maxFPS = this.walking || this.elapsed - this.lastMove < IDLE_AFTER ? 0 : IDLE_FPS
+    }
+  }
+
+  /** Tells the hero listener where the hero is on the screen, only when it moved. */
+  private tellHeroOnScreen(): void {
+    if (!this.heroListener) {
+      return
+    }
+
+    const { x, y } = this.viewport.toScreen(this.hero.position.x, this.hero.position.y)
+    const scale = this.viewport.scale.x
+    const key = `${Math.round(x)},${Math.round(y)},${scale}`
+
+    if (key !== this.heroOnScreenKey) {
+      this.heroOnScreenKey = key
+      this.heroListener(x, y, scale)
     }
   }
 

@@ -251,8 +251,40 @@ export const es = {
     offlineNoCopy: 'Sin conexión, y este dispositivo no tiene una copia de tu partida.',
     camps: {
       start: 'Claro del Despertar',
-      lair: 'Guarida de {name}',
-      miniboss: 'Campamento {number} de {biome}'
+      /** The lairs of the bosses that hold a hero or a Seal, by the id of their boss. */
+      lair: {
+        morgrath: 'Guarida de Morgrath',
+        sahrak: 'Guarida de Sahrak',
+        xalqui: 'Guarida de Xalqui',
+        colossus: 'Guarida del Coloso',
+        vorneth: 'Guarida de Vorneth',
+        ignaroth: 'Guarida de Ignaroth'
+      },
+      /** The camps of the mini bosses, by the id of their boss: one name of its own each. */
+      miniboss: {
+        'meadows-miniboss-1': 'Hondonada de las Espinas',
+        'meadows-miniboss-2': 'Paso del Salteador',
+        'meadows-miniboss-3': 'Prado del Zumbido',
+        'forest-miniboss-1': 'Cañada del Aullido',
+        'forest-miniboss-2': 'Corro del Roble Viejo',
+        'forest-miniboss-3': 'Velo de Seda',
+        'tropical-miniboss-1': 'Remanso de la Bruma',
+        'tropical-miniboss-2': 'Trono de Lianas',
+        'tropical-miniboss-3': 'Ciénaga de las Siete Cabezas',
+        'desert-miniboss-1': 'Oasis Sepultado',
+        'desert-miniboss-2': 'Necrópolis del Sol Quieto',
+        'desert-miniboss-3': 'Columnas Rotas',
+        'mountains-miniboss-1': 'Gruta de Cuarzo',
+        'mountains-miniboss-2': 'Forja de Hierroalto',
+        'mountains-miniboss-3': 'Nido del Trueno',
+        'snow-miniboss-1': 'Ermita de la Escarcha',
+        'snow-miniboss-2': 'Salón del Glaciar',
+        'volcanic-miniboss-1': 'Caldera del Draco',
+        'volcanic-miniboss-2': 'Río de Escoria',
+        'wastelands-miniboss-1': 'Osario del Silencio',
+        'wastelands-miniboss-2': 'Costillar del Dragón',
+        'abyss-miniboss-1': 'Orilla sin Color'
+      }
     },
     biomes: {
       meadows: 'Praderas',
@@ -318,9 +350,7 @@ export const es = {
     },
     panel: {
       nextCycle: 'Nuevo Juego+ {cycle}',
-      go: 'Ir',
       here: 'Estás acá',
-      noRoute: 'Todavía no hay un camino despejado hasta acá.',
       rest: 'Descansar',
       rested:
         'Descansaste: el grupo y el Frasco se recuperaron. Los enemigos comunes vuelven a los 3 descansos de vencerlos.',

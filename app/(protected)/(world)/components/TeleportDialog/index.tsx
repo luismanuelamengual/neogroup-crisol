@@ -29,9 +29,11 @@ export default function TeleportDialog({ open, camps, onSelect, onClose }: Telep
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>{t('world.panel.teleportTitle')}</DialogTitle>
-      <List sx={{ pb: 2 }}>
+      {/* The paper of the dialogs lets its corners stick out (overflow visible): the list scrolls by itself, so the many
+          camps of the map do not spill out of the frame (on a phone held sideways only a few rows fit). */}
+      <List sx={{ pb: 2, overflowY: 'auto', minHeight: 0 }}>
         {camps.map((camp) => (
-          <ListItemButton key={camp.nodeId} onClick={() => onSelect(camp.nodeId)}>
+          <ListItemButton key={camp.nodeId} onClick={() => onSelect(camp.nodeId)} sx={{ py: { xs: 0.25, sm: 0.5 } }}>
             <ListItemIcon sx={{ color: 'var(--color-gold)' }}>
               <LocalFireDepartmentIcon />
             </ListItemIcon>

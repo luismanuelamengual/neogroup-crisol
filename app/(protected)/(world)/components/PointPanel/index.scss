@@ -1,65 +1,68 @@
+// Small buttons pinned over the hero on the map (see WorldMap): a fixed size whatever the zoom.
 .point-panel {
-  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 14px;
-  border: var(--frame-border);
-  border-radius: var(--frame-radius);
-  background: var(--frame-background);
-  box-shadow: var(--frame-shadow);
+  gap: 6px;
+  animation: point-panel-in 0.18s ease-out;
 
-  .header {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .titles {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .name {
-    color: var(--color-gold);
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-  }
-
-  .detail {
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-    font-style: italic;
-  }
-
-  .lost-xp {
+  .MuiButtonBase-root {
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-top: 2px;
-    color: var(--color-cyan);
-    font-size: 0.85rem;
-    font-weight: 800;
-  }
+    height: 30px;
+    padding: 0 10px 0 8px;
+    border: 2px solid var(--color-gold);
+    border-radius: 999px;
+    background: var(--frame-background);
+    box-shadow:
+      0 0 0 2px #12103a,
+      0 4px 10px rgba(0, 0, 0, 0.55);
+    color: var(--color-gold);
+    font-family: var(--font-display);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-transform: uppercase;
 
-  .note {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 2px 3px;
-
-    &:empty {
-      display: none;
+    .MuiSvgIcon-root {
+      font-size: 1rem;
     }
+
+    &:hover,
+    &:focus-visible {
+      box-shadow: var(--frame-glow);
+    }
+
+    &.Mui-disabled {
+      filter: grayscale(0.8);
+      opacity: 0.6;
+    }
+  }
+
+  .rest {
+    color: #ff9a3c;
+  }
+
+  .teleport {
+    color: var(--color-cyan);
+  }
+
+  .next-cycle {
+    color: var(--color-magenta);
+  }
+
+  // A finger needs a bit more room.
+  @media (pointer: coarse) {
+    .MuiButtonBase-root {
+      height: 34px;
+      padding: 0 12px 0 10px;
+    }
+  }
+}
+
+@keyframes point-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
   }
 }

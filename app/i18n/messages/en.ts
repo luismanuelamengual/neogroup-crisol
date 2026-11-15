@@ -247,8 +247,40 @@ export const en: Messages = {
     offlineNoCopy: 'No connection, and this device has no copy of your game.',
     camps: {
       start: 'Glade of Awakening',
-      lair: "{name}'s Lair",
-      miniboss: '{biome} camp {number}'
+      /** The lairs of the bosses that hold a hero or a Seal, by the id of their boss. */
+      lair: {
+        morgrath: "Morgrath's Lair",
+        sahrak: "Sahrak's Lair",
+        xalqui: "Xalqui's Lair",
+        colossus: 'Lair of the Colossus',
+        vorneth: "Vorneth's Lair",
+        ignaroth: "Ignaroth's Lair"
+      },
+      /** The camps of the mini bosses, by the id of their boss: one name of its own each. */
+      miniboss: {
+        'meadows-miniboss-1': 'Thornback Hollow',
+        'meadows-miniboss-2': "Brigand's Pass",
+        'meadows-miniboss-3': 'Humming Meadow',
+        'forest-miniboss-1': 'Howling Dell',
+        'forest-miniboss-2': 'Old Oak Ring',
+        'forest-miniboss-3': 'Silken Veil',
+        'tropical-miniboss-1': 'Mistwater Reach',
+        'tropical-miniboss-2': 'Vinethrone',
+        'tropical-miniboss-3': 'Sevenhead Mire',
+        'desert-miniboss-1': 'Buried Oasis',
+        'desert-miniboss-2': 'Stillsun Necropolis',
+        'desert-miniboss-3': 'The Broken Pillars',
+        'mountains-miniboss-1': 'Quartz Grotto',
+        'mountains-miniboss-2': 'Highiron Forge',
+        'mountains-miniboss-3': 'Thunder Eyrie',
+        'snow-miniboss-1': 'Rime Hermitage',
+        'snow-miniboss-2': 'Glacier Hall',
+        'volcanic-miniboss-1': "Drake's Caldera",
+        'volcanic-miniboss-2': 'Slag River',
+        'wastelands-miniboss-1': 'Ossuary of Silence',
+        'wastelands-miniboss-2': "Dragon's Ribcage",
+        'abyss-miniboss-1': 'Colorless Shore'
+      }
     },
     biomes: {
       meadows: 'Meadows',
@@ -314,9 +346,7 @@ export const en: Messages = {
     },
     panel: {
       nextCycle: 'New Game+ {cycle}',
-      go: 'Go',
       here: 'You are here',
-      noRoute: 'There is no cleared trail to this point yet.',
       rest: 'Rest',
       rested: 'You rested: the party and the Flask recovered. Common enemies come back 3 rests after you beat them.',
       teleport: 'Travel',

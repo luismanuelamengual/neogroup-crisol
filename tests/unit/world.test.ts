@@ -9,6 +9,9 @@ import type { World } from '@/app/(protected)/(engine)/models/World'
 import { buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 import { generateWorld } from '@/app/(protected)/(engine)/utils/worldGenerator'
 import { validateWorld } from '@/app/(protected)/(engine)/utils/worldValidation'
+import { campName } from '@/app/(protected)/(world)/utils/pointNames'
+import { LOCALES } from '@/app/i18n/config'
+import { createTranslator } from '@/app/i18n/translate'
 import storedWorld from '@/public/world/world.json'
 
 const world = storedWorld as unknown as World
@@ -231,5 +234,21 @@ describe('world validation', () => {
     delete sanctuary.runeIndex
 
     expect(validateWorld(broken).length).toBeGreaterThan(0)
+  })
+})
+
+describe('camp names', () => {
+  const camps = world.nodes.filter((node) => node.type === NodeType.START || node.type === NodeType.CAMP_BOSS)
+
+  it('gives every camp a name of its own, in every language', () => {
+    for (const locale of LOCALES) {
+      const names = camps.map((camp) => campName(createTranslator(locale), camp))
+
+      expect(
+        names.filter((name) => name.startsWith('world.')),
+        locale
+      ).toEqual([])
+      expect(new Set(names).size, locale).toBe(camps.length)
+    }
   })
 })

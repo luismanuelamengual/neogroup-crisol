@@ -5,25 +5,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { playMusic, playSfx } from '@/app/(protected)/(art)/utils/sound'
 import BattleScreen from '@/app/(protected)/(battle)/components/BattleScreen'
 import { getRune } from '@/app/(protected)/(engine)/data/runes'
-import { SEALS_TO_OPEN_ABYSS } from '@/app/(protected)/(engine)/data/world'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
 import { World } from '@/app/(protected)/(engine)/models/World'
-import { applyBattleResult, getLostXpAt, totalLostXp } from '@/app/(protected)/(engine)/utils/battleResult'
+import { applyBattleResult } from '@/app/(protected)/(engine)/utils/battleResult'
 import { canSwapWeapons, spendTear } from '@/app/(protected)/(engine)/utils/heroes'
 import { getMerchantHere } from '@/app/(protected)/(engine)/utils/shop'
 import {
   arriveAt,
   canStartNextCycle,
-  countDefeatedSeals,
   drinkFlask,
   getEncounter,
   getFlask,
-  getMissingOwner,
   getReachableNodeIds,
   getRevealedNodeIds,
   indexWorld,
@@ -58,6 +54,9 @@ import { useNotifications } from '@/app/hooks/useNotifications'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
 
+/** How long a point with no clear trail to it blinks when tapped. */
+const BLOCKED_BLINK_MS = 700
+
 /** A fight in progress and the point the party came from (where a retreat goes back to). */
 interface PendingEncounter {
   encounter: Encounter
@@ -66,8 +65,9 @@ interface PendingEncounter {
 
 /**
  * The world (/world): the map of Aurenya with the party on it. Tap a point to
- * see it and tap "Go" (or tap it again) to walk there through the cleared
- * trails; a fight opens the battle screen over the map.
+ * walk there at once through the cleared trails (a point with no clear trail
+ * only blinks); a fight opens the battle screen over the map. At an open camp
+ * or a merchant, what can be done there shows by itself.
  */
 export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const t = useT()
@@ -76,7 +76,8 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
   const save = useGameStore((store) => store.save)
   const sync = useGameStore((store) => store.sync)
   const [index, setIndex] = useState<WorldIndex | null>(null)
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  /** A point tapped with no clear trail to it: it blinks for a moment. */
+  const [blockedNodeId, setBlockedNodeId] = useState<string | null>(null)
   const [walking, setWalking] = useState(false)
   const [pending, setPending] = useState<PendingEncounter | null>(null)
   const [teleporting, setTeleporting] = useState(false)
@@ -140,10 +141,17 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [index, state?.positionNodeId, state?.clearedNodeIds, state?.respawnedNodeIds]
   )
-  const route = useMemo(
-    () => (index && state && selectedNodeId && !walking ? planRoute(index, state, selectedNodeId) : null),
-    [index, state, selectedNodeId, walking]
-  )
+
+  useEffect(() => {
+    if (!blockedNodeId) {
+      return
+    }
+
+    const timeout = setTimeout(() => setBlockedNodeId(null), BLOCKED_BLINK_MS)
+
+    return () => clearTimeout(timeout)
+  }, [blockedNodeId])
+
   const view = useMemo<MapView | null>(
     () =>
       state
@@ -154,12 +162,12 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
             reachable,
             openCamps,
             positionNodeId: state.positionNodeId,
-            selectedNodeId,
-            route,
+            selectedNodeId: blockedNodeId,
+            route: null,
             lostXpNodeId: state.lostXp?.nodeId ?? null
           }
         : null,
-    [cleared, openCamps, reachable, respawned, revealed, route, selectedNodeId, state]
+    [blockedNodeId, cleared, openCamps, reachable, respawned, revealed, state]
   )
   /** What a reward says (with its picture, if it has one) and the sound it makes. */
   const describeReward = useCallback(
@@ -244,41 +252,47 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
     },
     [describeReward]
   )
-  const go = useCallback(async () => {
-    if (!index || !state || !route || walking) {
-      return
-    }
-
-    setWalking(true)
-    setSelectedNodeId(null)
-    playSfx('step')
-    await map.current?.walk(route)
-    setWalking(false)
-
-    const target = route[route.length - 1]
-    const arrival = arriveAt(index, useGameStore.getState().save!.state, target)
-
-    update(arrival.state)
-    // Only chests give something on arrival: their content gets the window, with the picture of each thing.
-    showRewardsWindow(arrival.rewards)
-
-    if (arrival.encounter) {
-      setPending({ encounter: arrival.encounter, fromNodeId: route[route.length - 2] })
-    }
-  }, [index, route, showRewardsWindow, state, update, walking])
-  const handleTap = useCallback(
-    (nodeId: string | null) => {
-      if (walking || pending) {
+  const go = useCallback(
+    async (route: string[]) => {
+      if (!index || walking) {
         return
       }
 
-      if (nodeId && nodeId === selectedNodeId && route) {
-        void go()
-      } else {
-        setSelectedNodeId(nodeId)
+      setWalking(true)
+      setBlockedNodeId(null)
+      playSfx('step')
+      await map.current?.walk(route)
+      setWalking(false)
+
+      const target = route[route.length - 1]
+      const arrival = arriveAt(index, useGameStore.getState().save!.state, target)
+
+      update(arrival.state)
+      // Only chests give something on arrival: their content gets the window, with the picture of each thing.
+      showRewardsWindow(arrival.rewards)
+
+      if (arrival.encounter) {
+        setPending({ encounter: arrival.encounter, fromNodeId: route[route.length - 2] })
       }
     },
-    [go, pending, route, selectedNodeId, walking]
+    [index, showRewardsWindow, update, walking]
+  )
+  /** A tap on a point walks there if there is a clear trail; with none, the point only blinks. */
+  const handleTap = useCallback(
+    (nodeId: string | null) => {
+      if (!nodeId || !index || !state || walking || pending || nodeId === state.positionNodeId) {
+        return
+      }
+
+      const route = planRoute(index, state, nodeId)
+
+      if (route) {
+        void go(route)
+      } else {
+        setBlockedNodeId(nodeId)
+      }
+    },
+    [go, index, pending, state, walking]
   )
 
   if (status === 'loading' || (status === 'ready' && (!index || !state || !view))) {
@@ -300,40 +314,11 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
   const position = index.nodes.get(state.positionNodeId)!
   const flask = getFlask(index, state)
-  const selected = selectedNodeId ? index.nodes.get(selectedNodeId)! : null
   // An enemy that came back after resting is named again like a fight not won yet.
   const nameOf = (nodeId: string) =>
     pointName(t, index.nodes.get(nodeId)!, cleared.has(nodeId) && !respawned.has(nodeId), openCamps.has(nodeId))
   const busy = walking || !!pending
   const merchantHere = getMerchantHere(index, state)
-
-  const detailOf = (nodeId: string): string | null => {
-    const node = index.nodes.get(nodeId)!
-    const encounter = getEncounter(index, state, nodeId)
-
-    if (node.type === NodeType.ABYSS_GATE && !cleared.has(nodeId)) {
-      const left = SEALS_TO_OPEN_ABYSS - countDefeatedSeals(index, state)
-
-      if (left > 0) {
-        return t('world.points.gateSealed', { count: left })
-      }
-    }
-
-    const missingOwner = getMissingOwner(state, node)
-
-    if (missingOwner && !cleared.has(nodeId)) {
-      return t('world.points.reliquaryLocked', { name: t(`characters.${missingOwner}.name` as MessageKey) })
-    }
-
-    if (!encounter) {
-      return t(`world.biomes.${node.biome}` as MessageKey)
-    }
-
-    const kind = t(`world.encounters.${encounter.kind}`)
-    const level = t('world.levelShort', { level: encounter.level })
-
-    return respawned.has(nodeId) ? `${t('world.points.respawned')} · ${level}` : `${kind} · ${level}`
-  }
 
   const handleBattleEnd = (battle: BattleState) => {
     const result = applyBattleResult(index, state, battle, pending!.fromNodeId)
@@ -367,7 +352,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
   const handleTeleport = (campId: string) => {
     setTeleporting(false)
-    setSelectedNodeId(null)
     update(teleport(state, campId))
     map.current?.centerOn(campId)
   }
@@ -376,7 +360,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
     const next = startNextCycle(index, state)
 
     setConfirmingCycle(false)
-    setSelectedNodeId(null)
     update(next)
     map.current?.centerOn(next.positionNodeId)
     showSuccessMessage(t('world.nextCycle.started', { cycle: next.cycle }), 8000)
@@ -409,6 +392,21 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         view={view}
         onTap={handleTap}
         paused={Boolean(pending || heroId || inventoryOpen || bestiaryOpen)}
+        overHero={
+          !busy && (isAtOpenCamp(state) || merchantHere) ? (
+            <PointPanel
+              openCamp={isAtOpenCamp(state)}
+              merchant={Boolean(merchantHere)}
+              canTeleport={otherCamps.length > 0}
+              nextCycle={canStartNextCycle(index, state) ? state.cycle + 1 : null}
+              busy={busy}
+              onRest={handleRest}
+              onTeleport={() => setTeleporting(true)}
+              onNextCycle={() => setConfirmingCycle(true)}
+              onShop={() => setShopOpen(true)}
+            />
+          ) : null
+        }
       />
       <MapHud
         location={nameOf(position.id)}
@@ -419,34 +417,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         onRecenter={() => map.current?.centerOn(state.positionNodeId)}
       />
       <div className="bottom">
-        {selected && (
-          <PointPanel
-            name={nameOf(selected.id)}
-            detail={detailOf(selected.id)}
-            lostXp={totalLostXp(getLostXpAt(state, selected.id))}
-            reach={
-              selected.id === state.positionNodeId
-                ? 'here'
-                : route
-                  ? 'route'
-                  : getMissingOwner(state, selected) && !cleared.has(selected.id)
-                    ? 'shut'
-                    : 'none'
-            }
-            steps={route ? route.length - 1 : 0}
-            openCamp={selected.id === state.positionNodeId && isAtOpenCamp(state)}
-            merchant={selected.type === NodeType.MERCHANT}
-            canTeleport={otherCamps.length > 0}
-            nextCycle={selected.id === state.positionNodeId && canStartNextCycle(index, state) ? state.cycle + 1 : null}
-            onNextCycle={() => setConfirmingCycle(true)}
-            busy={busy}
-            onGo={() => void go()}
-            onRest={handleRest}
-            onTeleport={() => setTeleporting(true)}
-            onShop={() => setShopOpen(true)}
-            onClose={() => setSelectedNodeId(null)}
-          />
-        )}
         <div className="dock">
           <PartyPanel
             characters={state.characters}

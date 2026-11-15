@@ -8,3 +8,12 @@
     display: block;
   }
 }
+
+// Small buttons pinned over the hero (placed from the map, see placeOverHero).
+.over-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  will-change: transform;
+}
