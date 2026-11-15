@@ -67,7 +67,7 @@ function turnOf(state: BattleState, id: string): BattleState {
 
 describe('battle setup and turns', () => {
   it('puts three heroes on the field and the rest in reserve', () => {
-    const heroes = [CharacterId.KAEL, CharacterId.SERA, CharacterId.BRANN, CharacterId.OREN].map((id) =>
+    const heroes = [CharacterId.KAEL, CharacterId.SERA, CharacterId.AJAX, CharacterId.OREN].map((id) =>
       createCharacter(id, 3)
     )
     const state = battle([[{ speciesId: 'thorn-boar', level: 3 }]], heroes)
@@ -75,7 +75,7 @@ describe('battle setup and turns', () => {
     expect(getFighters(state, 'hero').map((hero) => hero.characterId)).toEqual([
       CharacterId.KAEL,
       CharacterId.SERA,
-      CharacterId.BRANN
+      CharacterId.AJAX
     ])
     expect(getCombatant(state, 'h-oren').reserve).toBe(true)
     expect(getFighters(state, 'enemy')).toHaveLength(1)
@@ -148,10 +148,10 @@ describe('damage', () => {
 
     expect(flame.events).toContainEqual(expect.objectContaining({ type: 'damage', targetId: 'e1-1', weak: true }))
 
-    const brann = withSkills(createCharacter(CharacterId.BRANN, 5), ['brann-earthsplitter'])
-    const quake = performAction(turnOf(battle([[{ speciesId: 'sand-worm', level: 5 }]], [brann]), 'h-brann'), {
+    const ajax = withSkills(createCharacter(CharacterId.AJAX, 5), ['ajax-earthsplitter'])
+    const quake = performAction(turnOf(battle([[{ speciesId: 'sand-worm', level: 5 }]], [ajax]), 'h-ajax'), {
       type: 'skill',
-      skillId: 'brann-earthsplitter',
+      skillId: 'ajax-earthsplitter',
       targetIds: []
     })
 
@@ -241,7 +241,7 @@ describe('phases, reserves and bosses', () => {
   })
 
   it('sends the reserves in when the active heroes fall, and loses when nobody is left', () => {
-    const heroes = [CharacterId.KAEL, CharacterId.SERA, CharacterId.BRANN, CharacterId.OREN].map((id) => ({
+    const heroes = [CharacterId.KAEL, CharacterId.SERA, CharacterId.AJAX, CharacterId.OREN].map((id) => ({
       ...createCharacter(id, 3),
       health: 1
     }))
@@ -878,20 +878,20 @@ describe('the mechanics of each hero', () => {
     expect(getCombatant(after, 'h-kael').stance).toBe(Stance.NONE)
   })
 
-  it('charges Ysolde with the elements she casts, and spends them all at once', () => {
-    const ysolde = withSkills(createCharacter(CharacterId.YSOLDE, 20), ['ysolde-combustion'])
-    const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 30 }]], [ysolde]), 'h-ysolde')
-    const { state: charged } = performAction(state, { type: 'skill', skillId: 'ysolde-fireball', targetIds: ['e1-1'] })
+  it('charges Thea with the elements she casts, and spends them all at once', () => {
+    const thea = withSkills(createCharacter(CharacterId.THEA, 20), ['thea-combustion'])
+    const state = turnOf(battle([[{ speciesId: 'thorn-boar', level: 30 }]], [thea]), 'h-thea')
+    const { state: charged } = performAction(state, { type: 'skill', skillId: 'thea-fireball', targetIds: ['e1-1'] })
 
-    expect(getCombatant(charged, 'h-ysolde').charges).toEqual(['fire'])
+    expect(getCombatant(charged, 'h-thea').charges).toEqual(['fire'])
 
-    const { state: spent } = performAction(turnOf(charged, 'h-ysolde'), {
+    const { state: spent } = performAction(turnOf(charged, 'h-thea'), {
       type: 'skill',
-      skillId: 'ysolde-combustion',
+      skillId: 'thea-combustion',
       targetIds: ['e1-1']
     })
 
-    expect(getCombatant(spent, 'h-ysolde').charges).toEqual([])
+    expect(getCombatant(spent, 'h-thea').charges).toEqual([])
   })
 
   it('lets Oren bring a fallen hero back', () => {
@@ -990,7 +990,7 @@ describe('rune effects', () => {
 
   it('shields the allies that have none when the wearer of the shelter falls', () => {
     const start = createBattle({
-      heroes: [wearing('shelter'), createCharacter(CharacterId.SERA, 5), createCharacter(CharacterId.BRANN, 5)],
+      heroes: [wearing('shelter'), createCharacter(CharacterId.SERA, 5), createCharacter(CharacterId.AJAX, 5)],
       phases: [[{ speciesId: 'thorn-boar', level: 60 }]],
       seed: 7,
       biome: Biome.MEADOWS,
@@ -1001,7 +1001,7 @@ describe('rune effects', () => {
       combatants: start.combatants.map((combatant) =>
         combatant.id === 'h-kael'
           ? { ...combatant, health: 2 }
-          : combatant.id === 'h-brann'
+          : combatant.id === 'h-ajax'
             ? { ...combatant, shields: 1 }
             : combatant
       )
@@ -1011,7 +1011,7 @@ describe('rune effects', () => {
     expect(getCombatant(fall.state, 'h-kael').health).toBe(0)
     expect(fall.events).toContainEqual({ type: 'perk', targetId: 'h-kael', perk: Perk.SHELTER })
     expect(getCombatant(fall.state, 'h-sera').shields).toBe(1)
-    expect(getCombatant(fall.state, 'h-brann').shields).toBe(1)
+    expect(getCombatant(fall.state, 'h-ajax').shields).toBe(1)
   })
 
   it('survives a deadly hit once per battle', () => {
@@ -1134,7 +1134,7 @@ describe('runes of the spoils and the new runes of the way', () => {
 
   it('gives its turn right away to the ally that keeps vigil when a hero falls', () => {
     const start = createBattle({
-      heroes: [kael, wearing(createCharacter(CharacterId.SERA, 5), 'vigil'), createCharacter(CharacterId.BRANN, 5)],
+      heroes: [kael, wearing(createCharacter(CharacterId.SERA, 5), 'vigil'), createCharacter(CharacterId.AJAX, 5)],
       phases: [[{ speciesId: 'thorn-boar', level: 60 }]],
       seed: 7,
       biome: Biome.MEADOWS,

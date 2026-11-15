@@ -16,8 +16,8 @@ import { createCharacter } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** The heroes on the field in each lineup of the preview (the first three of a party fight). */
 export const PREVIEW_LINEUPS: CharacterId[][] = [
-  [CharacterId.KAEL, CharacterId.YSOLDE, CharacterId.SERA],
-  [CharacterId.BRANN, CharacterId.OREN, CharacterId.YSOLDE]
+  [CharacterId.KAEL, CharacterId.THEA, CharacterId.SERA],
+  [CharacterId.AJAX, CharacterId.OREN, CharacterId.THEA]
 ]
 
 /** The enemies the preview fights: a beast, a caster and an archer (any of them uses the skill picked). */

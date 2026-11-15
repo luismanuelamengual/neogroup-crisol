@@ -131,12 +131,12 @@ const STANCES: Record<Stance, { attack: number; defense: number }> = {
 /** Sera: critical chance per mark on the target, and most marks. */
 const MARK_CRIT = 0.06
 const MAX_MARKS = 5
-/** Brann: attack per point of fury (100 = +40%), and the power that spending it adds (100 = +100%). */
+/** Ajax: attack per point of fury (100 = +40%), and the power that spending it adds (100 = +100%). */
 const FURY_ATTACK = 0.004
 const MAX_FURY = 100
 /** Oren: extra healing per share of missing health of the ally. */
 const SAP_HEALING = 0.6
-/** Ysolde: special power per charge, the power that spending them adds per charge, and the elements that charge. */
+/** Thea: special power per charge, the power that spending them adds per charge, and the elements that charge. */
 const CHARGE_POWER = 0.08
 const CHARGE_SPEND = 0.5
 const CHARGING = [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]

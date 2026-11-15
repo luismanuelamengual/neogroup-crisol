@@ -92,7 +92,7 @@ export const LOOK_COLORS: Record<Look, LookColors> = {
   blood: { core: 0xffe4e6, glow: 0xe11d48, accent: 0x881337 }
 }
 
-/** The three seals of Ysolde's first tome: fire, ice and lightning. */
+/** The three seals of Thea's first tome: fire, ice and lightning. */
 export const SEAL_COLORS = [0xff7a00, 0x7dd3fc, 0xfde047]
 
 const PHYSICAL = new Set([DamageType.SLASH, DamageType.PIERCE, DamageType.BLUNT])
@@ -106,36 +106,36 @@ const STRIKES: Record<string, Strike> = {
   'venom-bite': 'bite',
   'kael-mace-blow': 'blunt',
   'kael-shield-bash': 'blunt',
-  'brann-maul-smash': 'blunt',
-  'brann-magma-fist': 'blunt',
-  'brann-headbutt': 'blunt'
+  'ajax-maul-smash': 'blunt',
+  'ajax-magma-fist': 'blunt',
+  'ajax-headbutt': 'blunt'
 }
 /** Signature skills: what they change of the look their type and targets give them. */
 const OVERRIDES: Record<string, Partial<AttackEffect>> = {
-  // Ysolde.
-  'ysolde-seal-bolt': { delivery: 'bolt', look: 'arcane' },
-  'ysolde-thunder-page': { delivery: 'zigzag' },
-  'ysolde-prism-ray': { delivery: 'beam' },
-  'ysolde-chain-lightning': { delivery: 'chain' },
-  'ysolde-static-field': { delivery: 'chain' },
-  'ysolde-spark': { delivery: 'zigzag' },
-  'ysolde-meteor': { delivery: 'meteor' },
-  'ysolde-fire-pillar': { delivery: 'rise' },
-  'ysolde-frozen-tomb': { delivery: 'rise' },
-  'ysolde-ice-shards': { delivery: 'shards' },
-  'ysolde-blizzard': { delivery: 'storm' },
-  'ysolde-absolute-zero': { delivery: 'wave' },
-  'ysolde-convergence': { delivery: 'sky' },
-  'ysolde-arcane-shield': { look: 'arcane', shield: true },
-  'ysolde-frost-armor': { shield: true },
-  // Brann throws and stamps.
-  'brann-boulder': { approach: 'cast', delivery: 'bolt' },
-  'brann-avalanche': { approach: 'cast', delivery: 'sky' },
-  'brann-cataclysm': { approach: 'cast', delivery: 'sky' },
-  'brann-earthsplitter': { approach: 'cast', delivery: 'rise' },
-  'brann-war-stomp': { approach: 'cast', delivery: 'rise' },
-  'brann-stone-skin': { shield: true },
-  'brann-shield-wall': { shield: true },
+  // Thea.
+  'thea-seal-bolt': { delivery: 'bolt', look: 'arcane' },
+  'thea-thunder-page': { delivery: 'zigzag' },
+  'thea-prism-ray': { delivery: 'beam' },
+  'thea-chain-lightning': { delivery: 'chain' },
+  'thea-static-field': { delivery: 'chain' },
+  'thea-spark': { delivery: 'zigzag' },
+  'thea-meteor': { delivery: 'meteor' },
+  'thea-fire-pillar': { delivery: 'rise' },
+  'thea-frozen-tomb': { delivery: 'rise' },
+  'thea-ice-shards': { delivery: 'shards' },
+  'thea-blizzard': { delivery: 'storm' },
+  'thea-absolute-zero': { delivery: 'wave' },
+  'thea-convergence': { delivery: 'sky' },
+  'thea-arcane-shield': { look: 'arcane', shield: true },
+  'thea-frost-armor': { shield: true },
+  // Ajax throws and stamps.
+  'ajax-boulder': { approach: 'cast', delivery: 'bolt' },
+  'ajax-avalanche': { approach: 'cast', delivery: 'sky' },
+  'ajax-cataclysm': { approach: 'cast', delivery: 'sky' },
+  'ajax-earthsplitter': { approach: 'cast', delivery: 'rise' },
+  'ajax-war-stomp': { approach: 'cast', delivery: 'rise' },
+  'ajax-stone-skin': { shield: true },
+  'ajax-shield-wall': { shield: true },
   // Oren.
   'oren-seed-shot': { delivery: 'bolt' },
   'oren-barkskin': { shield: true },

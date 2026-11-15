@@ -37,7 +37,7 @@ export interface Skill {
   stance?: Stance
   /** Kael: the stances in which it can be used (any when not set). */
   requires?: Stance[]
-  /** Spends the fury (Brann) or the elemental charges (Ysolde) of its user for more power. */
+  /** Spends the fury (Ajax) or the elemental charges (Thea) of its user for more power. */
   consumes?: 'fury' | 'charges'
   /** Shields it gives to its targets (to its user, for the ones on itself): each one stops a whole hit. */
   shields?: number

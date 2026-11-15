@@ -67,7 +67,7 @@ interface Figure {
   rig: RigFigure | null
   /** How it fights: walking up to its target, shooting arrows from its spot (see shoot) or casting spells. */
   style: ActorStyle
-  /** The elemental charges that go round it (Ysolde), one orb each. */
+  /** The elemental charges that go round it (Thea), one orb each. */
   orbs: Container | null
   size: number
   /** Its shadow (data/shadows), in pixels of a fighter of size 1: the rings at its feet follow it. */
@@ -1494,7 +1494,7 @@ export function drawHero(characterId: CharacterId): Container {
       g.arc(26, -70, 34, -1.2, 1.2).stroke({ width: 6, color: 0x8b5a2b })
       g.moveTo(38, -101).lineTo(38, -39).stroke({ width: 2, color: 0xe5e7eb })
       break
-    case CharacterId.BRANN:
+    case CharacterId.AJAX:
       g.roundRect(18, -112, 6, 72, 2).fill({ color: 0x8b5a2b }).stroke(stroke)
       g.poly([24, -112, 50, -104, 50, -84, 24, -92]).fill({ color: 0xd1d5db }).stroke(stroke)
       break
@@ -1502,7 +1502,7 @@ export function drawHero(characterId: CharacterId): Container {
       g.roundRect(20, -120, 6, 120, 2).fill({ color: 0x6b4423 }).stroke(stroke)
       g.circle(23, -124, 9).fill({ color: 0x84cc16 }).stroke(stroke)
       break
-    case CharacterId.YSOLDE:
+    case CharacterId.THEA:
       g.roundRect(20, -118, 6, 118, 2).fill({ color: 0x3b2f5c }).stroke(stroke)
       g.circle(23, -124, 11).fill({ color: 0xc084fc }).stroke(stroke)
       break
@@ -1588,13 +1588,13 @@ function provisionalScenery(): SceneryTextures {
   return provisionalTextures
 }
 
-/** How a fighter fights: Ysolde casts from her spot, the heroes with bows shoot, the rest walk up (see attackEffects). */
+/** How a fighter fights: Thea casts from her spot, the heroes with bows shoot, the rest walk up (see attackEffects). */
 function styleOf(combatant: Combatant): ActorStyle {
   if (combatant.side !== 'hero') {
     return 'melee'
   }
 
-  if (combatant.characterId === CharacterId.YSOLDE) {
+  if (combatant.characterId === CharacterId.THEA) {
     return 'mage'
   }
 

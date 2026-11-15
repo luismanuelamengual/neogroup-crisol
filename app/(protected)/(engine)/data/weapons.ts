@@ -157,11 +157,11 @@ export const WEAPONS: Weapon[] = [
     ranged: true,
     art: 'gale-bow'
   },
-  // Brann: an axe that feeds the fury, a slow maul that stuns and two fast hatchets that bleed.
+  // Ajax: an axe that feeds the fury, a slow maul that stuns and two fast hatchets that bleed.
   {
     id: 'war-axe',
-    characterId: CharacterId.BRANN,
-    attack: 'brann-chop',
+    characterId: CharacterId.AJAX,
+    attack: 'ajax-chop',
     traits: {},
     effects: [
       { onHit: [{ type: StatusType.BLEED, chance: 0.2, turns: 2 }] },
@@ -173,8 +173,8 @@ export const WEAPONS: Weapon[] = [
   },
   {
     id: 'quarry-maul',
-    characterId: CharacterId.BRANN,
-    attack: 'brann-maul-smash',
+    characterId: CharacterId.AJAX,
+    attack: 'ajax-maul-smash',
     traits: { stats: { attack: 0.1, speed: -0.12 } },
     effects: [
       { damage: { [EARTH]: 0.15 } },
@@ -188,8 +188,8 @@ export const WEAPONS: Weapon[] = [
   },
   {
     id: 'twin-hatchets',
-    characterId: CharacterId.BRANN,
-    attack: 'brann-twin-cut',
+    characterId: CharacterId.AJAX,
+    attack: 'ajax-twin-cut',
     traits: { stats: { speed: 0.15, critChance: 0.06, attack: -0.12, defense: -0.08 } },
     effects: [
       { lifesteal: 0.05 },
@@ -240,12 +240,12 @@ export const WEAPONS: Weapon[] = [
     warden: 'thorn-widow',
     art: 'thorn-sickle'
   },
-  // Ysolde, a sorceress from afar with grimoires floating at her side: a tome of three seals, a storm codex that
+  // Thea, a sorceress from afar with grimoires floating at her side: a tome of three seals, a storm codex that
   // fills the focus and a crystal book of light made to break things.
   {
     id: 'trinity-tome',
-    characterId: CharacterId.YSOLDE,
-    attack: 'ysolde-seal-bolt',
+    characterId: CharacterId.THEA,
+    attack: 'thea-seal-bolt',
     traits: {},
     effects: [
       { damage: { [FIRE]: 0.15 } },
@@ -257,8 +257,8 @@ export const WEAPONS: Weapon[] = [
   },
   {
     id: 'thunder-codex',
-    characterId: CharacterId.YSOLDE,
-    attack: 'ysolde-thunder-page',
+    characterId: CharacterId.THEA,
+    attack: 'thea-thunder-page',
     traits: { stats: { speed: 0.08, maxFocus: 0.15 }, focusRegen: 0.04 },
     effects: [{ damage: { [LIGHTNING]: 0.15 } }, { initiative: 15 }, { focusRegen: 0.04 }, { stats: { special: 0.1 } }],
     biome: Biome.WASTELANDS,
@@ -267,8 +267,8 @@ export const WEAPONS: Weapon[] = [
   },
   {
     id: 'dusk-grimoire',
-    characterId: CharacterId.YSOLDE,
-    attack: 'ysolde-prism-ray',
+    characterId: CharacterId.THEA,
+    attack: 'thea-prism-ray',
     traits: { stats: { special: 0.2, maxHealth: -0.12, defense: -0.12 } },
     effects: [{ damage: { [LIGHT]: 0.15 } }, { weakness: 0.2 }, { lifesteal: 0.04 }, { stats: { critDamage: 0.4 } }],
     biome: Biome.ABYSS,

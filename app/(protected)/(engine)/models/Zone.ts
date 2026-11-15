@@ -12,7 +12,7 @@ export enum Zone {
   BLOSSOM = 'blossom',
   /** Forest: the lair of Morgrath, the Moss Witch, where Sera is held: withered violet trees over blighted ground. */
   WITCHWOOD = 'witchwood',
-  /** Desert: the lair of Sahrak, the Scorpion King, where Brann is held: a ruined necropolis over red sand. */
+  /** Desert: the lair of Sahrak, the Scorpion King, where Ajax is held: a ruined necropolis over red sand. */
   NECROPOLIS = 'necropolis',
   /** Tropical: deep jungle of dark wide trees, ferns and ruins of jade. */
   DEEP_JUNGLE = 'deepJungle',
@@ -26,7 +26,7 @@ export enum Zone {
   MARSH = 'marsh',
   /** Tropical: the lair of Xalqui, the Jade Serpent, where Oren is held: a jungle temple of jade over glowing moss. */
   JADE_TEMPLE = 'jadeTemple',
-  /** Mountains: the lair of the Basalt Colossus, where Ysolde is held: a dwarven hold in ruins over black basalt. */
+  /** Mountains: the lair of the Basalt Colossus, where Thea is held: a dwarven hold in ruins over black basalt. */
   BASALT_HOLD = 'basaltHold',
   /** Wastelands: a mire of dark mud and murky pools among rotten trees. */
   MIRE = 'mire',

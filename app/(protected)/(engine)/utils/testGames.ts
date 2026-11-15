@@ -35,7 +35,7 @@ export interface TestGame {
   gold: number
 }
 
-const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
+const { KAEL, SERA, AJAX, OREN, THEA } = CharacterId
 
 /** The test games, by number. Positions come from public/world/world.json (WORLD_VERSION 40). */
 export const TEST_GAMES: Record<number, TestGame> = {
@@ -46,25 +46,25 @@ export const TEST_GAMES: Record<number, TestGame> = {
     levels: { [KAEL]: 24, [SERA]: 14 },
     gold: 800
   },
-  // In the desert, right after freeing Brann from Sahrak.
+  // In the desert, right after freeing Ajax from Sahrak.
   2: {
     biomes: [Biome.MEADOWS, Biome.FOREST, Biome.DESERT],
     campId: 'n894',
-    levels: { [KAEL]: 35, [SERA]: 33, [BRANN]: 24 },
+    levels: { [KAEL]: 35, [SERA]: 33, [AJAX]: 24 },
     gold: 2500
   },
-  // In the mountains, right after freeing Ysolde from the Colossus (Oren freed in the tropical jungle).
+  // In the mountains, right after freeing Thea from the Colossus (Oren freed in the tropical jungle).
   3: {
     biomes: [Biome.MEADOWS, Biome.FOREST, Biome.DESERT, Biome.TROPICAL, Biome.MOUNTAINS],
     campId: 'n581',
-    levels: { [KAEL]: 55, [SERA]: 54, [BRANN]: 52, [OREN]: 48, [YSOLDE]: 44 },
+    levels: { [KAEL]: 55, [SERA]: 54, [AJAX]: 52, [OREN]: 48, [THEA]: 44 },
     gold: 6000
   }
 }
 
 /** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
 const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
-const CASTERS = [OREN, YSOLDE]
+const CASTERS = [OREN, THEA]
 
 /** A hero at a level built as a player would: attribute points and skill points spent, weapons upgraded. */
 function buildHero(character: CharacterState, level: number): CharacterState {

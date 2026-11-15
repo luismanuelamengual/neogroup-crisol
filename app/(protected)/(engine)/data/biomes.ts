@@ -145,7 +145,7 @@ export const BIOMES: BiomeDefinition[] = [
       [12600, 10200],
       [11000, 10800]
     ],
-    captor: { bossId: 'sahrak', captive: CharacterId.BRANN },
+    captor: { bossId: 'sahrak', captive: CharacterId.AJAX },
     captorAt: [15650, 10360],
     minibossCamps: 3,
     campsAt: [
@@ -224,7 +224,7 @@ export const BIOMES: BiomeDefinition[] = [
       [3200, 5800],
       [5400, 5000]
     ],
-    captor: { bossId: 'colossus', captive: CharacterId.YSOLDE },
+    captor: { bossId: 'colossus', captive: CharacterId.THEA },
     captorAt: [1389, 6704],
     minibossCamps: 3,
     campsAt: [

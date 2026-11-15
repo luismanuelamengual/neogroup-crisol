@@ -14,7 +14,7 @@ import { SkillNode, SkillTree } from '@/app/(protected)/(engine)/models/SkillTre
  * stronger, cheaper or longer lasting.
  */
 
-const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
+const { KAEL, SERA, AJAX, OREN, THEA } = CharacterId
 
 export const MAX_SKILL_LEVEL = 5
 /** Most a special can cost to learn. */
@@ -176,9 +176,9 @@ export const SKILL_TREES: SkillTree[] = [
       E: 'sera-eclipse-shot'
     }
   ),
-  // Brann: a mountain. The fury climbs on the left, the earth on the right and the stone below.
+  // Ajax: a mountain. The fury climbs on the left, the earth on the right and the stone below.
   tree(
-    BRANN,
+    AJAX,
     [
       '      W      ', //
       '      |      ',
@@ -191,25 +191,25 @@ export const SKILL_TREES: SkillTree[] = [
       '  T   L   J  '
     ],
     {
-      W: 'brann-world-breaker',
-      C: 'brann-carnage',
-      H: 'brann-hammerfall',
-      Y: 'brann-cataclysm',
-      K: 'brann-berserk',
-      P: 'brann-rampage',
-      A: 'brann-avalanche',
-      E: 'brann-earthsplitter',
-      O: 'brann-roar',
-      S: 'brann-stone-skin',
-      B: 'brann-boulder',
-      L: 'brann-shield-wall',
-      Z: 'brann-titan-grip',
-      X: 'brann-magma-fist',
-      G: 'brann-bloodletting',
-      F: 'brann-fury-cleave',
-      M: 'brann-war-stomp',
-      T: 'brann-headbutt',
-      J: 'brann-rallying-roar'
+      W: 'ajax-world-breaker',
+      C: 'ajax-carnage',
+      H: 'ajax-hammerfall',
+      Y: 'ajax-cataclysm',
+      K: 'ajax-berserk',
+      P: 'ajax-rampage',
+      A: 'ajax-avalanche',
+      E: 'ajax-earthsplitter',
+      O: 'ajax-roar',
+      S: 'ajax-stone-skin',
+      B: 'ajax-boulder',
+      L: 'ajax-shield-wall',
+      Z: 'ajax-titan-grip',
+      X: 'ajax-magma-fist',
+      G: 'ajax-bloodletting',
+      F: 'ajax-fury-cleave',
+      M: 'ajax-war-stomp',
+      T: 'ajax-headbutt',
+      J: 'ajax-rallying-roar'
     }
   ),
   // Oren: a tree with its roots. The sap rises on the left, the grove in the middle and the thorns on the right.
@@ -248,9 +248,9 @@ export const SKILL_TREES: SkillTree[] = [
       H: 'oren-hemlock'
     }
   ),
-  // Ysolde: three elements. The fire to the left, the ice to the right and the storm below.
+  // Thea: three elements. The fire to the left, the ice to the right and the storm below.
   tree(
-    YSOLDE,
+    THEA,
     [
       'M-C . . . T-Z', //
       '| |       | |',
@@ -261,25 +261,25 @@ export const SKILL_TREES: SkillTree[] = [
       '  F-V   Q-A  '
     ],
     {
-      M: 'ysolde-meteor',
-      C: 'ysolde-combustion',
-      T: 'ysolde-frozen-tomb',
-      Z: 'ysolde-absolute-zero',
-      W: 'ysolde-flame-wave',
-      O: 'ysolde-frost-armor',
-      L: 'ysolde-frost-lance',
-      B: 'ysolde-blizzard',
-      S: 'ysolde-spark',
-      K: 'ysolde-chain-lightning',
-      H: 'ysolde-thunderclap',
-      V: 'ysolde-convergence',
-      Q: 'ysolde-heavens-wrath',
-      P: 'ysolde-fire-pillar',
-      G: 'ysolde-glacial-spear',
-      E: 'ysolde-ember',
-      I: 'ysolde-ice-shards',
-      F: 'ysolde-static-field',
-      A: 'ysolde-arcane-shield'
+      M: 'thea-meteor',
+      C: 'thea-combustion',
+      T: 'thea-frozen-tomb',
+      Z: 'thea-absolute-zero',
+      W: 'thea-flame-wave',
+      O: 'thea-frost-armor',
+      L: 'thea-frost-lance',
+      B: 'thea-blizzard',
+      S: 'thea-spark',
+      K: 'thea-chain-lightning',
+      H: 'thea-thunderclap',
+      V: 'thea-convergence',
+      Q: 'thea-heavens-wrath',
+      P: 'thea-fire-pillar',
+      G: 'thea-glacial-spear',
+      E: 'thea-ember',
+      I: 'thea-ice-shards',
+      F: 'thea-static-field',
+      A: 'thea-arcane-shield'
     }
   )
 ]

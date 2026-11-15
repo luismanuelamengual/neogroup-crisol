@@ -91,9 +91,9 @@ export interface Loadout {
 export const HERO_LOADOUTS: Record<CharacterId, Loadout> = {
   [CharacterId.KAEL]: { weapon: 'sword' },
   [CharacterId.SERA]: { weapon: 'bow' },
-  [CharacterId.BRANN]: { weapon: 'axe' },
+  [CharacterId.AJAX]: { weapon: 'axe' },
   [CharacterId.OREN]: { weapon: 'root-sickle' },
-  [CharacterId.YSOLDE]: { weapon: 'tome' }
+  [CharacterId.THEA]: { weapon: 'tome' }
 }
 
 /**
@@ -174,10 +174,10 @@ interface ArmJoints {
 }
 
 const DEFAULT_ARM: ArmJoints = { shoulder: [0.67, 0.37], top: [0.28, 0.12], wrist: [1.12, 0.91] }
-const BRANN_ARM: ArmJoints = { shoulder: [0.235, 0.317], top: [0.37, 0.15], wrist: [0.83, 0.89] }
+const AJAX_ARM: ArmJoints = { shoulder: [0.235, 0.317], top: [0.37, 0.15], wrist: [0.83, 0.89] }
 const OREN_ARM: ArmJoints = { shoulder: [0.24, 0.32], top: [0.45, 0.2], wrist: [0.815, 0.89] }
-const YSOLDE_ARM: ArmJoints = { shoulder: [0.678, 0.362], top: [0.11, 0.27], wrist: [0.82, 0.34] }
-const YSOLDE_ATTACK: NonNullable<Rig['attack']> = {
+const THEA_ARM: ArmJoints = { shoulder: [0.678, 0.362], top: [0.11, 0.27], wrist: [0.82, 0.34] }
+const THEA_ATTACK: NonNullable<Rig['attack']> = {
   arm: [
     [0, 0],
     [0.45, -0.32],
@@ -269,14 +269,14 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
   const weapon = WEAPONS[loadout.weapon] ?? { grip: 0.2, length: 0.7 }
   const parts = heroParts(id)
   const ranged = isRangedCharacter(id)
-  const brann = id === CharacterId.BRANN
+  const ajax = id === CharacterId.AJAX
   const oren = id === CharacterId.OREN
-  const ysolde = id === CharacterId.YSOLDE
-  const foreground = brann || oren
-  const arm = brann ? BRANN_ARM : oren ? OREN_ARM : ysolde ? YSOLDE_ARM : DEFAULT_ARM
+  const thea = id === CharacterId.THEA
+  const foreground = ajax || oren
+  const arm = ajax ? AJAX_ARM : oren ? OREN_ARM : thea ? THEA_ARM : DEFAULT_ARM
   const armSize: SlotSize = oren
     ? { segment: 1, side: 'height', length: 0.34 }
-    : { ...SIZES.arm, length: brann ? 0.25 : ysolde ? 0.282 : SIZES.arm.length }
+    : { ...SIZES.arm, length: ajax ? 0.25 : thea ? 0.282 : SIZES.arm.length }
   const bowString = ranged ? BOW_STRINGS[id] : undefined
 
   return {
@@ -292,7 +292,7 @@ export function heroRig(id: CharacterId, loadout: Loadout = HERO_LOADOUTS[id]): 
     bones: ranged
       ? shooterBones([weapon.grip, weapon.gripY ?? 0.5], weapon.rest ?? -Math.PI / 2, HANDS[id] ?? DEFAULT_HAND)
       : heroBones(weapon, arm, foreground),
-    ...(foreground || ysolde ? { attack: ysolde ? YSOLDE_ATTACK : FOREGROUND_ATTACK } : {}),
+    ...(foreground || thea ? { attack: thea ? THEA_ATTACK : FOREGROUND_ATTACK } : {}),
     ...(bowString && weapon.nocks
       ? { string: { body: bowString.ends, weapon: weapon.nocks, width: bowString.width, color: bowString.color } }
       : {})

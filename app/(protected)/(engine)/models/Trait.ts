@@ -4,10 +4,10 @@ export enum Trait {
   STANCE = 'stance',
   /** Sera: each hit marks the target; every mark adds critical chance against it, and a critical hit spends them. */
   MARKS = 'marks',
-  /** Brann: the damage he takes fills his fury, which strengthens his attacks; some specials spend it. */
+  /** Ajax: the damage he takes fills his fury, which strengthens his attacks; some specials spend it. */
   FURY = 'fury',
   /** Oren: heals more the more wounded the ally is. */
   SAP = 'sap',
-  /** Ysolde: each fire, ice or lightning special leaves a charge of its element; some specials spend them. */
+  /** Thea: each fire, ice or lightning special leaves a charge of its element; some specials spend them. */
   CHARGES = 'charges'
 }

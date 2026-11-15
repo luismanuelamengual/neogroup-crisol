@@ -23,11 +23,11 @@ export const SHADOW_ALPHA = 0.35
 
 export const SHADOWS: Record<string, ShadowAdjust> = {
   // Heroes (in battle they are puppets: adjust them looking at the puppet in /dev/art)
-  'heroes/brann/full': { x: 1, width: 1.05 },
+  'heroes/ajax/full': { x: 1, width: 1.05 },
   'heroes/kael/full': { x: 8, width: 1.15 },
   'heroes/oren/full': { x: 2, width: 0.85 },
   'heroes/sera/full': { x: 6, width: 0.95 },
-  'heroes/ysolde/full': { x: 5, width: 0.85 },
+  'heroes/thea/full': { x: 5, width: 0.85 },
 
   // Enemies
   'enemies/abyss-eye': { x: -10 },

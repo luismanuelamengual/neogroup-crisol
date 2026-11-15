@@ -110,13 +110,13 @@ describe('difficulty and passes of the biomes', () => {
     })
   })
 
-  it('holds Oren in the tropics and Ysolde, the hardest to free, in the mountains', () => {
+  it('holds Oren in the tropics and Thea, the hardest to free, in the mountains', () => {
     const captors = world.nodes.filter((node) => node.bossKind === BossKind.CAPTOR)
     const holding = (captive: CharacterId) => captors.find((node) => node.captive === captive)!
 
     expect(holding(CharacterId.OREN).biome).toBe(Biome.TROPICAL)
-    expect(holding(CharacterId.YSOLDE).biome).toBe(Biome.MOUNTAINS)
-    expect(Math.max(...captors.map((node) => node.level!))).toBe(holding(CharacterId.YSOLDE).level)
+    expect(holding(CharacterId.THEA).biome).toBe(Biome.MOUNTAINS)
+    expect(Math.max(...captors.map((node) => node.level!))).toBe(holding(CharacterId.THEA).level)
   })
 
   it('leaves the Meadows for the Desert by the trail set for it and for the Tropics by their north', () => {

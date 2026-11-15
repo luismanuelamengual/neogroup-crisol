@@ -2,7 +2,7 @@
 export enum CharacterId {
   KAEL = 'kael',
   SERA = 'sera',
-  BRANN = 'brann',
+  AJAX = 'ajax',
   OREN = 'oren',
-  YSOLDE = 'ysolde'
+  THEA = 'thea'
 }

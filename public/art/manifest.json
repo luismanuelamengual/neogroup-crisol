@@ -76,27 +76,27 @@
    "width": 256,
    "height": 256
   },
-  "heroes/brann/full": {
+  "heroes/ajax/full": {
    "width": 517,
    "height": 720
   },
-  "heroes/brann/body": {
+  "heroes/ajax/body": {
    "width": 467,
    "height": 720
   },
-  "heroes/brann/arm": {
+  "heroes/ajax/arm": {
    "width": 498,
    "height": 720
   },
-  "heroes/brann/weapons/axe": {
+  "heroes/ajax/weapons/axe": {
    "width": 1024,
    "height": 383
   },
-  "heroes/brann/weapons/maul": {
+  "heroes/ajax/weapons/maul": {
    "width": 1024,
    "height": 343
   },
-  "heroes/brann/weapons/hatchets": {
+  "heroes/ajax/weapons/hatchets": {
    "width": 1024,
    "height": 283
   },
@@ -112,7 +112,7 @@
    "width": 320,
    "height": 284
   },
-  "heroes/brann/portrait": {
+  "heroes/ajax/portrait": {
    "width": 256,
    "height": 256
   },
@@ -156,27 +156,27 @@
    "width": 256,
    "height": 256
   },
-  "heroes/ysolde/full": {
+  "heroes/thea/full": {
    "width": 471,
    "height": 720
   },
-  "heroes/ysolde/body": {
+  "heroes/thea/body": {
    "width": 367,
    "height": 720
   },
-  "heroes/ysolde/arm": {
+  "heroes/thea/arm": {
    "width": 720,
    "height": 381
   },
-  "heroes/ysolde/weapons/tome": {
+  "heroes/thea/weapons/tome": {
    "width": 753,
    "height": 597
   },
-  "heroes/ysolde/weapons/codex": {
+  "heroes/thea/weapons/codex": {
    "width": 832,
    "height": 519
   },
-  "heroes/ysolde/weapons/grimoire": {
+  "heroes/thea/weapons/grimoire": {
    "width": 745,
    "height": 567
   },
@@ -192,7 +192,7 @@
    "width": 320,
    "height": 155
   },
-  "heroes/ysolde/portrait": {
+  "heroes/thea/portrait": {
    "width": 256,
    "height": 256
   },
@@ -4814,45 +4814,45 @@
     "height": 397
    }
   ],
-  "heroes/brann/body": [
+  "heroes/ajax/body": [
    {
-    "id": "heroes/brann/body",
+    "id": "heroes/ajax/body",
     "x": 10,
     "y": 76,
     "width": 886,
     "height": 1366
    }
   ],
-  "heroes/brann/arm": [
+  "heroes/ajax/arm": [
    {
-    "id": "heroes/brann/arm",
+    "id": "heroes/ajax/arm",
     "x": 143,
     "y": 59,
     "width": 632,
     "height": 913
    }
   ],
-  "heroes/brann/weapons/axe": [
+  "heroes/ajax/weapons/axe": [
    {
-    "id": "heroes/brann/weapons/axe",
+    "id": "heroes/ajax/weapons/axe",
     "x": 354,
     "y": 5,
     "width": 1339,
     "height": 501
    }
   ],
-  "heroes/brann/weapons/maul": [
+  "heroes/ajax/weapons/maul": [
    {
-    "id": "heroes/brann/weapons/maul",
+    "id": "heroes/ajax/weapons/maul",
     "x": 282,
     "y": 9,
     "width": 1484,
     "height": 497
    }
   ],
-  "heroes/brann/weapons/hatchets": [
+  "heroes/ajax/weapons/hatchets": [
    {
-    "id": "heroes/brann/weapons/hatchets",
+    "id": "heroes/ajax/weapons/hatchets",
     "x": 324,
     "y": 53,
     "width": 1598,
@@ -4904,45 +4904,45 @@
     "height": 299
    }
   ],
-  "heroes/ysolde/body": [
+  "heroes/thea/body": [
    {
-    "id": "heroes/ysolde/body",
+    "id": "heroes/thea/body",
     "x": 45,
     "y": 20,
     "width": 731,
     "height": 1435
    }
   ],
-  "heroes/ysolde/arm": [
+  "heroes/thea/arm": [
    {
-    "id": "heroes/ysolde/arm",
+    "id": "heroes/thea/arm",
     "x": 49,
     "y": 288,
     "width": 926,
     "height": 490
    }
   ],
-  "heroes/ysolde/weapons/tome": [
+  "heroes/thea/weapons/tome": [
    {
-    "id": "heroes/ysolde/weapons/tome",
+    "id": "heroes/thea/weapons/tome",
     "x": 135,
     "y": 197,
     "width": 753,
     "height": 597
    }
   ],
-  "heroes/ysolde/weapons/codex": [
+  "heroes/thea/weapons/codex": [
    {
-    "id": "heroes/ysolde/weapons/codex",
+    "id": "heroes/thea/weapons/codex",
     "x": 95,
     "y": 214,
     "width": 832,
     "height": 519
    }
   ],
-  "heroes/ysolde/weapons/grimoire": [
+  "heroes/thea/weapons/grimoire": [
    {
-    "id": "heroes/ysolde/weapons/grimoire",
+    "id": "heroes/thea/weapons/grimoire",
     "x": 132,
     "y": 216,
     "width": 745,

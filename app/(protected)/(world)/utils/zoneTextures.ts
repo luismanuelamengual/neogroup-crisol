@@ -485,7 +485,7 @@ interface LairLook {
 const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
   [Zone.BASALT_HOLD]: {
     stone: { id: 'props/mountains/11', height: 112, recolor: MOLTEN },
-    captive: 'heroes/ysolde/full',
+    captive: 'heroes/thea/full',
     tree: 'map/desert/scenery/tall-7@2x',
     monuments: [
       { id: 'battle/mountains/landmarks/1', height: 290 },
@@ -522,7 +522,7 @@ const LAIR_LOOKS: Partial<Record<Zone, LairLook>> = {
   },
   [Zone.NECROPOLIS]: {
     stone: { id: 'props/desert/11', height: 128 },
-    captive: 'heroes/brann/full',
+    captive: 'heroes/ajax/full',
     tree: 'map/desert/scenery/tall-7@2x',
     monuments: [
       { id: 'battle/desert/landmarks/1', height: 330 },

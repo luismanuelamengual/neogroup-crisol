@@ -45,7 +45,7 @@ import {
 } from '@/app/(protected)/(engine)/utils/heroes'
 import { gainExperience } from '@/app/(protected)/(engine)/utils/progression'
 
-const { KAEL, SERA, BRANN } = CharacterId
+const { KAEL, SERA, AJAX } = CharacterId
 
 /** A game at the starting camp with Kael at a level. */
 function game(level = 10, extra: Partial<GameState> = {}): GameState {
@@ -311,11 +311,11 @@ describe('party', () => {
   it('reorders the formation', () => {
     const state = {
       ...game(5),
-      characters: [createCharacter(KAEL, 5), createCharacter(SERA, 5), createCharacter(BRANN, 5)]
+      characters: [createCharacter(KAEL, 5), createCharacter(SERA, 5), createCharacter(AJAX, 5)]
     }
 
-    expect(moveInFormation(state, BRANN, 0).characters.map((character) => character.id)).toEqual([BRANN, KAEL, SERA])
-    expect(moveInFormation(state, KAEL, 9).characters.map((character) => character.id)).toEqual([SERA, BRANN, KAEL])
+    expect(moveInFormation(state, AJAX, 0).characters.map((character) => character.id)).toEqual([AJAX, KAEL, SERA])
+    expect(moveInFormation(state, KAEL, 9).characters.map((character) => character.id)).toEqual([SERA, AJAX, KAEL])
   })
 
   it('carries at most five of each consumable, ten basic potions and any number of stones', () => {

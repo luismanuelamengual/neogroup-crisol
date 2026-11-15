@@ -10,7 +10,7 @@ import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { createCharacter, getKnownSkills, SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** Version of the shape of GameState (see `saves.saveVersion`). */
-export const SAVE_VERSION = 13
+export const SAVE_VERSION = 14
 
 /**
  * The six runes added with world 40 (wisdom, tribute, clover, vigil, patient
@@ -51,6 +51,12 @@ export function createInitialGameState(gameId: string = crypto.randomUUID()): Ga
  */
 export function migrateGameState(data: unknown, fromVersion: number): unknown {
   let state = data as Record<string, unknown>
+
+  if (fromVersion < 14) {
+    // v14: Brann is Ajax and Ysolde is Thea (their ids and the ids of their skills). It goes first: the steps below
+    // look the characters up by their current ids.
+    state = renameHeroes(state)
+  }
 
   if (fromVersion < 2) {
     // v2: game id, respawned fights, Amber Flask and the health of the characters.
@@ -112,7 +118,7 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
   }
 
   if (fromVersion < 6) {
-    // v6: Oren wields sickles and scythes and Ysolde grimoires (the weapons that were staves, scepters and a wand).
+    // v6: Oren wields sickles and scythes and Thea grimoires (the weapons that were staves, scepters and a wand).
     const renamed: Record<string, string> = {
       'grove-staff': 'root-sickle',
       'sun-scepter': 'noon-scythe',
@@ -227,6 +233,33 @@ export function migrateGameState(data: unknown, fromVersion: number): unknown {
   }
 
   return state
+}
+
+/** Old ids of the heroes that changed their name, with the new ones. */
+const V14_RENAMED_HEROES: Record<string, string> = { brann: 'ajax', ysolde: 'thea' }
+
+/** The state with the ids of Brann and Ysolde (and of their skills, `brann-*` and `ysolde-*`) changed to Ajax and Thea. */
+function renameHeroes(state: Record<string, unknown>): Record<string, unknown> {
+  const renameSkill = (id: string) => id.replace(/^(brann|ysolde)-/, (_, old: string) => `${V14_RENAMED_HEROES[old]}-`)
+
+  return {
+    ...state,
+    characters: ((state.characters ?? []) as Record<string, unknown>[]).map((character) => ({
+      ...character,
+      id: V14_RENAMED_HEROES[character.id as string] ?? character.id,
+      ...(Array.isArray(character.skills) ? { skills: (character.skills as string[]).map(renameSkill) } : {}),
+      ...(character.skillLevels
+        ? {
+            skillLevels: Object.fromEntries(
+              Object.entries(character.skillLevels as Record<string, number>).map(([id, level]) => [
+                renameSkill(id),
+                level
+              ])
+            )
+          }
+        : {})
+    }))
+  }
 }
 
 /** Whether a value has the shape of a GameState (what the server checks before storing a save). */

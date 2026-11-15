@@ -58,7 +58,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     color: 0x22c55e
   },
   {
-    id: CharacterId.BRANN,
+    id: CharacterId.AJAX,
     base: {
       maxHealth: 160,
       maxFocus: 30,
@@ -70,7 +70,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.6
     },
     growth: { maxHealth: 16, maxFocus: 1.5, defense: 2.2, speed: 0.4, attack: 2.6, special: 0.8 },
-    skills: ['brann-chop', 'brann-cleave'],
+    skills: ['ajax-chop', 'ajax-cleave'],
     trait: Trait.FURY,
     color: 0xb45309
   },
@@ -92,7 +92,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     color: 0x84cc16
   },
   {
-    id: CharacterId.YSOLDE,
+    id: CharacterId.THEA,
     base: {
       maxHealth: 75,
       maxFocus: 60,
@@ -104,7 +104,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critDamage: 1.6
     },
     growth: { maxHealth: 7, maxFocus: 3, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
-    skills: ['ysolde-seal-bolt', 'ysolde-fireball'],
+    skills: ['thea-seal-bolt', 'thea-fireball'],
     trait: Trait.CHARGES,
     color: 0xa855f7
   }

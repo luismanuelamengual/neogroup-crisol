@@ -215,25 +215,24 @@ export const ENEMY_LOOKS: Record<string, string> = {
 export const HERO_BODIES: Record<string, string> = {
   kael: 'Kael, un joven espadachín humano de veintitantos años, delgado y lleno de energía, pelo corto en punta castaño oscuro, grandes ojos ámbar decididos y una sonrisa confiada',
   sera: 'Sera, una joven arquera humana, ágil y delgada, con una larga trenza castaño rojiza y ojos verdes penetrantes',
-  brann:
-    'Brann, un enorme berserker humano, cabeza rapada con tatuajes tribales, barba roja espesa y grandes brazos musculosos',
+  ajax: 'Ajax, un enorme berserker humano, cabeza rapada con tatuajes tribales, barba roja espesa y grandes brazos musculosos',
   oren: 'Oren, un viejo druida humano con una larga barba gris trenzada con hojas y ojos amables y chispeantes',
-  ysolde: 'Ysolde, una joven hechicera de largo cabello plateado y ojos violetas'
+  thea: 'Thea, una joven hechicera de largo cabello plateado y ojos violetas'
 }
 
 /** What each hero wears. */
 export const HERO_CLOTHES: Record<string, string> = {
   kael: 'armadura de cuero marrón claro con hombreras redondeadas de acero brillante, pantalones marrones, botas de cuero resistentes, una larga bufanda carmesí y un pequeño escudo redondo de madera con borde de acero sujeto al antebrazo derecho',
   sera: 'una capa con capucha verde bosque sobre una armadura ligera de cuero marrón claro, brazales de cuero y botas blandas',
-  brann: 'un manto de piel sobre los hombros, una coraza de hierro, brazos desnudos, falda de cuero y botas de piel',
+  ajax: 'un manto de piel sobre los hombros, una coraza de hierro, brazos desnudos, falda de cuero y botas de piel',
   oren: 'largas túnicas verde musgo y de corteza marrón con enredaderas vivas, y sandalias',
-  ysolde: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
+  thea: 'una elegante túnica azul profundo con bordados dorados y cuello alto, mangas largas y botas blandas'
 }
 
 /** The hand each hero holds the weapon with (the shield, if any, goes on the other arm); right unless listed. */
 export const HERO_WEAPON_HAND: Record<string, 'left' | 'right'> = {
   kael: 'left',
-  ysolde: 'left'
+  thea: 'left'
 }
 
 /** The weapons each hero can hold; the first one is the one they start with. */
@@ -251,7 +250,7 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
     'gale-bow':
       'Canto del Vendaval, un arco esbelto de madera blanco plateada tallado con espirales de viento, con plumitas en las puntas y chispas tenues de rayo a lo largo de la cuerda'
   },
-  brann: {
+  ajax: {
     axe: 'un hacha de guerra enorme de doble filo con un mango largo reforzado con bandas de hierro',
     maul: 'Corazón de Cantera, un mazo enorme a dos manos cuya cabeza es un bloque tosco de granito atado con bandas de hierro, con grietas que brillan en ámbar tenue',
     hatchets:
@@ -265,7 +264,7 @@ export const HERO_WEAPONS: Record<string, Record<string, string>> = {
     'thorn-sickle':
       'Última Cosecha, una hoz de mango largo de madera negra con ataduras violetas y una hoja estrecha, ganchuda y dentada que gotea veneno violeta'
   },
-  ysolde: {
+  thea: {
     tome: 'Trinidad, un grimorio grueso y abierto que flota junto a su mano, encuadernado en cuero azul profundo con tres sellos brillantes de fuego, hielo y rayo en la tapa',
     codex:
       'Voz del Trueno, un códice de tormenta abierto que flota junto a su mano, con refuerzos de hierro y broches de plata, y páginas que se agitan y chisporrotean con rayos blanco azulados',

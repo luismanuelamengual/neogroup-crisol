@@ -81,9 +81,9 @@ export interface Combatant {
   stance?: Stance
   /** Sera: marks on each enemy, by id. */
   marks?: Record<string, number>
-  /** Brann: 0..100. */
+  /** Ajax: 0..100. */
   fury?: number
-  /** Ysolde: the elements charged. */
+  /** Thea: the elements charged. */
   charges?: DamageType[]
   /** Heroes: what their runes keep count of. */
   runeState?: RuneState

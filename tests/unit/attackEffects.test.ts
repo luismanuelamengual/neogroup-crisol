@@ -37,7 +37,7 @@ describe('attack effects', () => {
     }
 
     expect(attackEffectOf(getSkill('oren-mend'), 'melee', 'hero').look).toBe('heal')
-    expect(attackEffectOf(getSkill('ysolde-arcane-shield'), 'mage', 'hero').shield).toBe(true)
+    expect(attackEffectOf(getSkill('thea-arcane-shield'), 'mage', 'hero').shield).toBe(true)
   })
 
   it('cuts, stabs and hits up close with the weapons and the claws', () => {
@@ -60,27 +60,27 @@ describe('attack effects', () => {
     expect(attackEffectOf(getSkill('arrow'), 'melee', 'enemy').delivery).toBe('arrow')
   })
 
-  it('has Ysolde cast every attack from her spot, with a different ray for each kind', () => {
-    const ysolde = SKILLS.filter((skill) => skill.id.startsWith('ysolde-'))
+  it('has Thea cast every attack from her spot, with a different ray for each kind', () => {
+    const thea = SKILLS.filter((skill) => skill.id.startsWith('thea-'))
 
-    for (const skill of ysolde) {
+    for (const skill of thea) {
       expect(attackEffectOf(skill, 'mage', 'hero').approach, skill.id).toBe('cast')
     }
 
     const delivery = (id: string) => attackEffectOf(getSkill(id), 'mage', 'hero').delivery
 
-    expect(attackEffectOf(getSkill('ysolde-seal-bolt'), 'mage', 'hero')).toMatchObject({
+    expect(attackEffectOf(getSkill('thea-seal-bolt'), 'mage', 'hero')).toMatchObject({
       delivery: 'bolt',
       look: 'arcane'
     })
-    expect(delivery('ysolde-thunder-page')).toBe('zigzag')
-    expect(delivery('ysolde-prism-ray')).toBe('beam')
-    expect(delivery('ysolde-fireball')).toBe('bolt')
-    expect(delivery('ysolde-frost-lance')).toBe('lance')
-    expect(delivery('ysolde-chain-lightning')).toBe('chain')
-    expect(delivery('ysolde-meteor')).toBe('meteor')
-    expect(delivery('ysolde-blizzard')).toBe('storm')
-    expect(delivery('ysolde-frozen-tomb')).toBe('rise')
+    expect(delivery('thea-thunder-page')).toBe('zigzag')
+    expect(delivery('thea-prism-ray')).toBe('beam')
+    expect(delivery('thea-fireball')).toBe('bolt')
+    expect(delivery('thea-frost-lance')).toBe('lance')
+    expect(delivery('thea-chain-lightning')).toBe('chain')
+    expect(delivery('thea-meteor')).toBe('meteor')
+    expect(delivery('thea-blizzard')).toBe('storm')
+    expect(delivery('thea-frozen-tomb')).toBe('rise')
   })
 
   it('has the casters of the bestiary cast their elements from their spot', () => {

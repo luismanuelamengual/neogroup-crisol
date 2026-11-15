@@ -583,9 +583,9 @@ export function buildCatalog(): Piece[] {
     const [arm, otherArm] = [hand, other].map((side) => side.replace(/a$/, 'o'))
     const reference = `Usando la imagen completa adjunta de ${name} como referencia exacta (mismo estilo, colores y proporciones)`
     const ranged = isRangedCharacter(id as CharacterId)
-    const ysolde = id === CharacterId.YSOLDE
-    const foreground = id === CharacterId.BRANN || id === CharacterId.OREN
-    const profile = ysolde
+    const thea = id === CharacterId.THEA
+    const foreground = id === CharacterId.AJAX || id === CharacterId.OREN
+    const profile = thea
       ? 'en tres cuartos hacia la derecha, con la palma abierta hacia arriba y extendida hacia adelante'
       : foreground
         ? 'visto en tres cuartos hacia la derecha, con el codo abajo y la muñeca hacia adelante'
@@ -617,8 +617,8 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          ysolde
-            ? `Ysolde de cuerpo entero en tres cuartos hacia la derecha, con ambos ojos visibles y mirando hacia la derecha. Pies apoyados y separados al ancho de los hombros, con uno levemente adelantado y rodillas relajadas. Brazo izquierdo lejano extendido hacia la derecha, con el grimorio flotando encima de la palma abierta. Brazo derecho cercano relajado y visible al costado. ${CARTOON_BODY} ${look}. ${FLAME}`
+          thea
+            ? `Thea de cuerpo entero en tres cuartos hacia la derecha, con ambos ojos visibles y mirando hacia la derecha. Pies apoyados y separados al ancho de los hombros, con uno levemente adelantado y rodillas relajadas. Brazo izquierdo lejano extendido hacia la derecha, con el grimorio flotando encima de la palma abierta. Brazo derecho cercano relajado y visible al costado. ${CARTOON_BODY} ${look}. ${FLAME}`
             : foreground
               ? `Personaje de cuerpo entero en tres cuartos hacia la derecha, a medio camino entre el frente y el perfil, con ambos ojos visibles y la mirada hacia el enemigo a la derecha. Postura de combate con los pies separados. El brazo ${arm} es el más cercano a la cámara y sostiene el arma hacia adelante, completamente visible. El escudo está en el brazo ${otherArm}, el más lejano, y queda detrás del torso, con el hombro y parte del brazo visibles por encima del escudo. Cabeza ligeramente más grande, con proporciones similares a Kael. ${CARTOON_BODY} ${look}. ${FLAME}`
               : `Personaje de cuerpo entero visto de frente en un ángulo de tres cuartos: el pecho, la panza y la cara apuntan hacia la cámara, girados levemente hacia la derecha, con los dos ojos visibles. No visto de espaldas: la espalda nunca se ve. Postura de combate con los pies separados, el arma sostenida hacia adelante con la mano ${hand}, cruzando por delante del cuerpo y completamente visible; el escudo, si el equipo tiene uno, va en el brazo ${otherArm} con su frente hacia afuera; el brazo izquierdo es el más cercano a la cámara. ${CARTOON_BODY} ${look}. ${FLAME}`,
@@ -632,7 +632,7 @@ export function buildCatalog(): Piece[] {
         height: 1536,
         batch,
         prompt: prompt(
-          `${reference}, una sola hoja horizontal dividida en dos mitades iguales sin línea divisoria. ${ysolde ? parts.join(' ').replace('hasta la muñeca, sin la mano (la mano va con el arma)', 'hasta la mano abierta incluida') : parts.join(' ')}`,
+          `${reference}, una sola hoja horizontal dividida en dos mitades iguales sin línea divisoria. ${thea ? parts.join(' ').replace('hasta la muñeca, sin la mano (la mano va con el arma)', 'hasta la mano abierta incluida') : parts.join(' ')}`,
           ...(foreground
             ? [
                 'El héroe mira en tres cuartos hacia la derecha, con ambos ojos visibles y la cabeza ligeramente más grande, como en la referencia. El brazo lejano y su escudo quedan visibles detrás del torso.'
@@ -646,11 +646,11 @@ export function buildCatalog(): Piece[] {
       ...Object.entries(HERO_WEAPONS[id]).map(([weapon, description]) => ({
         id: `heroes/${id}/weapons/${weapon}`,
         kind: 'weapon' as const,
-        width: ysolde ? 1024 : 2048,
-        height: ysolde ? 1024 : 512,
+        width: thea ? 1024 : 2048,
+        height: thea ? 1024 : 512,
         batch,
         prompt: prompt(
-          ysolde
+          thea
             ? `${reference}, solo el grimorio: ${description}. Abierto y flotando, lomo vertical, páginas visibles, efectos cerca del libro, sin mano, sin brazo y sin personaje.`
             : `${reference}, solo el arma: ${description}, agarrada por el puño de ${name} (solo el puño, cortado en la muñeca, sin brazo). ${WEAPON_RIG_POSE[weapon] ?? WEAPON_RIG_POSE.default}`,
           CHROMA

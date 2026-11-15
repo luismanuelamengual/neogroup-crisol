@@ -24,18 +24,18 @@ import { buildCharacter, buildVeteran } from '@/tests/support/builds'
 const RUNS = 30
 /** Encounters of each kind tried per biome. */
 const SAMPLE = 6
-const { KAEL, SERA, BRANN, OREN, YSOLDE } = CharacterId
+const { KAEL, SERA, AJAX, OREN, THEA } = CharacterId
 /** The heroes a player has in each biome (each captor frees one). */
 const PARTIES: Record<Biome, CharacterId[]> = {
   [Biome.MEADOWS]: [KAEL],
   [Biome.FOREST]: [KAEL],
   [Biome.DESERT]: [KAEL, SERA],
-  [Biome.TROPICAL]: [KAEL, SERA, BRANN],
-  [Biome.MOUNTAINS]: [KAEL, SERA, BRANN, OREN],
-  [Biome.WASTELANDS]: [KAEL, SERA, BRANN, OREN, YSOLDE],
-  [Biome.SNOW]: [KAEL, SERA, BRANN, OREN, YSOLDE],
-  [Biome.VOLCANIC]: [KAEL, SERA, BRANN, OREN, YSOLDE],
-  [Biome.ABYSS]: [KAEL, SERA, BRANN, OREN, YSOLDE]
+  [Biome.TROPICAL]: [KAEL, SERA, AJAX],
+  [Biome.MOUNTAINS]: [KAEL, SERA, AJAX, OREN],
+  [Biome.WASTELANDS]: [KAEL, SERA, AJAX, OREN, THEA],
+  [Biome.SNOW]: [KAEL, SERA, AJAX, OREN, THEA],
+  [Biome.VOLCANIC]: [KAEL, SERA, AJAX, OREN, THEA],
+  [Biome.ABYSS]: [KAEL, SERA, AJAX, OREN, THEA]
 }
 const only = process.argv[2] as Biome | undefined
 const index = indexWorld(storedWorld as unknown as World)

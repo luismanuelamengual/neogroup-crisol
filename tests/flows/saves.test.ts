@@ -101,14 +101,14 @@ describe('saved games', () => {
 
     const stored = await Save.where('userId', userId).first()
     const oren = { ...createCharacter(CharacterId.OREN, 20), weaponId: 'sun-scepter' }
-    const ysolde = { ...createCharacter(CharacterId.YSOLDE, 20), weaponId: 'crystal-staff' }
+    const thea = { ...createCharacter(CharacterId.THEA, 20), weaponId: 'crystal-staff' }
 
     stored!.saveVersion = 5
     stored!.data = {
       ...(stored!.data as object),
       characters: [
         { ...oren, weapons: { 'grove-staff': 4, 'sun-scepter': 2, 'thorn-sickle': 1 } },
-        { ...ysolde, weapons: { 'crystal-staff': 9, 'storm-scepter': 0, 'prism-wand': 3 } }
+        { ...thea, weapons: { 'crystal-staff': 9, 'storm-scepter': 0, 'prism-wand': 3 } }
       ]
     }
     await stored!.save()
@@ -120,6 +120,25 @@ describe('saved games', () => {
       ['noon-scythe', { 'root-sickle': 4, 'noon-scythe': 2, 'thorn-sickle': 1 }],
       ['trinity-tome', { 'trinity-tome': 9, 'thunder-codex': 0, 'dusk-grimoire': 3 }]
     ])
+  })
+
+  it('renames Brann to Ajax and Ysolde to Thea, with their skills, in a v13 game', async () => {
+    await startNewGame(userId)
+
+    const stored = await Save.where('userId', userId).first()
+    const ajax = createCharacter(CharacterId.AJAX, 30)
+    const thea = createCharacter(CharacterId.THEA, 30)
+    const toOld = (character: object) =>
+      JSON.parse(JSON.stringify(character).replace(/"ajax/g, '"brann').replace(/"thea/g, '"ysolde'))
+
+    stored!.saveVersion = 13
+    stored!.data = { ...(stored!.data as object), characters: [toOld(ajax), toOld(thea)] }
+    await stored!.save()
+
+    const loaded = await loadGame(userId)
+
+    expect(isGameState(loaded.state)).toBe(true)
+    expect(loaded.state.characters).toEqual([ajax, thea])
   })
 
   it('gives back every skill point of the old trees in a v10 game', async () => {

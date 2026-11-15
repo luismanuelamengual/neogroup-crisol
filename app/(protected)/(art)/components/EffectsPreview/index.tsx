@@ -24,7 +24,7 @@ const STATUSES = Object.keys(STATUS_COLORS) as StatusType[]
 /**
  * The attack effects one by one, on a real battle stage: pick who acts and
  * press a skill to see it (its look comes from attackEffects.ts). It also
- * shows Ysolde's charges going round her, the critical version of a blow and
+ * shows Thea's charges going round her, the critical version of a blow and
  * every status on the fighter picked (see statusVisuals.ts).
  */
 
@@ -123,13 +123,13 @@ export default function EffectsPreview() {
   }
 
   const toggleCharges = () => {
-    const ysolde = battle.current?.combatants.find((combatant) => combatant.characterId === 'ysolde')
+    const thea = battle.current?.combatants.find((combatant) => combatant.characterId === 'thea')
 
-    if (!ysolde || !renderer.current || !battle.current) {
+    if (!thea || !renderer.current || !battle.current) {
       return
     }
 
-    ysolde.charges = ysolde.charges?.length ? [] : [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]
+    thea.charges = thea.charges?.length ? [] : [DamageType.FIRE, DamageType.ICE, DamageType.LIGHTNING]
     renderer.current.sync(battle.current, actorId)
   }
 
@@ -208,7 +208,7 @@ export default function EffectsPreview() {
           <button className={critical ? 'active' : undefined} onClick={() => setCritical(!critical)}>
             Crítico
           </button>
-          <button onClick={toggleCharges}>Cargas de Ysolde</button>
+          <button onClick={toggleCharges}>Cargas de Thea</button>
           {SPEEDS.map((value) => (
             <button key={value} className={value === speed ? 'active' : undefined} onClick={() => setSpeed(value)}>
               ×{value}

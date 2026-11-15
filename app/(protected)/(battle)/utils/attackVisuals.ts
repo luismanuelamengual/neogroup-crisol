@@ -605,7 +605,7 @@ export class AttackVisuals {
     })
   }
 
-  /** Sparks that leave a point towards another (Ysolde's charges going into her spell). */
+  /** Sparks that leave a point towards another (Thea's charges going into her spell). */
   stream(from: Spot, to: Spot, color: number): void {
     const angle = Math.atan2(to.y - from.y, to.x - from.x)
     const distance = Math.hypot(to.x - from.x, to.y - from.y)

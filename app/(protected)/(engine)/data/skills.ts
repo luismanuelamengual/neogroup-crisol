@@ -156,10 +156,10 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.LIGHT,
     statuses: [{ type: StatusType.BLIND, chance: 0.6, turns: 2 }]
   },
-  // Brann: axe.
-  { id: 'brann-chop', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.SLASH },
+  // Ajax: axe.
+  { id: 'ajax-chop', cost: 0, target: TargetType.ENEMY, power: 1, stat: 'attack', damageType: DamageType.SLASH },
   {
-    id: 'brann-maul-smash',
+    id: 'ajax-maul-smash',
     cost: 0,
     target: TargetType.ENEMY,
     power: 1.15,
@@ -168,7 +168,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.STUN, chance: 0.15, turns: 1 }]
   },
   {
-    id: 'brann-twin-cut',
+    id: 'ajax-twin-cut',
     cost: 0,
     target: TargetType.ENEMY,
     power: 0.8,
@@ -177,9 +177,9 @@ const HERO_SKILLS: Skill[] = [
     critBonus: 0.1,
     statuses: [{ type: StatusType.BLEED, chance: 0.35, turns: 2 }]
   },
-  { id: 'brann-cleave', cost: 14, target: TargetType.ENEMY, power: 1.9, stat: 'attack', damageType: DamageType.SLASH },
+  { id: 'ajax-cleave', cost: 14, target: TargetType.ENEMY, power: 1.9, stat: 'attack', damageType: DamageType.SLASH },
   {
-    id: 'brann-earthsplitter',
+    id: 'ajax-earthsplitter',
     cost: 20,
     target: TargetType.ALL_ENEMIES,
     power: 0.9,
@@ -188,7 +188,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.STUN, chance: 0.2, turns: 1 }]
   },
   {
-    id: 'brann-roar',
+    id: 'ajax-roar',
     cost: 8,
     target: TargetType.SELF,
     power: 0,
@@ -251,9 +251,9 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.EARTH,
     statuses: [{ type: StatusType.POISON, chance: 0.5, turns: 3 }]
   },
-  // Ysolde: grimoires, magic from afar.
+  // Thea: grimoires, magic from afar.
   {
-    id: 'ysolde-seal-bolt',
+    id: 'thea-seal-bolt',
     cost: 0,
     target: TargetType.ENEMY,
     power: 1,
@@ -261,7 +261,7 @@ const HERO_SKILLS: Skill[] = [
     damageType: DamageType.PIERCE
   },
   {
-    id: 'ysolde-thunder-page',
+    id: 'thea-thunder-page',
     cost: 0,
     target: TargetType.ENEMY,
     power: 0.6,
@@ -270,7 +270,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.SPEED_DOWN, chance: 0.2, turns: 2 }]
   },
   {
-    id: 'ysolde-prism-ray',
+    id: 'thea-prism-ray',
     cost: 0,
     target: TargetType.ENEMY,
     power: 0.75,
@@ -279,7 +279,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.BLIND, chance: 0.15, turns: 2 }]
   },
   {
-    id: 'ysolde-fireball',
+    id: 'thea-fireball',
     cost: 14,
     target: TargetType.ENEMY,
     power: 1.7,
@@ -288,7 +288,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.BURN, chance: 0.3, turns: 2 }]
   },
   {
-    id: 'ysolde-frost-lance',
+    id: 'thea-frost-lance',
     cost: 14,
     target: TargetType.ENEMY,
     power: 1.4,
@@ -297,7 +297,7 @@ const HERO_SKILLS: Skill[] = [
     statuses: [{ type: StatusType.FREEZE, chance: 0.25, turns: 1 }]
   },
   {
-    id: 'ysolde-chain-lightning',
+    id: 'thea-chain-lightning',
     cost: 24,
     target: TargetType.ALL_ENEMIES,
     power: 1,
@@ -464,7 +464,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BLIND', 0.5, 2)]
   },
   {
-    id: 'brann-rampage',
+    id: 'ajax-rampage',
     cost: 16,
     target: TargetType.ENEMY,
     power: 1.6,
@@ -473,7 +473,7 @@ const TREE_SKILLS: Skill[] = [
     consumes: 'fury'
   },
   {
-    id: 'brann-berserk',
+    id: 'ajax-berserk',
     cost: 18,
     target: TargetType.SELF,
     power: 0,
@@ -482,7 +482,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('ATTACK_UP', 1, 3), st('SPEED_UP', 1, 3), st('DEFENSE_DOWN', 1, 3)]
   },
   {
-    id: 'brann-carnage',
+    id: 'ajax-carnage',
     cost: 30,
     target: TargetType.ALL_ENEMIES,
     power: 1.4,
@@ -491,7 +491,7 @@ const TREE_SKILLS: Skill[] = [
     consumes: 'fury'
   },
   {
-    id: 'brann-world-breaker',
+    id: 'ajax-world-breaker',
     cost: 44,
     target: TargetType.ENEMY,
     power: 3.2,
@@ -500,7 +500,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.3, 1)]
   },
   {
-    id: 'brann-stone-skin',
+    id: 'ajax-stone-skin',
     cost: 10,
     target: TargetType.SELF,
     power: 0,
@@ -510,7 +510,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('DEFENSE_UP', 1, 4)]
   },
   {
-    id: 'brann-shield-wall',
+    id: 'ajax-shield-wall',
     cost: 22,
     target: TargetType.ALL_ALLIES,
     power: 0,
@@ -520,7 +520,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('DEFENSE_UP', 1, 3)]
   },
   {
-    id: 'brann-avalanche',
+    id: 'ajax-avalanche',
     cost: 40,
     target: TargetType.ALL_ENEMIES,
     power: 1.6,
@@ -529,7 +529,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('SPEED_DOWN', 0.5, 2)]
   },
   {
-    id: 'brann-boulder',
+    id: 'ajax-boulder',
     cost: 16,
     target: TargetType.ENEMY,
     power: 1.8,
@@ -538,7 +538,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('SPEED_DOWN', 0.5, 2)]
   },
   {
-    id: 'brann-hammerfall',
+    id: 'ajax-hammerfall',
     cost: 28,
     target: TargetType.ENEMY,
     power: 2.4,
@@ -547,7 +547,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.35, 1)]
   },
   {
-    id: 'brann-cataclysm',
+    id: 'ajax-cataclysm',
     cost: 50,
     target: TargetType.ALL_ENEMIES,
     power: 2.0,
@@ -681,7 +681,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.25, 1), st('SPEED_DOWN', 0.5, 2)]
   },
   {
-    id: 'ysolde-flame-wave',
+    id: 'thea-flame-wave',
     cost: 22,
     target: TargetType.ALL_ENEMIES,
     power: 1.0,
@@ -690,7 +690,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BURN', 0.3, 2)]
   },
   {
-    id: 'ysolde-combustion',
+    id: 'thea-combustion',
     cost: 26,
     target: TargetType.ENEMY,
     power: 2.0,
@@ -699,7 +699,7 @@ const TREE_SKILLS: Skill[] = [
     consumes: 'charges'
   },
   {
-    id: 'ysolde-meteor',
+    id: 'thea-meteor',
     cost: 44,
     target: TargetType.ALL_ENEMIES,
     power: 1.8,
@@ -708,7 +708,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BURN', 0.5, 2)]
   },
   {
-    id: 'ysolde-frost-armor',
+    id: 'thea-frost-armor',
     cost: 10,
     target: TargetType.SELF,
     power: 0,
@@ -718,7 +718,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('DEFENSE_UP', 1, 4)]
   },
   {
-    id: 'ysolde-blizzard',
+    id: 'thea-blizzard',
     cost: 26,
     target: TargetType.ALL_ENEMIES,
     power: 1.0,
@@ -727,7 +727,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('FREEZE', 0.2, 1)]
   },
   {
-    id: 'ysolde-frozen-tomb',
+    id: 'thea-frozen-tomb',
     cost: 30,
     target: TargetType.ENEMY,
     power: 1.5,
@@ -736,7 +736,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('FREEZE', 0.6, 1)]
   },
   {
-    id: 'ysolde-absolute-zero',
+    id: 'thea-absolute-zero',
     cost: 52,
     target: TargetType.ALL_ENEMIES,
     power: 2.0,
@@ -745,7 +745,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('FREEZE', 0.35, 1)]
   },
   {
-    id: 'ysolde-spark',
+    id: 'thea-spark',
     cost: 12,
     target: TargetType.ENEMY,
     power: 1.5,
@@ -754,7 +754,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.25, 1)]
   },
   {
-    id: 'ysolde-convergence',
+    id: 'thea-convergence',
     cost: 30,
     target: TargetType.ALL_ENEMIES,
     power: 1.2,
@@ -763,7 +763,7 @@ const TREE_SKILLS: Skill[] = [
     consumes: 'charges'
   },
   {
-    id: 'ysolde-thunderclap',
+    id: 'thea-thunderclap',
     cost: 34,
     target: TargetType.ALL_ENEMIES,
     power: 1.3,
@@ -772,7 +772,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.2, 1)]
   },
   {
-    id: 'ysolde-heavens-wrath',
+    id: 'thea-heavens-wrath',
     cost: 54,
     target: TargetType.ALL_ENEMIES,
     power: 2.2,
@@ -920,7 +920,7 @@ const TREE_SKILLS: Skill[] = [
     critBonus: 0.35
   },
   {
-    id: 'brann-headbutt',
+    id: 'ajax-headbutt',
     cost: 10,
     target: TargetType.ENEMY,
     power: 1.4,
@@ -929,7 +929,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('STUN', 0.25, 1)]
   },
   {
-    id: 'brann-bloodletting',
+    id: 'ajax-bloodletting',
     cost: 18,
     target: TargetType.ENEMY,
     power: 1.5,
@@ -938,7 +938,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BLEED', 0.6, 3)]
   },
   {
-    id: 'brann-war-stomp',
+    id: 'ajax-war-stomp',
     cost: 22,
     target: TargetType.ALL_ENEMIES,
     power: 0.9,
@@ -947,7 +947,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('SPEED_DOWN', 0.6, 2)]
   },
   {
-    id: 'brann-rallying-roar',
+    id: 'ajax-rallying-roar',
     cost: 26,
     target: TargetType.ALL_ALLIES,
     power: 0,
@@ -956,7 +956,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('ATTACK_UP', 1, 3)]
   },
   {
-    id: 'brann-fury-cleave',
+    id: 'ajax-fury-cleave',
     cost: 26,
     target: TargetType.ALL_ENEMIES,
     power: 1.2,
@@ -965,7 +965,7 @@ const TREE_SKILLS: Skill[] = [
     consumes: 'fury'
   },
   {
-    id: 'brann-magma-fist',
+    id: 'ajax-magma-fist',
     cost: 32,
     target: TargetType.ENEMY,
     power: 2.2,
@@ -974,7 +974,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BURN', 0.5, 2)]
   },
   {
-    id: 'brann-titan-grip',
+    id: 'ajax-titan-grip',
     cost: 40,
     target: TargetType.ENEMY,
     power: 2.8,
@@ -1021,7 +1021,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('POISON', 0.7, 3), st('ATTACK_DOWN', 0.5, 3)]
   },
   {
-    id: 'ysolde-ember',
+    id: 'thea-ember',
     cost: 8,
     target: TargetType.ENEMY,
     power: 1.2,
@@ -1030,7 +1030,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BURN', 0.2, 2)]
   },
   {
-    id: 'ysolde-ice-shards',
+    id: 'thea-ice-shards',
     cost: 16,
     target: TargetType.ALL_ENEMIES,
     power: 0.8,
@@ -1039,7 +1039,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('FREEZE', 0.1, 1)]
   },
   {
-    id: 'ysolde-static-field',
+    id: 'thea-static-field',
     cost: 20,
     target: TargetType.ALL_ENEMIES,
     power: 0.7,
@@ -1048,7 +1048,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('SPEED_DOWN', 0.5, 2)]
   },
   {
-    id: 'ysolde-arcane-shield',
+    id: 'thea-arcane-shield',
     cost: 18,
     target: TargetType.SELF,
     power: 0,
@@ -1058,7 +1058,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('DEFENSE_UP', 1, 3), st('SPEED_UP', 1, 3)]
   },
   {
-    id: 'ysolde-fire-pillar',
+    id: 'thea-fire-pillar',
     cost: 36,
     target: TargetType.ENEMY,
     power: 2.6,
@@ -1067,7 +1067,7 @@ const TREE_SKILLS: Skill[] = [
     statuses: [st('BURN', 0.6, 3)]
   },
   {
-    id: 'ysolde-glacial-spear',
+    id: 'thea-glacial-spear',
     cost: 38,
     target: TargetType.ENEMY,
     power: 2.6,
