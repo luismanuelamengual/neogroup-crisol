@@ -1,4 +1,4 @@
-import { RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
+import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getSkillTree } from '@/app/(protected)/(engine)/data/skillTrees'
 import { MAX_WEAPON_LEVEL } from '@/app/(protected)/(engine)/data/weapons'
@@ -11,7 +11,10 @@ import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { getEncounterPhases } from '@/app/(protected)/(engine)/utils/encounters'
 import { createInitialGameState } from '@/app/(protected)/(engine)/utils/gameState'
 import {
+  assignEchoes,
+  canEquipEcho,
   canLearnSkill,
+  equipEcho,
   equipRune,
   getMaxHealth,
   getNextSkillCost,
@@ -65,6 +68,8 @@ export const TEST_GAMES: Record<number, TestGame> = {
 /** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
 const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
 const CASTERS = [OREN, THEA]
+/** Share of the Echoes a hero earned (one per level gained) that it holds assigned; the rest wait in the common pool. */
+const ASSIGNED_ECHOES = 0.6
 
 /** A hero at a level built as a player would: attribute points and skill points spent, weapons upgraded. */
 function buildHero(character: CharacterState, level: number): CharacterState {
@@ -119,7 +124,8 @@ function buildHero(character: CharacterState, level: number): CharacterState {
  * The state of a test game: every point of its biomes won in order from the
  * start (with the game's own rules, so heroes, runes, weapons, tears, chests
  * and the flask come as playing), then the heroes built at their levels,
- * runes equipped and the party rested at its camp.
+ * runes equipped (the older ones mastered), Echoes assigned and worn as echoes
+ * with some left in the pool, and the party rested at its camp.
  */
 export function createTestGameState(index: WorldIndex, number: number): GameState {
   const game = TEST_GAMES[number]
@@ -209,6 +215,45 @@ export function createTestGameState(index: WorldIndex, number: number): GameStat
 
       if (rune !== undefined) {
         state = equipRune(state, id, rune)
+      }
+    }
+  }
+
+  // Runes worn through the battles: those of the biomes left behind are mastered, those of the last one
+  // (equipped there) are one win away, and the rest of the last one are fresh.
+  const lastBiome = game.biomes[game.biomes.length - 1]
+  const runeBiomes = new Map(
+    [...index.nodes.values()]
+      .filter((node) => node.type === NodeType.SANCTUARY && node.runeIndex)
+      .map((node) => [node.runeIndex!, node.biome])
+  )
+  const worn = new Set(state.characters.flatMap((character) => character.runes))
+  const winsOf = (rune: number) =>
+    runeBiomes.get(rune) !== lastBiome ? RUNE_MASTERY_WINS : worn.has(rune) ? RUNE_MASTERY_WINS - 1 : 0
+
+  state = {
+    ...state,
+    runeWins: Object.fromEntries(state.runes.filter((rune) => winsOf(rune) > 0).map((rune) => [rune, winsOf(rune)]))
+  }
+
+  // One Echo per level gained: most of each hero's are assigned to it and spent on the echoes of the strongest
+  // mastered runes it does not wear (a different one on each hero), the rest left in the pool to assign.
+  state = { ...state, echoes: state.characters.reduce((sum, character) => sum + character.level - 1, 0) }
+
+  const taken = new Set<number>()
+  const hero = (id: CharacterId) => state.characters.find((character) => character.id === id)!
+
+  for (const id of order) {
+    const assigned = Math.floor((hero(id).level - 1) * ASSIGNED_ECHOES)
+
+    if (assigned > 0) {
+      state = assignEchoes(state, id, assigned)
+    }
+
+    for (const rune of [...state.runes].sort((a, b) => getRune(b).echoCost - getRune(a).echoCost || b - a)) {
+      if (!taken.has(rune) && canEquipEcho(state, hero(id), rune)) {
+        state = equipEcho(state, id, rune)
+        taken.add(rune)
       }
     }
   }
