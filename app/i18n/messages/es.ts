@@ -1038,31 +1038,31 @@ export const es = {
     shields: { one: 'Da {count} escudo: anula un golpe completo', other: 'Da {count} escudos: cada uno anula un golpe' }
   },
   runes: {
-    'first-cut': { name: 'Runa del Primer Tajo', text: 'El primer golpe que da en cada batalla hace +50% de daño.' },
-    breath: { name: 'Runa del Aliento', text: 'Empieza cada batalla con +30% de concentración.' },
+    'first-cut': { name: 'Runa del Primer Tajo', text: 'El primer golpe que da en cada batalla hace +20% de daño.' },
+    breath: { name: 'Runa del Aliento', text: 'Empieza cada batalla con +15% de concentración.' },
     sprout: { name: 'Runa del Brote', text: 'Durante sus 3 primeros turnos recupera 5% de vida al empezar el turno.' },
-    'light-step': { name: 'Runa del Paso Ligero', text: 'Empieza la batalla con velocidad aumentada por 3 turnos.' },
-    carapace: { name: 'Runa de la Coraza', text: 'Empieza la batalla con defensa aumentada por 3 turnos.' },
-    impetus: { name: 'Runa del Ímpetu', text: 'Empieza la batalla con ataque aumentado por 3 turnos.' },
-    wisdom: { name: 'Runa de la Sabiduría', text: 'El grupo gana 25% más de experiencia en cada batalla.' },
-    'live-ember': { name: 'Runa de la Brasa Viva', text: '+25% de daño a enemigos quemados.' },
+    'light-step': { name: 'Runa del Paso Ligero', text: 'Empieza la batalla con velocidad aumentada por 1 turno.' },
+    carapace: { name: 'Runa de la Coraza', text: 'Empieza la batalla con defensa aumentada por 1 turno.' },
+    impetus: { name: 'Runa del Ímpetu', text: 'Empieza la batalla con ataque aumentado por 1 turno.' },
+    wisdom: { name: 'Runa de la Sabiduría', text: 'El grupo gana 15% más de experiencia en cada batalla.' },
+    'live-ember': { name: 'Runa de la Brasa Viva', text: '+15% de daño a enemigos quemados.' },
     finisher: { name: 'Runa del Remate', text: 'Al derrotar a un enemigo recupera 15% de vida.' },
     'true-pulse': {
       name: 'Runa del Pulso Certero',
-      text: 'Cada crítico le devuelve 10% de concentración (una vez por turno).'
+      text: 'Cada crítico le devuelve 5% de concentración (una vez por turno).'
     },
-    fang: { name: 'Runa del Colmillo', text: 'El ataque con arma tiene 20% de envenenar por 3 turnos.' },
-    pause: { name: 'Runa de la Pausa', text: 'Al usar un objeto recupera 15% de concentración.' },
-    'whole-body': { name: 'Runa del Cuerpo Entero', text: '+20% de daño mientras tiene la vida llena.' },
+    fang: { name: 'Runa del Colmillo', text: 'El ataque con arma tiene 15% de envenenar por 2 turnos.' },
+    pause: { name: 'Runa de la Pausa', text: 'Al usar un objeto recupera 10% de concentración.' },
+    'whole-body': { name: 'Runa del Cuerpo Entero', text: '+10% de daño mientras tiene la vida llena.' },
     'double-edge': { name: 'Runa del Doble Filo', text: 'El ataque con arma golpea dos veces, cada golpe al 60%.' },
-    'stubborn-ember': { name: 'Runa del Ascua Terca', text: 'Las quemaduras que deja duran 2 turnos más.' },
+    'stubborn-ember': { name: 'Runa del Ascua Terca', text: 'Las quemaduras que deja duran 1 turno más.' },
     contagion: {
       name: 'Runa del Contagio',
       text: 'Dejarle un estado a un enemigo le devuelve 10% de concentración (una vez por turno).'
     },
     tribute: { name: 'Runa del Tributo', text: 'El grupo gana 30% más de oro en cada victoria.' },
     'warm-up': { name: 'Runa del Calentamiento', text: '+5% de daño por cada turno propio, hasta +25%.' },
-    'untouched-skin': { name: 'Runa de la Piel Intacta', text: '+30% de daño hasta que recibe el primer golpe.' },
+    'untouched-skin': { name: 'Runa de la Piel Intacta', text: '+15% de daño hasta que recibe el primer golpe.' },
     'last-breath': { name: 'Runa del Último Aliento', text: '+50% de daño con menos del 15% de vida.' },
     'right-moment': {
       name: 'Runa del Momento Justo',

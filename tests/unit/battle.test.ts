@@ -1095,7 +1095,7 @@ describe('runes of the spoils and the new runes of the way', () => {
 
     expect(plain.xp).toBeGreaterThan(0)
     expect(plain.gold).toBeGreaterThan(0)
-    expect(wise.xp).toBe(Math.round(plain.xp * 1.25))
+    expect(wise.xp).toBe(Math.round(plain.xp * 1.15))
     expect(wise.gold).toBe(plain.gold)
     expect(rich.gold).toBe(Math.round(plain.gold * 1.3))
     expect(rich.xp).toBe(plain.xp)
@@ -1107,7 +1107,7 @@ describe('runes of the spoils and the new runes of the way', () => {
     const fromAlly = strike(nearlyWonWith([kael, wearing(sera, 'wisdom')])).state
     const twice = strike(nearlyWonWith([wearing(kael, 'wisdom'), wearing(sera, 'wisdom')])).state
 
-    expect(fromAlly.xp).toBe(Math.round(plain.xp * 1.25))
+    expect(fromAlly.xp).toBe(Math.round(plain.xp * 1.15))
     expect(twice.xp).toBe(fromAlly.xp)
   })
 

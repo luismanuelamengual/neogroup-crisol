@@ -25,43 +25,45 @@ interface RuneDefinition {
 const perk = (perks: Partial<Record<Perk, number>>): BonusesPart => ({ perks })
 /** In order of power: the lesser ones (1..13), the greater (14..37), the ancestral (38..68) and the abyssal (69..76). */
 const DEFINITIONS: RuneDefinition[] = [
-  // Lesser: Meadows and Forest.
-  { id: 'first-cut', effect: perk({ [Perk.FIRST_STRIKE]: 0.5 }), gain: 'attack' },
-  { id: 'breath', effect: perk({ [Perk.START_FOCUS]: 0.3 }), gain: 'maxFocus' },
-  { id: 'sprout', effect: perk({ [Perk.OPENING_REGEN]: 0.05 }), gain: 'maxHealth' },
-  { id: 'light-step', effect: perk({ [Perk.START_SPEED_UP]: 3 }), gain: 'speed' },
-  { id: 'carapace', effect: perk({ [Perk.START_DEFENSE_UP]: 3 }), gain: 'defense' },
-  { id: 'impetus', effect: perk({ [Perk.START_ATTACK_UP]: 3 }), gain: 'attack' },
-  { id: 'wisdom', effect: perk({ [Perk.XP_GAIN]: 0.25 }), gain: 'special' },
-  { id: 'live-ember', effect: perk({ [Perk.BURN_HUNTER]: 0.25 }), gain: 'special' },
-  { id: 'finisher', effect: perk({ [Perk.KILL_HEAL]: 0.15 }), gain: 'maxHealth' },
-  { id: 'true-pulse', effect: perk({ [Perk.CRIT_FOCUS]: 0.1 }), gain: 'critChance' },
-  { id: 'fang', effect: { onHit: [{ type: StatusType.POISON, chance: 0.2, turns: 3 }] }, gain: 'speed' },
-  { id: 'pause', effect: perk({ [Perk.ITEM_FOCUS]: 0.15 }), gain: 'maxFocus' },
-  { id: 'whole-body', effect: perk({ [Perk.FULL_HEALTH]: 0.2 }), gain: 'defense' },
-  // Greater: Tropics, Desert and Mountains.
-  { id: 'double-edge', effect: perk({ [Perk.DOUBLE_STRIKE]: 0.6 }), gain: 'attack' },
-  { id: 'stubborn-ember', effect: perk({ [Perk.LONG_BURN]: 2 }), gain: 'special' },
-  { id: 'tribute', effect: perk({ [Perk.GOLD_GAIN]: 0.3 }), gain: 'critChance' },
+  // Lesser: Meadows and Forest. The start of the game: small effects, so a rune never decides a battle yet (no
+  // healing either: the runes that recover health wait for the Tropics and the Mountains).
+  { id: 'first-cut', effect: perk({ [Perk.FIRST_STRIKE]: 0.2 }), gain: 'attack' },
+  { id: 'light-step', effect: perk({ [Perk.START_SPEED_UP]: 1 }), gain: 'speed' },
+  { id: 'impetus', effect: perk({ [Perk.START_ATTACK_UP]: 1 }), gain: 'attack' },
+  { id: 'stubborn-ember', effect: perk({ [Perk.LONG_BURN]: 1 }), gain: 'special' },
+  { id: 'carapace', effect: perk({ [Perk.START_DEFENSE_UP]: 1 }), gain: 'defense' },
+  { id: 'untouched-skin', effect: perk({ [Perk.UNTOUCHED]: 0.15 }), gain: 'speed' },
+  { id: 'wisdom', effect: perk({ [Perk.XP_GAIN]: 0.15 }), gain: 'special' },
+  { id: 'live-ember', effect: perk({ [Perk.BURN_HUNTER]: 0.15 }), gain: 'special' },
+  { id: 'breath', effect: perk({ [Perk.START_FOCUS]: 0.15 }), gain: 'maxFocus' },
+  { id: 'true-pulse', effect: perk({ [Perk.CRIT_FOCUS]: 0.05 }), gain: 'critChance' },
+  { id: 'fang', effect: { onHit: [{ type: StatusType.POISON, chance: 0.15, turns: 2 }] }, gain: 'speed' },
+  { id: 'pause', effect: perk({ [Perk.ITEM_FOCUS]: 0.1 }), gain: 'maxFocus' },
+  { id: 'whole-body', effect: perk({ [Perk.FULL_HEALTH]: 0.1 }), gain: 'defense' },
+  // Greater: Desert, Tropics and Mountains, from the weakest to the strongest. The first runes that recover health
+  // (the Sprout in the Tropics, the Finisher in the Mountains).
   { id: 'contagion', effect: perk({ [Perk.STATUS_FOCUS]: 0.1 }), gain: 'maxFocus' },
   { id: 'warm-up', effect: perk({ [Perk.WARM_UP]: 0.05 }), gain: 'attack' },
-  { id: 'untouched-skin', effect: perk({ [Perk.UNTOUCHED]: 0.3 }), gain: 'speed' },
+  { id: 'tribute', effect: perk({ [Perk.GOLD_GAIN]: 0.3 }), gain: 'critChance' },
   { id: 'last-breath', effect: perk({ [Perk.LAST_BREATH]: 0.5 }), gain: 'attack' },
-  { id: 'right-moment', effect: perk({ [Perk.LOW_HEALTH_CRIT]: 0.3 }), gain: 'critChance' },
   { id: 'rescue', effect: perk({ [Perk.SOS]: 3 }), gain: 'defense' },
-  { id: 'clean-blow', effect: perk({ [Perk.CONTROLLED_CRIT]: 1 }), gain: 'critChance' },
+  { id: 'right-moment', effect: perk({ [Perk.LOW_HEALTH_CRIT]: 0.3 }), gain: 'critChance' },
   { id: 'icebreaker', effect: perk({ [Perk.FROST_BREAKER]: 0.4 }), gain: 'special' },
+  { id: 'double-edge', effect: perk({ [Perk.DOUBLE_STRIKE]: 0.6 }), gain: 'attack' },
   { id: 'open-wound', effect: perk({ [Perk.CRIT_BLEED]: 3 }), gain: 'critChance' },
+  { id: 'sprout', effect: perk({ [Perk.OPENING_REGEN]: 0.05 }), gain: 'maxHealth' },
+  { id: 'clean-blow', effect: perk({ [Perk.CONTROLLED_CRIT]: 1 }), gain: 'critChance' },
+  { id: 'hunter-eye', effect: perk({ [Perk.CRIT_VS_DEBUFFED]: 0.25 }), gain: 'critChance' },
   { id: 'full-healing', effect: perk({ [Perk.HEALING_RECEIVED]: 1 }), gain: 'maxHealth' },
   { id: 'clover', effect: perk({ [Perk.LUCK]: 0.5 }), gain: 'speed' },
   { id: 'generous-hand', effect: perk({ [Perk.HEAL_SHARE]: 0.3 }), gain: 'special' },
   { id: 'cheer', effect: perk({ [Perk.HEAL_BUFF]: 2 }), gain: 'special' },
   { id: 'harvest', effect: perk({ [Perk.KILL_FOCUS]: 0.3 }), gain: 'maxFocus' },
-  { id: 'hunter-eye', effect: perk({ [Perk.CRIT_VS_DEBUFFED]: 0.25 }), gain: 'critChance' },
+  { id: 'finisher', effect: perk({ [Perk.KILL_HEAL]: 0.15 }), gain: 'maxHealth' },
+  { id: 'reprisal', effect: perk({ [Perk.COUNTER]: 0.25 }), gain: 'defense' },
   { id: 'burning-iron', effect: perk({ [Perk.FIRE_WEAPON]: 1 }), gain: 'attack' },
   { id: 'frozen-iron', effect: perk({ [Perk.ICE_WEAPON]: 1 }), gain: 'attack' },
   { id: 'thunder-iron', effect: perk({ [Perk.LIGHTNING_WEAPON]: 1 }), gain: 'speed' },
-  { id: 'reprisal', effect: perk({ [Perk.COUNTER]: 0.25 }), gain: 'defense' },
   { id: 'clean-blood', effect: perk({ [Perk.IMMUNE_DOTS]: 1 }), gain: 'maxHealth' },
   { id: 'vigil', effect: perk({ [Perk.VIGIL]: 1 }), gain: 'defense' },
   // Ancestral: Wastelands, Snow and the volcanic lands.
@@ -136,8 +138,8 @@ const ECHO_COSTS: Record<RuneTier, [number, number]> = {
   [RuneTier.ABYSSAL]: [30, 50]
 }
 /** The attribute gains, from the first rune to the last: critical chance adds up as is, so it moves less. */
-const GAIN: [number, number] = [0.04, 0.15]
-const CRIT_GAIN: [number, number] = [0.03, 0.1]
+const GAIN: [number, number] = [0.02, 0.15]
+const CRIT_GAIN: [number, number] = [0.01, 0.1]
 
 /** A value between two shares, in whole percents. */
 function share([from, to]: [number, number], strength: number): number {
