@@ -10,9 +10,9 @@ export const FLASK_BASE_CHARGES = 1
 export const FLASK_MAX_CHARGES = 3
 
 /** Share of the maximum health healed (percent) at the start of a cycle; each Amber Ember adds FLASK_EMBER_POTENCY. */
-export const FLASK_BASE_POTENCY = 10
+export const FLASK_BASE_POTENCY = 20
 export const FLASK_EMBER_POTENCY = 10
-export const FLASK_MAX_POTENCY = 60
+export const FLASK_MAX_POTENCY = 70
 
 /** Where the Amber Flasks wait (points of the world map, set by hand). */
 export const AMBER_FLASK_PLACES: [number, number][] = [

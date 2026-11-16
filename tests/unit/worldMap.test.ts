@@ -386,7 +386,7 @@ describe('camp bosses and the Amber Flask', () => {
   it('gives a filled flask charge for each Amber Flask, up to three', () => {
     const { state, rewards } = winEncounter(index, arriveAt(index, nextTo(flasks[0].id), flasks[0].id).state, {})
 
-    expect(getFlask(index, state)).toEqual({ charges: 2, maxCharges: 2, potency: 10 })
+    expect(getFlask(index, state)).toEqual({ charges: 2, maxCharges: 2, potency: 20 })
     expect(rewards).toContainEqual({ type: 'flaskCharge', maxCharges: 2 })
 
     const all = nextTo(flasks[0].id, { clearedNodeIds: [world.startNodeId, ...flasks.map((node) => node.id)] })
@@ -394,11 +394,11 @@ describe('camp bosses and the Amber Flask', () => {
     expect(getFlask(index, all).maxCharges).toBe(FLASK_MAX_CHARGES)
   })
 
-  it('heals 10% more for each Amber Ember, up to 60%', () => {
+  it('heals 10% more for each Amber Ember, up to 70%', () => {
     const { state, rewards } = winEncounter(index, arriveAt(index, nextTo(embers[0].id), embers[0].id).state, {})
 
-    expect(getFlask(index, state).potency).toBe(20)
-    expect(rewards).toContainEqual({ type: 'flaskPotency', potency: 20 })
+    expect(getFlask(index, state).potency).toBe(30)
+    expect(rewards).toContainEqual({ type: 'flaskPotency', potency: 30 })
 
     const all = nextTo(embers[0].id, { clearedNodeIds: [world.startNodeId, ...embers.map((node) => node.id)] })
 
@@ -408,7 +408,7 @@ describe('camp bosses and the Amber Flask', () => {
   it('does not grow the flask with bosses any more', () => {
     const { state } = winEncounter(index, arriveAt(index, nextTo(seals[0].id), seals[0].id).state, {})
 
-    expect(getFlask(index, state)).toMatchObject({ maxCharges: 1, potency: 10 })
+    expect(getFlask(index, state)).toMatchObject({ maxCharges: 1, potency: 20 })
   })
 
   it('heals the whole party with the flask and refills it when resting', () => {
@@ -416,7 +416,7 @@ describe('camp bosses and the Amber Flask', () => {
     const hurt = { ...initial, characters: [{ ...initial.characters[0], health: 50 }] }
     const drunk = drinkFlask(index, hurt)
 
-    expect(drunk.characters[0].health).toBe(62)
+    expect(drunk.characters[0].health).toBe(74)
     expect(drunk.flaskCharges).toBe(0)
     expect(() => drinkFlask(index, drunk)).toThrow()
     expect(rest(index, drunk).flaskCharges).toBe(1)
