@@ -230,3 +230,82 @@ export function describeRune(t: Translator, rune: Rune, withStats = true): strin
 export function itemName(t: Translator, itemId: string): string {
   return t(`items.${itemId}.name` as MessageKey)
 }
+
+/** One bonus as a number and a short name, for the tiles of the weapons ("+10%" · "Ataque especial"); bad when it hurts the hero. */
+export interface BonusEntry {
+  value: string
+  label: string
+  bad?: boolean
+}
+
+/** The bonuses as numbers with short names (describeBonuses, without the sentences). */
+export function bonusEntries(t: Translator, part: BonusesPart): BonusEntry[] {
+  const entries: BonusEntry[] = []
+  const share = (value: number) => ({ value: formatShare(value), bad: value < 0 })
+
+  for (const [stat, value] of Object.entries(part.stats ?? {}) as [keyof CombatStats, number][]) {
+    entries.push({ ...share(value), label: t(`attributes.${stat}`) })
+  }
+
+  for (const [type, value] of Object.entries(part.damage ?? {}) as [DamageType, number][]) {
+    entries.push({ ...share(value), label: t('bonusShort.damage', { type: t(`damageTypes.${type}`) }) })
+  }
+
+  if (part.lifesteal) {
+    entries.push({ ...share(part.lifesteal), label: t('bonusShort.lifesteal') })
+  }
+
+  if (part.focusRegen) {
+    entries.push({ ...share(part.focusRegen), label: t('bonusShort.focusRegen') })
+  }
+
+  if (part.regen) {
+    entries.push({ ...share(part.regen), label: t('bonusShort.regen') })
+  }
+
+  if (part.initiative) {
+    entries.push({ value: `+${part.initiative}%`, label: t('bonusShort.initiative') })
+  }
+
+  if (part.guard) {
+    // Less damage taken: a negative number that helps.
+    entries.push({ value: formatShare(-part.guard), bad: part.guard < 0, label: t('bonusShort.guard') })
+  }
+
+  if (part.weakness) {
+    entries.push({ ...share(part.weakness), label: t('bonusShort.weakness') })
+  }
+
+  if (part.statusChance) {
+    entries.push({ ...share(part.statusChance), label: t('bonusShort.statusChance') })
+  }
+
+  for (const effect of part.onHit ?? []) {
+    entries.push({
+      value: formatShare(effect.chance).slice(1),
+      label: t('bonusShort.onHit', { status: t(`statuses.${effect.type}`) })
+    })
+  }
+
+  for (const [skillId, upgrade] of Object.entries(part.upgrades ?? {})) {
+    const skill = skillName(t, skillId)
+
+    if (upgrade.power) {
+      entries.push({ ...share(upgrade.power), label: t('bonusShort.power', { skill }) })
+    }
+
+    if (upgrade.cost) {
+      entries.push({ value: `−${upgrade.cost}`, label: t('bonusShort.skillCost', { skill }) })
+    }
+
+    if (upgrade.statusChance) {
+      entries.push({ ...share(upgrade.statusChance), label: t('bonusShort.skillStatus', { skill }) })
+    }
+
+    if (upgrade.turns) {
+      entries.push({ value: `+${upgrade.turns}`, label: t('bonusShort.skillTurns', { skill }) })
+    }
+  }
+
+  return entries
+}

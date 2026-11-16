@@ -1380,6 +1380,12 @@ export function getEnemyStats(speciesId: string, level: number, elite = false, c
   }
 }
 
+/**
+ * Share of the base experience that enemies and bosses give when they fall.
+ * The single knob to tune the pace of the levels: check it with `yarn progression`.
+ */
+export const ENEMY_XP_SCALE = 0.4
+
 /** Experience and gold an enemy gives when it falls (see scripts/simulate-progression.ts). */
 export function getEnemyRewards(
   speciesId: string,
@@ -1392,7 +1398,7 @@ export function getEnemyRewards(
   const multiplier = (elite ? 2 : 1) * (boss ? strength * bars * 2 : 1)
 
   return {
-    xp: Math.round((4 + 2.2 * level) * multiplier),
+    xp: Math.round((4 + 2.2 * level) * multiplier * ENEMY_XP_SCALE),
     gold: Math.round((boss ? 80 + 5 * level * bars : 2 + 0.35 * level) * (elite ? 2 : 1) * (1 + 0.75 * cycle))
   }
 }

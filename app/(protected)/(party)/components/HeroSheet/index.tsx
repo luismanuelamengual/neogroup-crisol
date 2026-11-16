@@ -13,29 +13,20 @@ import classNames from 'classnames'
 import { useState } from 'react'
 import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
 import { artUrl } from '@/app/(protected)/(art)/utils/art'
-import { getSkill } from '@/app/(protected)/(engine)/data/skills'
-import {
-  getCharacterWeapons,
-  getUpgradeCost,
-  MAX_WEAPON_LEVEL,
-  WEAPON_POWER_PER_LEVEL
-} from '@/app/(protected)/(engine)/data/weapons'
+import { getCharacterWeapons } from '@/app/(protected)/(engine)/data/weapons'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { ACTIVE_HEROES } from '@/app/(protected)/(engine)/utils/battle'
 import {
   canForgetSkills,
-  canUpgradeWeapon,
   equipSkill,
-  equipWeapon,
   getAttributePoints,
   getCharacterStats,
   getKnownSkills,
   getMaxHealth,
   getSkillLevel,
   getSkillPoints,
-  getWeaponLevel,
   isTreeComplete,
   moveInFormation,
   SKILL_SLOTS,
@@ -43,23 +34,15 @@ import {
   spendTear,
   TRADE_ECHOES,
   tradeSkillPoint,
-  unequipSkill,
-  upgradeWeapon
+  unequipSkill
 } from '@/app/(protected)/(engine)/utils/heroes'
 import { xpToNextLevel } from '@/app/(protected)/(engine)/utils/progression'
 import { getFocus } from '@/app/(protected)/(engine)/utils/worldMap'
 import RunesPanel from '@/app/(protected)/(party)/components/RunesPanel'
 import SkillIcon from '@/app/(protected)/(party)/components/SkillIcon'
 import SkillTree from '@/app/(protected)/(party)/components/SkillTree'
-import WeaponArt from '@/app/(protected)/(party)/components/WeaponArt'
-import {
-  describeBonuses,
-  formatShare,
-  formatStat,
-  itemName,
-  skillCost,
-  skillName
-} from '@/app/(protected)/(party)/utils/describe'
+import WeaponCard from '@/app/(protected)/(party)/components/WeaponCard'
+import { formatStat, skillCost, skillName } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -373,90 +356,19 @@ export default function HeroSheet({ state, character, tab, canSwap, onChange }: 
         <section>
           <h3>{t('party.weapons')}</h3>
           {!canSwap && <p className="lines">{t('party.swapOnly')}</p>}
-          <ul className="cards weapons">
+          <ul className="weapons">
             {getCharacterWeapons(id)
               .filter((weapon) => weapon.id in character.weapons)
-              .map((weapon) => {
-                const held = weapon.id === character.weaponId
-                const level = getWeaponLevel(character, weapon.id)
-                const attack = getSkill(weapon.attack)
-                const nextUpgrade = level < MAX_WEAPON_LEVEL ? getUpgradeCost(level + 1) : null
-                const nextEffect = weapon.effects[Math.floor(level / 5)]
-                const traits = describeBonuses(t, weapon.traits)
-
-                return (
-                  <li key={weapon.id} className={classNames({ worn: held })}>
-                    <WeaponArt weapon={weapon} held={held} />
-                    <div className="weapon-body">
-                      <div className="titles">
-                        <span className="name">
-                          {t(`weapons.${weapon.id}.name` as MessageKey)}
-                          {level > 0 && <span className="level">+{level}</span>}
-                        </span>
-                        {held && <span className="tag held">{t('party.weaponHeld')}</span>}
-                      </div>
-                      <p className="lines kind">{t(`weapons.${weapon.id}.kind` as MessageKey)}</p>
-                      <p className="lines">
-                        {t('party.weaponAttack', {
-                          skill: skillName(t, attack.id),
-                          type: t(`damageTypes.${attack.damageType}`),
-                          target: t(`targets.${attack.target}`)
-                        })}
-                      </p>
-                      <p className="lines">
-                        {traits.length > 0
-                          ? t('party.weaponStyle', { traits: traits.join(' · ') })
-                          : t('party.weaponBalanced')}
-                      </p>
-                      <p className="lines">
-                        {t('party.weaponPower', { value: formatShare(WEAPON_POWER_PER_LEVEL * level).slice(1) })}
-                      </p>
-                      {nextEffect && (
-                        <p className="lines">
-                          {t('party.weaponNext', {
-                            level: (Math.floor(level / 5) + 1) * 5,
-                            effect: describeBonuses(t, nextEffect).join(' · ')
-                          })}
-                        </p>
-                      )}
-                      {nextUpgrade ? (
-                        <p className="lines">
-                          {t('party.upgradeCost', {
-                            stones: nextUpgrade.stones,
-                            stone: itemName(t, nextUpgrade.stoneId),
-                            gold: nextUpgrade.gold
-                          })}
-                          {' · '}
-                          {t('party.have', { count: state.inventory[nextUpgrade.stoneId] ?? 0 })}
-                        </p>
-                      ) : (
-                        <p className="lines">{t('party.weaponMax')}</p>
-                      )}
-                      <div className="actions">
-                        {!held && (
-                          <GameButton
-                            size="small"
-                            color="cyan"
-                            disabled={!canSwap}
-                            onClick={() => onChange(equipWeapon(state, id, weapon.id))}
-                          >
-                            {t('party.wield')}
-                          </GameButton>
-                        )}
-                        {nextUpgrade && (
-                          <GameButton
-                            size="small"
-                            disabled={!canSwap || !canUpgradeWeapon(state, character, weapon.id)}
-                            onClick={() => onChange(upgradeWeapon(state, id, weapon.id))}
-                          >
-                            {t('party.upgrade', { level: level + 1 })}
-                          </GameButton>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                )
-              })}
+              .map((weapon) => (
+                <WeaponCard
+                  key={weapon.id}
+                  state={state}
+                  character={character}
+                  weapon={weapon}
+                  canSwap={canSwap}
+                  onChange={onChange}
+                />
+              ))}
           </ul>
         </section>
       )}
