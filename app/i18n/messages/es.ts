@@ -862,6 +862,10 @@ export const es = {
     attributes: 'Atributos',
     attributePoints: { one: '{count} punto de atributo', other: '{count} puntos de atributo' },
     spendPoint: 'Sumar un punto a {stat}',
+    removePoint: 'Quitar el punto sumado a {stat}',
+    confirmAttributes: 'Confirmar',
+    undoAttributes: 'Deshacer',
+    attributesPending: 'Los puntos no se aplican hasta que confirmes.',
     skills: 'Árbol de habilidades',
     skillPoints: { one: '{count} punto de habilidad', other: '{count} puntos de habilidad' },
     treeHint:
@@ -908,6 +912,7 @@ export const es = {
     echoes: 'Ecos',
     echoCapacity: 'Ecos {used} de {capacity}',
     echoesHint: 'El eco de una runa dominada da su efecto sin sus cambios de atributos.',
+    echoesLocked: 'Los Ecos se desbloquean al conseguir {needed} runas ({count}/{needed}).',
     noEchoes: 'Dominá una runa (4 batallas ganadas con ella puesta) para equipar su eco.',
     echoPool: { one: '{count} Eco para asignar', other: '{count} Ecos para asignar' },
     assign: 'Asignar 1 a {name}',

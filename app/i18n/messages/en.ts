@@ -856,6 +856,10 @@ export const en: Messages = {
     attributes: 'Attributes',
     attributePoints: { one: '{count} attribute point', other: '{count} attribute points' },
     spendPoint: 'Add a point to {stat}',
+    removePoint: 'Take back the point added to {stat}',
+    confirmAttributes: 'Confirm',
+    undoAttributes: 'Undo',
+    attributesPending: 'The points are not applied until you confirm.',
     skills: 'Skill tree',
     skillPoints: { one: '{count} skill point', other: '{count} skill points' },
     treeHint:
@@ -902,6 +906,7 @@ export const en: Messages = {
     echoes: 'Echoes',
     echoCapacity: 'Echoes {used} of {capacity}',
     echoesHint: 'The echo of a mastered rune gives its effect without its attribute changes.',
+    echoesLocked: 'Echoes unlock once you find {needed} runes ({count}/{needed}).',
     noEchoes: 'Master a rune (4 battles won wearing it) to wear its echo.',
     echoPool: { one: '{count} Echo to assign', other: '{count} Echoes to assign' },
     assign: 'Assign 1 to {name}',

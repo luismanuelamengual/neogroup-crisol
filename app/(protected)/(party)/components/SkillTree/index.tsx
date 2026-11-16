@@ -2,8 +2,10 @@
 
 import './index.scss'
 import ButtonBase from '@mui/material/ButtonBase'
+import Popover from '@mui/material/Popover'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import classNames from 'classnames'
-import { CSSProperties, useState } from 'react'
+import { CSSProperties, MouseEvent, useState } from 'react'
 import { getSkillTree, MAX_SKILL_LEVEL } from '@/app/(protected)/(engine)/data/skillTrees'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
@@ -28,12 +30,22 @@ interface SkillTreeProps {
   onChange: (state: GameState) => void
 }
 
+/** A phone (upright or sideways): the card of a special opens next to it instead of under the board. */
+export const COMPACT_QUERY = '(max-width: 599px), (max-height: 499px)'
+
+/** The special tapped on a phone, and the diamond its card opens next to. */
+interface Popup {
+  skillId: string
+  anchor: HTMLElement
+}
+
 /**
  * The skill tree of a hero: a board of diamonds joined by lines, of its own
  * shape. A learned special shows its emblem and its level; the others show
  * what they cost, lit when they can be learned now (joined to a learned one
- * and paid for). Tapping one opens its card under the board, to learn it,
- * raise its level or take it into battle.
+ * and paid for). Tapping one opens its card, to learn it, raise its level or
+ * take it into battle: under the board on a large screen, and next to the
+ * diamond on a phone (as the runes do), so that it needs no scrolling.
  */
 export default function SkillTree({ state, character, onChange }: SkillTreeProps) {
   const t = useT()
@@ -41,8 +53,13 @@ export default function SkillTree({ state, character, onChange }: SkillTreeProps
   const tree = getSkillTree(id)
   const points = getSkillPoints(character)
   const firstReady = tree.nodes.find((node) => getSkillLearnState(character, node.skillId) === 'ready')?.skillId
+  const compact = useMediaQuery(COMPACT_QUERY, { noSsr: true })
   const [picked, setPicked] = useState<string | null>(null)
-  const selected = picked && tree.nodes.some((node) => node.skillId === picked) ? picked : (firstReady ?? tree.root)
+  const [opened, setOpened] = useState<Popup | null>(null)
+  const inTree = (skillId: string) => tree.nodes.some((node) => node.skillId === skillId)
+  // A card whose diamond is gone (another hero shown) closes.
+  const popup = compact && opened && inTree(opened.skillId) && opened.anchor.isConnected ? opened : null
+  const selected = compact ? (popup?.skillId ?? null) : picked && inTree(picked) ? picked : (firstReady ?? tree.root)
   const nodeOf = (skillId: string) => tree.nodes.find((node) => node.skillId === skillId)!
   const learned = (skillId: string) => getSkillLevel(character, skillId) > 0
   const boardStyle = {
@@ -50,8 +67,15 @@ export default function SkillTree({ state, character, onChange }: SkillTreeProps
     '--rows': tree.height
   } as CSSProperties
 
-  const renderDetail = () => {
-    const skillId = selected
+  const pick = (skillId: string) => (event: MouseEvent<HTMLElement>) => {
+    setPicked(skillId)
+    setOpened({ skillId, anchor: event.currentTarget })
+  }
+
+  // The card opens on the side of the board with more room.
+  const popupOnLeft = !!popup && nodeOf(popup.skillId).x + 0.5 > tree.width / 2
+
+  const renderDetail = (skillId: string) => {
     const level = getSkillLevel(character, skillId)
     const learnState = getSkillLearnState(character, skillId)
     const next = getNextSkillCost(character, skillId)
@@ -68,7 +92,7 @@ export default function SkillTree({ state, character, onChange }: SkillTreeProps
             : null
 
     return (
-      <div className="skill-detail">
+      <div className={classNames('skill-detail', { popup: compact })}>
         <div className="head">
           <SkillIcon skillId={skillId} size="large" />
           <div className="titles">
@@ -162,7 +186,7 @@ export default function SkillTree({ state, character, onChange }: SkillTreeProps
               style={{ '--x': node.x, '--y': node.y } as CSSProperties}
               aria-label={skillName(t, node.skillId)}
               aria-pressed={selected === node.skillId}
-              onClick={() => setPicked(node.skillId)}
+              onClick={pick(node.skillId)}
             >
               <span className="diamond" />
               {level > 0 ? (
@@ -177,7 +201,18 @@ export default function SkillTree({ state, character, onChange }: SkillTreeProps
           )
         })}
       </div>
-      {renderDetail()}
+      {!compact && selected && renderDetail(selected)}
+      <Popover
+        open={!!popup}
+        anchorEl={popup?.anchor}
+        onClose={() => setOpened(null)}
+        anchorOrigin={{ vertical: 'center', horizontal: popupOnLeft ? 'left' : 'right' }}
+        transformOrigin={{ vertical: 'center', horizontal: popupOnLeft ? 'right' : 'left' }}
+        marginThreshold={8}
+        slotProps={{ paper: { className: 'skill-card-paper' } }}
+      >
+        {popup && renderDetail(popup.skillId)}
+      </Popover>
     </div>
   )
 }

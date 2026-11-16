@@ -4,6 +4,13 @@
   flex-direction: column;
   gap: 14px;
 
+  // The echoes are still closed: how many runes are missing.
+  .echoes-locked {
+    margin-top: 10px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+
   // The three slots of the hero, on top.
   .rune-slots {
     display: grid;

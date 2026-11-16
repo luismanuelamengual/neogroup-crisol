@@ -1,6 +1,6 @@
 import { ATTRIBUTE_POINT, getBaseStats } from '@/app/(protected)/(engine)/data/characters'
 import { maxCarried } from '@/app/(protected)/(engine)/data/items'
-import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
+import { ECHOES_UNLOCK_RUNES, getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import {
   getLevelCost,
   getLinkedSkills,
@@ -224,6 +224,11 @@ export function getSkillPoints(character: CharacterState): number {
 /** Whether the tree of a character is at its best: every special learned and at level 5. */
 export function isTreeComplete(character: CharacterState): boolean {
   return getSkillTree(character.id).nodes.every((node) => getSkillLevel(character, node.skillId) >= MAX_SKILL_LEVEL)
+}
+
+/** Whether the party has found enough runes to deal with echoes (see `ECHOES_UNLOCK_RUNES`). */
+export function areEchoesUnlocked(state: GameState): boolean {
+  return state.runes.length >= ECHOES_UNLOCK_RUNES
 }
 
 export function isRuneMastered(state: GameState, index: number): boolean {

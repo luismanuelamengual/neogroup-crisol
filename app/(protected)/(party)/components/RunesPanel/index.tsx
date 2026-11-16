@@ -4,11 +4,12 @@ import './index.scss'
 import Popover from '@mui/material/Popover'
 import classNames from 'classnames'
 import { CSSProperties, MouseEvent, useState } from 'react'
-import { getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
+import { ECHOES_UNLOCK_RUNES, getRune, RUNE_MASTERY_WINS, RUNE_SLOTS } from '@/app/(protected)/(engine)/data/runes'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { Rune } from '@/app/(protected)/(engine)/models/Rune'
 import {
+  areEchoesUnlocked,
   assignEchoes,
   canEquipEcho,
   equipEcho,
@@ -93,6 +94,8 @@ export default function RunesPanel({ state, character, view, atCamp, onChange }:
   const worn = mastered.filter((index) => character.echoes.includes(index))
   const others = mastered.filter((index) => !character.echoes.includes(index))
   const anyLocked = others.some((index) => getEchoLock(state, character, index))
+  const echoesOpen = areEchoesUnlocked(state)
+  const echoesLockedHint = t('party.echoesLocked', { needed: ECHOES_UNLOCK_RUNES, count: owned.length })
 
   return (
     <div className="runes-panel">
@@ -170,10 +173,18 @@ export default function RunesPanel({ state, character, view, atCamp, onChange }:
               })}
             </ul>
           )}
+          {!echoesOpen && <p className="lines echoes-locked">{echoesLockedHint}</p>}
         </section>
       )}
 
-      {view === 'echoes' && (
+      {view === 'echoes' && !echoesOpen && (
+        <section>
+          <h3>{t('party.echoes')}</h3>
+          <p className="lines echoes-locked">{echoesLockedHint}</p>
+        </section>
+      )}
+
+      {view === 'echoes' && echoesOpen && (
         <section>
           <h3>
             {t('party.echoes')}

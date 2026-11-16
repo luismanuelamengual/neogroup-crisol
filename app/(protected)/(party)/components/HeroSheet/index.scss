@@ -333,6 +333,60 @@
       font-family: var(--font-display);
       font-weight: 700;
     }
+
+    // A point placed but not confirmed yet: the value in lime, with how much it gained.
+    .raised .value {
+      color: var(--color-lime);
+    }
+
+    .added {
+      margin-left: 4px;
+      color: var(--color-lime);
+      font-size: 0.75em;
+    }
+
+    .remove:not(.Mui-disabled) {
+      color: var(--color-magenta);
+    }
+
+    // On a phone: two columns, so that the eight fit without scrolling.
+    @media (max-width: 599px), (max-height: 499px) {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2px 18px;
+
+      .label {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 0.76rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .MuiIconButton-root {
+        padding: 3px;
+      }
+    }
+  }
+
+  // Undo or confirm the points placed.
+  .attribute-actions {
+    padding-top: 8px;
+    border-top: 1px solid #12103a;
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    @media (max-width: 599px), (max-height: 499px) {
+      margin-top: 6px;
+
+      .lines {
+        font-size: 0.72rem;
+      }
+    }
   }
 
   .row {

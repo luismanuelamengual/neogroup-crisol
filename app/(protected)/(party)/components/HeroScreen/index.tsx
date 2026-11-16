@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton'
 import { useState } from 'react'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
-import { getAttributePoints, getSkillPoints } from '@/app/(protected)/(engine)/utils/heroes'
+import { areEchoesUnlocked, getAttributePoints, getSkillPoints } from '@/app/(protected)/(engine)/utils/heroes'
 import HeroSheet, { HERO_TABS, HeroTab } from '@/app/(protected)/(party)/components/HeroSheet'
 import GameScreen from '@/app/components/GameScreen'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -29,7 +29,10 @@ interface HeroScreenProps {
 export default function HeroScreen({ state, characterId, atCamp, canSwap, onChange, onClose }: HeroScreenProps) {
   const t = useT()
   const [shownId, setShownId] = useState(characterId)
-  const [tab, setTab] = useState<HeroTab>('status')
+  const [chosenTab, setTab] = useState<HeroTab>('status')
+  // The echoes stay closed until the party has found enough runes.
+  const echoesOpen = areEchoesUnlocked(state)
+  const tab = chosenTab === 'echoes' && !echoesOpen ? 'runes' : chosenTab
   const position = Math.max(
     0,
     state.characters.findIndex((character) => character.id === shownId)
@@ -40,7 +43,7 @@ export default function HeroScreen({ state, characterId, atCamp, canSwap, onChan
   const badges: Partial<Record<HeroTab, number>> = {
     attributes: getAttributePoints(character),
     skills: Math.max(0, getSkillPoints(character)),
-    echoes: state.echoes
+    echoes: echoesOpen ? state.echoes : 0
   }
 
   return (
@@ -69,7 +72,12 @@ export default function HeroScreen({ state, characterId, atCamp, canSwap, onChan
       }
       onClose={onClose}
       className="hero-screen"
-      tabs={HERO_TABS.map((id) => ({ id, label: t(`party.tabs.${id}`), badge: badges[id] }))}
+      tabs={HERO_TABS.map((id) => ({
+        id,
+        label: t(`party.tabs.${id}`),
+        badge: badges[id],
+        disabled: id === 'echoes' && !echoesOpen
+      }))}
       tab={tab}
       onTab={setTab}
     >

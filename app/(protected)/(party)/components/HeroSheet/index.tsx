@@ -5,10 +5,12 @@ import AddIcon from '@mui/icons-material/Add'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import CloseIcon from '@mui/icons-material/Close'
+import RemoveIcon from '@mui/icons-material/Remove'
 import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import classNames from 'classnames'
+import { useState } from 'react'
 import { useArtImages } from '@/app/(protected)/(art)/hooks/useArtImages'
 import { artUrl } from '@/app/(protected)/(art)/utils/art'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
@@ -89,6 +91,12 @@ const ATTRIBUTES: (keyof CombatStats)[] = [
   'critDamage'
 ]
 
+/** Attribute points placed but not yet spent, for one hero (another hero shown starts clean). */
+interface AttributeDraft {
+  heroId: string
+  points: Partial<Record<keyof CombatStats, number>>
+}
+
 /** The portrait of a hero (its bust, see `yarn art`). */
 function portraitArtId(id: string): string {
   return `heroes/${id}/portrait`
@@ -110,11 +118,28 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
     { kind: 'focus', label: t('party.focus'), value: focus, max: maxFocus },
     { kind: 'xp', label: t('party.experience'), value: character.xp, max: xpToNextLevel(character.level) }
   ]
-  const stats = getCharacterStats(character)
   const attributePoints = getAttributePoints(character)
   const skillPoints = getSkillPoints(character)
   const spare = getKnownSkills(character).filter((skill) => !character.skills.includes(skill))
   const costOf = (skillId: string) => skillCost(skillId, Math.max(1, getSkillLevel(character, skillId)))
+  // The attribute points are first placed as a draft (each one can be taken back), and spent on confirming.
+  const [draft, setDraft] = useState<AttributeDraft>({ heroId: id, points: {} })
+  const placed = draft.heroId === id ? draft.points : {}
+  const placedCount = Object.values(placed).reduce((sum, points) => sum + (points ?? 0), 0)
+  const pending = placedCount > 0 && placedCount <= attributePoints ? placed : {}
+  const pendingCount = placedCount <= attributePoints ? placedCount : 0
+  const drafted = ATTRIBUTES.reduce(
+    (next, stat) =>
+      Array.from({ length: pending[stat] ?? 0 }).reduce<GameState>(
+        (current) => spendAttributePoint(current, id, stat),
+        next
+      ),
+    state
+  )
+  const draftStats = getCharacterStats(drafted.characters[position])
+  const placePoint = (stat: keyof CombatStats, delta: number) =>
+    setDraft({ heroId: id, points: { ...pending, [stat]: Math.max(0, (pending[stat] ?? 0) + delta) } })
+  const clearDraft = () => setDraft({ heroId: id, points: {} })
 
   return (
     <div className="hero-sheet">
@@ -194,24 +219,64 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
         <section>
           <h3>
             {t('party.attributes')}
-            {attributePoints > 0 && <small>{t('party.attributePoints', { count: attributePoints })}</small>}
+            {attributePoints > 0 && (
+              <small>{t('party.attributePoints', { count: attributePoints - pendingCount })}</small>
+            )}
           </h3>
           <ul className="attributes">
-            {ATTRIBUTES.map((stat) => (
-              <li key={stat}>
-                <span className="label">{t(`attributes.${stat}`)}</span>
-                <span className="value">{formatStat(stat, stats[stat])}</span>
-                <IconButton
-                  size="small"
-                  disabled={attributePoints <= 0}
-                  aria-label={t('party.spendPoint', { stat: t(`attributes.${stat}`) })}
-                  onClick={() => onChange(spendAttributePoint(state, id, stat))}
-                >
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </li>
-            ))}
+            {ATTRIBUTES.map((stat) => {
+              const added = pending[stat] ?? 0
+
+              return (
+                <li key={stat} className={classNames({ raised: added > 0 })}>
+                  <span className="label">{t(`attributes.${stat}`)}</span>
+                  <span className="value">
+                    {formatStat(stat, draftStats[stat])}
+                    {added > 0 && <span className="added">+{added}</span>}
+                  </span>
+                  {attributePoints > 0 && (
+                    <IconButton
+                      size="small"
+                      className="remove"
+                      disabled={added <= 0}
+                      aria-label={t('party.removePoint', { stat: t(`attributes.${stat}`) })}
+                      onClick={() => placePoint(stat, -1)}
+                    >
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <IconButton
+                    size="small"
+                    disabled={attributePoints - pendingCount <= 0}
+                    aria-label={t('party.spendPoint', { stat: t(`attributes.${stat}`) })}
+                    onClick={() => placePoint(stat, 1)}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </li>
+              )
+            })}
           </ul>
+          {pendingCount > 0 && (
+            <div className="row attribute-actions">
+              <span className="lines">{t('party.attributesPending')}</span>
+              <span className="buttons">
+                <GameButton size="small" color="ghost" onClick={clearDraft}>
+                  {t('party.undoAttributes')}
+                </GameButton>
+                <GameButton
+                  size="small"
+                  color="cyan"
+                  onClick={() => {
+                    onChange(drafted)
+                    clearDraft()
+                  }}
+                >
+                  {t('party.confirmAttributes')}
+                </GameButton>
+              </span>
+            </div>
+          )}
         </section>
       )}
 

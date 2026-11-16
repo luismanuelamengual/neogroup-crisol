@@ -13,6 +13,8 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 export const RUNE_SLOTS = 3
 /** Battles won with a rune equipped (by an active hero) to master it. */
 export const RUNE_MASTERY_WINS = 4
+/** Runes the party has to find before the echoes open (their tab stays closed until then). */
+export const ECHOES_UNLOCK_RUNES = 4
 
 interface RuneDefinition {
   id: string

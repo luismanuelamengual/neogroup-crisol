@@ -158,7 +158,11 @@
       outline-offset: 3px;
     }
   }
+}
 
+// The gems and the card of a special: under the board, or in its popup on a phone (outside the tree).
+.skill-tree,
+.skill-card-paper {
   .pips {
     display: inline-flex;
     gap: 3px;
@@ -269,6 +273,45 @@
       align-items: center;
       gap: 8px;
     }
+
+    // In its popup: a frame of its own, tighter, with the buttons always in sight.
+    &.popup {
+      gap: 5px;
+      margin: 0;
+      padding: 10px;
+      border: none;
+      border-radius: 0;
+      background: #1e1a5a;
+      box-shadow: none;
+
+      .head {
+        gap: 8px;
+      }
+
+      .effects {
+        font-size: 0.76rem;
+      }
+
+      .actions {
+        position: sticky;
+        bottom: 0;
+        margin: 2px -10px -10px;
+        padding: 8px 10px 10px;
+        background: #1e1a5a;
+      }
+    }
+  }
+}
+
+// The popup of a special on a phone (see `RunesPanel` for its runes).
+.skill-card-paper {
+  &.MuiPaper-root {
+    width: min(320px, calc(100vw - 16px));
+    max-height: calc(100% - 16px);
+    border: 2px solid var(--color-gold);
+    border-radius: 14px;
+    background: #1e1a5a;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   }
 }
 
