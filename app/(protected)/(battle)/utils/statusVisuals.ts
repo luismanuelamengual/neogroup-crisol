@@ -7,8 +7,10 @@ import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
  * What a fighter carries on it while a status lasts, drawn by code every frame
  * so it can be seen at a glance: bubbles of poison, flames, drops of blood, a
  * block of ice, stars going round the head, a cloud over the eyes, arrows that
- * rise or sink, a shield (whole or broken), wind or a slow clock. Each status
+ * rise or sink, a broken shield, wind or a slow clock. Each status
  * also tints the body and changes how fast its puppet moves (frozen: still).
+ * The bubble of a shield is not a status: it shows while the fighter has
+ * shields (each one stops a whole hit) and goes with the last one.
  *
  * The drawings live inside the fighter (a layer behind its body and one in
  * front), so they follow it when it moves, scale with it and hide with it; the
@@ -111,6 +113,8 @@ export class StatusAura {
   /** In front of the body: ice, stars, the cloud, arrows, shields. */
   readonly front = new Graphics()
   private statuses = new Set<StatusType>()
+  /** The shields it has: the bubble shows while there is one. */
+  private shieldCount = 0
   private readonly timers = new Map<StatusType, number>()
   private time = 0
   private tinted = false
@@ -133,7 +137,7 @@ export class StatusAura {
   set(statuses: Iterable<StatusType>): void {
     this.statuses = new Set(statuses)
 
-    if (this.statuses.size === 0) {
+    if (this.statuses.size === 0 && this.shieldCount === 0) {
       this.back.clear()
       this.front.clear()
       this.timers.clear()
@@ -146,6 +150,20 @@ export class StatusAura {
 
   remove(status: StatusType): void {
     this.set([...this.statuses].filter((other) => other !== status))
+  }
+
+  /** The shields it has now (0: the bubble goes). */
+  set shields(count: number) {
+    this.shieldCount = Math.max(0, count)
+
+    if (this.statuses.size === 0 && this.shieldCount === 0) {
+      this.back.clear()
+      this.front.clear()
+    }
+  }
+
+  get shields(): number {
+    return this.shieldCount
   }
 
   has(status: StatusType): boolean {
@@ -179,13 +197,17 @@ export class StatusAura {
     this.front.clear()
     this.tint()
 
-    if (this.statuses.size === 0) {
+    if (this.statuses.size === 0 && this.shieldCount === 0) {
       return
     }
 
     const t = this.time
     const h = this.height
     const w = this.halfWidth
+
+    if (this.shieldCount > 0) {
+      this.drawShield(t, h, w)
+    }
 
     for (const status of this.statuses) {
       switch (status) {
@@ -212,7 +234,7 @@ export class StatusAura {
           this.drawAttack(t, h, w, status === StatusType.ATTACK_UP)
           break
         case StatusType.DEFENSE_UP:
-          this.drawShield(t, h, w)
+          this.drawDefenseUp(t, h, w)
           break
         case StatusType.DEFENSE_DOWN:
           this.drawBrokenShield(t, h, w)
@@ -523,7 +545,22 @@ export class StatusAura {
     }
   }
 
-  /** A bubble of light around the body, with a glint that goes round it. */
+  /** Blue arrows that rise by its front side (tougher), with a faint blue glow (its badge goes over the bar). */
+  private drawDefenseUp(t: number, h: number, w: number): void {
+    const colors = STATUS_COLORS[StatusType.DEFENSE_UP]
+    const x = this.direction * w * 1.15
+
+    this.back.ellipse(0, -h * 0.5, w * 1.1, h * 0.54).fill({ color: colors.main, alpha: 0.12 + Math.sin(t * 3) * 0.04 })
+
+    for (let index = 0; index < 2; index++) {
+      const cycle = (t * 0.7 + index / 2) % 1
+      const y = -h * (0.25 + cycle * 0.6)
+
+      chevron(this.front, x, y, 10, true, colors.main, Math.sin(cycle * Math.PI))
+    }
+  }
+
+  /** The bubble of a shield (while it has one): light around the body, with a glint that goes round it. */
   private drawShield(t: number, h: number, w: number): void {
     const colors = STATUS_COLORS[StatusType.DEFENSE_UP]
     const rx = w * 1.35

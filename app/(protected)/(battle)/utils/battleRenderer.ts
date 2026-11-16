@@ -615,6 +615,8 @@ export class BattleRenderer {
   /** The number of shields beside the health bar (like the health bar, only while it stands). */
   private drawShields(figure: Figure): void {
     figure.shieldText.text = String(figure.shields)
+    // The bubble goes with the last shield (it stands for them, not for the defense going up).
+    figure.aura.shields = figure.health > 0 ? figure.shields : 0
     figure.shieldBadge.visible = figure.shields > 0 && figure.healthBar.visible !== false && figure.health > 0
   }
 
