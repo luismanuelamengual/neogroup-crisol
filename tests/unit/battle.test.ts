@@ -4,10 +4,12 @@ import {
   BASIC_POTIONS,
   BIOME_DROPS,
   BOSS_ITEMS,
+  DROP_CHANCE,
   getItem,
   ITEMS,
   MAX_BASIC_POTIONS,
-  MERCHANT_STOCK
+  MERCHANT_STOCK,
+  PLENTY_THRESHOLD
 } from '@/app/(protected)/(engine)/data/items'
 import { RUNES } from '@/app/(protected)/(engine)/data/runes'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
@@ -371,7 +373,7 @@ describe('balance of the Meadows', () => {
     const matriarch = [[{ speciesId: 'boar-matriarch', level: 10 }]]
 
     expect(winRate(setup(10, matriarch), 60)).toBeLessThan(0.5)
-    expect(winRate(setup(13, matriarch), 60)).toBeGreaterThan(0.8)
+    expect(winRate(setup(14, matriarch), 60)).toBeGreaterThan(0.8)
   })
 })
 
@@ -570,6 +572,16 @@ describe('items, bonuses and loot', () => {
     expect(BASIC_POTION_CHANCE.normal).toBeGreaterThan(rate({}, food) * 0.9)
     expect(BASIC_POTION_CHANCE.normal).toBeLessThan(rate({}, food) * 1.6)
     expect(rate({ 'focus-potion': MAX_BASIC_POTIONS }, of('focus-potion'))).toBe(0)
+
+    // More than PLENTY_THRESHOLD units carried: that item drops far less, the rest as always.
+    const plenty = PLENTY_THRESHOLD + 1
+    const foodShare = DROP_CHANCE.item / BIOME_DROPS[Biome.MEADOWS].length
+
+    expect(rate({ 'focus-potion': PLENTY_THRESHOLD }, of('focus-potion'))).toBeCloseTo(BASIC_POTION_CHANCE.normal, 1)
+    expect(rate({ 'focus-potion': plenty }, of('focus-potion'))).toBeLessThan(BASIC_POTION_CHANCE.normal * 0.4)
+    expect(rate({ 'focus-potion': plenty }, of('health-potion'))).toBeCloseTo(BASIC_POTION_CHANCE.normal, 1)
+    expect(rate({ 'red-apple': plenty }, of('red-apple'))).toBeLessThan(foodShare * 0.4)
+    expect(rate({}, of('red-apple'))).toBeGreaterThan(foodShare * 0.6)
   })
 })
 

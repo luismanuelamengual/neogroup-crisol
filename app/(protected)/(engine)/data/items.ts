@@ -24,6 +24,15 @@ export const MAX_BASIC_POTIONS = 10
  */
 export const BASIC_POTION_CHANCE = { normal: 0.05, elite: 0.15 }
 
+/**
+ * Once the party carries more than PLENTY_THRESHOLD units of a consumable
+ * (counting what this battle already left), the chance that an enemy leaves
+ * one more of it is multiplied by PLENTY_DROP_FACTOR: the loot does not keep
+ * piling up the same thing.
+ */
+export const PLENTY_THRESHOLD = 3
+export const PLENTY_DROP_FACTOR = 0.15
+
 const { SLASH, PIERCE, BLUNT, FIRE, ICE, LIGHTNING, EARTH, LIGHT, DARKNESS } = DamageType
 
 /** A status a consumable leaves on its allies, for some turns. */

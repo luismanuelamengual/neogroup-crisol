@@ -10,7 +10,9 @@ import {
   BOSS_STONES,
   DROP_CHANCE,
   getItem,
-  MAX_BASIC_POTIONS
+  MAX_BASIC_POTIONS,
+  PLENTY_DROP_FACTOR,
+  PLENTY_THRESHOLD
 } from '@/app/(protected)/(engine)/data/items'
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
@@ -1784,13 +1786,28 @@ function respite(state: BattleState, events: BattleEvent[]): void {
 
 /**
  * What a defeated enemy leaves: smithing stones of the biome, now and then
- * something of BIOME_DROPS (always for bosses), and very rarely an Echo.
+ * something of BIOME_DROPS (always for bosses), and very rarely an Echo. The
+ * consumables the party already has plenty of drop far less (PLENTY_DROP_FACTOR).
  */
 function dropLoot(state: BattleState, enemy: Combatant): void {
   const species = getSpecies(enemy.speciesId!)
 
   const add = (itemId: string, count = 1) => {
     state.loot[itemId] = (state.loot[itemId] ?? 0) + count
+  }
+
+  // What the party already carries of an item (its bag and this battle's loot).
+  const carried = (itemId: string) => (state.items[itemId] ?? 0) + (state.loot[itemId] ?? 0)
+  // An item the party has plenty of drops far less often (see PLENTY_DROP_FACTOR).
+  const scarcity = (itemId: string) => (carried(itemId) > PLENTY_THRESHOLD ? PLENTY_DROP_FACTOR : 1)
+
+  // Something of the biome: picked at random, kept only now and then if the party has plenty of it.
+  const addBiomeDrop = () => {
+    const itemId = drops[Math.floor(roll(state) * drops.length)]
+
+    if (scarcity(itemId) === 1 || roll(state) < scarcity(itemId)) {
+      add(itemId)
+    }
   }
 
   const drops = BIOME_DROPS[state.biome]
@@ -1813,17 +1830,17 @@ function dropLoot(state: BattleState, enemy: Combatant): void {
 
   if (species.strength > 1) {
     for (let index = 0; index < BOSS_ITEMS; index++) {
-      add(drops[Math.floor(roll(state) * drops.length)])
+      addBiomeDrop()
     }
   } else if (roll(state) < (enemy.elite ? DROP_CHANCE.eliteItem : DROP_CHANCE.item) * luck) {
-    add(drops[Math.floor(roll(state) * drops.length)])
+    addBiomeDrop()
   }
 
   // Each basic potion on its own, while the party can still carry more.
   for (const itemId of BASIC_POTIONS) {
     const chance = enemy.elite || species.strength > 1 ? BASIC_POTION_CHANCE.elite : BASIC_POTION_CHANCE.normal
 
-    if ((state.items[itemId] ?? 0) + (state.loot[itemId] ?? 0) < MAX_BASIC_POTIONS && roll(state) < chance * luck) {
+    if (carried(itemId) < MAX_BASIC_POTIONS && roll(state) < chance * luck * scarcity(itemId)) {
       add(itemId)
     }
   }

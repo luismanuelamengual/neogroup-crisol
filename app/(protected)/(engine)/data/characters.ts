@@ -27,7 +27,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     id: CharacterId.KAEL,
     base: {
       maxHealth: 120,
-      maxFocus: 40,
+      maxFocus: 26,
       defense: 18,
       speed: 100,
       attack: 20,
@@ -35,7 +35,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.05,
       critDamage: 1.5
     },
-    growth: { maxHealth: 12, maxFocus: 2, defense: 1.6, speed: 0.6, attack: 2, special: 1.4 },
+    growth: { maxHealth: 12, maxFocus: 1.5, defense: 1.6, speed: 0.6, attack: 2, special: 1.4 },
     skills: ['kael-strike', 'kael-firm-cut'],
     trait: Trait.STANCE,
     color: 0x3b82f6
@@ -44,7 +44,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     id: CharacterId.SERA,
     base: {
       maxHealth: 90,
-      maxFocus: 45,
+      maxFocus: 30,
       defense: 12,
       speed: 122,
       attack: 19,
@@ -52,7 +52,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.12,
       critDamage: 1.75
     },
-    growth: { maxHealth: 9, maxFocus: 2.2, defense: 1.2, speed: 0.8, attack: 1.9, special: 1.4 },
+    growth: { maxHealth: 9, maxFocus: 1.6, defense: 1.2, speed: 0.8, attack: 1.9, special: 1.4 },
     skills: ['sera-shot', 'sera-piercing-arrow'],
     trait: Trait.MARKS,
     color: 0x22c55e
@@ -61,7 +61,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     id: CharacterId.AJAX,
     base: {
       maxHealth: 160,
-      maxFocus: 30,
+      maxFocus: 20,
       defense: 24,
       speed: 84,
       attack: 26,
@@ -69,7 +69,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.06,
       critDamage: 1.6
     },
-    growth: { maxHealth: 16, maxFocus: 1.5, defense: 2.2, speed: 0.4, attack: 2.6, special: 0.8 },
+    growth: { maxHealth: 16, maxFocus: 1.1, defense: 2.2, speed: 0.4, attack: 2.6, special: 0.8 },
     skills: ['ajax-chop', 'ajax-cleave'],
     trait: Trait.FURY,
     color: 0xb45309
@@ -78,7 +78,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     id: CharacterId.OREN,
     base: {
       maxHealth: 110,
-      maxFocus: 60,
+      maxFocus: 40,
       defense: 18,
       speed: 100,
       attack: 12,
@@ -86,7 +86,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.05,
       critDamage: 1.5
     },
-    growth: { maxHealth: 11, maxFocus: 3, defense: 1.6, speed: 0.6, attack: 1.1, special: 1.8 },
+    growth: { maxHealth: 11, maxFocus: 2.2, defense: 1.6, speed: 0.6, attack: 1.1, special: 1.8 },
     skills: ['oren-root-cut', 'oren-mend'],
     trait: Trait.SAP,
     color: 0x84cc16
@@ -95,7 +95,7 @@ export const CHARACTERS: CharacterDefinition[] = [
     id: CharacterId.THEA,
     base: {
       maxHealth: 75,
-      maxFocus: 60,
+      maxFocus: 40,
       defense: 10,
       speed: 106,
       attack: 10,
@@ -103,7 +103,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.08,
       critDamage: 1.6
     },
-    growth: { maxHealth: 7, maxFocus: 3, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
+    growth: { maxHealth: 7, maxFocus: 2.2, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
     skills: ['thea-seal-bolt', 'thea-fireball'],
     trait: Trait.CHARGES,
     color: 0xa855f7

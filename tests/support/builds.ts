@@ -15,7 +15,7 @@ import {
 } from '@/app/(protected)/(engine)/utils/heroes'
 
 /** How a sensible player spends the attribute points: mostly its power (special for the casters), then health and defense. */
-const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxHealth', 'attack', 'defense']
+const ATTRIBUTE_PLAN: (keyof CombatStats)[] = ['attack', 'maxFocus', 'maxHealth', 'attack', 'defense']
 const CASTERS = [CharacterId.OREN, CharacterId.THEA]
 
 /**
