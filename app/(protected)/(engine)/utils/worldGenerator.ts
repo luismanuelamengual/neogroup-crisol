@@ -73,8 +73,11 @@ const MARGIN = 300
 const AREA_CELL = 100
 /** Attempts before giving up (each one with the next seed). */
 const MAX_ATTEMPTS = 200
-/** Where the starting camp is looked for. */
-const START_POSITION: [number, number] = [8000, 8600]
+/**
+ * Where the starting camp is looked for: right on the point where it has always been (once [8000, 8600]; the trail
+ * n718–n715 set by hand made n715 a closer crossroads and would have moved it).
+ */
+const START_POSITION: [number, number] = [8504, 8508]
 /** A camp this close to the center of its biome (in world units) counts as its central camp. */
 const CENTER_RADIUS = 800
 /** Extra levels of the special fights over the point where they are. */

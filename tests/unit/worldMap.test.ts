@@ -192,8 +192,9 @@ describe('fights', () => {
     expect(migrated.respawnedNodeIds).toEqual([])
     expect(migrated.restsSinceCleared).toEqual({ [combat]: 1 })
     expect(isGameState(migrated)).toBe(true)
-    // The new runes are the ones of the new sanctuaries.
-    expect(['n850', 'n820', 'n494', 'n569', 'n3', 'n275'].map((id) => getRune(byNode(id).runeIndex!).id)).toEqual([
+    // The new runes are the ones of the new sanctuaries (Wisdom, at n850 back then, has been at n991 since the trails
+    // of world 41 changed the levels of the meadows).
+    expect(['n991', 'n820', 'n494', 'n569', 'n3', 'n275'].map((id) => getRune(byNode(id).runeIndex!).id)).toEqual([
       'wisdom',
       'tribute',
       'clover',

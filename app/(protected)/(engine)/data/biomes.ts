@@ -87,12 +87,15 @@ export const BIOMES: BiomeDefinition[] = [
     runeTier: RuneTier.LESSER,
     merchant: MerchantId.PEDDLER,
     tear: false,
-    chests: 2,
+    chests: 5,
     // The chest of the old rune in the north, and one that was already there (the old way to the desert stays free to
-    // open up into a new trail; the third one gave its place to an Amber Ember).
+    // open up into a new trail; the third one gave its place to an Amber Ember). Then, by hand: n724, n847 and n661.
     chestsAt: [
       [7900, 6340],
-      [9150, 9550]
+      [9150, 9550],
+      [9763, 8471],
+      [5460, 9886],
+      [7098, 7706]
     ],
     color: '#7bd36b'
   },
@@ -723,6 +726,15 @@ export const REMOVED_TRAILS: TrailEnds[] = [
   [
     [3881, 11522],
     [3186, 11679]
+  ],
+  // Meadows: n683–n718 and n733–n724.
+  [
+    [8034, 8005],
+    [8208, 8378]
+  ],
+  [
+    [9438, 8533],
+    [9763, 8471]
   ]
 ]
 
@@ -1031,6 +1043,16 @@ export const ADDED_TRAILS: TrailEnds[] = [
   [
     [4427, 9936],
     [4269, 10414]
+  ],
+  // Meadows: n718–n715, plus n847–n888 kept as it was (the generator opened it from the dead end of n847, which now
+  // holds a chest).
+  [
+    [8208, 8378],
+    [7867, 8358]
+  ],
+  [
+    [5460, 9886],
+    [5564, 10288]
   ]
 ]
 
