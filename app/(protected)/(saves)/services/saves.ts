@@ -10,6 +10,7 @@ import { LoadedSave } from '@/app/(protected)/(saves)/models/LoadedSave'
 import { Save } from '@/app/(protected)/(saves)/models/Save'
 import { SaveGameInput } from '@/app/(protected)/(saves)/models/SaveGameInput'
 import { SaveSummary } from '@/app/(protected)/(saves)/models/SaveSummary'
+import { summarizeSave } from '@/app/(protected)/(saves)/utils/saveSummary'
 import { ApiException } from '@/app/models/ApiException'
 
 /**
@@ -28,7 +29,12 @@ function stateOf(save: Save): GameState {
 }
 
 function toLoadedSave(save: Save): LoadedSave {
-  return { version: save.version, playTimeSeconds: save.playTimeSeconds, state: stateOf(save) }
+  return {
+    version: save.version,
+    playTimeSeconds: save.playTimeSeconds,
+    updatedAt: save.updatedAt.toISOString(),
+    state: stateOf(save)
+  }
 }
 
 /** Summary of the player's saved game for the main menu, or null when it has none. */
@@ -39,15 +45,7 @@ export async function getSaveSummary(userId: number): Promise<SaveSummary | null
     return null
   }
 
-  const state = stateOf(save)
-
-  return {
-    cycle: save.cycle,
-    playTimeSeconds: save.playTimeSeconds,
-    topLevel: Math.max(...state.characters.map((character) => character.level)),
-    characters: state.characters.length,
-    updatedAt: save.updatedAt.toISOString()
-  }
+  return summarizeSave(stateOf(save), save.playTimeSeconds, save.updatedAt.toISOString())
 }
 
 /** The player's saved game, to continue it. */
@@ -80,6 +78,20 @@ export async function startNewGame(userId: number, now = new Date()): Promise<Lo
   return toLoadedSave(save)
 }
 
+/**
+ * When the game changed: the time sent by the browser (a game played offline
+ * is uploaded later), never in the future nor before the previous change.
+ */
+function changedAt(input: SaveGameInput, previous: Date, now: Date): Date {
+  const sent = input.updatedAt ? new Date(input.updatedAt).getTime() : NaN
+
+  if (Number.isNaN(sent)) {
+    return now
+  }
+
+  return new Date(Math.min(now.getTime(), Math.max(previous.getTime(), sent)))
+}
+
 /** Stores the state of the game sent by the browser. Rejects a state sent from an outdated copy of the save. */
 export async function saveGame(userId: number, input: SaveGameInput, now = new Date()): Promise<LoadedSave> {
   if (!input || !isGameState(input.state) || !Number.isInteger(input.playTimeSeconds) || input.playTimeSeconds < 0) {
@@ -101,7 +113,7 @@ export async function saveGame(userId: number, input: SaveGameInput, now = new D
   save.version = save.version + 1
   save.playTimeSeconds = Math.max(save.playTimeSeconds, input.playTimeSeconds)
   save.data = input.state
-  save.updatedAt = now
+  save.updatedAt = changedAt(input, save.updatedAt, now)
   await save.save()
 
   return toLoadedSave(save)

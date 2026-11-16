@@ -10,6 +10,11 @@ export interface LocalSave {
   /** Version of the server save this copy comes from (sent back on the next upload). */
   version: number
   playTimeSeconds: number
+  /**
+   * When the game last changed on this device, or the `updatedAt` of the server
+   * save it comes from (ISO date). Missing in copies written before it existed.
+   */
+  updatedAt?: string
   /** SAVE_VERSION of `state`. */
   saveVersion: number
   state: GameState

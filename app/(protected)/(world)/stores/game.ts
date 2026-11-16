@@ -10,7 +10,7 @@ interface GameStore {
   save: LocalSave | null
   sync: SyncStatus
   setSave: (save: LocalSave | null) => void
-  /** Replaces the state of the game: the change has to be uploaded. */
+  /** Replaces the state of the game: the change has to be uploaded (it is dated now, see chooseSave). */
   setState: (state: GameState) => void
   addPlayTime: (seconds: number) => void
   setSync: (sync: SyncStatus) => void
@@ -20,7 +20,10 @@ export const useGameStore = create<GameStore>()((set) => ({
   save: null,
   sync: 'synced',
   setSave: (save) => set({ save, sync: save?.dirty ? 'pending' : 'synced' }),
-  setState: (state) => set(({ save }) => (save ? { save: { ...save, state, dirty: true }, sync: 'pending' } : {})),
+  setState: (state) =>
+    set(({ save }) =>
+      save ? { save: { ...save, state, dirty: true, updatedAt: new Date().toISOString() }, sync: 'pending' } : {}
+    ),
   addPlayTime: (seconds) =>
     set(({ save }) => (save ? { save: { ...save, playTimeSeconds: save.playTimeSeconds + seconds } } : {})),
   setSync: (sync) => set({ sync })

@@ -221,6 +221,8 @@ export const en: Messages = {
     cycle: 'NG+{cycle}',
     saveCharacters: { one: '{count} character', other: '{count} characters' },
     saveLevel: 'Level {level}',
+    savePending: 'Saved on this device: it syncs when there is a connection',
+    savePendingShort: 'Not synced',
     newGameConfirm: {
       title: 'Start a new game?',
       text: 'Your saved game is deleted, with all your characters and their progress. This cannot be undone.',
@@ -436,8 +438,8 @@ export const en: Messages = {
       pending: 'Saved on this device',
       syncing: 'Syncing...',
       offline: 'Offline: saved on this device',
-      localDiscarded: 'Your game moved on in another device: that version was loaded.',
-      serverDiscarded: 'This copy had more play time than the one of another device: this one was kept.'
+      localDiscarded: 'Your game was played later on another device: that version, the most recent, was loaded.',
+      serverDiscarded: 'This copy is more recent than the one of another device: this one was kept.'
     }
   },
   battle: {
@@ -1308,6 +1310,7 @@ export const en: Messages = {
     saveNotFound: "You don't have a saved game",
     invalidSave: 'The saved game is not valid',
     saveOutdated: 'Your game moved on in another device: load it again',
+    offline: 'No connection. Try again when you are online.',
     emailRequired: 'Enter your email',
     invalidEmail: 'The email is not valid',
     passwordTooShort: 'The password must be at least {min} characters long',

@@ -225,6 +225,8 @@ export const es = {
     cycle: 'NG+{cycle}',
     saveCharacters: { one: '{count} personaje', other: '{count} personajes' },
     saveLevel: 'Nivel {level}',
+    savePending: 'Guardada en este dispositivo: se sincroniza cuando haya conexión',
+    savePendingShort: 'Sin sincronizar',
     newGameConfirm: {
       title: '¿Empezar una partida nueva?',
       text: 'Se borra tu partida guardada, con todos tus personajes y su avance. No se puede deshacer.',
@@ -442,8 +444,8 @@ export const es = {
       pending: 'Guardada en este dispositivo',
       syncing: 'Sincronizando...',
       offline: 'Sin conexión: guardada en este dispositivo',
-      localDiscarded: 'Tu partida avanzó en otro dispositivo: se cargó esa versión.',
-      serverDiscarded: 'Esta copia tenía más tiempo de juego que la de otro dispositivo: se mantuvo esta.'
+      localDiscarded: 'Tu partida se jugó después en otro dispositivo: se cargó esa versión, la más reciente.',
+      serverDiscarded: 'Esta copia es más reciente que la de otro dispositivo: se mantuvo esta.'
     }
   },
   battle: {
@@ -1404,6 +1406,7 @@ export const es = {
     saveNotFound: 'No tenés una partida guardada',
     invalidSave: 'La partida guardada no es válida',
     saveOutdated: 'Tu partida avanzó en otro dispositivo: volvé a cargarla',
+    offline: 'Sin conexión. Probá de nuevo cuando tengas internet.',
     emailRequired: 'Ingresá tu email',
     invalidEmail: 'El email no es válido',
     passwordTooShort: 'La contraseña debe tener al menos {min} caracteres',

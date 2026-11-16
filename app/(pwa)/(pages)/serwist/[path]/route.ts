@@ -21,8 +21,10 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
     { url: '/~offline', revision },
     { url: '/world/world.json', revision: `world-${WORLD_VERSION}` }
   ],
-  // The art and the music are cached as they are used (see sw.ts).
-  globIgnores: ['**/node_modules/**/*', 'public/art/**/*', 'public/audio/**/*'],
+  // The art and the music are cached as they are used (see sw.ts). The world map
+  // is left out of the glob because it is listed above with its own revision: the
+  // same URL twice makes the service worker fail to start (so nothing worked offline).
+  globIgnores: ['**/node_modules/**/*', 'public/art/**/*', 'public/audio/**/*', 'public/world/world.json'],
   swSrc: 'app/(pwa)/services/sw.ts',
   useNativeEsbuild: true
 })

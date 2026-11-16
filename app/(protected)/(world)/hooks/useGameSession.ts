@@ -96,7 +96,7 @@ export function useGameSession(test?: GameState) {
 
     try {
       const result = await saveGame(
-        { version: save.version, playTimeSeconds: save.playTimeSeconds, state: save.state },
+        { version: save.version, playTimeSeconds: save.playTimeSeconds, updatedAt: save.updatedAt, state: save.state },
         false
       )
       const current = useGameStore.getState().save!
@@ -130,6 +130,7 @@ export function useGameSession(test?: GameState) {
       userId: userId ?? 0,
       version: 0,
       playTimeSeconds: 0,
+      updatedAt: new Date().toISOString(),
       saveVersion: SAVE_VERSION,
       state: test,
       dirty: false

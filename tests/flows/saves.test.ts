@@ -51,6 +51,23 @@ describe('saved games', () => {
     })
   })
 
+  it('dates the save with the time the browser changed it, never in the future nor before the previous change', async () => {
+    const created = new Date('2026-11-16T10:00:00.000Z')
+    const now = new Date('2026-11-16T15:00:00.000Z')
+    const save = await startNewGame(userId, created)
+    const playedOffline = '2026-11-16T12:30:00.000Z'
+    const first = await saveGame(userId, { ...save, updatedAt: playedOffline }, now)
+
+    expect(first.updatedAt).toBe(playedOffline)
+    expect((await getSaveSummary(userId))?.updatedAt).toBe(playedOffline)
+
+    const future = await saveGame(userId, { ...first, updatedAt: '2030-01-01T00:00:00.000Z' }, now)
+
+    expect(future.updatedAt).toBe(now.toISOString())
+    expect((await saveGame(userId, { ...future, updatedAt: playedOffline }, now)).updatedAt).toBe(now.toISOString())
+    expect((await saveGame(userId, { ...save, version: future.version + 1 }, now)).updatedAt).toBe(now.toISOString())
+  })
+
   it('rejects a state with the wrong shape', async () => {
     const save = await startNewGame(userId)
     const broken = { ...save.state, characters: [{ id: 'nobody', level: 0, xp: -1 }] } as unknown as GameState
