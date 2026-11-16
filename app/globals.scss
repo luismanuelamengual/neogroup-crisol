@@ -71,6 +71,24 @@
   box-sizing: border-box;
 }
 
+// The game is played as an app (TWA on Android): no text selection, no long
+// press callout and no tap flash anywhere, so a double tap never breaks the
+// immersion. Only the fields where the player types keep selection.
+html {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 html,
 body {
   margin: 0;
