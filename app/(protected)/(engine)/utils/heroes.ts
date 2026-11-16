@@ -270,9 +270,9 @@ function withCharacter(state: GameState, id: CharacterId, change: (character: Ch
   }
 }
 
-function requireCamp(state: GameState): void {
-  if (!isAtCamp(state)) {
-    throw new Error('Only at an open camp')
+function requireFreePoint(state: GameState): void {
+  if (!canSwapWeapons(state)) {
+    throw new Error('Only at a cleared point')
   }
 }
 
@@ -398,7 +398,7 @@ export function canUpgradeWeapon(state: GameState, character: CharacterState, we
 
 /**
  * Whether the party stands on a cleared point (not one whose enemies came back) or at an open camp:
- * the weapons can be swapped and upgraded.
+ * the weapons can be swapped and upgraded, and the runes and echoes put on and taken off.
  */
 export function canSwapWeapons(state: GameState): boolean {
   return (
@@ -409,9 +409,7 @@ export function canSwapWeapons(state: GameState): boolean {
 
 /** Gives a character another of its weapons to hold (at any cleared point). */
 export function equipWeapon(state: GameState, id: CharacterId, weaponId: string): GameState {
-  if (!canSwapWeapons(state)) {
-    throw new Error('Only at a cleared point')
-  }
+  requireFreePoint(state)
 
   if (!(weaponId in getCharacter(state, id).weapons)) {
     throw new Error(`${id} does not own ${weaponId}`)
@@ -430,7 +428,7 @@ export function equipWeapon(state: GameState, id: CharacterId, weaponId: string)
 
 /** Equips a rune the party owns on a character (taking it off whoever wore it). */
 export function equipRune(state: GameState, id: CharacterId, index: number): GameState {
-  requireCamp(state)
+  requireFreePoint(state)
 
   const character = getCharacter(state, id)
 
@@ -452,7 +450,7 @@ export function equipRune(state: GameState, id: CharacterId, index: number): Gam
 }
 
 export function unequipRune(state: GameState, id: CharacterId, index: number): GameState {
-  requireCamp(state)
+  requireFreePoint(state)
 
   return withCharacter(state, id, (character) => ({
     ...character,
@@ -471,7 +469,7 @@ export function canEquipEcho(state: GameState, character: CharacterState, index:
 }
 
 export function equipEcho(state: GameState, id: CharacterId, index: number): GameState {
-  requireCamp(state)
+  requireFreePoint(state)
 
   if (!canEquipEcho(state, getCharacter(state, id), index)) {
     throw new Error(`Cannot equip the echo of rune ${index}`)
@@ -481,7 +479,7 @@ export function equipEcho(state: GameState, id: CharacterId, index: number): Gam
 }
 
 export function unequipEcho(state: GameState, id: CharacterId, index: number): GameState {
-  requireCamp(state)
+  requireFreePoint(state)
 
   return withCharacter(state, id, (character) => ({
     ...character,

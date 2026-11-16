@@ -31,7 +31,7 @@ interface RunesPanelProps {
   character: CharacterState
   /** The tab shown: the runes (slots and grid) or the echoes of the mastered ones. */
   view: 'runes' | 'echoes'
-  atCamp: boolean
+  canChange: boolean
   onChange: (state: GameState) => void
 }
 
@@ -64,7 +64,7 @@ function runeStyle(rune: Rune): CSSProperties {
  * top and the other mastered ones below, greyed out when they cannot be
  * equipped. Clicking one opens its card next to it.
  */
-export default function RunesPanel({ state, character, view, atCamp, onChange }: RunesPanelProps) {
+export default function RunesPanel({ state, character, view, canChange, onChange }: RunesPanelProps) {
   const t = useT()
   const id = character.id
   const name = t(`characters.${id}.name` as MessageKey)
@@ -137,7 +137,7 @@ export default function RunesPanel({ state, character, view, atCamp, onChange }:
               )
             })}
           </ul>
-          {!atCamp && owned.length > 0 && <p className="lines">{t('party.runesCampOnly')}</p>}
+          {!canChange && owned.length > 0 && <p className="lines">{t('party.runesFreePointOnly')}</p>}
           {owned.length === 0 ? (
             <p className="lines">{t('party.noRunes')}</p>
           ) : (
@@ -214,7 +214,7 @@ export default function RunesPanel({ state, character, view, atCamp, onChange }:
             />
           </span>
           <p className="lines">{t('party.echoesHint')}</p>
-          {!atCamp && mastered.length > 0 && <p className="lines">{t('party.echoesCampOnly')}</p>}
+          {!canChange && mastered.length > 0 && <p className="lines">{t('party.echoesFreePointOnly')}</p>}
           {mastered.length === 0 ? (
             <p className="lines">{t('party.noEchoes')}</p>
           ) : (
@@ -296,7 +296,7 @@ export default function RunesPanel({ state, character, view, atCamp, onChange }:
             state={state}
             character={character}
             selection={selection}
-            atCamp={atCamp}
+            canChange={canChange}
             onChange={onChange}
             onClose={() => setChosen(null)}
           />
@@ -310,14 +310,14 @@ interface RuneCardProps {
   state: GameState
   character: CharacterState
   selection: Selection
-  atCamp: boolean
+  canChange: boolean
   onChange: (state: GameState) => void
   /** Closes the card (once the rune or the echo is equipped or removed). */
   onClose: () => void
 }
 
 /** The card of a rune (or its echo): what it does, and the button to wear it or take it off. */
-function RuneCard({ state, character, selection, atCamp, onChange, onClose }: RuneCardProps) {
+function RuneCard({ state, character, selection, canChange, onChange, onClose }: RuneCardProps) {
   const t = useT()
   const { kind, index } = selection
   const rune = getRune(index)
@@ -326,8 +326,8 @@ function RuneCard({ state, character, selection, atCamp, onChange, onClose }: Ru
   const worn = echo ? character.echoes.includes(index) : character.runes.includes(index)
   const lock = echo ? getEchoLock(state, character, index) : null
   const disabled = echo
-    ? !atCamp || (!worn && !canEquipEcho(state, character, index))
-    : !atCamp || (!worn && (character.runes.length >= RUNE_SLOTS || (!!wearer && wearer !== character)))
+    ? !canChange || (!worn && !canEquipEcho(state, character, index))
+    : !canChange || (!worn && (character.runes.length >= RUNE_SLOTS || (!!wearer && wearer !== character)))
 
   const toggle = () => {
     if (echo) {

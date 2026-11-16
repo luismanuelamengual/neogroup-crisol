@@ -74,7 +74,6 @@ interface HeroSheetProps {
   character: CharacterState
   /** The part of the build shown. */
   tab: HeroTab
-  atCamp: boolean
   /** The party stands on a cleared point: the weapons can be swapped and upgraded. */
   canSwap: boolean
   onChange: (state: GameState) => void
@@ -103,7 +102,7 @@ function portraitArtId(id: string): string {
 }
 
 /** One part of a hero: its state (portrait, bars and place in the formation), attributes, weapons, skills (loadout and tree) or runes and echoes. */
-export default function HeroSheet({ state, character, tab, atCamp, canSwap, onChange }: HeroSheetProps) {
+export default function HeroSheet({ state, character, tab, canSwap, onChange }: HeroSheetProps) {
   const t = useT()
   const images = useArtImages()
   const id = character.id
@@ -463,7 +462,7 @@ export default function HeroSheet({ state, character, tab, atCamp, canSwap, onCh
       )}
 
       {(tab === 'runes' || tab === 'echoes') && (
-        <RunesPanel state={state} character={character} view={tab} atCamp={atCamp} onChange={onChange} />
+        <RunesPanel state={state} character={character} view={tab} canChange={canSwap} onChange={onChange} />
       )}
     </div>
   )

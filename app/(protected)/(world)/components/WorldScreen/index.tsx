@@ -488,7 +488,6 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
         <HeroScreen
           state={state}
           characterId={heroId}
-          atCamp={isAtOpenCamp(state)}
           canSwap={canSwapWeapons(state)}
           onChange={update}
           onClose={() => setHeroId(null)}

@@ -18,7 +18,6 @@ interface HeroScreenProps {
   /** The hero shown first (the arrows go through the others). */
   characterId: CharacterId
   /** The party stands at an open camp: the runes and the echoes can be changed. */
-  atCamp: boolean
   /** The party stands on a cleared point (or an open camp): the weapons can be swapped and upgraded. */
   canSwap: boolean
   onChange: (state: GameState) => void
@@ -26,7 +25,7 @@ interface HeroScreenProps {
 }
 
 /** The page of a hero (full screen over the map): the arrows of the title go through the party, the tabs show its state and its build. */
-export default function HeroScreen({ state, characterId, atCamp, canSwap, onChange, onClose }: HeroScreenProps) {
+export default function HeroScreen({ state, characterId, canSwap, onChange, onClose }: HeroScreenProps) {
   const t = useT()
   const [shownId, setShownId] = useState(characterId)
   const [chosenTab, setTab] = useState<HeroTab>('status')
@@ -81,7 +80,7 @@ export default function HeroScreen({ state, characterId, atCamp, canSwap, onChan
       tab={tab}
       onTab={setTab}
     >
-      <HeroSheet state={state} character={character} tab={tab} atCamp={atCamp} canSwap={canSwap} onChange={onChange} />
+      <HeroSheet state={state} character={character} tab={tab} canSwap={canSwap} onChange={onChange} />
     </GameScreen>
   )
 }

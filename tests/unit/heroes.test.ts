@@ -40,6 +40,8 @@ import {
   spendAttributePoint,
   spendTear,
   tradeSkillPoint,
+  unequipEcho,
+  unequipRune,
   unequipSkill,
   upgradeWeapon
 } from '@/app/(protected)/(engine)/utils/heroes'
@@ -287,6 +289,30 @@ describe('runes and echoes', () => {
 
     expect(kaelOf(moved).runes).toEqual([2, 3])
     expect(moved.characters[1].runes).toEqual([1])
+  })
+
+  it('puts runes and echoes on and off at any cleared point, but not where the enemies came back', () => {
+    const rune = getRune(9)
+    const base = assignEchoes(
+      game(10, { runes: [9, 2], echoes: rune.echoCost, runeWins: { 9: RUNE_MASTERY_WINS } }),
+      KAEL,
+      rune.echoCost
+    )
+    const away = { ...base, positionNodeId: 'n1', clearedNodeIds: [...base.clearedNodeIds, 'n1'] }
+    const worn = equipRune(away, KAEL, 2)
+
+    expect(kaelOf(worn).runes).toEqual([2])
+    expect(kaelOf(unequipRune(worn, KAEL, 2)).runes).toEqual([])
+    expect(kaelOf(unequipEcho(equipEcho(away, KAEL, 9), KAEL, 9)).echoes).toEqual([])
+
+    for (const blocked of [
+      { ...away, positionNodeId: 'n2' },
+      { ...away, respawnedNodeIds: ['n1'] }
+    ]) {
+      expect(() => equipRune(blocked, KAEL, 2)).toThrow()
+      expect(() => unequipRune({ ...worn, ...blocked }, KAEL, 2)).toThrow()
+      expect(() => equipEcho(blocked, KAEL, 9)).toThrow()
+    }
   })
 
   it('wears the echoes of mastered runes within the Echoes assigned to the character', () => {
