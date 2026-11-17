@@ -93,7 +93,7 @@ describe('saved games', () => {
 
     expect(isGameState(loaded.state)).toBe(true)
     expect(loaded.state).toMatchObject({ gameId: 'legacy', respawnedNodeIds: [], flaskCharges: 1, echoes: 1 })
-    expect(loaded.state.characters).toEqual([{ ...createCharacter(CharacterId.KAEL, 2), xp: 5, health: 137 }])
+    expect(loaded.state.characters).toEqual([{ ...createCharacter(CharacterId.KAEL, 2), xp: 5, health: 134 }])
   })
 
   it('gives the upgrade of the only weapon of a v4 game to the weapon each character starts with', async () => {

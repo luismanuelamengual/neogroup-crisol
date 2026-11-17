@@ -35,7 +35,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.05,
       critDamage: 1.5
     },
-    growth: { maxHealth: 12, maxFocus: 1.5, defense: 1.6, speed: 0.6, attack: 2, special: 1.4 },
+    growth: { maxHealth: 9, maxFocus: 1.5, defense: 1.2, speed: 0.45, attack: 1.5, special: 1.05 },
     skills: ['kael-strike', 'kael-firm-cut'],
     trait: Trait.STANCE,
     color: 0x3b82f6
@@ -52,7 +52,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.12,
       critDamage: 1.75
     },
-    growth: { maxHealth: 9, maxFocus: 1.6, defense: 1.2, speed: 0.8, attack: 1.9, special: 1.4 },
+    growth: { maxHealth: 6.75, maxFocus: 1.6, defense: 0.9, speed: 0.6, attack: 1.42, special: 1.05 },
     skills: ['sera-shot', 'sera-piercing-arrow'],
     trait: Trait.MARKS,
     color: 0x22c55e
@@ -69,7 +69,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.06,
       critDamage: 1.6
     },
-    growth: { maxHealth: 16, maxFocus: 1.1, defense: 2.2, speed: 0.4, attack: 2.6, special: 0.8 },
+    growth: { maxHealth: 12, maxFocus: 1.1, defense: 1.65, speed: 0.3, attack: 1.95, special: 0.6 },
     skills: ['ajax-chop', 'ajax-cleave'],
     trait: Trait.FURY,
     color: 0xb45309
@@ -86,7 +86,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.05,
       critDamage: 1.5
     },
-    growth: { maxHealth: 11, maxFocus: 2.2, defense: 1.6, speed: 0.6, attack: 1.1, special: 1.8 },
+    growth: { maxHealth: 8.25, maxFocus: 2.2, defense: 1.2, speed: 0.45, attack: 0.83, special: 1.35 },
     skills: ['oren-root-cut', 'oren-mend'],
     trait: Trait.SAP,
     color: 0x84cc16
@@ -103,7 +103,7 @@ export const CHARACTERS: CharacterDefinition[] = [
       critChance: 0.08,
       critDamage: 1.6
     },
-    growth: { maxHealth: 7, maxFocus: 2.2, defense: 1, speed: 0.7, attack: 0.9, special: 2.8 },
+    growth: { maxHealth: 5.25, maxFocus: 2.2, defense: 0.75, speed: 0.52, attack: 0.68, special: 2.1 },
     skills: ['thea-seal-bolt', 'thea-fireball'],
     trait: Trait.CHARGES,
     color: 0xa855f7

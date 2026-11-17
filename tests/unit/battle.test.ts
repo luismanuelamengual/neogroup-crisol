@@ -373,7 +373,7 @@ describe('balance of the Meadows', () => {
     const matriarch = [[{ speciesId: 'boar-matriarch', level: 10 }]]
 
     expect(winRate(setup(10, matriarch), 60)).toBeLessThan(0.5)
-    expect(winRate(setup(14, matriarch), 60)).toBeGreaterThan(0.8)
+    expect(winRate(setup(16, matriarch), 60)).toBeGreaterThan(0.8)
   })
 })
 
