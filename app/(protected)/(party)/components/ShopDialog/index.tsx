@@ -4,6 +4,9 @@ import './index.scss'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Popover from '@mui/material/Popover'
+import classNames from 'classnames'
+import { MouseEvent, useState } from 'react'
 import { maxCarried, MERCHANT_STOCK, SCHOLAR_STOCK } from '@/app/(protected)/(engine)/data/items'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { MerchantId } from '@/app/(protected)/(engine)/models/MerchantId'
@@ -25,80 +28,183 @@ interface ShopDialogProps {
   onClose: () => void
 }
 
-/** The stock of the merchant where the party stands, by family (the Scholar's Echo first), each thing with its picture. */
+/** The offer whose card is open (an item of the stock, or the Scholar's Echo), next to the tile clicked. */
+interface Selection {
+  /** The id of the item, or null for the Echo. */
+  itemId: string | null
+  anchor: HTMLElement
+}
+
+/**
+ * The stock of the merchant where the party stands, as one compact grid (the
+ * Scholar's Echo first): each thing is a small tile with its picture and
+ * its price. Clicking one opens its card next to it, with what it does and the
+ * button to buy it (the card stays open, to buy several in a row).
+ */
 export default function ShopDialog({ open, index, state, merchant, onChange, onClose }: ShopDialogProps) {
   const t = useT()
   const echoPrice = getScholarOffer(state)
   const stock = MERCHANT_STOCK[merchant]
-  const families = ITEM_FAMILIES.map((family) => ({
-    family,
-    offers: stock.filter((offer) => itemFamily(offer.itemId) === family)
-  })).filter(({ offers }) => offers.length > 0)
+  // All together in one grid (the Scholar's Echo first), the like ones next to each other.
+  const offers = ITEM_FAMILIES.flatMap((family) => stock.filter((offer) => itemFamily(offer.itemId) === family))
+  const [chosen, setChosen] = useState<Selection | null>(null)
+  const selection = open && chosen?.anchor.isConnected ? chosen : null
+  const choose = (itemId: string | null) => (event: MouseEvent<HTMLElement>) =>
+    setChosen({ itemId, anchor: event.currentTarget })
+  const isChosen = (itemId: string | null) => !!selection && selection.itemId === itemId
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" className="shop-dialog">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" className="shop-dialog">
       <DialogTitle className="title">
         {t(`world.merchants.${merchant}` as MessageKey)}
-        <span className="gold">{t('shop.gold', { gold: state.gold })}</span>
+        <span className="gold">
+          <ItemIcon subject={{ type: 'gold' }} size={18} />
+          {t('shop.gold', { gold: state.gold })}
+        </span>
       </DialogTitle>
       <DialogContent className="content">
-        {merchant === MerchantId.SCHOLAR && (
-          <ul className="offers">
-            <li className="offer echo">
-              <ItemIcon subject={{ type: 'echo' }} size={44} />
-              <div className="body">
-                <strong className="name">{t('shop.echo')}</strong>
-                <p className="text">
-                  {t('shop.echoText')}{' '}
-                  {echoPrice !== null && t('shop.echoesLeft', { count: SCHOLAR_STOCK - state.scholarSold })}
-                </p>
-                {echoPrice === null ? (
-                  <p className="text">{t('shop.soldOut')}</p>
-                ) : (
-                  <GameButton
-                    size="small"
-                    color="magenta"
-                    disabled={state.gold < echoPrice}
-                    onClick={() => onChange(buyEcho(index, state))}
-                  >
-                    {t('shop.buy', { price: echoPrice })}
-                  </GameButton>
-                )}
-              </div>
+        <ul className="offers">
+          {merchant === MerchantId.SCHOLAR && (
+            <li>
+              <button
+                type="button"
+                className={classNames('offer', 'echo', {
+                  chosen: isChosen(null),
+                  out: echoPrice === null,
+                  poor: echoPrice !== null && state.gold < echoPrice
+                })}
+                aria-label={t('shop.echo')}
+                title={t('shop.echo')}
+                onClick={choose(null)}
+              >
+                <ItemIcon subject={{ type: 'echo' }} size={40} />
+                <span className="price">{echoPrice ?? '—'}</span>
+                {echoPrice !== null && <span className="badge">{SCHOLAR_STOCK - state.scholarSold}</span>}
+              </button>
             </li>
-          </ul>
-        )}
-        {families.map(({ family, offers }) => (
-          <section key={family} className="family">
-            {families.length > 1 && <h3>{t(`inventory.tabs.${family}`)}</h3>}
-            <ul className="offers">
-              {offers.map(({ itemId, price }) => {
-                const owned = state.inventory[itemId] ?? 0
-                const full = owned >= maxCarried(itemId)
+          )}
+          {offers.map(({ itemId, price }) => {
+            const owned = state.inventory[itemId] ?? 0
+            const full = owned >= maxCarried(itemId)
 
-                return (
-                  <li key={itemId} className="offer">
-                    <ItemIcon subject={{ type: 'item', id: itemId }} size={44} />
-                    <div className="body">
-                      <strong className="name">
-                        {itemName(t, itemId)} <span className="owned">{t('party.owned', { count: owned })}</span>
-                      </strong>
-                      <p className="text">{t(`items.${itemId}.text` as MessageKey)}</p>
-                      <GameButton
-                        size="small"
-                        disabled={!canBuyItem(index, state, itemId)}
-                        onClick={() => onChange(buyItem(index, state, itemId))}
-                      >
-                        {full ? t('shop.full') : t('shop.buy', { price })}
-                      </GameButton>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-        ))}
+            return (
+              <li key={itemId}>
+                <button
+                  type="button"
+                  className={classNames('offer', {
+                    chosen: isChosen(itemId),
+                    out: full,
+                    poor: !full && state.gold < price
+                  })}
+                  aria-label={itemName(t, itemId)}
+                  title={itemName(t, itemId)}
+                  onClick={choose(itemId)}
+                >
+                  <ItemIcon subject={{ type: 'item', id: itemId }} size={40} />
+                  <span className="price">{price}</span>
+                  {owned > 0 && <span className="badge">{full ? t('shop.max') : `×${owned}`}</span>}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
       </DialogContent>
+      <Popover
+        open={!!selection}
+        anchorEl={selection?.anchor}
+        onClose={() => setChosen(null)}
+        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'center', horizontal: 'left' }}
+        marginThreshold={8}
+        slotProps={{ paper: { className: 'shop-card-paper' } }}
+      >
+        {selection &&
+          (selection.itemId === null ? (
+            <EchoCard index={index} state={state} onChange={onChange} />
+          ) : (
+            <OfferCard index={index} state={state} merchant={merchant} itemId={selection.itemId} onChange={onChange} />
+          ))}
+      </Popover>
     </Dialog>
+  )
+}
+
+interface OfferCardProps {
+  index: WorldIndex
+  state: GameState
+  merchant: MerchantId
+  itemId: string
+  onChange: (state: GameState) => void
+}
+
+/** The card of an item of the stock: its picture, what it does, how many the party carries and the button to buy it. */
+function OfferCard({ index, state, merchant, itemId, onChange }: OfferCardProps) {
+  const t = useT()
+  const price = MERCHANT_STOCK[merchant].find((offer) => offer.itemId === itemId)?.price ?? 0
+  const owned = state.inventory[itemId] ?? 0
+  const max = maxCarried(itemId)
+  const full = owned >= max
+
+  return (
+    <div className="shop-card">
+      <div className="header">
+        <ItemIcon subject={{ type: 'item', id: itemId }} size={64} />
+        <div className="titles">
+          <span className="name">{itemName(t, itemId)}</span>
+          <span className="carried">{t('shop.carried', { count: owned, max })}</span>
+        </div>
+      </div>
+      <p className="lines">{t(`items.${itemId}.text` as MessageKey)}</p>
+      {full && <p className="lines warning">{t('shop.full')}</p>}
+      {!full && state.gold < price && <p className="lines warning">{t('shop.notEnoughGold')}</p>}
+      <GameButton
+        fullWidth
+        size="small"
+        disabled={!canBuyItem(index, state, itemId)}
+        onClick={() => onChange(buyItem(index, state, itemId))}
+      >
+        {t('shop.buy', { price })}
+      </GameButton>
+    </div>
+  )
+}
+
+interface EchoCardProps {
+  index: WorldIndex
+  state: GameState
+  onChange: (state: GameState) => void
+}
+
+/** The card of the Scholar's Echo: what it is, how many are left this cycle and the button to buy one. */
+function EchoCard({ index, state, onChange }: EchoCardProps) {
+  const t = useT()
+  const price = getScholarOffer(state)
+
+  return (
+    <div className="shop-card echo">
+      <div className="header">
+        <ItemIcon subject={{ type: 'echo' }} size={64} />
+        <div className="titles">
+          <span className="name">{t('shop.echo')}</span>
+          {price !== null && (
+            <span className="carried">{t('shop.echoesLeft', { count: SCHOLAR_STOCK - state.scholarSold })}</span>
+          )}
+        </div>
+      </div>
+      <p className="lines">{t('shop.echoText')}</p>
+      {price === null && <p className="lines warning">{t('shop.soldOut')}</p>}
+      {price !== null && state.gold < price && <p className="lines warning">{t('shop.notEnoughGold')}</p>}
+      {price !== null && (
+        <GameButton
+          fullWidth
+          size="small"
+          color="magenta"
+          disabled={state.gold < price}
+          onClick={() => onChange(buyEcho(index, state))}
+        >
+          {t('shop.buy', { price })}
+        </GameButton>
+      )}
+    </div>
   )
 }
