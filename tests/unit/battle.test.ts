@@ -61,6 +61,7 @@ function turnOf(state: BattleState, id: string): BattleState {
   return {
     ...state,
     actorId: id,
+    itemsUsed: 0,
     combatants: state.combatants.map((combatant) =>
       combatant.id === id ? { ...combatant, focus: combatant.stats.maxFocus } : combatant
     )
@@ -611,7 +612,7 @@ describe('items per turn, shields and the consumables', () => {
       { type: 'skill', skillId, targetIds: ['h-kael'] }
     )
 
-  it('keeps the turn after an item, up to three, and ends it with the third', () => {
+  it('keeps the turn after an item, up to three, and then the hero can still attack', () => {
     const start = field({ 'crusty-bread': 3, 'honey-cake': 1, 'might-tonic': 1 })
     const one = consume(start, 'crusty-bread').state
 
@@ -623,29 +624,32 @@ describe('items per turn, shields and the consumables', () => {
     expect(two.actorId).toBe('h-kael')
     expect(getItemsLeft(two)).toBe(1)
 
-    // A third item ends the turn.
+    // After the third item the turn goes on, but no more items can be used.
     const three = consume(two, 'crusty-bread').state
 
-    expect(three.actorId).toBeNull()
+    expect(three.actorId).toBe('h-kael')
     expect(three.items['crusty-bread']).toBe(1)
+    expect(getItemsLeft(three)).toBe(0)
+    expect(getUsableItems(three)).toEqual([])
+    expect(() => consume(three, 'crusty-bread')).toThrow()
 
-    // Or, after one or two, the hero can still attack (which ends the turn).
-    const attacked = performAction(two, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] }).state
+    // The hero can still attack (which ends the turn), after one, two or three items.
+    const attacked = performAction(three, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] }).state
 
     expect(attacked.actorId).toBeNull()
     expect(attacked.itemsUsed).toBe(0)
+    expect(performAction(two, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] }).state.actorId).toBeNull()
 
     // The next turn of the hero starts with every item again.
     const next = nextTurn({
-      ...three,
-      combatants: three.combatants.map((combatant) =>
+      ...attacked,
+      combatants: attacked.combatants.map((combatant) =>
         combatant.side === 'hero' ? { ...combatant, initiative: 99.9 } : { ...combatant, initiative: 0 }
       )
     }).state
 
     expect(next.actorId).toBe('h-kael')
     expect(getItemsLeft(next)).toBe(MAX_ITEMS_PER_TURN)
-    expect(() => consume(three, 'crusty-bread')).toThrow()
   })
 
   it('stacks shields, and each one stops a whole hit', () => {

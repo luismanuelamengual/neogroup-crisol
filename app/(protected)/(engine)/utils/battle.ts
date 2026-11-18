@@ -50,7 +50,8 @@ import { getCharacterSkills, getCharacterStats, getHeroBonuses } from '@/app/(pr
 export const ACTIVE_HEROES = 3
 /**
  * Items a hero can use in one turn: each one keeps the turn going (it can use
- * another or then attack or use a special) until the third, which ends it.
+ * another or then attack or use a special). After the third no more items can
+ * be used, but the turn goes on until it attacks, uses a special or retreats.
  */
 export const MAX_ITEMS_PER_TURN = 3
 /** Most shields a fighter can stack (each one stops a whole hit). */
@@ -1052,8 +1053,8 @@ export function getTargets(state: BattleState, actorId: string, skill: Skill): s
  * The fighter whose turn it is acts: a skill on its targets (one for single
  * target skills; "all" skills reach every valid target whatever is passed),
  * an item or a retreat. Then the turn ends, except after an item: the hero
- * keeps the turn (`actorId` stays) until it uses MAX_ITEMS_PER_TURN of them
- * or does anything else.
+ * keeps the turn (`actorId` stays) until it does anything else (it can use up
+ * to MAX_ITEMS_PER_TURN items in it).
  */
 export function performAction(battle: BattleState, action: BattleAction): BattleStep {
   const state = structuredClone(battle)
@@ -1072,8 +1073,8 @@ export function performAction(battle: BattleState, action: BattleAction): Battle
       restoreFocus(actor, perkOf(actor, Perk.ITEM_FOCUS), events)
     }
 
-    // The turn goes on until the last item it can use.
-    if (!state.outcome && isAlive(actor) && getItemsLeft(state) > 0) {
+    // The turn goes on: even after the last item it can use, the hero can still attack or use a special.
+    if (!state.outcome && isAlive(actor)) {
       return { state, events }
     }
 
