@@ -14,7 +14,7 @@ import { buyEcho, buyItem, canBuyItem, getScholarOffer } from '@/app/(protected)
 import { WorldIndex } from '@/app/(protected)/(engine)/utils/worldMap'
 import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
 import { itemName } from '@/app/(protected)/(party)/utils/describe'
-import { ITEM_FAMILIES, itemFamily } from '@/app/(protected)/(party)/utils/itemFamilies'
+import { ITEM_FAMILIES, ItemFamily, itemFamily } from '@/app/(protected)/(party)/utils/itemFamilies'
 import GameButton from '@/app/components/GameButton'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -35,18 +35,30 @@ interface Selection {
   anchor: HTMLElement
 }
 
+/** The tab of the shop: everything, the Scholar's Echoes or one family of items. */
+type ShopTab = 'all' | 'echoes' | ItemFamily
+
 /**
  * The stock of the merchant where the party stands, as one compact grid (the
- * Scholar's Echo first): each thing is a small tile with its picture and
- * its price. Clicking one opens its card next to it, with what it does and the
+ * Scholar's Echo first) with a tab for each category it sells: each thing is a
+ * small tile with its picture and its price. Clicking one opens its card next to it, with what it does and the
  * button to buy it (the card stays open, to buy several in a row).
  */
 export default function ShopDialog({ open, index, state, merchant, onChange, onClose }: ShopDialogProps) {
   const t = useT()
   const echoPrice = getScholarOffer(state)
   const stock = MERCHANT_STOCK[merchant]
-  // All together in one grid (the Scholar's Echo first), the like ones next to each other.
-  const offers = ITEM_FAMILIES.flatMap((family) => stock.filter((offer) => itemFamily(offer.itemId) === family))
+  const families = ITEM_FAMILIES.filter((family) => stock.some((offer) => itemFamily(offer.itemId) === family))
+  const scholar = merchant === MerchantId.SCHOLAR
+  const tabs: ShopTab[] = ['all', ...(scholar ? ['echoes' as const] : []), ...families]
+  const [chosenTab, setTab] = useState<ShopTab>('all')
+  // A tab the merchant does not have (after moving to another one) shows everything.
+  const tab = tabs.includes(chosenTab) ? chosenTab : 'all'
+  // The like ones next to each other, in the order of the families.
+  const offers = ITEM_FAMILIES.filter((family) => tab === 'all' || tab === family).flatMap((family) =>
+    stock.filter((offer) => itemFamily(offer.itemId) === family)
+  )
+  const showEcho = scholar && (tab === 'all' || tab === 'echoes')
   const [chosen, setChosen] = useState<Selection | null>(null)
   const selection = open && chosen?.anchor.isConnected ? chosen : null
   const choose = (itemId: string | null) => (event: MouseEvent<HTMLElement>) =>
@@ -62,9 +74,29 @@ export default function ShopDialog({ open, index, state, merchant, onChange, onC
           {t('shop.gold', { gold: state.gold })}
         </span>
       </DialogTitle>
+      {tabs.length > 2 && (
+        <nav className="tabs" role="tablist">
+          {tabs.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              className={classNames({ selected: tab === id })}
+              onClick={(event) => {
+                event.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+                setTab(id)
+                setChosen(null)
+              }}
+            >
+              {id === 'echoes' ? t('party.echoes') : t(`inventory.tabs.${id}`)}
+            </button>
+          ))}
+        </nav>
+      )}
       <DialogContent className="content">
         <ul className="offers">
-          {merchant === MerchantId.SCHOLAR && (
+          {showEcho && (
             <li>
               <button
                 type="button"

@@ -15,6 +15,45 @@
     }
   }
 
+  // One tab for each category the merchant sells (console style plaques, as in the inventory).
+  .tabs {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 8px;
+    // Room for the glow of the selected tab, which the scroll would cut.
+    // The negative margins keep that room from pushing the title and the grid apart.
+    margin: -14px 0 -8px;
+    padding: 18px 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    button {
+      flex: 0 0 auto;
+      padding: 7px 12px;
+      border: var(--frame-border);
+      border-radius: var(--frame-radius);
+      background: var(--frame-background);
+      box-shadow:
+        0 0 0 2px #12103a,
+        0 0 0 3px #12103a;
+      color: var(--color-text-secondary);
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      cursor: pointer;
+
+      &.selected {
+        background: linear-gradient(180deg, #8a3a10 0%, #4a1a06 100%);
+        box-shadow: var(--frame-glow);
+        color: #fff3d0;
+        text-shadow: 0 0 8px var(--color-ember);
+      }
+    }
+  }
+
   .offers {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
@@ -103,6 +142,18 @@
     .title {
       padding-top: 10px;
       padding-bottom: 6px;
+    }
+
+    .tabs {
+      gap: 6px;
+      margin: -14px 0 -10px;
+      padding: 18px 24px;
+
+      button {
+        padding: 5px 9px;
+        font-size: 0.62rem;
+        letter-spacing: 0.04em;
+      }
     }
 
     .offers {
