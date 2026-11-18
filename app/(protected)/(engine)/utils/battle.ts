@@ -1,3 +1,16 @@
+import {
+  AFFIX_REWARD,
+  ARMORED_SHIELDS,
+  EXPLOSIVE_SHARE,
+  getAffixCount,
+  getAffixPool,
+  REGENERATING_SHARE,
+  SWIFT_SPEED,
+  THORNY_SHARE,
+  VAMPIRIC_SHARE,
+  VENGEFUL_TURNS
+} from '@/app/(protected)/(engine)/data/affixes'
+import { getBossPhases } from '@/app/(protected)/(engine)/data/bossPhases'
 import { getCharacterDefinition } from '@/app/(protected)/(engine)/data/characters'
 import { CYCLE_BOSS_SKILLS } from '@/app/(protected)/(engine)/data/cycles'
 import { getEnemyRewards, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
@@ -22,10 +35,12 @@ import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { BattleState, EnemySpawn } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
 import { addBonuses, BonusesPart } from '@/app/(protected)/(engine)/models/Bonuses'
+import { BossPhaseChange } from '@/app/(protected)/(engine)/models/BossPhase'
 import { CharacterState } from '@/app/(protected)/(engine)/models/CharacterState'
 import { Combatant, RuneState } from '@/app/(protected)/(engine)/models/Combatant'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { EliteAffix } from '@/app/(protected)/(engine)/models/EliteAffix'
 import { EnemySpecies } from '@/app/(protected)/(engine)/models/EnemySpecies'
 import { Item, ItemTarget, StoneId } from '@/app/(protected)/(engine)/models/Item'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
@@ -100,6 +115,8 @@ const BOSS_DOT_FACTOR = 1 / 3
 /** Bosses shrug off most freezes and stuns. */
 const BOSS_CONTROL_FACTOR = 0.3
 const BLIND_MISS_CHANCE = 0.5
+/** What a hit off its weaknesses (and its damage over time) does to a sealed enemy. */
+const SEALED_SHARE = 0.05
 const BUFF = 1.25
 const DEBUFF = 0.75
 /** A boss grows this much stronger when one of its health bars empties. */
@@ -264,10 +281,28 @@ function cycleSkills(species: EnemySpecies, cycle: number): string[] {
   return cycle > 0 && species.rarity === 'boss' && extra ? [...species.skills, extra] : species.skills
 }
 
+/** The traits of an elite, drawn from the seed of the battle (bosses get none). */
+function rollAffixes(state: BattleState, species: EnemySpecies): EliteAffix[] {
+  const pool = [...getAffixPool(species.biome, state.cycle)]
+  const affixes: EliteAffix[] = []
+
+  for (let count = getAffixCount(species.biome, state.cycle); count > 0 && pool.length > 0; count--) {
+    affixes.push(...pool.splice(Math.floor(roll(state) * pool.length), 1))
+  }
+
+  return affixes
+}
+
+export function hasAffix(combatant: Combatant, affix: EliteAffix): boolean {
+  return combatant.affixes?.includes(affix) ?? false
+}
+
 function spawnEnemies(state: BattleState, phase: number): Combatant[] {
   return state.phases[phase].map((spawn, index) => {
     const species = getSpecies(spawn.speciesId)
-    const stats = getEnemyStats(spawn.speciesId, spawn.level, spawn.elite, state.cycle)
+    const affixes = spawn.elite && species.rarity !== 'boss' ? rollAffixes(state, species) : []
+    const base = getEnemyStats(spawn.speciesId, spawn.level, spawn.elite, state.cycle)
+    const stats = affixes.includes(EliteAffix.SWIFT) ? { ...base, speed: Math.round(base.speed * SWIFT_SPEED) } : base
 
     return {
       id: `e${phase + 1}-${index + 1}`,
@@ -281,10 +316,14 @@ function spawnEnemies(state: BattleState, phase: number): Combatant[] {
       initiative: roll(state) * 30,
       statuses: [],
       skills: cycleSkills(species, state.cycle),
-      affinities: species.affinities,
+      affinities: { ...species.affinities },
       bars: species.bars,
       reserve: false,
-      fought: true
+      fought: true,
+      ...(affixes.length > 0 ? { affixes } : {}),
+      ...(affixes.includes(EliteAffix.ARMORED) ? { shields: ARMORED_SHIELDS } : {}),
+      ...(species.weaponImmune ? { weaponImmune: true } : {}),
+      ...(species.sealed ? { sealed: true } : {})
     }
   })
 }
@@ -879,13 +918,24 @@ export function nextTurn(battle: BattleState): BattleStep {
         heal(actor, Math.ceil(actor.stats.maxHealth * REGEN_SHARE * (isBoss(actor) ? BOSS_DOT_FACTOR : 1)), events)
       }
 
+      if (hasAffix(actor, EliteAffix.REGENERATING) && actor.health < actor.stats.maxHealth) {
+        events.push({ type: 'affix', targetId: actor.id, affix: EliteAffix.REGENERATING })
+        heal(actor, Math.ceil(actor.stats.maxHealth * REGENERATING_SHARE), events)
+      }
+
       for (const status of actor.statuses) {
         const share = DOT_SHARE[status.type]
 
         if (share) {
           const amount = Math.max(
             1,
-            Math.round(actor.stats.maxHealth * share * (status.power ?? 1) * (isBoss(actor) ? BOSS_DOT_FACTOR : 1))
+            Math.round(
+              actor.stats.maxHealth *
+                share *
+                (status.power ?? 1) *
+                (isBoss(actor) ? BOSS_DOT_FACTOR : 1) *
+                (actor.sealed ? SEALED_SHARE : 1)
+            )
           )
 
           events.push({ type: 'statusTick', targetId: actor.id, status: status.type, amount })
@@ -1311,7 +1361,8 @@ function addStatus(
 ): void {
   if (
     IMMUNITIES.some(([perk, types]) => types.includes(type) && perkOf(bearer, perk) > 0) ||
-    (HARMFUL.has(type) && hasStatus(bearer, StatusType.WARD))
+    (HARMFUL.has(type) && hasStatus(bearer, StatusType.WARD)) ||
+    (CONTROL.has(type) && hasAffix(bearer, EliteAffix.UNSHAKABLE))
   ) {
     events.push({ type: 'immune', targetId: bearer.id })
 
@@ -1469,6 +1520,13 @@ function strike(
     }
   }
 
+  // The ethereal ones: no weapon attack can touch them (not even a shield breaks).
+  if (target.weaponImmune && skill.id === actor.skills[0]) {
+    events.push({ type: 'immune', targetId: target.id, weapon: true })
+
+    return false
+  }
+
   // A shield stops the whole hit, and breaks.
   if (target.shields) {
     target.shields--
@@ -1508,13 +1566,16 @@ function strike(
   }
 
   const weak = affinity === Affinity.WEAK
+  // Sealed: only its weaknesses hurt it, and as a normal hit; the rest barely scratches it.
+  const sealed = target.sealed && affinity !== Affinity.ABSORB && !halved
+  const multiplier = halved ? 0.5 : sealed ? (weak ? 1 : SEALED_SHARE) : Math.abs(AFFINITY_MULTIPLIER[affinity])
   const amount = Math.max(
     1,
     Math.round(
       skill.power *
         effective(actor, skill.stat) *
         (100 / (100 + effective(target, 'defense'))) *
-        (halved ? 0.5 : Math.abs(AFFINITY_MULTIPLIER[affinity])) *
+        multiplier *
         (critical ? actor.stats.critDamage : 1) *
         (1 + (actor.bonuses?.damage[skill.damageType] ?? 0)) *
         (weak ? 1 + (actor.bonuses?.weakness ?? 0) : 1) *
@@ -1538,7 +1599,8 @@ function strike(
     damageType: skill.damageType,
     critical,
     weak,
-    resisted: affinity === Affinity.RESIST
+    resisted: affinity === Affinity.RESIST,
+    ...(sealed && !weak ? { sealed: true } : {})
   })
   const poisoned = hasStatus(target, StatusType.POISON)
 
@@ -1550,6 +1612,35 @@ function strike(
 
   if (actor.bonuses?.lifesteal && isAlive(actor) && !state.outcome) {
     heal(actor, Math.max(1, Math.round(amount * actor.bonuses.lifesteal)), events)
+  }
+
+  if (
+    hasAffix(actor, EliteAffix.VAMPIRIC) &&
+    isAlive(actor) &&
+    !state.outcome &&
+    actor.health < actor.stats.maxHealth
+  ) {
+    events.push({ type: 'affix', targetId: actor.id, affix: EliteAffix.VAMPIRIC })
+    heal(actor, Math.max(1, Math.round(amount * VAMPIRIC_SHARE)), events)
+  }
+
+  // Thorny: part of the hit goes back to whoever dealt it (it never takes the last point of health).
+  if (hasAffix(target, EliteAffix.THORNY) && actor.side !== target.side && isAlive(actor) && !state.outcome) {
+    const back = Math.min(actor.health - 1, Math.max(1, Math.round(amount * THORNY_SHARE)))
+
+    if (back > 0) {
+      events.push({ type: 'affix', targetId: target.id, affix: EliteAffix.THORNY })
+      events.push({
+        type: 'damage',
+        targetId: actor.id,
+        amount: back,
+        damageType: DamageType.PIERCE,
+        critical: false,
+        weak: false,
+        resisted: false
+      })
+      hurt(state, actor, back, events)
+    }
   }
 
   // The weapon attack can leave the statuses of the weapon, the runes and the tree.
@@ -1701,6 +1792,7 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
     target.skills = [...target.skills, ...learned.filter((skill) => !target.skills.includes(skill))]
 
     events.push({ type: 'nextBar', targetId: target.id, bars: target.bars })
+    enterBossPhase(target, species.bars - target.bars - 1, events)
 
     return
   }
@@ -1717,11 +1809,13 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
 
   if (target.side === 'enemy') {
     const rewards = getEnemyRewards(target.speciesId!, target.level, target.elite, state.cycle)
+    const traits = 1 + AFFIX_REWARD * (target.affixes?.length ?? 0)
 
     state.kills[target.speciesId!] = (state.kills[target.speciesId!] ?? 0) + 1
-    state.xp += Math.round(rewards.xp * (1 + partyPerk(state, Perk.XP_GAIN)))
-    state.gold += Math.round(rewards.gold * (1 + partyPerk(state, Perk.GOLD_GAIN)))
+    state.xp += Math.round(rewards.xp * traits * (1 + partyPerk(state, Perk.XP_GAIN)))
+    state.gold += Math.round(rewards.gold * traits * (1 + partyPerk(state, Perk.GOLD_GAIN)))
     dropLoot(state, target)
+    onEnemyFall(state, target, events)
 
     if (getFighters(state, 'enemy').length === 0) {
       if (state.phase < state.phases.length - 1) {
@@ -1762,6 +1856,82 @@ function hurt(state: BattleState, target: Combatant, amount: number, events: Bat
       state.actorId = null
       events.push({ type: 'end', outcome: 'defeat' })
     }
+  }
+}
+
+/** The traits of the elites that act when an enemy falls: the explosive bursts, the vengeful grow angrier. */
+function onEnemyFall(state: BattleState, fallen: Combatant, events: BattleEvent[]): void {
+  if (hasAffix(fallen, EliteAffix.EXPLOSIVE)) {
+    events.push({ type: 'affix', targetId: fallen.id, affix: EliteAffix.EXPLOSIVE })
+
+    for (const hero of getFighters(state, 'hero')) {
+      const amount = Math.min(hero.health - 1, Math.round(hero.stats.maxHealth * EXPLOSIVE_SHARE))
+
+      if (amount > 0) {
+        events.push({
+          type: 'damage',
+          targetId: hero.id,
+          amount,
+          damageType: DamageType.FIRE,
+          critical: false,
+          weak: false,
+          resisted: false
+        })
+        hurt(state, hero, amount, events)
+      }
+    }
+  }
+
+  for (const ally of getFighters(state, 'enemy').filter((enemy) => hasAffix(enemy, EliteAffix.VENGEFUL))) {
+    events.push({ type: 'affix', targetId: ally.id, affix: EliteAffix.VENGEFUL })
+    addStatus(ally, StatusType.ATTACK_UP, VENGEFUL_TURNS, events, ally)
+  }
+}
+
+/** A boss that emptied a bar changes its rules (data/bossPhases.ts) and the battle tells what changed. */
+function enterBossPhase(boss: Combatant, phase: number, events: BattleEvent[]): void {
+  const rules = getBossPhases(boss.speciesId!)[phase]
+
+  if (!rules) {
+    return
+  }
+
+  const changes: BossPhaseChange[] = []
+
+  for (const [damageType, affinity] of Object.entries(rules.affinities ?? {}) as [DamageType, Affinity][]) {
+    if ((boss.affinities[damageType] ?? Affinity.NORMAL) === affinity) {
+      continue
+    }
+
+    if (affinity === Affinity.NORMAL) {
+      delete boss.affinities[damageType]
+    } else {
+      boss.affinities[damageType] = affinity
+    }
+
+    changes.push({ kind: 'affinity', damageType, affinity })
+  }
+
+  if (rules.weaponImmune !== undefined && Boolean(boss.weaponImmune) !== rules.weaponImmune) {
+    boss.weaponImmune = rules.weaponImmune
+    changes.push({ kind: 'weaponImmune', value: rules.weaponImmune })
+  }
+
+  if (rules.sealed !== undefined && Boolean(boss.sealed) !== rules.sealed) {
+    boss.sealed = rules.sealed
+    changes.push({ kind: 'sealed', value: rules.sealed })
+  }
+
+  if (changes.length > 0) {
+    events.push({ type: 'bossPhase', targetId: boss.id, changes })
+  }
+
+  if (rules.shields) {
+    addShields(boss, rules.shields, events)
+  }
+
+  for (const status of rules.statuses ?? []) {
+    addStatus(boss, status.type, status.turns, events, boss)
   }
 }
 

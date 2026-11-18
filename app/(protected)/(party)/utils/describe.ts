@@ -1,6 +1,8 @@
 import { getSkill } from '@/app/(protected)/(engine)/data/skills'
 import { getSkillLevelUpgrade } from '@/app/(protected)/(engine)/data/skillTrees'
+import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
 import { BonusesPart, SkillUpgrade } from '@/app/(protected)/(engine)/models/Bonuses'
+import { BossPhase, BossPhaseChange } from '@/app/(protected)/(engine)/models/BossPhase'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import { Rune } from '@/app/(protected)/(engine)/models/Rune'
@@ -308,4 +310,30 @@ export function bonusEntries(t: Translator, part: BonusesPart): BonusEntry[] {
   }
 
   return entries
+}
+
+/** One change of the rules of a boss, as the battle announces it ("Now absorbs Fire!"). */
+export function phaseChangeText(t: Translator, change: BossPhaseChange): string {
+  if (change.kind === 'affinity') {
+    return t(`battle.phaseChanges.${change.affinity}`, { type: t(`damageTypes.${change.damageType}`) })
+  }
+
+  return t(`battle.phaseChanges.${change.kind}${change.value ? 'On' : 'Off'}`)
+}
+
+/** Everything a phase of a boss changes (for the bestiary). */
+export function describeBossPhase(t: Translator, phase: BossPhase): string {
+  const changes: BossPhaseChange[] = [
+    ...(Object.entries(phase.affinities ?? {}) as [DamageType, Affinity][]).map(
+      ([damageType, affinity]): BossPhaseChange => ({ kind: 'affinity', damageType, affinity })
+    ),
+    ...(phase.weaponImmune !== undefined ? [{ kind: 'weaponImmune', value: phase.weaponImmune } as const] : []),
+    ...(phase.sealed !== undefined ? [{ kind: 'sealed', value: phase.sealed } as const] : [])
+  ]
+
+  return [
+    ...changes.map((change) => phaseChangeText(t, change)),
+    ...(phase.shields ? [t('battle.shieldGain', { count: phase.shields })] : []),
+    ...(phase.statuses ?? []).map((status) => t(`statuses.${status.type}`))
+  ].join(' ')
 }

@@ -1,4 +1,6 @@
+import { BossPhaseChange } from '@/app/(protected)/(engine)/models/BossPhase'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { EliteAffix } from '@/app/(protected)/(engine)/models/EliteAffix'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
@@ -16,13 +18,20 @@ export type BattleEvent =
       critical: boolean
       weak: boolean
       resisted: boolean
+      /** The target is sealed and the hit was not on a weakness: it barely scratched it. */
+      sealed?: boolean
     }
   | { type: 'item'; actorId: string; itemId: string; targetIds: string[] }
   | { type: 'heal'; targetId: string; amount: number }
   | { type: 'revive'; targetId: string; amount: number }
   | { type: 'focus'; targetId: string; amount: number }
   | { type: 'miss'; targetId: string }
-  | { type: 'immune'; targetId: string }
+  /** Nothing happened to it: an immunity (`weapon`: to weapon attacks) or a ward. */
+  | { type: 'immune'; targetId: string; weapon?: boolean }
+  /** A trait of an elite acted (its name floats over it). */
+  | { type: 'affix'; targetId: string; affix: EliteAffix }
+  /** A boss changed its rules on emptying a bar (right after its `nextBar`). */
+  | { type: 'bossPhase'; targetId: string; changes: BossPhaseChange[] }
   | { type: 'statusTick'; targetId: string; status: StatusType; amount: number }
   | { type: 'status'; targetId: string; status: StatusType; turns: number }
   | { type: 'statusEnd'; targetId: string; status: StatusType }

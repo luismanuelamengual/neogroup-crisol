@@ -111,6 +111,8 @@ const BIOME_POWER: Record<Biome, number> = {
 const BOSS_BIOME_SCALE = 0.9
 const { WEAK, RESIST, IMMUNE, ABSORB } = Affinity
 const { SLASH, PIERCE, BLUNT, FIRE, ICE, LIGHTNING, EARTH, LIGHT, DARKNESS } = DamageType
+/** Bodies of fire, ice or shadow that no weapon can hurt: only elements reach them (an oil on the weapon too). */
+const PHYSICAL_IMMUNE = { [SLASH]: IMMUNE, [PIERCE]: IMMUNE, [BLUNT]: IMMUNE }
 
 function species(
   id: string,
@@ -141,7 +143,7 @@ const COMMON: EnemySpecies[] = [
     Biome.MEADOWS,
     Archetype.CASTER,
     ['earth-bolt', 'earth-wave'],
-    { [FIRE]: WEAK, [EARTH]: RESIST },
+    { [FIRE]: WEAK, [EARTH]: ABSORB },
     0xe5c24a
   ),
   species(
@@ -232,7 +234,7 @@ const COMMON: EnemySpecies[] = [
     Biome.SNOW,
     Archetype.CASTER,
     ['ice-bolt', 'ice-wave'],
-    { [FIRE]: WEAK, [ICE]: ABSORB },
+    { [FIRE]: WEAK, [ICE]: ABSORB, ...PHYSICAL_IMMUNE },
     0xbae6fd
   ),
   // Volcanic lands: absorb fire, weak to ice.
@@ -249,7 +251,7 @@ const COMMON: EnemySpecies[] = [
     Biome.VOLCANIC,
     Archetype.CASTER,
     ['fire-bolt', 'fire-wave'],
-    { [FIRE]: ABSORB, [ICE]: WEAK },
+    { [FIRE]: ABSORB, [ICE]: WEAK, ...PHYSICAL_IMMUNE },
     0xdc2626
   ),
   species(
@@ -307,7 +309,7 @@ const COMMON: EnemySpecies[] = [
     Biome.ABYSS,
     Archetype.CASTER,
     ['darkness-bolt', 'darkness-wave'],
-    { [DARKNESS]: ABSORB, [LIGHT]: WEAK },
+    { [DARKNESS]: ABSORB, [LIGHT]: WEAK, ...PHYSICAL_IMMUNE },
     0x4c1d95
   ),
   // The rest of each roster: uncommon and rare species.
@@ -349,7 +351,7 @@ const COMMON: EnemySpecies[] = [
     Biome.FOREST,
     Archetype.HEALER,
     ['peck', 'mend', 'chorus'],
-    { [FIRE]: WEAK, [EARTH]: RESIST },
+    { [FIRE]: WEAK, [EARTH]: ABSORB },
     0x65a30d
   ),
   species(
@@ -359,7 +361,7 @@ const COMMON: EnemySpecies[] = [
     ['darkness-bolt', 'curse'],
     { [FIRE]: WEAK, [LIGHT]: WEAK, [DARKNESS]: RESIST },
     0x334155,
-    { rarity: 'uncommon' }
+    { weaponImmune: true, rarity: 'uncommon' }
   ),
   species('moss-bear', Biome.FOREST, Archetype.BRUTE, ['claw', 'crush', 'roar'], { [FIRE]: WEAK }, 0x3f6212, {
     rarity: 'uncommon'
@@ -400,7 +402,7 @@ const COMMON: EnemySpecies[] = [
     Biome.TROPICAL,
     Archetype.TANK,
     ['bite', 'spore-cloud'],
-    { [FIRE]: WEAK, [EARTH]: RESIST },
+    { [FIRE]: WEAK, [EARTH]: ABSORB },
     0xbe123c,
     { rarity: 'uncommon' }
   ),
@@ -453,7 +455,7 @@ const COMMON: EnemySpecies[] = [
     Biome.DESERT,
     Archetype.CASTER,
     ['fire-bolt', 'fire-wave', 'sandstorm'],
-    { [ICE]: WEAK, [FIRE]: ABSORB },
+    { [ICE]: WEAK, [FIRE]: ABSORB, ...PHYSICAL_IMMUNE },
     0xf59e0b,
     { rarity: 'uncommon' }
   ),
@@ -467,7 +469,7 @@ const COMMON: EnemySpecies[] = [
     ['bash', 'bulwark'],
     { [LIGHT]: WEAK, [FIRE]: RESIST, [SLASH]: RESIST },
     0xa8a29e,
-    { rarity: 'rare' }
+    { sealed: true, rarity: 'rare' }
   ),
   species(
     'scarab-swarm',
@@ -529,7 +531,7 @@ const COMMON: EnemySpecies[] = [
     ['bite', 'quake'],
     { [BLUNT]: WEAK, [SLASH]: RESIST, [PIERCE]: RESIST },
     0x6b7280,
-    { rarity: 'rare' }
+    { sealed: true, rarity: 'rare' }
   ),
   species(
     'snow-troll',
@@ -546,7 +548,7 @@ const COMMON: EnemySpecies[] = [
     ['ice-bolt', 'soul-drain'],
     { [FIRE]: WEAK, [LIGHT]: WEAK, [ICE]: ABSORB },
     0x93c5fd,
-    { rarity: 'uncommon' }
+    { weaponImmune: true, rarity: 'uncommon' }
   ),
   species(
     'frost-giant',
@@ -555,7 +557,7 @@ const COMMON: EnemySpecies[] = [
     ['bash', 'crush', 'quake', 'harden'],
     { [FIRE]: WEAK, [ICE]: IMMUNE },
     0x7dd3fc,
-    { rarity: 'uncommon' }
+    { sealed: true, rarity: 'uncommon' }
   ),
   species(
     'polar-bear',
@@ -608,7 +610,7 @@ const COMMON: EnemySpecies[] = [
     ['darkness-bolt', 'fire-wave'],
     { [ICE]: WEAK, [LIGHT]: WEAK, [FIRE]: RESIST },
     0x52525b,
-    { rarity: 'uncommon' }
+    { weaponImmune: true, rarity: 'uncommon' }
   ),
   species(
     'hellhound',
@@ -626,7 +628,7 @@ const COMMON: EnemySpecies[] = [
     ['bash', 'bulwark'],
     { [BLUNT]: WEAK, [ICE]: WEAK, [FIRE]: RESIST, [SLASH]: RESIST },
     0x18181b,
-    { rarity: 'rare' }
+    { sealed: true, rarity: 'rare' }
   ),
   species(
     'flame-priest',
@@ -643,7 +645,8 @@ const COMMON: EnemySpecies[] = [
     Archetype.CASTER,
     ['darkness-bolt', 'shriek', 'darkness-wave'],
     { [LIGHT]: WEAK, [DARKNESS]: ABSORB, [SLASH]: RESIST },
-    0xc4b5fd
+    0xc4b5fd,
+    { weaponImmune: true }
   ),
   species(
     'plague-rat',
@@ -679,7 +682,7 @@ const COMMON: EnemySpecies[] = [
     ['bash', 'crush', 'harden', 'rend'],
     { [LIGHT]: WEAK, [FIRE]: WEAK, [DARKNESS]: RESIST },
     0x9f1239,
-    { rarity: 'rare' }
+    { sealed: true, rarity: 'rare' }
   ),
   species(
     'carrion-crow',
@@ -705,7 +708,7 @@ const COMMON: EnemySpecies[] = [
     ['claw', 'soul-drain', 'blood-howl'],
     { [LIGHT]: WEAK, [FIRE]: RESIST, [ICE]: RESIST },
     0x86198f,
-    { rarity: 'uncommon' }
+    { sealed: true, rarity: 'uncommon' }
   ),
   species(
     'void-weaver',
@@ -714,7 +717,7 @@ const COMMON: EnemySpecies[] = [
     ['darkness-bolt', 'web', 'curse'],
     { [LIGHT]: WEAK, [DARKNESS]: ABSORB },
     0x581c87,
-    { rarity: 'uncommon' }
+    { weaponImmune: true, rarity: 'uncommon' }
   ),
   species(
     'crucible-priest',

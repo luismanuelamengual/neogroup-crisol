@@ -484,6 +484,19 @@ export const en: Messages = {
     weak: 'Weak!',
     resist: 'Resists',
     immune: 'Immune',
+    weaponImmune: 'Immune to weapons',
+    sealed: 'Sealed',
+    phaseChanges: {
+      weak: 'Now weak to {type}!',
+      resist: 'Now resists {type}!',
+      immune: 'Now immune to {type}!',
+      absorb: 'Now absorbs {type}!',
+      normal: '{type} hurts it as usual again!',
+      weaponImmuneOn: 'Weapons no longer touch it!',
+      weaponImmuneOff: 'Weapons hurt it again!',
+      sealedOn: 'Sealed: only its weakness hurts it!',
+      sealedOff: 'It breaks its seal!'
+    },
     miss: 'Miss',
     transform: 'It transforms!',
     victory: 'Victory!',
@@ -924,6 +937,9 @@ export const en: Messages = {
     immuneTo: 'Immune to {types}',
     absorbs: 'Absorbs {types}',
     noWeakness: 'No weaknesses',
+    weaponImmuneLine: 'Weapons cannot hurt it: only specials and items',
+    sealedLine: 'Sealed: only its weakness hurts it as usual; the rest barely scratches it',
+    phaseLine: 'On emptying its bar {bar}: {changes}',
     archetype: 'Type: {archetype}',
     statsLine: 'Health {health} · Attack {attack} · Defense {defense} · Speed {speed} (level {level})',
     skillsLine: 'Skills: {skills}',
@@ -974,6 +990,16 @@ export const en: Messages = {
     tank: 'Tank',
     caster: 'Caster',
     healer: 'Healer'
+  },
+  affixes: {
+    vampiric: { name: 'Vampirism' },
+    thorny: { name: 'Thorns' },
+    explosive: { name: 'Blast' },
+    armored: { name: 'Plating' },
+    swift: { name: 'Haste' },
+    regenerating: { name: 'Regeneration' },
+    unshakable: { name: 'Steadfast' },
+    vengeful: { name: 'Vengeance' }
   },
   damageTypes: {
     slash: 'Slash',

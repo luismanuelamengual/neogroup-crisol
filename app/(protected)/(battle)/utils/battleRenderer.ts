@@ -21,9 +21,11 @@ import { getWeapon } from '@/app/(protected)/(engine)/data/weapons'
 import { Archetype } from '@/app/(protected)/(engine)/models/Archetype'
 import { BattleEvent } from '@/app/(protected)/(engine)/models/BattleEvent'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
+import { BossPhaseChange } from '@/app/(protected)/(engine)/models/BossPhase'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { EliteAffix } from '@/app/(protected)/(engine)/models/EliteAffix'
 import { Perk } from '@/app/(protected)/(engine)/models/Perk'
 import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
@@ -39,6 +41,14 @@ export interface BattleLabels {
   weak: string
   resist: string
   immune: string
+  /** A weapon attack on an enemy that no weapon can touch. */
+  weaponImmune: string
+  /** A hit off the weaknesses of a sealed enemy. */
+  sealed: string
+  /** The name of a trait of an elite. */
+  affix: (affix: EliteAffix) => string
+  /** One change of the rules of a boss, as an announcement ("Now absorbs Fire!"). */
+  phaseChange: (change: BossPhaseChange) => string
   miss: string
   transform: string
   /** The name of the rune whose effect acted. */
@@ -60,6 +70,8 @@ interface Figure {
   shieldText: Text
   shields: number
   statusText: Text
+  /** The traits of an elite, under its feet (above its statuses). */
+  affixText: Text
   /** What its statuses look like on it (poison bubbles, ice, stars...), see statusVisuals.ts. */
   aura: StatusAura
   side: Combatant['side']
@@ -523,7 +535,14 @@ export class BattleRenderer {
 
     body.scale.set(size)
     healthBar.position.set(0, -FIGURE_HEIGHT * size - 18)
-    // Below the feet, so it never covers the numbers that rise over the head.
+    const affixText = new Text({
+      text: '',
+      style: { fontFamily: FONT, fontWeight: '900', fontSize: 11, fill: 0xffa53d, stroke: { color: OUTLINE, width: 4 } }
+    })
+
+    // Below the feet, so it never covers the numbers that rise over the head: the traits first, then the statuses.
+    affixText.anchor.set(0.5, 0)
+    affixText.position.set(0, 10)
     statusText.anchor.set(0.5, 0)
     statusText.position.set(0, 10)
     const aura = new StatusAura(
@@ -548,7 +567,7 @@ export class BattleRenderer {
     shieldText.position.set(0, 0)
     shieldBadge.position.set(-52, -FIGURE_HEIGHT * size - 14)
     shieldBadge.visible = false
-    root.addChild(aura.back, body, aura.front, healthBar, shieldBadge, statusText)
+    root.addChild(aura.back, body, aura.front, healthBar, shieldBadge, affixText, statusText)
 
     if (barsText) {
       barsText.anchor.set(0, 0.5)
@@ -570,6 +589,7 @@ export class BattleRenderer {
       shieldText,
       shields: combatant.shields ?? 0,
       statusText,
+      affixText,
       aura,
       side: combatant.side,
       rig,
@@ -632,6 +652,9 @@ export class BattleRenderer {
       figure.maxHealth = combatant.stats.maxHealth
       figure.bars = combatant.bars
       figure.statusText.text = combatant.statuses.map((status) => this.labels.status(status.type)).join(' · ')
+      figure.affixText.text =
+        combatant.health > 0 ? (combatant.affixes ?? []).map((affix) => this.labels.affix(affix)).join(' · ') : ''
+      figure.statusText.position.y = figure.affixText.text ? 25 : 10
       figure.aura.set(combatant.health > 0 ? combatant.statuses.map((status) => status.type) : [])
       this.drawHealth(figure)
       figure.healthBar.visible = combatant.health > 0
@@ -666,6 +689,7 @@ export class BattleRenderer {
     outcomes = new Map<string, HitOutcome>()
   ): Promise<void> {
     const ms = (value: number) => value / this.speed
+
     for (const sound of soundOf(event, 'targetId' in event ? (this.figures.get(event.targetId)?.side ?? null) : null)) {
       playSfx(sound)
     }
@@ -760,7 +784,9 @@ export class BattleRenderer {
           this.float(figure, this.labels.weak, 0xffc233, 14, -26)
         }
 
-        if (event.type === 'damage' && event.resisted) {
+        if (event.type === 'damage' && event.sealed) {
+          this.float(figure, this.labels.sealed, 0x9ca3af, 14, -26)
+        } else if (event.type === 'damage' && event.resisted) {
           this.float(figure, this.labels.resist, 0x9ca3af, 14, -26)
         }
 
@@ -888,7 +914,12 @@ export class BattleRenderer {
         const figure = this.figures.get(event.targetId)
 
         if (figure) {
-          this.float(figure, event.type === 'miss' ? this.labels.miss : this.labels.immune, 0xd1d5db, 16)
+          this.float(
+            figure,
+            event.type === 'miss' ? this.labels.miss : event.weapon ? this.labels.weaponImmune : this.labels.immune,
+            0xd1d5db,
+            16
+          )
         }
 
         await wait(ms(260))
@@ -962,6 +993,33 @@ export class BattleRenderer {
         figure.size *= 1.08
         figure.body.scale.set(figure.size)
         this.drawHealth(figure)
+        break
+      }
+
+      case 'affix': {
+        const figure = this.figures.get(event.targetId)
+
+        if (figure) {
+          this.float(figure, this.labels.affix(event.affix), 0xffa53d, 15, -30)
+        }
+
+        await wait(ms(260))
+        break
+      }
+
+      case 'bossPhase': {
+        const figure = this.figures.get(event.targetId)
+
+        if (!figure) {
+          break
+        }
+
+        // Each change, one after the other, so they can be read.
+        for (const change of event.changes) {
+          this.float(figure, this.labels.phaseChange(change), 0xffd23c, 17, -36)
+          await wait(ms(650))
+        }
+
         break
       }
 
@@ -1295,7 +1353,11 @@ export class BattleRenderer {
     })
     const start = {
       x: figure.root.position.x + (Math.random() - 0.5) * 20,
-      y: figure.root.position.y - FIGURE_HEIGHT * figure.size * this.scale * 0.7 + offset
+      // Never so high that it rises off the top of the screen (big bosses on a short landscape phone).
+      y: Math.max(
+        60 * Math.max(0.8, this.scale),
+        figure.root.position.y - FIGURE_HEIGHT * figure.size * this.scale * 0.7 + offset
+      )
     }
 
     label.anchor.set(0.5)

@@ -7,12 +7,13 @@ import { useState } from 'react'
 import { enemyName } from '@/app/(protected)/(battle)/utils/names'
 import { getBestiaryLevel, getBestiaryThresholds } from '@/app/(protected)/(engine)/data/bestiary'
 import { BIOMES } from '@/app/(protected)/(engine)/data/biomes'
+import { getBossPhases } from '@/app/(protected)/(engine)/data/bossPhases'
 import { ENEMIES, getEnemyStats, getSpecies } from '@/app/(protected)/(engine)/data/enemies'
 import { BIOME_DROPS, BIOME_STONE } from '@/app/(protected)/(engine)/data/items'
 import { Affinity } from '@/app/(protected)/(engine)/models/Affinity'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
 import EnemyPortrait from '@/app/(protected)/(party)/components/EnemyPortrait'
-import { itemName, skillName } from '@/app/(protected)/(party)/utils/describe'
+import { describeBossPhase, itemName, skillName } from '@/app/(protected)/(party)/utils/describe'
 import GameScreen from '@/app/components/GameScreen'
 import { useT } from '@/app/i18n/I18nProvider'
 import type { MessageKey } from '@/app/i18n/messages'
@@ -61,6 +62,18 @@ function describeSpecies(t: Translator, speciesId: string, kills: Record<string,
         lines.push(t(key, { types: list }))
       }
     }
+
+    if (species.weaponImmune) {
+      lines.push(t('party.weaponImmuneLine'))
+    }
+
+    if (species.sealed) {
+      lines.push(t('party.sealedLine'))
+    }
+
+    getBossPhases(speciesId).forEach((phase, index) =>
+      lines.push(t('party.phaseLine', { bar: index + 1, changes: describeBossPhase(t, phase) }))
+    )
   }
 
   if (level >= 3) {

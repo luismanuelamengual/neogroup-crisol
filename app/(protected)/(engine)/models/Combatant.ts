@@ -3,6 +3,7 @@ import { Bonuses } from '@/app/(protected)/(engine)/models/Bonuses'
 import { CharacterId } from '@/app/(protected)/(engine)/models/CharacterId'
 import { CombatStats } from '@/app/(protected)/(engine)/models/CombatStats'
 import { DamageType } from '@/app/(protected)/(engine)/models/DamageType'
+import { EliteAffix } from '@/app/(protected)/(engine)/models/EliteAffix'
 import { Stance } from '@/app/(protected)/(engine)/models/Stance'
 import { StatusType } from '@/app/(protected)/(engine)/models/StatusType'
 import { Trait } from '@/app/(protected)/(engine)/models/Trait'
@@ -56,6 +57,12 @@ export interface Combatant {
   /** Enemies: their species (bosses included) and whether they are the elite variant. */
   speciesId?: string
   elite?: boolean
+  /** Elites: the traits they came with (see EliteAffix). */
+  affixes?: EliteAffix[]
+  /** Enemies: weapon attacks cannot hurt it (see EnemySpecies; a boss can gain it or lose it in a new phase). */
+  weaponImmune?: boolean
+  /** Enemies: only its weaknesses hurt it as usual (see EnemySpecies). */
+  sealed?: boolean
   level: number
   stats: CombatStats
   health: number

@@ -490,6 +490,19 @@ export const es = {
     weak: '¡Débil!',
     resist: 'Resiste',
     immune: 'Inmune',
+    weaponImmune: 'Inmune a las armas',
+    sealed: 'Sellado',
+    phaseChanges: {
+      weak: '¡Ahora es débil a {type}!',
+      resist: '¡Ahora resiste {type}!',
+      immune: '¡Ahora es inmune a {type}!',
+      absorb: '¡Ahora absorbe {type}!',
+      normal: '¡{type} vuelve a dañarlo normal!',
+      weaponImmuneOn: '¡Las armas ya no lo tocan!',
+      weaponImmuneOff: '¡Las armas vuelven a dañarlo!',
+      sealedOn: '¡Se sella: solo su debilidad lo daña!',
+      sealedOff: '¡Rompe su sello!'
+    },
     miss: 'Falla',
     transform: '¡Se transforma!',
     victory: '¡Victoria!',
@@ -930,6 +943,9 @@ export const es = {
     immuneTo: 'Inmune a {types}',
     absorbs: 'Absorbe {types}',
     noWeakness: 'Sin debilidades',
+    weaponImmuneLine: 'Las armas no lo dañan: solo las especiales y los objetos',
+    sealedLine: 'Sellado: solo su debilidad le hace daño normal; el resto, casi nada',
+    phaseLine: 'Al vaciar su barra {bar}: {changes}',
     archetype: 'Tipo: {archetype}',
     statsLine: 'Vida {health} · Ataque {attack} · Defensa {defense} · Velocidad {speed} (nivel {level})',
     skillsLine: 'Habilidades: {skills}',
@@ -980,6 +996,16 @@ export const es = {
     tank: 'Tanque',
     caster: 'Lanzador',
     healer: 'Sanador'
+  },
+  affixes: {
+    vampiric: { name: 'Vampirismo' },
+    thorny: { name: 'Espinas' },
+    explosive: { name: 'Explosión' },
+    armored: { name: 'Coraza' },
+    swift: { name: 'Celeridad' },
+    regenerating: { name: 'Regeneración' },
+    unshakable: { name: 'Firmeza' },
+    vengeful: { name: 'Venganza' }
   },
   damageTypes: {
     slash: 'Corte',

@@ -20,7 +20,9 @@ import { getRuneOfPerk } from '@/app/(protected)/(engine)/data/runes'
 import { BattleAction } from '@/app/(protected)/(engine)/models/BattleAction'
 import { BattleState } from '@/app/(protected)/(engine)/models/BattleState'
 import { Biome } from '@/app/(protected)/(engine)/models/Biome'
+import { BossPhaseChange } from '@/app/(protected)/(engine)/models/BossPhase'
 import { Combatant } from '@/app/(protected)/(engine)/models/Combatant'
+import { EliteAffix } from '@/app/(protected)/(engine)/models/EliteAffix'
 import { Encounter } from '@/app/(protected)/(engine)/models/Encounter'
 import { EncounterKind } from '@/app/(protected)/(engine)/models/EncounterKind'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
@@ -61,7 +63,7 @@ import { SKILL_SLOTS } from '@/app/(protected)/(engine)/utils/heroes'
 import ItemIcon from '@/app/(protected)/(party)/components/ItemIcon'
 import LootGrid from '@/app/(protected)/(party)/components/LootGrid'
 import XpBar from '@/app/(protected)/(party)/components/XpBar'
-import { itemName, runeName, stanceNames } from '@/app/(protected)/(party)/utils/describe'
+import { itemName, phaseChangeText, runeName, stanceNames } from '@/app/(protected)/(party)/utils/describe'
 import GameButton from '@/app/components/GameButton'
 import Loading from '@/app/components/Loading'
 import { useT } from '@/app/i18n/I18nProvider'
@@ -254,6 +256,10 @@ export default function BattleScreen({ game, node, encounter, onFinish }: Battle
         weak: t('battle.weak'),
         resist: t('battle.resist'),
         immune: t('battle.immune'),
+        weaponImmune: t('battle.weaponImmune'),
+        sealed: t('battle.sealed'),
+        affix: (affix: EliteAffix) => t(`affixes.${affix}.name`),
+        phaseChange: (change: BossPhaseChange) => phaseChangeText(t, change),
         miss: t('battle.miss'),
         transform: t('battle.transform'),
         perk: (perk: Perk) => {

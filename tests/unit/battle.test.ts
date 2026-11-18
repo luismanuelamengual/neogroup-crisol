@@ -541,7 +541,8 @@ describe('items, bonuses and loot', () => {
       const nearlyDead = {
         ...state,
         combatants: state.combatants.map((combatant) =>
-          combatant.side === 'enemy' ? { ...combatant, health: 1 } : combatant
+          // Without the traits of the elite (shields, thorns...): only the loot matters here.
+          combatant.side === 'enemy' ? { ...combatant, health: 1, shields: 0, affixes: undefined } : combatant
         )
       }
       const { state: after } = performAction(nearlyDead, { type: 'skill', skillId: 'kael-strike', targetIds: ['e1-1'] })

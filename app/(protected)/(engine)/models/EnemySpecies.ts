@@ -18,6 +18,13 @@ export interface EnemySpecies {
   bars: number
   /** How often it shows up in the fights of its biome (and how many kills the bestiary asks for). */
   rarity: 'common' | 'uncommon' | 'rare' | 'boss'
+  /** Weapon attacks cannot hurt it (only specials and items): the ethereal ones. */
+  weaponImmune?: boolean
+  /**
+   * Sealed: only a hit on one of its weaknesses hurts it as usual (with no
+   * extra damage); every other hit, and its damage over time, barely scratches it.
+   */
+  sealed?: boolean
   /** Bosses: the skills it adds each time one of its health bars empties (its script). */
   phaseSkills?: string[][]
   /** Look of its provisional art. */
