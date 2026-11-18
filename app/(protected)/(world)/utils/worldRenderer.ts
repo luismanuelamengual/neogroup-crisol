@@ -85,6 +85,11 @@ const OUTLINE = 0x0a0710
 /** The lost experience waiting at a point: a glowing orb floating over it, with sparks around. */
 const LOST_XP = 0x4fc3ff
 const LOST_XP_CORE = 0xe6f8ff
+/** A reward still waiting at a point: a warm glow with sparkles around its marker. */
+const REWARD_GLOW = 0xffd166
+const REWARD_SPARK = 0xfff4cc
+/** A reward already taken: a green check on its (grey) marker. */
+const CLAIMED = 0x34c759
 /** Height of the building of each merchant, standing on its point in place of its marker (the door just behind the hero). */
 const HOUSE_HEIGHT = 170
 const FOG = 'rgba(7, 4, 13, 0.95)'
@@ -144,6 +149,7 @@ export class WorldRenderer {
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
   private readonly outOfReach = new Graphics()
+  private readonly rewardGlow = new Graphics()
   private readonly beacons = new Graphics()
   private readonly lostXp = new Graphics()
   private readonly selection = new Graphics()
@@ -239,6 +245,7 @@ export class WorldRenderer {
       this.abyss.ground,
       this.trails,
       this.route,
+      this.rewardGlow,
       this.outOfReach,
       this.markers,
       this.scenery.shadows,
@@ -577,10 +584,76 @@ export class WorldRenderer {
       if (!reachable) {
         this.marker(this.outOfReach, node, { ...style, color: darken(style.color, OUT_OF_REACH_SHADE) })
         this.lock(node.x + style.radius * 0.7, node.y + style.radius * 0.7)
+      } else {
+        this.marker(this.markers, node, style)
+      }
+
+      if (style.reward === 'claimed') {
+        this.check(node.x + style.radius * 0.75, node.y - style.radius * 0.75)
+      }
+    }
+  }
+
+  /** A green badge with a check: the reward of the point is already the party's. */
+  private check(x: number, y: number): void {
+    const size = 20
+
+    this.markers.circle(x, y, size).fill({ color: CLAIMED }).stroke({ width: 5, color: OUTLINE })
+    this.markers
+      .poly([x - size * 0.5, y, x - size * 0.12, y + size * 0.4, x + size * 0.52, y - size * 0.38], false)
+      .stroke({ width: 6, color: 0xffffff, cap: 'round', join: 'round' })
+  }
+
+  /**
+   * The rewards still waiting at the points seen: a warm glow that breathes
+   * and sparkles turning around the marker, so that they call from far
+   * (dimmer out of reach). Under the fog, as the markers.
+   */
+  private drawRewardGlow(): void {
+    this.rewardGlow.clear()
+
+    if (!this.view) {
+      return
+    }
+
+    const glow = (Math.sin(this.elapsed * 2.2) + 1) / 2
+
+    for (const id of this.view.revealed) {
+      const node = this.nodes.get(id)!
+      const style = markerOf(node, this.view.cleared.has(id), this.view.openCamps.has(id))
+
+      if (style.reward !== 'pending') {
         continue
       }
 
-      this.marker(this.markers, node, style)
+      const reachable = id === this.view.positionNodeId || this.view.reachable.has(id)
+      const strength = reachable ? 1 : 0.5
+      const { x, y } = node
+      const radius = style.radius
+
+      for (const [extra, alpha] of [
+        [34, 0.1],
+        [22, 0.16],
+        [12, 0.24]
+      ]) {
+        this.rewardGlow.circle(x, y, radius + extra + glow * 8).fill({ color: REWARD_GLOW, alpha: alpha * strength })
+      }
+
+      for (let spark = 0; spark < 3; spark++) {
+        const angle = this.elapsed * 1.2 + (spark * Math.PI * 2) / 3 + node.x
+        const distance = radius + 22
+        const sx = x + Math.cos(angle) * distance
+        const sy = y + Math.sin(angle) * distance
+        const size = (7 + Math.abs(Math.sin(this.elapsed * 4 + spark * 2)) * 6) * (reachable ? 1 : 0.8)
+        const color = { color: REWARD_SPARK, alpha: 0.95 * strength }
+
+        this.rewardGlow
+          .poly([sx, sy - size * 1.6, sx + size * 0.4, sy, sx, sy + size * 1.6, sx - size * 0.4, sy])
+          .fill(color)
+        this.rewardGlow
+          .poly([sx - size * 1.6, sy, sx, sy + size * 0.4, sx + size * 1.6, sy, sx, sy - size * 0.4])
+          .fill(color)
+      }
     }
   }
 
@@ -666,6 +739,40 @@ export class WorldRenderer {
           .fill({ color: 0xffc233 })
           .stroke({ width: 3, color: OUTLINE })
         g.rect(x - radius * 0.08, y + radius * 0.38, radius * 0.16, radius * 0.32).fill({ color: 0x6b3f1d })
+        break
+      case 'chest':
+        // Closed: a domed lid, iron bands and a golden lock.
+        g.roundRect(x - radius, y - radius * 0.2, radius * 2, radius * 0.95, radius * 0.12)
+          .fill({ color })
+          .stroke(stroke)
+        g.roundRect(x - radius, y - radius * 0.75, radius * 2, radius * 0.6, radius * 0.3)
+          .fill({ color: lighten(color, 0.25) })
+          .stroke(stroke)
+        g.rect(x - radius * 0.62, y - radius * 0.72, radius * 0.18, radius * 1.42).fill({ color: 0x3a2412 })
+        g.rect(x + radius * 0.44, y - radius * 0.72, radius * 0.18, radius * 1.42).fill({ color: 0x3a2412 })
+        g.roundRect(x - radius * 0.22, y - radius * 0.34, radius * 0.44, radius * 0.46, radius * 0.08)
+          .fill({ color: 0xffe08a })
+          .stroke({ width: 3, color: OUTLINE })
+        g.circle(x, y - radius * 0.12, radius * 0.07).fill({ color: OUTLINE })
+        break
+      case 'chestOpen':
+        // Open and empty: the lid thrown back and the dark inside showing.
+        g.poly([
+          x - radius,
+          y - radius * 0.2,
+          x + radius,
+          y - radius * 0.2,
+          x + radius * 0.8,
+          y - radius * 1.05,
+          x - radius * 0.8,
+          y - radius * 1.05
+        ])
+          .fill({ color: darken(color, 0.75) })
+          .stroke(stroke)
+        g.roundRect(x - radius, y - radius * 0.2, radius * 2, radius * 0.95, radius * 0.12)
+          .fill({ color })
+          .stroke(stroke)
+        g.rect(x - radius * 0.82, y - radius * 0.16, radius * 1.64, radius * 0.3).fill({ color: OUTLINE })
         break
       case 'gate':
         g.roundRect(x - radius * 0.7, y - radius, radius * 1.4, radius * 1.8, radius * 0.7)
@@ -830,6 +937,7 @@ export class WorldRenderer {
     this.abyss.update(this.elapsed, visible)
     this.hero.scale.set(1 + pulse * 0.04)
     this.tellHeroOnScreen()
+    this.drawRewardGlow()
     this.drawBeacons(pulse)
     this.drawLostXp()
     this.selection.clear()
@@ -918,4 +1026,15 @@ function lockShackle(x: number, y: number, radius: number): number[] {
   }
 
   return points
+}
+
+/** A color lighter by a share of the way to white. */
+function lighten(color: number, share: number): number {
+  const channel = (shift: number) => {
+    const value = (color >> shift) & 0xff
+
+    return Math.round(value + (255 - value) * share)
+  }
+
+  return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }
