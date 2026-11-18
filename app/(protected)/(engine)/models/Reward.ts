@@ -13,5 +13,7 @@ export type Reward =
   | { type: 'gold'; amount: number }
   | { type: 'item'; itemId: string; count: number }
   | { type: 'echoes'; count: number }
+  /** A shortcut opened from its deep end (see utils/shortcuts.ts). */
+  | { type: 'shortcut'; fromNodeId: string; toNodeId: string }
   | { type: 'abyssOpen' }
   | { type: 'crisolDefeated' }

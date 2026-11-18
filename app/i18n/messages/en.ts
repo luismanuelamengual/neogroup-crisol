@@ -424,6 +424,7 @@ export const en: Messages = {
       gold: '+{amount} gold',
       goldName: 'Gold',
       echoesName: { one: 'Echo', other: 'Echoes' },
+      shortcut: 'You opened a shortcut! The gate fell: this trail now takes you back towards a camp in a few steps',
       abyssOpen: 'Both Seals fell: the Door of the Abyss opened',
       crisol: 'Crisol fell! Finish what is left, or start New Game+ from any camp.'
     },

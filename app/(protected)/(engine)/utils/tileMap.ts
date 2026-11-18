@@ -15,6 +15,7 @@ import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom } from '@/app/(protected)/(engine)/utils/random'
+import { getAllTrails } from '@/app/(protected)/(engine)/utils/shortcuts'
 import { placeVillages } from '@/app/(protected)/(engine)/utils/village'
 import { createZoneFinder } from '@/app/(protected)/(engine)/utils/zones'
 
@@ -61,6 +62,8 @@ const SETTLE_PASSES = 40
 const BUCKET = 400
 
 export function buildTileMap(world: World): TileMap {
+  // The shortcuts are paved too, shut or open: they look like any trail, and a gate on them says whether they are open.
+  const trails = getAllTrails(world)
   const columns = Math.ceil(world.width / TILE_SIZE)
   const rows = Math.ceil(world.height / TILE_SIZE)
   const terrains = new Uint8Array(columns * rows)
@@ -90,7 +93,7 @@ export function buildTileMap(world: World): TileMap {
     nodeBuckets.add(node.x, node.y, node.x, node.y, node)
   }
 
-  for (const [a, b] of world.edges) {
+  for (const [a, b] of trails) {
     const from = nodes.get(a)!
     const to = nodes.get(b)!
 
@@ -336,6 +339,7 @@ function terrainsNear(terrains: BiomeTerrains, toSeal: number): BiomeTerrains {
  * next to it gives way so that it never stands two levels off a paved tile.
  */
 function buildHeights(world: World, columns: number, rows: number, rise: Float32Array, paved: Uint8Array): Uint8Array {
+  const trails = getAllTrails(world)
   const sorted = [...rise].sort((a, b) => a - b)
   const cuts = LEVEL_SHARES.map((share) => sorted[Math.floor(share * (sorted.length - 1))])
   const heights = new Uint8Array(rise.map((value) => cuts.filter((cut) => value > cut).length))
@@ -352,7 +356,7 @@ function buildHeights(world: World, columns: number, rows: number, rise: Float32
   for (let changed = true; changed;) {
     changed = false
 
-    for (const edge of world.edges) {
+    for (const edge of trails) {
       const [a, b] = edge
       const [high, low] = levels.get(a)! >= levels.get(b)! ? [a, b] : [b, a]
       const most = levels.get(low)! + (flat(edge) ? 0 : 1)
@@ -387,7 +391,7 @@ function buildHeights(world: World, columns: number, rows: number, rise: Float32
     }
   }
 
-  for (const [a, b] of world.edges) {
+  for (const [a, b] of trails) {
     const from = nodes.get(a)!
     const to = nodes.get(b)!
     const middle = (from.y + to.y) / 2

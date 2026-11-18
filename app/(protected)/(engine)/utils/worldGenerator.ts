@@ -25,6 +25,7 @@ import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency, DisjointSet, hopDistances } from '@/app/(protected)/(engine)/utils/graph'
 import { createNoise } from '@/app/(protected)/(engine)/utils/noise'
 import { createRandom, Random, shuffle } from '@/app/(protected)/(engine)/utils/random'
+import { findShortcuts } from '@/app/(protected)/(engine)/utils/shortcuts'
 import {
   isJunction,
   KEY_BOSS_CAMP_MAX_STEPS,
@@ -57,6 +58,7 @@ import {
  *      not get a guarded chest: no dead end stays without a prize.
  *      The captors and the Seals wait at the deepest point of their biome.
  *   5. Levels: from the entrance of each biome to its deepest point.
+ *   6. Shortcuts: trails shut from one side, found over the finished world (utils/shortcuts.ts).
  *
  * An attempt that does not pass validateWorld is thrown away and the next seed
  * is tried, so the result is still deterministic.
@@ -114,7 +116,8 @@ export function generateWorld(seed = WORLD_SEED): World {
     const world = generateAttempt(seed + attempt)
 
     if (world && validateWorld(world).length === 0) {
-      return world
+      // Last of all, over the finished world: the shortcuts (no point moves and no trail changes).
+      return { ...world, shortcuts: findShortcuts(world) }
     }
   }
 

@@ -25,11 +25,13 @@ import { Flask } from '@/app/(protected)/(engine)/models/Flask'
 import { GameState } from '@/app/(protected)/(engine)/models/GameState'
 import { NodeType } from '@/app/(protected)/(engine)/models/NodeType'
 import { Reward } from '@/app/(protected)/(engine)/models/Reward'
+import { Shortcut } from '@/app/(protected)/(engine)/models/Shortcut'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Adjacency, buildAdjacency } from '@/app/(protected)/(engine)/utils/graph'
 import { getHardshipThirst, stepInto } from '@/app/(protected)/(engine)/utils/hardships'
 import { addItems, createCharacter, getCharacterStats, getMaxHealth } from '@/app/(protected)/(engine)/utils/heroes'
+import { isShortcutOpen } from '@/app/(protected)/(engine)/utils/shortcuts'
 
 /**
  * Rules of the world map: fog, routes, what happens at each point, resting,
@@ -47,7 +49,10 @@ export const RESPAWN_RESTS = 3
 export interface WorldIndex {
   world: World
   nodes: Map<string, WorldNode>
+  /** The trails (the shortcuts are not among them: see `neighbors`). */
   adjacency: Adjacency
+  /** The shortcuts each point holds an end of. */
+  shortcuts: Map<string, Shortcut[]>
 }
 
 /** Points where a fight waits until it is won. */
@@ -78,8 +83,27 @@ export function indexWorld(world: World): WorldIndex {
     adjacency: buildAdjacency(
       world.nodes.map((node) => node.id),
       world.edges
-    )
+    ),
+    shortcuts: (world.shortcuts ?? []).reduce((byEnd, shortcut) => {
+      for (const id of [shortcut.from, shortcut.to]) {
+        byEnd.set(id, [...(byEnd.get(id) ?? []), shortcut])
+      }
+
+      return byEnd
+    }, new Map<string, Shortcut[]>())
   }
+}
+
+/** The points a point leads to: its trails and the shortcuts the party opened from it (both ways once open). */
+export function neighbors(index: WorldIndex, state: GameState, nodeId: string): string[] {
+  const open = (index.shortcuts.get(nodeId) ?? []).filter((shortcut) => isShortcutOpen(state, shortcut))
+
+  return open.length === 0
+    ? (index.adjacency.get(nodeId) ?? [])
+    : [
+        ...(index.adjacency.get(nodeId) ?? []),
+        ...open.map((shortcut) => (shortcut.from === nodeId ? shortcut.to : shortcut.from))
+      ]
 }
 
 function getNode(index: WorldIndex, nodeId: string): WorldNode {
@@ -110,7 +134,7 @@ export function getRevealedNodeIds(index: WorldIndex, state: GameState): Set<str
   const revealed = new Set(state.clearedNodeIds)
 
   for (const id of state.clearedNodeIds) {
-    for (const next of index.adjacency.get(id) ?? []) {
+    for (const next of neighbors(index, state, id)) {
       revealed.add(next)
     }
   }
@@ -166,7 +190,7 @@ export function planRoute(index: WorldIndex, state: GameState, targetId: string)
   for (let head = 0; head < queue.length; head++) {
     const current = queue[head]
 
-    for (const next of index.adjacency.get(current) ?? []) {
+    for (const next of neighbors(index, state, current)) {
       if (previous.has(next)) {
         continue
       }
@@ -202,7 +226,7 @@ export function getReachableNodeIds(index: WorldIndex, state: GameState): Set<st
   const queue = [state.positionNodeId]
 
   for (let head = 0; head < queue.length; head++) {
-    for (const next of index.adjacency.get(queue[head]) ?? []) {
+    for (const next of neighbors(index, state, queue[head])) {
       if (visited.has(next)) {
         continue
       }
@@ -293,7 +317,16 @@ export function arriveAt(
     next = openChest(next, node, rewards)
   }
 
+  rewards.push(...shortcutsOpenedAt(index, nodeId))
+
   return { state: next, encounter: null, rewards }
+}
+
+/** The shortcuts whose deep end is this point: clearing it opens them. */
+function shortcutsOpenedAt(index: WorldIndex, nodeId: string): Reward[] {
+  return (index.shortcuts.get(nodeId) ?? [])
+    .filter((shortcut) => shortcut.to === nodeId)
+    .map((shortcut): Reward => ({ type: 'shortcut', fromNodeId: shortcut.from, toNodeId: shortcut.to }))
 }
 
 /**
@@ -449,6 +482,10 @@ export function winEncounter(
 
   if (!abyssWasOpen && isAbyssOpen(index, next)) {
     rewards.push({ type: 'abyssOpen' })
+  }
+
+  if (!wasCleared) {
+    rewards.push(...shortcutsOpenedAt(index, nodeId))
   }
 
   return { state: next, rewards }

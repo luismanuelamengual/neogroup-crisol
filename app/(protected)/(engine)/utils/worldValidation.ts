@@ -88,6 +88,28 @@ export function validateWorld(world: World): string[] {
     check(adjacency.get(node.id)!.length >= 1, `${node.id} has no trails`)
   }
 
+  // Shortcuts: inside one biome, new trails (not ones already there), each point at one end at most, and with
+  // them no point goes over its trails.
+  const shortcutEnds = new Set<string>()
+
+  for (const { from, to } of world.shortcuts ?? []) {
+    check(byId.has(from) && byId.has(to), `shortcut ${from}–${to} to an unknown point`)
+
+    if (!byId.has(from) || !byId.has(to)) {
+      continue
+    }
+
+    check(byId.get(from)!.biome === byId.get(to)!.biome, `shortcut ${from}–${to} between two biomes`)
+    check(!adjacency.get(from)!.includes(to), `shortcut ${from}–${to} is already a trail`)
+    check(!shortcutEnds.has(from) && !shortcutEnds.has(to), `shortcut ${from}–${to} shares an end with another`)
+    check(
+      adjacency.get(from)!.length < 4 && adjacency.get(to)!.length < 4,
+      `shortcut ${from}–${to} gives a point too many trails`
+    )
+    shortcutEnds.add(from)
+    shortcutEnds.add(to)
+  }
+
   const startTrails = adjacency.get(world.startNodeId)?.length ?? 0
 
   check(startTrails >= 3 && startTrails <= 4, `the starting camp has ${startTrails} trails`)

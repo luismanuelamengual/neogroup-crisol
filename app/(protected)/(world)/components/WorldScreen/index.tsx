@@ -26,6 +26,7 @@ import {
   getRevealedNodeIds,
   indexWorld,
   isAtOpenCamp,
+  neighbors,
   planRoute,
   rest,
   startNextCycle,
@@ -111,7 +112,7 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
 
     if (encounter) {
       const fromNodeId =
-        index.adjacency.get(state.positionNodeId)!.find((id) => state.clearedNodeIds.includes(id)) ??
+        neighbors(index, state, state.positionNodeId).find((id) => state.clearedNodeIds.includes(id)) ??
         state.lastRestCampId
 
       setPending({ encounter, fromNodeId })
@@ -238,6 +239,8 @@ export default function WorldScreen({ test }: { test?: GameState } = {}) {
             loot: { amount: `+${reward.amount}`, name: t('world.rewards.goldName') },
             sfx: 'coin'
           }
+        case 'shortcut':
+          return { text: t('world.rewards.shortcut') }
         case 'abyssOpen':
           return { text: t('world.rewards.abyssOpen') }
         case 'crisolDefeated':

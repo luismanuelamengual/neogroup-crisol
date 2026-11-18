@@ -148,6 +148,9 @@ export class WorldRenderer {
   private readonly trails = new Graphics()
   private readonly route = new Graphics()
   private readonly markers = new Graphics()
+  /** The gates of the shut shortcuts (see utils/shortcuts.ts), and the ones opening now, fading out. */
+  private readonly gates = new Graphics()
+  private readonly openingGates = new Container()
   private readonly outOfReach = new Graphics()
   private readonly rewardGlow = new Graphics()
   private readonly beacons = new Graphics()
@@ -248,6 +251,8 @@ export class WorldRenderer {
       this.rewardGlow,
       this.outOfReach,
       this.markers,
+      this.gates,
+      this.openingGates,
       this.scenery.shadows,
       this.scenery.standing,
       this.lairs.motes,
@@ -390,6 +395,10 @@ export class WorldRenderer {
     this.view = view
 
     if (!previous || previous.cleared !== view.cleared || previous.respawned !== view.respawned) {
+      if (previous) {
+        this.openGates(previous, view)
+      }
+
       this.lairs.setFreed(view.cleared)
       this.seals.setBeaten(view.cleared)
       this.abyss.setCleared(view.cleared)
@@ -535,6 +544,8 @@ export class WorldRenderer {
         .stroke({ width: 30, color: TRAIL_EDGE, alpha: open ? 0.75 : 0.3, cap: 'round' })
       this.dots(this.trails, from, to, open ? TRAIL_DOT : darken(TRAIL_DOT, known ? 0.55 : 0.4), 7)
     }
+
+    this.drawShortcuts(view)
   }
 
   private drawRoute(route: string[] | null): void {
@@ -542,6 +553,76 @@ export class WorldRenderer {
 
     for (let index = 1; index < (route?.length ?? 0); index++) {
       this.dots(this.route, this.nodes.get(route![index - 1])!, this.nodes.get(route![index])!, ROUTE_DOT, 10)
+    }
+  }
+
+  /** The shortcuts: a trail like the rest once open; shut, a faint trail with a gate in the middle. */
+  private drawShortcuts(view: MapView): void {
+    this.gates.clear()
+
+    for (const shortcut of this.world.shortcuts ?? []) {
+      const { from: a, to: b } = shortcut
+
+      if (!view.cleared.has(a) && !view.cleared.has(b)) {
+        continue
+      }
+
+      const from = this.nodes.get(a)!
+      const to = this.nodes.get(b)!
+
+      if (view.cleared.has(shortcut.to)) {
+        const open = [a, b].every((id) => id === view.positionNodeId || view.reachable.has(id))
+
+        this.trails
+          .moveTo(from.x, from.y)
+          .lineTo(to.x, to.y)
+          .stroke({ width: 30, color: TRAIL_EDGE, alpha: open ? 0.75 : 0.3, cap: 'round' })
+        this.dots(this.trails, from, to, open ? TRAIL_DOT : darken(TRAIL_DOT, 0.55), 7)
+        continue
+      }
+
+      this.trails
+        .moveTo(from.x, from.y)
+        .lineTo(to.x, to.y)
+        .stroke({ width: 30, color: TRAIL_EDGE, alpha: 0.25, cap: 'round' })
+      this.dots(this.trails, from, to, darken(TRAIL_DOT, 0.4), 6)
+      drawGate(this.gates, (from.x + to.x) / 2, (from.y + to.y) / 2)
+    }
+  }
+
+  /** The gates of the shortcuts that opened since the last view rise and fade away. */
+  private openGates(previous: MapView, view: MapView): void {
+    for (const shortcut of this.world.shortcuts ?? []) {
+      if (previous.cleared.has(shortcut.to) || !view.cleared.has(shortcut.to)) {
+        continue
+      }
+
+      const from = this.nodes.get(shortcut.from)!
+      const to = this.nodes.get(shortcut.to)!
+      const gate = new Graphics()
+
+      drawGate(gate, 0, 0)
+      gate.position.set((from.x + to.x) / 2, (from.y + to.y) / 2)
+      this.openingGates.addChild(gate)
+
+      let elapsed = 0
+      const duration = 1400
+
+      const step = (ticker: { deltaMS: number }) => {
+        elapsed += ticker.deltaMS
+        const t = Math.min(1, elapsed / duration)
+
+        gate.position.y = (from.y + to.y) / 2 - 60 * t
+        gate.alpha = 1 - t
+        gate.scale.set(1 + 0.3 * t)
+
+        if (t >= 1) {
+          this.app.ticker.remove(step)
+          gate.destroy()
+        }
+      }
+
+      this.app.ticker.add(step)
     }
   }
 
@@ -1037,4 +1118,39 @@ function lighten(color: number, share: number): number {
   }
 
   return (channel(16) << 16) | (channel(8) << 8) | channel(0)
+}
+
+/** A wooden gate with iron bars and a lock, standing on a shut shortcut (centred on x, y). */
+function drawGate(g: Graphics, x: number, y: number): void {
+  const wood = 0x6b4423
+  const iron = 0x3b3f47
+
+  // The shadow on the ground.
+  g.ellipse(x, y + 34, 50, 12).fill({ color: 0x000000, alpha: 0.35 })
+  // The posts and the beam over them.
+  g.roundRect(x - 46, y - 46, 16, 82, 4)
+    .fill({ color: wood })
+    .stroke({ color: OUTLINE, width: 4 })
+  g.roundRect(x + 30, y - 46, 16, 82, 4)
+    .fill({ color: wood })
+    .stroke({ color: OUTLINE, width: 4 })
+  g.roundRect(x - 54, y - 56, 108, 16, 4)
+    .fill({ color: wood })
+    .stroke({ color: OUTLINE, width: 4 })
+
+  // The bars and the crossbar.
+  for (const offset of [-18, -6, 6, 18]) {
+    g.rect(x + offset - 3, y - 40, 6, 72)
+      .fill({ color: iron })
+      .stroke({ color: OUTLINE, width: 2 })
+  }
+
+  g.rect(x - 30, y - 4, 60, 8)
+    .fill({ color: iron })
+    .stroke({ color: OUTLINE, width: 2 })
+  // The lock.
+  g.roundRect(x - 11, y - 6, 22, 20, 4)
+    .fill({ color: 0xf2b53a })
+    .stroke({ color: OUTLINE, width: 3 })
+  g.circle(x, y + 3, 3).fill({ color: OUTLINE })
 }

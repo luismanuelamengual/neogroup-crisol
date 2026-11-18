@@ -4,6 +4,7 @@ import { BossKind } from '@/app/(protected)/(engine)/models/BossKind'
 import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
+import { getAllTrails } from '@/app/(protected)/(engine)/utils/shortcuts'
 import { heightAt, isPaved, terrainAt } from '@/app/(protected)/(engine)/utils/tileMap'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
 import { SealBiome, SealTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
@@ -116,7 +117,7 @@ export class WorldSeals {
               node,
               biome: node.biome,
               magic: SEAL_MAGIC[node.biome],
-              trails: world.edges.flatMap(([a, b]) => {
+              trails: getAllTrails(world).flatMap(([a, b]) => {
                 const other = a === node.id ? nodes.get(b) : b === node.id ? nodes.get(a) : null
 
                 return other ? [Math.atan2(other.y - node.y, other.x - node.x)] : []

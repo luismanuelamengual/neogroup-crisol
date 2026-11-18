@@ -430,6 +430,8 @@ export const es = {
       gold: '+{amount} de oro',
       goldName: 'Oro',
       echoesName: { one: 'Eco', other: 'Ecos' },
+      shortcut:
+        '¡Abriste un atajo! La reja cayó: este camino ahora te lleva de vuelta hacia un campamento en pocos pasos',
       abyssOpen: 'Los dos Sellos cayeron: la Puerta del Abismo se abrió',
       crisol: '¡Crisol cayó! Terminá lo pendiente o empezá el Nuevo Juego+ desde cualquier campamento.'
     },

@@ -6,6 +6,7 @@ import { TileMap } from '@/app/(protected)/(engine)/models/TileMap'
 import { World } from '@/app/(protected)/(engine)/models/World'
 import { WorldNode } from '@/app/(protected)/(engine)/models/WorldNode'
 import { Zone } from '@/app/(protected)/(engine)/models/Zone'
+import { getAllTrails } from '@/app/(protected)/(engine)/utils/shortcuts'
 import { heightAt, isPaved, terrainAt } from '@/app/(protected)/(engine)/utils/tileMap'
 import { WorldScenery } from '@/app/(protected)/(world)/utils/worldScenery'
 import { LairTextures } from '@/app/(protected)/(world)/utils/zoneTextures'
@@ -99,7 +100,7 @@ export class WorldLairs {
       .filter((node) => node.bossKind === BossKind.CAPTOR && LAIRS[node.biome])
       .map((node) => ({
         node,
-        trails: world.edges.flatMap(([a, b]) => {
+        trails: getAllTrails(world).flatMap(([a, b]) => {
           const other = a === node.id ? nodes.get(b) : b === node.id ? nodes.get(a) : null
 
           return other ? [Math.atan2(other.y - node.y, other.x - node.x)] : []
@@ -216,7 +217,6 @@ export class WorldLairs {
       for (const angle of angles) {
         const x = node.x + Math.cos(angle) * distance
         const y = node.y + Math.sin(angle) * distance
-
         // In front of the point, it would hide it.
         const hides = y > node.y && Math.abs(x - node.x) < TREE_HALF_WIDTH
 
